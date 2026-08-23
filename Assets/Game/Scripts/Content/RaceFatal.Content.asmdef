@@ -1,0 +1,17 @@
+{
+    "name": "RaceFatal.Content",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b2c3a107c95d97b4ebf89494e778ec49",
+        "GUID:18794d5e301a8e643b148335c7538073"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

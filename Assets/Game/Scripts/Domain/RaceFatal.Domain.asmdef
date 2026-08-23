@@ -1,0 +1,16 @@
+{
+    "name": "RaceFatal.Domain",
+    "rootNamespace": "",
+    "references": [
+        "GUID:18794d5e301a8e643b148335c7538073"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
