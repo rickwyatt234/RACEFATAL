@@ -23,8 +23,7 @@ namespace RaceFatal.Shared
     {
         Engine,
         Chassis,
-        Tires,
-        Electronics,
+        Utility,
         Weapon,
         Shield,
     }
@@ -35,6 +34,20 @@ namespace RaceFatal.Shared
         Targeted,
         AreaOfEffect,
         NotApplicable
+    }
+    public enum EquipmentActivationMode
+    {
+        Passive,
+        Press,
+        Hold,
+        ChargeRelease,
+        Reactive
+    }
+    public enum CountermeasureType
+    {
+        None,
+        Flare,
+        Chaff
     }
     public enum TeamPhilosophy
     {

@@ -9,6 +9,7 @@ namespace RaceFatal.Vehicles
         public int LargeNodeCount { get; }
         public float BaseWeight { get; }
         public float BaseHandling { get; }
+        public float EnergyCapacity { get; }
 
         public BikeDefinition(
             string id,
@@ -17,7 +18,9 @@ namespace RaceFatal.Vehicles
             int mediumNodeCount,
             int largeNodeCount,
             float baseWeight,
-            float baseHandling)
+            float baseHandling,
+            float energyCapacity
+            )
         {
             Id = id;
             DisplayName = displayName;
@@ -26,6 +29,7 @@ namespace RaceFatal.Vehicles
             LargeNodeCount = largeNodeCount;
             BaseWeight = baseWeight;
             BaseHandling = baseHandling;
+            EnergyCapacity = energyCapacity;
         }
     }
 }

@@ -19,6 +19,9 @@ namespace RaceFatal.Content.Vehicles
         [Min(0)][SerializeField] private float baseWeight = 250f;
         [Min(0)][SerializeField] private float baseHandling = 1f;
 
+        [Header("Energy")]
+        [Min(0)][SerializeField] private float energyCapacity = 100f;
+
         public BikeDefinition CreateBikeDefinition()
         {
             return new BikeDefinition(
@@ -28,7 +31,8 @@ namespace RaceFatal.Content.Vehicles
                 mediumNodeCount,
                 largeNodeCount,
                 baseWeight,
-                baseHandling);
+                baseHandling,
+                energyCapacity);
         }
     }
 }

@@ -2,7 +2,7 @@ using RaceFatal.Shared;
 
 namespace RaceFatal.Equipment
 {
-    public class EquipmentDefinition
+    public abstract class EquipmentDefinition
     {
         public string Id { get; }
         public string DisplayName { get; }
@@ -10,15 +10,8 @@ namespace RaceFatal.Equipment
         public EquipmentCategory Category { get; }
 
         public NodeSize RequiredNodeSize { get; }
-
-        public WeaponAimMode AimMode { get; }
-
-        public float EnergyCost { get; }
-
-        public float Damage { get; }
-
+        public EquipmentActivationMode ActivationMode { get; }
         public int CreditCost { get; }
-
         public string RequiredTechnologyId { get; }
 
         public EquipmentDefinition(
@@ -26,9 +19,7 @@ namespace RaceFatal.Equipment
             string displayName,
             EquipmentCategory category,
             NodeSize requiredNodeSize,
-            WeaponAimMode aimMode,
-            float energyCost,
-            float damage,
+            EquipmentActivationMode activationMode,
             int creditCost,
             string requiredTechnologyId)
         {
@@ -39,11 +30,7 @@ namespace RaceFatal.Equipment
 
             RequiredNodeSize = requiredNodeSize;
 
-            AimMode = aimMode;
-
-            EnergyCost = energyCost;
-
-            Damage = damage;
+            ActivationMode = activationMode;
 
             CreditCost = creditCost;
 

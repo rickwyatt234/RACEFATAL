@@ -71,6 +71,10 @@ namespace RaceFatal.Vehicles
 
         public Result<EquipmentState> InstallEquipment(EquipmentState equipment, NodeSize nodeSize, int index)
         {
+            if (equipment.Category == EquipmentCategory.Shield && ContainsCategory(EquipmentCategory.Shield))
+            {
+                return Result<EquipmentState>.Failure("Cannot install more than one shield.");
+            }
             BikeNode node = FindNode(nodeSize, index);
             if (node == null)
             {
@@ -122,6 +126,22 @@ namespace RaceFatal.Vehicles
                     node.InstalledEquipment.Destroy();
                 }
             }
+        }
+
+        public bool ContainsCategory(EquipmentCategory category)
+        {
+            foreach (BikeNode node in nodes)
+            {
+                if (!node.IsOccupied)
+                {
+                    continue;
+                }
+                if (node.InstalledEquipment.Category == category)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
