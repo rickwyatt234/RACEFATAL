@@ -9,18 +9,20 @@ namespace RaceFatal.Racing
     public class RaceVehicleState
     {
         public BikeState Bike { get; }
+        public BikePerformance Performance { get; }
         public DamageMeter Damage { get; }
         public EnergyPool EnergyPool { get; }
         public RaceEquipmentSystem EquipmentSystem { get; }
 
         public bool IsDestroyed => Damage.IsDestroyed || Bike.IsDestroyed;
 
-        public RaceVehicleState(BikeState bike, float maximumEnergy, RaceEquipmentSystem equipmentSystem)
+        public RaceVehicleState(BikeState bike, BikePerformance performance, float maximumEnergy, RaceEquipmentSystem equipmentSystem)
         {
             Bike = bike ?? throw new ArgumentNullException(nameof(bike));
             Damage = new DamageMeter();
             EnergyPool = new EnergyPool(maximumEnergy);
             EquipmentSystem = equipmentSystem ?? throw new ArgumentNullException(nameof(equipmentSystem));
+            Performance = performance ?? throw new ArgumentNullException(nameof(performance));
         }
 
         internal DamageResolution ApplyDamage(float incomingDamage)

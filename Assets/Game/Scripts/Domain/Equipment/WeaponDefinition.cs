@@ -6,6 +6,11 @@ namespace RaceFatal.Equipment
     public class WeaponDefinition : EquipmentDefinition
     {
         public WeaponAimMode AimMode { get; }
+        public WeaponDeliveryMode DeliveryMode { get; }
+
+        public float Range { get; }
+
+        public float ProjectileSpeed { get; }
 
         public float Damage { get; }
 
@@ -25,6 +30,9 @@ namespace RaceFatal.Equipment
             NodeSize requiredNodeSize,
             EquipmentActivationMode activationMode,
             WeaponAimMode aimMode,
+            WeaponDeliveryMode deliveryMode,
+            float range,
+            float projectileSpeed,
             float damage,
             float energyCostPerShot,
             float fireInterval,
@@ -56,6 +64,9 @@ namespace RaceFatal.Equipment
             FireInterval = fireInterval;
             ChargeDuration = chargeDuration;
             AimMode = aimMode;
+            DeliveryMode = deliveryMode;
+            Range = range;
+            ProjectileSpeed = projectileSpeed;
         }
     }
 }

@@ -7,61 +7,85 @@ using RaceFatal.Vehicles;
 
 namespace RaceFatal.Racing
 {
-    public class RaceParticipantFactory
+    public sealed class RaceParticipantFactory
     {
-        private readonly GameDatabase gameDatabase;
+        private readonly GameDatabase database;
 
-        public RaceParticipantFactory(GameDatabase gameDatabase)
+        private readonly BikePerformanceCalculator
+            performanceCalculator;
+
+        public RaceParticipantFactory(
+            GameDatabase database,
+            BikePerformanceCalculator performanceCalculator)
         {
-            this.gameDatabase = gameDatabase;
+            this.database = database;
+            this.performanceCalculator =
+                performanceCalculator;
         }
 
-        public Result<RaceParticipant> CreateRaceParticipant(RacerState racer, BikeState bike, RaceParticipantRole role)
+        public Result<RaceParticipant> Create(
+            RacerState racer,
+            BikeState bike,
+            RaceParticipantRole role)
         {
             if (racer == null)
             {
-                return Result<RaceParticipant>.Failure("Racer is null.");
+                return Result<RaceParticipant>.Failure(
+                    "Racer is required.");
             }
+
             if (bike == null)
             {
-                return Result<RaceParticipant>.Failure("Bike is null.");
+                return Result<RaceParticipant>.Failure(
+                    "Bike is required.");
             }
+
             if (bike.IsDestroyed)
             {
-                return Result<RaceParticipant>.Failure("Bike is destroyed.");
-            }
-            if (!bike.IsRaceReady)
-            {
-                return Result<RaceParticipant>.Failure("Bike is not race-ready.");
+                return Result<RaceParticipant>.Failure(
+                    "Destroyed bikes cannot enter races.");
             }
 
-            BikeDefinition bikeDefinition = gameDatabase.GetBikeDefinition(bike.BikeDefinitionId);
+            BikeDefinition bikeDefinition =
+                database.GetBikeDefinition(
+                    bike.BikeDefinitionId);
+
             if (bikeDefinition == null)
             {
-                return Result<RaceParticipant>.Failure($"Bike definition with ID '{bike.BikeDefinitionId}' not found in the database.");
+                return Result<RaceParticipant>.Failure(
+                    $"Bike definition '{bike.BikeDefinitionId}' was not found.");
             }
 
-            var energy = new EnergyPool(bikeDefinition.EnergyCapacity);
+            Result<BikePerformance>
+                performanceResult =
+                    performanceCalculator.Calculate(
+                        bike);
 
-            Result<RaceEquipmentSystem> equipmentResult = 
-                RaceEquipmentSystem.Create(
-                    racer.RacerId,
-                    bike.Loadout,
-                    gameDatabase,
-                    energy);
 
-            if (!equipmentResult.IsSuccess)
-            {
-                return Result<RaceParticipant>.Failure($"Failed to create RaceEquipmentSystem: {equipmentResult.ErrorMessage}");
-            }
+            var energy =
+                new EnergyPool(
+                    bikeDefinition.EnergyCapacity);
 
-            var vehicleState = new RaceVehicleState(
-                bike,
-                bikeDefinition.EnergyCapacity,
-                equipmentResult.Value);
-            
+            Result<RaceEquipmentSystem>
+                equipmentResult =
+                    RaceEquipmentSystem.Create(
+                        racer.RacerId,
+                        bike.Loadout,
+                        database,
+                        energy);
+
+            var vehicle =
+                new RaceVehicleState(
+                    bike,
+                    performanceResult.Value,
+                    bikeDefinition.EnergyCapacity,
+                    equipmentResult.Value);
+
             return Result<RaceParticipant>.Success(
-                new RaceParticipant(racer, vehicleState, role));
+                new RaceParticipant(
+                    racer,
+                    vehicle,
+                    role));
         }
     }
 }

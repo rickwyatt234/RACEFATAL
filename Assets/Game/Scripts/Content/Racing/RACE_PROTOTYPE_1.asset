@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 149e94461610df34e8f10762bcdd98c5, type: 3}
+  m_Name: RACE_PROTOTYPE_1
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Racing.RaceDefinitionSO
+  id: 
+  displayName: RACE_PROTOTYPE
+  track: {fileID: 0}
+  engineClass: 0
+  lapCount: 3
+  entrantCount: 12
+  teamSize: 2

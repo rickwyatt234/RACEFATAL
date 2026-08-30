@@ -3,6 +3,7 @@ using RaceFatal.Data;
 using RaceFatal.Equipment;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
+using RaceFatal.Infrastructure.Input;
 
 namespace RaceFatal.Infrastructure
 {
@@ -12,35 +13,31 @@ namespace RaceFatal.Infrastructure
         public GameDatabase GameDatabase { get; }
         public VehicleFactory VehicleFactory { get; }
         public EquipmentFactory EquipmentFactory { get; }
+        public BikePerformanceCalculator BikePerformanceCalculator { get; }
         public RaceParticipantFactory RaceParticipantFactory { get; }
         public RaceFactory RaceFactory { get; }
-        // public ISaveRepository SaveRepository { get; }
-        // public IInputService InputService { get; }
-        // public IAudioService AudioService { get; }
-        // public SeededRandom Random { get; }
+        public IRaceInputService InputService { get; }
+
 
         public GameContext(
             CareerManager careerManager,
             GameDatabase gameDatabase,
             VehicleFactory vehicleFactory,
             EquipmentFactory equipmentFactory,
+            BikePerformanceCalculator bikePerformanceCalculator,
             RaceParticipantFactory raceParticipantFactory,
-            RaceFactory raceFactory)
-            // ISaveRepository saveRepository,
-            // IInputService inputService,
-            // IAudioService audioService,
-            // SeededRandom random)
+            RaceFactory raceFactory,
+            IRaceInputService inputService)
+
         {
             CareerManager = careerManager;
             GameDatabase = gameDatabase;
             VehicleFactory = vehicleFactory;
             EquipmentFactory = equipmentFactory;
+            BikePerformanceCalculator = bikePerformanceCalculator;
             RaceParticipantFactory = raceParticipantFactory;
             RaceFactory = raceFactory;
-            // SaveRepository = saveRepository;
-            // InputService = inputService;
-            // AudioService = audioService;
-            // Random = random;
+            InputService = inputService;
         }
     }
 }

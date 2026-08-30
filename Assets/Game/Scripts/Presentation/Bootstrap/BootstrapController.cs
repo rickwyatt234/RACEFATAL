@@ -6,6 +6,7 @@ using RaceFatal.Vehicles;
 using RaceFatal.Racing;
 using RaceFatal.Equipment;
 using RaceFatal.Infrastructure;
+using RaceFatal.Infrastructure.Input;
 
 namespace RaceFatal.Presentation.Bootstrap
 {
@@ -33,20 +34,28 @@ namespace RaceFatal.Presentation.Bootstrap
             CharacterFactory characterFactory = new CharacterFactory();
             CareerManager careerManager = new CareerManager(characterFactory);
             VehicleFactory vehicleFactory = new VehicleFactory();
-            RaceParticipantFactory participantFactory = new RaceParticipantFactory(gameDatabase);
+            BikePerformanceCalculator bikePerformanceCalculator = new BikePerformanceCalculator(gameDatabase);
+            RaceParticipantFactory participantFactory = new RaceParticipantFactory(gameDatabase, bikePerformanceCalculator);
             EquipmentFactory equipmentFactory = new EquipmentFactory();
 
             RaceEligibilityService eligibilityService = new RaceEligibilityService();
             RaceGridValidator gridValidator = new RaceGridValidator(eligibilityService);
             RaceFactory raceFactory = new RaceFactory(gridValidator);
+            UnityRaceInputService inputService = GetComponent<UnityRaceInputService>();
+            if (inputService == null)
+            {
+                inputService = gameObject.AddComponent<UnityRaceInputService>();
+            }
 
             return new GameContext(
                 careerManager,
                 gameDatabase,
                 vehicleFactory,
                 equipmentFactory,
+                bikePerformanceCalculator,
                 participantFactory,
-                raceFactory);
+                raceFactory,
+                inputService);
         }
     }   
 }

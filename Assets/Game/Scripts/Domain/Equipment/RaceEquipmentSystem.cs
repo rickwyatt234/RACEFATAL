@@ -501,7 +501,10 @@ namespace RaceFatal.Equipment
                     weapon.Equipment.EquipmentId,
                     weapon.Definition.Id,
                     weapon.Definition.AimMode,
+                    weapon.Definition.DeliveryMode,
                     weapon.Definition.Damage,
+                    weapon.Definition.Range,
+                    weapon.Definition.ProjectileSpeed,
                     chargeRatio));
 
             return true;

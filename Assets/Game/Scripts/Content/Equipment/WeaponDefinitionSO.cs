@@ -17,6 +17,15 @@ namespace RaceFatal.Content.Equipment
         [SerializeField]
         private WeaponAimMode aimMode;
 
+        [SerializeField]
+        private WeaponDeliveryMode deliveryMode;
+
+        [SerializeField]
+        private float range = 100f;
+
+        [SerializeField]
+        private float projectileSpeed = 100f;
+
         [Min(0f)]
         [SerializeField]
         private float damage;
@@ -42,6 +51,9 @@ namespace RaceFatal.Content.Equipment
                 requiredNodeSize,
                 activationMode,
                 aimMode,
+                deliveryMode,
+                range,
+                projectileSpeed,
                 damage,
                 energyCostPerShot,
                 fireInterval,

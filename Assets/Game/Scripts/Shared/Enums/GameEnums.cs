@@ -35,6 +35,14 @@ namespace RaceFatal.Shared
         AreaOfEffect,
         NotApplicable
     }
+    public enum WeaponDeliveryMode
+    {
+        Hitscan,
+        Projectile,
+        GuidedProjectile,
+        Dropped,
+        Area
+    }
     public enum EquipmentActivationMode
     {
         Passive,
