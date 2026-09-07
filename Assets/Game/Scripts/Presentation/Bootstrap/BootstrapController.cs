@@ -1,62 +1,245 @@
-using UnityEngine;
+using RaceFatal.Career;
 using RaceFatal.Content;
 using RaceFatal.Data;
-using RaceFatal.Career;
-using RaceFatal.Vehicles;
-using RaceFatal.Racing;
 using RaceFatal.Equipment;
 using RaceFatal.Infrastructure;
 using RaceFatal.Infrastructure.Input;
+using RaceFatal.Infrastructure.Racing;
+using RaceFatal.Presentation.Racing;
+using RaceFatal.Racing;
+using RaceFatal.Vehicles;
+using UnityEngine;
 
 namespace RaceFatal.Presentation.Bootstrap
 {
-    public class BootstrapController : MonoBehaviour
+    public class BootstrapController :
+        MonoBehaviour
     {
-        public static GameContext GameContext { get; private set; }
-        [SerializeField] private GameContentCatalogSO gameContentCatalog;
+        [Header("Content")]
+
+        [SerializeField]
+        private GameContentCatalogSO
+            contentCatalog;
+
+        public static GameContext Context {
+            get;
+            private set;
+        }
+
+        public static GameContentCatalogSO
+            ContentCatalog {
+            get;
+            private set;
+        }
 
         private void Awake()
         {
-            if (GameContext != null)
+            RaceStartupTrace.Reset();
+
+            RaceStartupTrace.Mark(
+                "BootstrapController.Awake()",
+                this);
+
+            if (Context != null)
             {
-                Debug.LogWarning("GameContext already exists. BootstrapController should only be initialized once.");
+                RaceStartupTrace.Warning(
+                    "A GameContext already exists. " +
+                    "Destroying duplicate Bootstrap.",
+                    this);
+
+                Destroy(gameObject);
+
                 return;
             }
 
-            DontDestroyOnLoad(gameObject);
+            if (contentCatalog == null)
+            {
+                RaceStartupTrace.Fail(
+                    "BootstrapController has no " +
+                    "GameContentCatalog assigned.",
+                    this);
 
-            GameContext = InitializeGameContext();
+                return;
+            }
+
+            DontDestroyOnLoad(
+                gameObject);
+
+            ContentCatalog =
+                contentCatalog;
+
+            RaceStartupTrace.Mark(
+                "Creating GameContext...",
+                this);
+
+            Context =
+                InitializeGameContext();
+
+            if (Context == null)
+            {
+                RaceStartupTrace.Fail(
+                    "InitializeGameContext() returned null.",
+                    this);
+
+                return;
+            }
+
+            RaceStartupTrace.Mark(
+                "GameContext successfully created.",
+                this);
         }
 
-        private GameContext InitializeGameContext()
+        private GameContext
+            InitializeGameContext()
         {
-            GameDatabase gameDatabase = GameDatabaseFactory.CreateGameDatabase(gameContentCatalog);
-            CharacterFactory characterFactory = new CharacterFactory();
-            CareerManager careerManager = new CareerManager(characterFactory);
-            VehicleFactory vehicleFactory = new VehicleFactory();
-            BikePerformanceCalculator bikePerformanceCalculator = new BikePerformanceCalculator(gameDatabase);
-            RaceParticipantFactory participantFactory = new RaceParticipantFactory(gameDatabase, bikePerformanceCalculator);
-            EquipmentFactory equipmentFactory = new EquipmentFactory();
+            // -------------------------------------------------
+            // DATABASE
+            // -------------------------------------------------
 
-            RaceEligibilityService eligibilityService = new RaceEligibilityService();
-            RaceGridValidator gridValidator = new RaceGridValidator(eligibilityService);
-            RaceFactory raceFactory = new RaceFactory(gridValidator);
-            UnityRaceInputService inputService = GetComponent<UnityRaceInputService>();
-            if (inputService == null)
+            GameDatabase database =
+                GameDatabaseFactory
+                    .CreateGameDatabase(
+                        contentCatalog);
+
+            RaceStartupTrace.Mark(
+                "GameDatabase created.",
+                this);
+
+            // -------------------------------------------------
+            // CAREER
+            // -------------------------------------------------
+
+            CharacterFactory
+                characterFactory =
+                    new CharacterFactory();
+
+            CareerManager careerManager =
+                new CareerManager(
+                    characterFactory);
+
+            // -------------------------------------------------
+            // VEHICLES / EQUIPMENT
+            // -------------------------------------------------
+
+            VehicleFactory vehicleFactory =
+                new VehicleFactory();
+
+            EquipmentFactory
+                equipmentFactory =
+                    new EquipmentFactory();
+
+            BikeBuildFactory
+                bikeBuildFactory =
+                    new BikeBuildFactory(
+                        database,
+                        vehicleFactory,
+                        equipmentFactory);
+
+            WorldFactory worldFactory =
+                new WorldFactory(
+                    database,
+                    bikeBuildFactory);
+
+            // -------------------------------------------------
+            // PERFORMANCE
+            // -------------------------------------------------
+
+            BikePerformanceCalculator
+                performanceCalculator =
+                    new BikePerformanceCalculator(
+                        database);
+
+            // -------------------------------------------------
+            // RACING
+            // -------------------------------------------------
+
+            RaceParticipantFactory
+                participantFactory =
+                    new RaceParticipantFactory(
+                        database,
+                        performanceCalculator);
+
+            RaceEligibilityService
+                eligibilityService =
+                    new RaceEligibilityService();
+
+            RaceGridValidator
+                gridValidator =
+                    new RaceGridValidator(
+                        eligibilityService);
+
+            RaceFactory raceFactory =
+                new RaceFactory(
+                    gridValidator);
+
+            RaceEntryBuilder
+                raceEntryBuilder =
+                    new RaceEntryBuilder(
+                        participantFactory,
+                        raceFactory,
+                        careerManager);
+
+            // -------------------------------------------------
+            // GAME SESSION
+            // -------------------------------------------------
+
+            GameSessionManager
+                sessionManager =
+                    new GameSessionManager(
+                        database,
+                        careerManager,
+                        worldFactory,
+                        bikeBuildFactory);
+
+            RacePreparationService
+                racePreparation =
+                    new RacePreparationService(
+                        database,
+                        sessionManager,
+                        raceEntryBuilder);
+
+            RaceLaunchContext
+                raceLaunch =
+                    new RaceLaunchContext();
+
+            // -------------------------------------------------
+            // INPUT
+            // -------------------------------------------------
+
+            UnityRaceInputService input =
+                GetComponent<
+                    UnityRaceInputService>();
+
+            if (input == null)
             {
-                inputService = gameObject.AddComponent<UnityRaceInputService>();
+                input =
+                    gameObject.AddComponent<
+                        UnityRaceInputService>();
             }
+
+            // -------------------------------------------------
+            // COMPLETE CONTEXT
+            // -------------------------------------------------
+
+            RaceStartupTrace.Mark(
+                "Core services created.",
+                this);
 
             return new GameContext(
                 careerManager,
-                gameDatabase,
+                database,
                 vehicleFactory,
                 equipmentFactory,
-                bikePerformanceCalculator,
+                bikeBuildFactory,
+                worldFactory,
+                sessionManager,
+                performanceCalculator,
                 participantFactory,
                 raceFactory,
-                inputService);
+                raceEntryBuilder,
+                racePreparation,
+                raceLaunch,
+                input);
         }
-    }   
+    }
 }
-

@@ -45,6 +45,7 @@ namespace RaceFatal.Career
             }
 
             RacerState player = characterFactory.CreateNewPlayerCharacter(Team.TeamId, playerName);
+            Team.Roster.AddRacer(player);
 
             CurrentRun = new CareerRun(
                 runId: Guid.NewGuid().ToString("N"),
@@ -64,6 +65,27 @@ namespace RaceFatal.Career
         {
             CurrentRun.Retire();
             CurrentRun = null;
+        }
+
+
+        public void InitializeNewGame(
+            TeamState team,
+            CareerRun run)
+        {
+            if (team == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(team));
+            }
+
+            if (run == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(run));
+            }
+
+            Team = team;
+            CurrentRun = run;
         }
     }
 }

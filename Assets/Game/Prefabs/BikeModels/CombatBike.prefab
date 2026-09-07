@@ -24,13 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 255085007424427525}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00000010728843, y: 1.2, z: 0.39999998}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000005960464}
+  m_LocalPosition: {x: -0.0005194803, y: 1.2, z: -0.18531226}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5165787137820851431}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1786462523120360586
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,13 +235,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2933808970827010507}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000005960464}
+  m_LocalPosition: {x: -0.0005193545, y: 0.100000024, z: 0.21468772}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5165787137820851431}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &3497716722258684364
 GameObject:
   m_ObjectHideFlags: 0
@@ -377,7 +377,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.BikeEquipmentMountView
   nodeSize: 0
-  nodeIndex: 0
+  nodeIndex: 1
   equipmentOrigin: {fileID: 26066324146118757}
 --- !u!1 &4407783217376321906
 GameObject:
@@ -423,8 +423,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de10d7d40ecd754cbc00e7075f8d4d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.BikeEquipmentMountView
-  nodeSize: 0
-  nodeIndex: 0
+  nodeSize: 1
+  nodeIndex: 1
   equipmentOrigin: {fileID: 2998684727860653486}
 --- !u!1 &4492063074213665662
 GameObject:
@@ -450,8 +450,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4492063074213665662}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000005960464}
+  m_LocalPosition: {x: -0.0005193545, y: 0, z: 0.21468772}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -462,7 +462,7 @@ Transform:
   - {fileID: 3504328799561208082}
   - {fileID: 5911672624896702204}
   m_Father: {fileID: 5165787137820851431}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &4961257482573651834
 GameObject:
   m_ObjectHideFlags: 0
@@ -474,12 +474,18 @@ GameObject:
   - component: {fileID: 5165787137820851431}
   - component: {fileID: 5525498538130191237}
   - component: {fileID: 7476916405008039680}
-  - component: {fileID: 2828371580261586689}
-  - component: {fileID: 8920986119579563674}
-  - component: {fileID: 2015723976891884391}
   - component: {fileID: 7032310697345285596}
+  - component: {fileID: 2015723976891884391}
   - component: {fileID: 6344214863539082867}
   - component: {fileID: 8611611983191153481}
+  - component: {fileID: 2828371580261586689}
+  - component: {fileID: 822467142099054501}
+  - component: {fileID: 8920986119579563674}
+  - component: {fileID: 8551417907625588365}
+  - component: {fileID: 2700800205855007475}
+  - component: {fileID: 2086371785285538505}
+  - component: {fileID: 8167964980450412403}
+  - component: {fileID: 189037685605491002}
   m_Layer: 0
   m_Name: CombatBike
   m_TagString: Untagged
@@ -495,8 +501,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4961257482573651834}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.00000046193594, z: -0, w: 1}
-  m_LocalPosition: {x: -2.139925, y: 0, z: 0.730755}
+  m_LocalRotation: {x: -0, y: 0.000000014901159, z: -0, w: 1}
+  m_LocalPosition: {x: 0.00000037350873, y: 0, z: -0.000000014901161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -514,7 +520,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4961257482573651834}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 400
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -532,7 +538,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 0
 --- !u!65 &7476916405008039680
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -540,7 +546,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4961257482573651834}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f87185497e0982741ba28ba5dec0f717, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -552,9 +558,9 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.5983896, z: 3.504817}
-  m_Center: {x: 3.198078e-15, y: 0.7008052, z: 0.13750559}
---- !u!114 &2828371580261586689
+  m_Size: {x: 1, y: 1.5045166, z: 3.504817}
+  m_Center: {x: 0, y: 0.7477417, z: 0.13750553}
+--- !u!114 &7032310697345285596
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -563,27 +569,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4961257482573651834}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e50e1d55a9389f74ba95bcdc4327534a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1bf3884f1214d584ebad31c8515a8da3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.RacerViewController
---- !u!114 &8920986119579563674
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4961257482573651834}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b394c3713d9d16f4ba1444121d709d5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackSurfaceProbe
-  trackMask:
-    serializedVersion: 2
-    m_Bits: 8
-  sphereRadius: 0.25
-  startOffset: 0.25
-  probeDistance: 1
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.BikeController
 --- !u!114 &2015723976891884391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -597,26 +585,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.BikeMotor
   centerOfMass: {fileID: 7216985067958961437}
-  adhesionAcceleration: 35
+  desiredSurfaceDistance: 0.3
+  surfaceSpringStrength: 90
+  surfaceSpringDamping: 16
+  maximumSurfaceCorrection: 140
+  maximumSurfaceSeparationSpeed: 1.5
+  surfaceLockDistance: 2
+  initialSurfaceGraceTime: 0.5
+  surfaceLossGraceTime: 0.2
+  graceAdhesionAcceleration: 25
   airGravityAcceleration: 12
   alignmentSpeed: 12
-  lowSpeedTurnRate: 80
-  highSpeedTurnRate: 35
-  lateralGrip: 8
+  lockPhysicsRotation: 1
+  lowSpeedTurnRate: 200
+  highSpeedTurnRate: 175
+  lateralGrip: 12
+  maximumLateralGripAcceleration: 55
   brakeDeceleration: 30
   overspeedCorrection: 3
---- !u!114 &7032310697345285596
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4961257482573651834}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bf3884f1214d584ebad31c8515a8da3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.BikeController
+  maximumDepenetrationVelocity: 8
+  debugThrottle: 0
+  debugBrake: 0
+  debugSteering: 0
+  debugSpeed: 0
+  debugForwardSpeed: 0
+  debugSurfaceDistance: 0
+  debugSurfaceNormalSpeed: 0
+  debugSurfaceCorrection: 0
+  debugHasSurface: 0
+  debugTimeWithoutSurface: 0
+  logMissingSurface: 1
 --- !u!114 &6344214863539082867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -630,7 +628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::BikeVisualController
   motor: {fileID: 2015723976891884391}
-  visualRoot: {fileID: 0}
+  visualRoot: {fileID: 3242068208483831220}
   maximumLeanAngle: 30
   leanSpeed: 8
 --- !u!114 &8611611983191153481
@@ -648,6 +646,246 @@ MonoBehaviour:
   runtime: {fileID: 0}
   minimumImpactSpeed: 5
   damageMultiplier: 0.5
+--- !u!114 &2828371580261586689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e50e1d55a9389f74ba95bcdc4327534a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.RacerViewController
+--- !u!114 &822467142099054501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27885a15d194d6e439c3e606a4cf62f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackProgressReporter
+  segmentSearchRadius: 10
+  reportInterval: 0.05
+--- !u!114 &8920986119579563674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b394c3713d9d16f4ba1444121d709d5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackSurfaceProbe
+  trackMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  sphereRadius: 0.25
+  startOffset: 0.25
+  probeDistance: 2
+--- !u!114 &8551417907625588365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b2e319767e7ecf42b4f5f6c775400a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.AIDriverController
+  baseLookAheadDistance: 18
+  speedLookAheadMultiplier: 0.4
+  maximumLookAheadDistance: 55
+  pathSearchRadius: 20
+  usableTrackHalfWidth: 14
+  wallSafetyMargin: 1.25
+  boundaryRecoveryMargin: 0.5
+  boundaryRecoveryTargetAmount: 0.4
+  boundaryRecoveryShiftSpeed: 4
+  cornerPreviewDistance: 90
+  activeCornerProbeDistance: 25
+  cornerStartAngle: 5
+  fullCornerAngle: 35
+  outsideEntryAmount: 0.65
+  insideApexAmount: 0.55
+  maximumLateralShiftSpeed: 2
+  cornerSignalResponse: 2.5
+  straightCenteringSpeed: 0
+  maximumCornerSeverityForNewPass: 0.3
+  minimumPaceMultiplier: 0.92
+  maximumPaceMultiplier: 1
+  fullSteeringAngle: 30
+  steeringDeadZone: 0.75
+  steeringSmoothTime: 0.15
+  maximumSteeringChangeSpeed: 6
+  cornerScanDistance: 140
+  cornerSampleSpacing: 10
+  maximumCornerAcceleration: 25
+  cornerSpeedSafetyFactor: 0.95
+  minimumCurveAngle: 1.5
+  minimumCornerSpeedKph: 80
+  plannedBrakeDeceleration: 25
+  brakingSafetyDistance: 5
+  brakeSpeedTolerance: 2
+  fullThrottleSpeedDifference: 8
+  fullBrakeSpeedDifference: 12
+  currentProgress: 0
+  currentSegment: -1
+  currentThrottle: 0
+  currentBrake: 0
+  currentSteering: 0
+  debugCrossTrackError: 0
+  debugBaseLateralOffset: 0
+  debugTacticalOffset: 0
+  debugFinalLateralOffset: 0
+  debugRawLateralTarget: 0
+  debugLookAheadDistance: 0
+  debugSteeringAngle: 0
+  debugDesiredSteering: 0
+  debugUpcomingCornerAngle: 0
+  debugActiveCornerAngle: 0
+  debugSmoothedUpcomingAngle: 0
+  debugSmoothedActiveAngle: 0
+  debugCornerSeverity: 0
+  debugRacingState: 
+  debugPaceMultiplier: 0
+  debugOvertakeState: 
+  debugTrafficSpeedLimitKph: 0
+  debugBoostActive: 0
+  debugSpeedMultiplier: 0
+  debugAccelerationMultiplier: 0
+  debugTargetSpeedKph: 0
+  debugLimitingCurveSpeedKph: 0
+  debugLimitingCurveDistance: 0
+  debugTightestRadius: 0
+  debugMaximumCurveAngle: 0
+  drawDebugTarget: 1
+--- !u!114 &2700800205855007475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5866ed257337464097a4ce41c8dcf83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.AIRacerSensor
+  detectionRange: 45
+  forwardLaneHalfWidth: 2.25
+  verticalTolerance: 4
+  sideFrontClearance: 14
+  sideRearClearance: 8
+  sideLaneHalfWidth: 1.4
+  racerId: 
+  debugAheadRacer: 
+  debugAheadDistance: 0
+  debugAheadLateralOffset: 0
+  debugClosingSpeed: 0
+--- !u!114 &2086371785285538505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d11474e3e14adf642885cc8363d82a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.AIOvertakePlanner
+  minimumPassSpeed: 20
+  passTriggerDistance: 30
+  minimumClosingSpeed: 0.6
+  forcedPassDistance: 9
+  passOffset: 2.6
+  minimumCommitTime: 1.25
+  maximumPassTime: 5
+  completionLeadDistance: 5
+  passCooldown: 2
+  tacticalOffsetShiftSpeed: 2.5
+  followingDistance: 12
+  emergencyFollowingDistance: 5
+  followingSpeedBuffer: 2.5
+  currentState: 0
+  debugPassTarget: 
+  debugPassTimer: 0
+  debugCooldownTimer: 0
+  debugTacticalOffset: 0
+  debugTrafficSpeedLimitKph: 0
+  debugLeftClear: 0
+  debugRightClear: 0
+--- !u!114 &8167964980450412403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbf4af5aabffc8c4bb77c057797c1607, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.RaceVehicleDebugView
+  racerId: 
+  role: 
+  currentEnergy: 0
+  maximumEnergy: 0
+  energyPercent: 0
+  hasBooster: 0
+  boosterActive: 0
+  speedMultiplier: 0
+  accelerationMultiplier: 0
+  handlingMultiplier: 0
+--- !u!114 &189037685605491002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c504091093e265e4e9d5ebd069bb4980, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.AIBoostPlanner
+  aggressiveEnergyReserve: 0.2
+  conservativeEnergyReserve: 0.35
+  restartEnergyMargin: 0.12
+  minimumBoostSpeedKph: 80
+  conservativeStartCornerSeverity: 0.08
+  aggressiveStartCornerSeverity: 0.18
+  stopCornerSeverity: 0.28
+  maximumBrakeToStart: 0.05
+  stopBrakeThreshold: 0.15
+  aggressiveStraightCommitTime: 0.25
+  conservativeStraightCommitTime: 1
+  boostCooldown: 0.5
+  passingCommitTimeMultiplier: 0.4
+  debugInitialized: 0
+  debugHasBooster: 0
+  debugBoostActive: 0
+  debugPassing: 0
+  debugTrafficLimited: 0
+  debugEnergyPercent: 0
+  debugRuntimeAggression: 0
+  debugRuntimeEnergyReserve: 0
+  debugRuntimeRestartThreshold: 0
+  debugRuntimeStartCornerSeverity: 0
+  debugRuntimeStraightCommitTime: 0
+  debugStraightTimer: 0
+  debugCooldownTimer: 0
+  debugDecision: Not Initialized
 --- !u!1 &5052253367742190026
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,7 +1067,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de10d7d40ecd754cbc00e7075f8d4d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.BikeEquipmentMountView
-  nodeSize: 0
+  nodeSize: 1
   nodeIndex: 0
   equipmentOrigin: {fileID: 6509273367903444473}
 --- !u!1 &6848672501678027144
@@ -876,7 +1114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de10d7d40ecd754cbc00e7075f8d4d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.BikeEquipmentMountView
-  nodeSize: 0
+  nodeSize: 2
   nodeIndex: 0
   equipmentOrigin: {fileID: 3504328799561208082}
 --- !u!1 &8106265926718197275
@@ -903,8 +1141,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8106265926718197275}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000005960464}
+  m_LocalPosition: {x: -0.0005193545, y: 0, z: 0.21468772}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -914,7 +1152,7 @@ Transform:
   - {fileID: 2157543229319668083}
   - {fileID: 144694890375346001}
   m_Father: {fileID: 5165787137820851431}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &8382554295874126817
 GameObject:
   m_ObjectHideFlags: 0
@@ -959,8 +1197,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de10d7d40ecd754cbc00e7075f8d4d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.BikeEquipmentMountView
-  nodeSize: 0
-  nodeIndex: 0
+  nodeSize: 2
+  nodeIndex: 1
   equipmentOrigin: {fileID: 5911672624896702204}
 --- !u!1 &9157283420093688479
 GameObject:

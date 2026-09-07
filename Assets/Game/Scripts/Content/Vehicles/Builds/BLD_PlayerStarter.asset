@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ddc41656e53c7d4aac70a9c6915810f, type: 3}
+  m_Name: BLD_PlayerStarter
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.BikeBuildDefinitionSO
+  id: player_starter
+  displayName: BLD_PlayerStarter
+  bike: {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
+  engine: {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
+  chassis: {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}
+  equipment:
+  - equipment: {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
+    nodeSize: 0
+    nodeIndex: 0

@@ -12,7 +12,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c76f3364008b5324e9b9f25f9e184346, type: 3}
   m_Name: GameContentCatalog
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.GameContentCatalogSO
-  bikeDefinitions: []
-  engineDefinitions: []
-  chassisDefinitions: []
-  equipmentDefinitions: []
+  bikeDefinitions:
+  - {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
+  engineDefinitions:
+  - {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
+  chassisDefinitions:
+  - {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}
+  bikeBuildDefinitions:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}
+  - {fileID: 11400000, guid: 5ad21c28002990a49b41afc15d5e69b8, type: 2}
+  - {fileID: 11400000, guid: b7e0e396491470246be4dc428bda3aeb, type: 2}
+  equipmentDefinitions:
+  - {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+  - {fileID: 11400000, guid: 463ff824628f33a4d82909b70c48124c, type: 2}
+  - {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
+  racerDefinitions:
+  - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
+  - {fileID: 11400000, guid: 3c307af10d5676c4ba9196e9e2e17166, type: 2}
+  - {fileID: 11400000, guid: 0d845fbef915fcd4aaab04a02016e3a3, type: 2}
+  - {fileID: 11400000, guid: 4c2041c8a20a94f44b9e0a38a3ea9eb3, type: 2}
+  - {fileID: 11400000, guid: 758bb24f9008a274d909b436adb89bf2, type: 2}
+  - {fileID: 11400000, guid: 3254be5987fc5934d84fea6b29df55b3, type: 2}
+  - {fileID: 11400000, guid: 983ef74b1dacffe45b55d32e360b3575, type: 2}
+  - {fileID: 11400000, guid: 977027f9916dd0642adf4e5abba96e3b, type: 2}
+  - {fileID: 11400000, guid: 510a58afb0f9a75418c323bef894efe7, type: 2}
+  - {fileID: 11400000, guid: 9f8abb4d50a58f54b90fd6b2431e71b2, type: 2}
+  - {fileID: 11400000, guid: ef9f1acc04350f74da6b7c5345b10592, type: 2}
+  opponentTeamDefinitions:
+  - {fileID: 11400000, guid: 4f218b04437ddc54ab8116f1e39ba31f, type: 2}
+  - {fileID: 11400000, guid: 3f284dd08e59be440bdbc49ee0bf9b65, type: 2}
+  - {fileID: 11400000, guid: 66193d1ef198cef4fb2a5bfcc6ab39cd, type: 2}
+  - {fileID: 11400000, guid: 72fdb3673ef1c3840bc8ab0b60fedd33, type: 2}
+  - {fileID: 11400000, guid: a96f51aee09ad1747ba40cb7228a0f1c, type: 2}
+  trackDefinitions:
+  - {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
+  raceDefinitions:
+  - {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}

@@ -1,7 +1,4 @@
-/*
-    PERSISTENT STATE BELONG TO TEAM
-    SERIALIZED TO SAVE SLOT
-*/
+using System;
 using System.Collections.Generic;
 using RaceFatal.Vehicles;
 
@@ -9,27 +6,65 @@ namespace RaceFatal.Career
 {
     public class TeamState
     {
-        private readonly HashSet<string> unlockedTechnologyIds = new HashSet<string>();
-        private readonly HashSet<string> unlockedChampionshipIds = new HashSet<string>();
-        private readonly HashSet<string> eliminatedRacerIds = new HashSet<string>();
+        private readonly HashSet<string>
+            unlockedTechnologyIds =
+                new HashSet<string>();
+
+        private readonly HashSet<string>
+            unlockedChampionshipIds =
+                new HashSet<string>();
+
+        private readonly HashSet<string>
+            eliminatedRacerIds =
+                new HashSet<string>();
 
         public string TeamId { get; }
-        public string TeamName { get; }
-        public string PrimaryColor { get; private set;}
-        public string SecondaryColor { get; private set;}
-        public int Credits { get; private set; }
-        public int Fame { get; private set; }
-        public int ResearchPoints { get; private set; }
+
+        public string TeamName {
+            get;
+            private set;
+        }
+
+        public string PrimaryColor {
+            get;
+            private set;
+        }
+
+        public string SecondaryColor {
+            get;
+            private set;
+        }
+
+        public int Credits {
+            get;
+            private set;
+        }
+
+        public int Fame {
+            get;
+            private set;
+        }
+
+        public int ResearchPoints {
+            get;
+            private set;
+        }
+
         public GarageState Garage { get; }
 
+        public TeamRosterState Roster { get; }
 
-        public IReadOnlyCollection<string> UnlockedTechnologyIds =>
-            unlockedTechnologyIds;
-        public IReadOnlyCollection<string> UnlockedChampionshipIds =>
-            unlockedChampionshipIds;
-        public IReadOnlyCollection<string> EliminatedRacerIds =>
-            eliminatedRacerIds;
+        public IReadOnlyCollection<string>
+            UnlockedTechnologyIds =>
+                unlockedTechnologyIds;
 
+        public IReadOnlyCollection<string>
+            UnlockedChampionshipIds =>
+                unlockedChampionshipIds;
+
+        public IReadOnlyCollection<string>
+            EliminatedRacerIds =>
+                eliminatedRacerIds;
 
         public TeamState(
             string teamId,
@@ -37,91 +72,153 @@ namespace RaceFatal.Career
             string primaryColor,
             string secondaryColor)
         {
-            TeamId = teamId;
-            TeamName = teamName;
-            PrimaryColor = primaryColor;
-            SecondaryColor = secondaryColor;
+            TeamId = teamId
+                ?? throw new ArgumentNullException(
+                    nameof(teamId));
 
-            Garage = new GarageState();
+            TeamName = teamName
+                ?? throw new ArgumentNullException(
+                    nameof(teamName));
+
+            PrimaryColor =
+                primaryColor;
+
+            SecondaryColor =
+                secondaryColor;
+
+            Garage =
+                new GarageState();
+
+            Roster =
+                new TeamRosterState();
         }
 
-        public void SetColors(string primary, string secondary)
+        public void SetColors(
+            string primaryColor,
+            string secondaryColor)
         {
-            PrimaryColor = primary;
-            SecondaryColor = secondary;
+            PrimaryColor =
+                primaryColor;
+
+            SecondaryColor =
+                secondaryColor;
         }
 
-#region Economy Variables
-        public void AddCredits(int amount)
+        public void AddCredits(
+            int amount)
         {
-            if (amount > 0)
-                Credits += amount;
+            if (amount <= 0)
+                return;
+
+            Credits += amount;
         }
 
-        public bool TrySpendCredits(int amount)
+        public bool TrySpendCredits(
+            int amount)
         {
-            if (amount < 0 || Credits < amount)
+            if (amount < 0)
+                return false;
+
+            if (Credits < amount)
                 return false;
 
             Credits -= amount;
+
             return true;
         }
 
-        public void AddFame(int amount)
+        public void AddFame(
+            int amount)
         {
-            if (amount > 0)
-                Fame += amount;
+            if (amount <= 0)
+                return;
+
+            Fame += amount;
         }
 
-        public void AddResearchPoints(int amount)
+        public void AddResearchPoints(
+            int amount)
         {
-            if (amount > 0)
-                ResearchPoints += amount;
+            if (amount <= 0)
+                return;
+
+            ResearchPoints +=
+                amount;
         }
 
-        public bool TrySpendResearchPoints(int amount)
+        public bool TrySpendResearchPoints(
+            int amount)
         {
-            if (amount < 0 || ResearchPoints < amount)
+            if (amount < 0)
                 return false;
 
-            ResearchPoints -= amount;
+            if (ResearchPoints < amount)
+                return false;
+
+            ResearchPoints -=
+                amount;
+
             return true;
         }
-#endregion
 
-#region Technology
-        public void UnlockTechnology(string technologyId)
+        public bool UnlockTechnology(
+            string technologyId)
         {
-            unlockedTechnologyIds.Add(technologyId);
-        }
+            if (string.IsNullOrWhiteSpace(
+                    technologyId))
+            {
+                return false;
+            }
 
-        public bool IsTechnologyUnlocked(string technologyId)
-        {
-            return unlockedTechnologyIds.Contains(technologyId);
-        }
-#endregion
-
-#region Championships
-        public void UnlockChampionship(string championshipId)
-        {
-            unlockedChampionshipIds.Add(championshipId);
+            return unlockedTechnologyIds.Add(
+                technologyId);
         }
 
-        public bool IsChampionshipUnlocked(string championshipId)
+        public bool HasTechnology(
+            string technologyId)
         {
-            return unlockedChampionshipIds.Contains(championshipId);
+            return unlockedTechnologyIds.Contains(
+                technologyId);
         }
-#endregion
 
-#region Racers
-        public void PermanentlyEliminateRacer(string racerId)
+        public bool UnlockChampionship(
+            string championshipId)
         {
-            eliminatedRacerIds.Add(racerId);
+            if (string.IsNullOrWhiteSpace(
+                    championshipId))
+            {
+                return false;
+            }
+
+            return unlockedChampionshipIds.Add(
+                championshipId);
         }
-        public bool IsRacerEliminated(string racerId)
+
+        public bool HasChampionshipUnlocked(
+            string championshipId)
         {
-            return eliminatedRacerIds.Contains(racerId);
+            return unlockedChampionshipIds.Contains(
+                championshipId);
         }
-#endregion
+
+        public void PermanentlyEliminateRacer(
+            string racerId)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    racerId))
+            {
+                return;
+            }
+
+            eliminatedRacerIds.Add(
+                racerId);
+        }
+
+        public bool IsRacerEliminated(
+            string racerId)
+        {
+            return eliminatedRacerIds.Contains(
+                racerId);
+        }
     }
 }

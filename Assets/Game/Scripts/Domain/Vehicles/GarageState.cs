@@ -62,18 +62,18 @@ namespace RaceFatal.Vehicles
 #endregion
 
 #region Engine Installation and Removal
-        public Result<EngineState> InstallEngine(string bikeId, string engineId)
+        public Result InstallEngine(string bikeId, string engineId)
         {
             var bike = bikes.Find(b => b.BikeId == bikeId);
             if (bike == null)
             {
-                return Result<EngineState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result.Failure($"Bike with ID {bikeId} not found.");
             }
 
             var engine = engines.Find(e => e.EngineId == engineId);
             if (engine == null)
             {
-                return Result<EngineState>.Failure($"Engine with ID {engineId} not found.");
+                return Result.Failure($"Engine with ID {engineId} not found.");
             }
 
             return bike.Loadout.InstallEngine(engine);
@@ -91,18 +91,18 @@ namespace RaceFatal.Vehicles
 #endregion
 
 #region Chassis Installation and Removal
-        public Result<ChassisState> InstallChassis(string bikeId, string chassisId)
+        public Result InstallChassis(string bikeId, string chassisId)
         {
             var bike = bikes.Find(b => b.BikeId == bikeId);
             if (bike == null)
             {
-                return Result<ChassisState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result.Failure($"Bike with ID {bikeId} not found.");
             }
 
             var chassis = this.chassis.Find(c => c.ChassisId == chassisId);
             if (chassis == null)
             {
-                return Result<ChassisState>.Failure($"Chassis with ID {chassisId} not found.");
+                return Result.Failure($"Chassis with ID {chassisId} not found.");
             }
 
             return bike.Loadout.InstallChassis(chassis);
@@ -171,6 +171,43 @@ public bool HasRaceReadyBikeFor(EngineClass engineClass)
             }
             return false;
         }
+
+public IReadOnlyList<BikeState>
+            GetRaceReadyBikesFor(
+                EngineClass engineClass)
+        {
+            var result =
+                new List<BikeState>();
+
+            foreach (BikeState bike
+                    in bikes)
+            {
+                if (bike.IsDestroyed)
+                    continue;
+
+                if (!bike.IsRaceReady)
+                    continue;
+
+                if (!bike.EngineClass.HasValue)
+                    continue;
+
+                if (bike.EngineClass.Value !=
+                    engineClass)
+                {
+                    continue;
+                }
+
+                result.Add(bike);
+            }
+
+            return result;
+        }
+
+public BikeState FindBike(string bikeId)
+        {
+            return bikes.Find(b => b.BikeId == bikeId);
+        }
+
 
 private bool IsEquipmentInstalled(string bikeId, string equipmentId)
         {

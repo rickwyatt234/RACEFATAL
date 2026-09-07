@@ -1,43 +1,84 @@
 using RaceFatal.Career;
 using RaceFatal.Data;
 using RaceFatal.Equipment;
+using RaceFatal.Infrastructure.Input;
+using RaceFatal.Infrastructure.Racing;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
-using RaceFatal.Infrastructure.Input;
 
 namespace RaceFatal.Infrastructure
 {
-    public class GameContext
+    public sealed class GameContext
     {
-        public CareerManager CareerManager { get; }
-        public GameDatabase GameDatabase { get; }
-        public VehicleFactory VehicleFactory { get; }
-        public EquipmentFactory EquipmentFactory { get; }
-        public BikePerformanceCalculator BikePerformanceCalculator { get; }
-        public RaceParticipantFactory RaceParticipantFactory { get; }
-        public RaceFactory RaceFactory { get; }
-        public IRaceInputService InputService { get; }
+        public CareerManager Career { get; }
 
+        public GameDatabase Database { get; }
+
+        public VehicleFactory Vehicles { get; }
+
+        public EquipmentFactory Equipment { get; }
+
+        public BikeBuildFactory BikeBuilds { get; }
+
+        public WorldFactory Worlds { get; }
+
+        public GameSessionManager Sessions { get; }
+
+        public BikePerformanceCalculator
+            Performance { get; }
+
+        public RaceParticipantFactory
+            Participants { get; }
+
+        public RaceFactory Races { get; }
+
+        public RaceEntryBuilder
+            RaceEntries { get; }
+
+        public RacePreparationService
+            RacePreparation { get; }
+
+        public RaceLaunchContext
+            RaceLaunch { get; }
+
+        public IRaceInputService Input { get; }
 
         public GameContext(
-            CareerManager careerManager,
-            GameDatabase gameDatabase,
-            VehicleFactory vehicleFactory,
-            EquipmentFactory equipmentFactory,
-            BikePerformanceCalculator bikePerformanceCalculator,
-            RaceParticipantFactory raceParticipantFactory,
-            RaceFactory raceFactory,
-            IRaceInputService inputService)
-
+            CareerManager career,
+            GameDatabase database,
+            VehicleFactory vehicles,
+            EquipmentFactory equipment,
+            BikeBuildFactory bikeBuilds,
+            WorldFactory worlds,
+            GameSessionManager sessions,
+            BikePerformanceCalculator performance,
+            RaceParticipantFactory participants,
+            RaceFactory races,
+            RaceEntryBuilder raceEntries,
+            RacePreparationService racePreparation,
+            RaceLaunchContext raceLaunch,
+            IRaceInputService input)
         {
-            CareerManager = careerManager;
-            GameDatabase = gameDatabase;
-            VehicleFactory = vehicleFactory;
-            EquipmentFactory = equipmentFactory;
-            BikePerformanceCalculator = bikePerformanceCalculator;
-            RaceParticipantFactory = raceParticipantFactory;
-            RaceFactory = raceFactory;
-            InputService = inputService;
+            Career = career;
+            Database = database;
+
+            Vehicles = vehicles;
+            Equipment = equipment;
+            BikeBuilds = bikeBuilds;
+
+            Worlds = worlds;
+            Sessions = sessions;
+
+            Performance = performance;
+            Participants = participants;
+
+            Races = races;
+            RaceEntries = raceEntries;
+            RacePreparation = racePreparation;
+
+            RaceLaunch = raceLaunch;
+
+            Input = input;
         }
     }
 }

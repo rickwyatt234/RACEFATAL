@@ -3,6 +3,7 @@ using RaceFatal.Equipment;
 using RaceFatal.Tracks;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
+using RaceFatal.Career;
 
 namespace RaceFatal.Data
 {
@@ -12,9 +13,13 @@ namespace RaceFatal.Data
         private readonly Dictionary<string, EngineDefinition> engineDefinitions = new Dictionary<string, EngineDefinition>();
         private readonly Dictionary<string, ChassisDefinition> chassisDefinitions = new Dictionary<string, ChassisDefinition>();
         private readonly Dictionary<string, EquipmentDefinition> equipmentDefinitions = new Dictionary<string, EquipmentDefinition>();
+        private readonly Dictionary<string, BikeBuildDefinition> bikeBuildDefinitions = new Dictionary<string, BikeBuildDefinition>();
+        private readonly Dictionary<string, RacerDefinition> racerDefinitions = new Dictionary<string, RacerDefinition>();
+        private readonly Dictionary<string, OpponentTeamDefinition> opponentTeamDefinitions = new Dictionary<string, OpponentTeamDefinition>();
         private readonly Dictionary<string, TrackDefinition> trackDefinitions = new Dictionary<string, TrackDefinition>();
         private readonly Dictionary<string, RaceDefinition> raceDefinitions = new Dictionary<string, RaceDefinition>();
 
+        private readonly List<OpponentTeamDefinition> opponentTeamDefinitionList = new();
 
         public IReadOnlyDictionary<string, BikeDefinition> BikeDefinitions => bikeDefinitions;
         public IReadOnlyDictionary<string, EngineDefinition> EngineDefinitions => engineDefinitions;
@@ -22,6 +27,8 @@ namespace RaceFatal.Data
         public IReadOnlyDictionary<string, EquipmentDefinition> EquipmentDefinitions => equipmentDefinitions;
         public IReadOnlyDictionary<string, TrackDefinition> TrackDefinitions => trackDefinitions;
         public IReadOnlyDictionary<string, RaceDefinition> RaceDefinitions => raceDefinitions;
+        
+        public IReadOnlyList<OpponentTeamDefinition> OpponentTeamDefinitions => opponentTeamDefinitionList;
 
 #region Setters
         public void AddBikeDefinition(BikeDefinition definition)
@@ -52,6 +59,22 @@ namespace RaceFatal.Data
         public void AddRaceDefinition(RaceDefinition definition)
         {
             raceDefinitions.Add(definition.Id, definition);
+        }
+        
+        public void AddBikeBuildDefinition(BikeBuildDefinition definition)
+        {
+            bikeBuildDefinitions.Add(definition.Id, definition);
+        }
+
+        public void AddOpponentTeamDefinition(OpponentTeamDefinition definition)
+        {
+            opponentTeamDefinitions.Add(definition.Id, definition);
+            opponentTeamDefinitionList.Add(definition);
+        }
+
+        public void AddRacerDefinition(RacerDefinition definition)
+        {
+            racerDefinitions.Add(definition.Id, definition);
         }
 #endregion
 
@@ -84,6 +107,21 @@ namespace RaceFatal.Data
         public RaceDefinition GetRaceDefinition(string id)
         {
             return raceDefinitions.TryGetValue(id, out RaceDefinition value) ? value : null;
+        }
+
+        public BikeBuildDefinition GetBikeBuildDefinition(string id)
+        {
+            return bikeBuildDefinitions.TryGetValue(id, out BikeBuildDefinition value) ? value : null;
+        }
+
+        public OpponentTeamDefinition GetOpponentTeamDefinition(string id)
+        {
+            return opponentTeamDefinitions.TryGetValue(id, out OpponentTeamDefinition value) ? value : null;
+        }
+
+        public RacerDefinition GetRacerDefinition(string id)
+        {
+            return racerDefinitions.TryGetValue(id, out RacerDefinition value) ? value : null;
         }
 #endregion
     }

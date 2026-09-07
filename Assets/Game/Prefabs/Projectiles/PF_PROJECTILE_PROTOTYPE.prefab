@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3032850885391651251}
   - component: {fileID: 6749031316144475914}
   m_Layer: 0
-  m_Name: PF_PROJECTILE_PROTOTYPE
+  m_Name: PF_Projectile_Prototype
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

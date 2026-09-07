@@ -29,44 +29,104 @@ namespace RaceFatal.Vehicles
             }
         }
 
-        public Result<EngineState> InstallEngine(EngineState engine)
+        public Result InstallEngine(
+            EngineState engine)
         {
-            if (Engine.IsDestroyed)
+            if (engine == null)
             {
-                return Result<EngineState>.Failure("Cannot install a destroyed engine.");
+                return Result.Failure(
+                    "Engine is required.");
             }
+
+            if (engine.IsDestroyed)
+            {
+                return Result.Failure(
+                    "A destroyed engine cannot be installed.");
+            }
+
+            if (Engine != null)
+            {
+                if (Engine.EngineId ==
+                    engine.EngineId)
+                {
+                    return Result.Failure(
+                        "This engine is already installed.");
+                }
+
+                return Result.Failure(
+                    "This bike already has an engine installed.");
+            }
+
             Engine = engine;
-            return Result<EngineState>.Success(engine);
+
+            return Result.Success();
         }
-        public Result<EngineState> RemoveEngine()
+        public Result<EngineState>
+            RemoveEngine()
         {
             if (Engine == null)
             {
-                return Result<EngineState>.Failure("No engine installed to remove.");
+                return Result<EngineState>.Failure(
+                    "No engine is installed.");
             }
-            var removedEngine = Engine;
+
+            EngineState removed =
+                Engine;
+
             Engine = null;
-            return Result<EngineState>.Success(removedEngine);
+
+            return Result<EngineState>.Success(
+                removed);
         }
 
-        public Result<ChassisState> InstallChassis(ChassisState chassis)
+        public Result InstallChassis(
+            ChassisState chassis)
         {
-            if (Chassis.IsDestroyed)
+            if (chassis == null)
             {
-                return Result<ChassisState>.Failure("Cannot install a destroyed chassis.");
+                return Result.Failure(
+                    "Chassis is required.");
             }
+
+            if (chassis.IsDestroyed)
+            {
+                return Result.Failure(
+                    "A destroyed chassis cannot be installed.");
+            }
+
+            if (Chassis != null)
+            {
+                if (Chassis.ChassisId ==
+                    chassis.ChassisId)
+                {
+                    return Result.Failure(
+                        "This chassis is already installed.");
+                }
+
+                return Result.Failure(
+                    "This bike already has a chassis installed.");
+            }
+
             Chassis = chassis;
-            return Result<ChassisState>.Success(chassis);
+
+            return Result.Success();
         }
-        public Result<ChassisState> RemoveChassis()
+        public Result<ChassisState>
+            RemoveChassis()
         {
             if (Chassis == null)
             {
-                return Result<ChassisState>.Failure("No chassis installed to remove.");
+                return Result<ChassisState>.Failure(
+                    "No chassis is installed.");
             }
-            var removedChassis = Chassis;
+
+            ChassisState removed =
+                Chassis;
+
             Chassis = null;
-            return Result<ChassisState>.Success(removedChassis);
+
+            return Result<ChassisState>.Success(
+                removed);
         }
 
         public Result<EquipmentState> InstallEquipment(EquipmentState equipment, NodeSize nodeSize, int index)

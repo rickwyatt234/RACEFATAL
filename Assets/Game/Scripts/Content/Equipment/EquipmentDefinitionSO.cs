@@ -8,6 +8,7 @@ namespace RaceFatal.Content.Equipment
     {
         [Header("Equipment Info")]
         [SerializeField] protected string id;
+        public string Id => id;
         [SerializeField] protected string displayName;
 
         [Header("Requirements")]

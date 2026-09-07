@@ -9,6 +9,7 @@ namespace RaceFatal.Content.Vehicles
     {
         [Header("Engine Info")]
         [SerializeField] private string id;
+        public string Id => id;
         [SerializeField] private string displayName;
 
         [Header("Engine Class")]

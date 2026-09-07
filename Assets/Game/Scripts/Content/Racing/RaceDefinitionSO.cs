@@ -10,6 +10,7 @@ namespace RaceFatal.Content.Racing
     {
         [Header("Identity")]
         [SerializeField] private string id;
+        public string Id => id;
 
         [SerializeField] private string displayName;
 

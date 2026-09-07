@@ -13,6 +13,11 @@ namespace RaceFatal.Racing
 
         public RaceParticipantRole Role { get; }
 
+        private bool hasCourseSample;
+        private float lapTraversalProgress;
+
+        public float LapTraversalProgress => lapTraversalProgress;
+
         public RaceParticipantStatus Status {
             get;
             private set;
@@ -69,10 +74,14 @@ namespace RaceFatal.Racing
                 Status = RaceParticipantStatus.Racing;
         }
 
-        internal void SetCourseProgress(float progress)
+        internal void SetCourseProgress(
+            float progress)
         {
-            if (Status != RaceParticipantStatus.Racing)
+            if (Status !=
+                RaceParticipantStatus.Racing)
+            {
                 return;
+            }
 
             if (progress < 0f)
                 progress = 0f;
@@ -80,7 +89,74 @@ namespace RaceFatal.Racing
             if (progress > 1f)
                 progress = 1f;
 
-            CourseProgress = progress;
+            if (!hasCourseSample)
+            {
+                CourseProgress =
+                    progress;
+
+                hasCourseSample =
+                    true;
+
+                return;
+            }
+
+            float delta =
+                progress -
+                CourseProgress;
+
+
+            if (delta < -0.5f)
+            {
+                delta += 1f;
+            }
+
+            else if (delta > 0.5f)
+            {
+                delta -= 1f;
+            }
+
+            // Prevent erroneous projections or teleports
+            // from granting enormous course progress.
+            const float maximumAcceptedDelta =
+                0.15f;
+
+            if (System.Math.Abs(delta) <=
+                maximumAcceptedDelta)
+            {
+                lapTraversalProgress +=
+                    delta;
+
+                if (lapTraversalProgress < 0f)
+                {
+                    lapTraversalProgress =
+                        0f;
+                }
+
+                if (lapTraversalProgress > 1.25f)
+                {
+                    lapTraversalProgress =
+                        1.25f;
+                }
+            }
+
+            CourseProgress =
+                progress;
+        }
+        internal void ConfirmLapTraversal()
+        {
+            lapTraversalProgress -= 1f;
+
+            if (lapTraversalProgress < 0f)
+            {
+                lapTraversalProgress = 0f;
+            }
+        }
+        
+        internal bool HasCompletedLapTraversal(
+            float requiredProgress)
+        {
+            return lapTraversalProgress >=
+                requiredProgress;
         }
 
         internal void CompleteLap()

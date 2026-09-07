@@ -22,7 +22,7 @@ namespace RaceFatal.Presentation.Racing
             physicalMounts = GetComponentsInChildren<BikeEquipmentMountView>(true);
         }
 
-        private void Initialize(RaceParticipant raceParticipant)
+        public void Initialize(RaceParticipant raceParticipant)
         {
             participant = raceParticipant ?? throw new ArgumentNullException(nameof(raceParticipant));
             BindEquipmentMounts();

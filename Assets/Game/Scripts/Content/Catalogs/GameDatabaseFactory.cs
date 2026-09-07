@@ -35,6 +35,19 @@ namespace RaceFatal.Content
             {
                 database.AddRaceDefinition(race.CreateRaceDefinition());
             }
+            foreach (var bikeBuild in catalog.BikeBuildDefinitions)
+            {
+                database.AddBikeBuildDefinition(bikeBuild.CreateDefinition());
+            }
+            foreach (var racer in catalog.RacerDefinitions)
+            {
+                database.AddRacerDefinition(racer.CreateDefinition());
+            }
+            foreach (var opponentTeam in catalog.OpponentTeamDefinitions)
+            {
+                var definition = opponentTeam.CreateDefinition();
+                database.AddOpponentTeamDefinition(definition);
+            }
 
             return database;
         }

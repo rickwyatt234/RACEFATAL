@@ -14,18 +14,38 @@ namespace RaceFatal.Racing
         public EnergyPool EnergyPool { get; }
         public RaceEquipmentSystem EquipmentSystem { get; }
 
-        public bool IsDestroyed => Damage.IsDestroyed || Bike.IsDestroyed;
+        public bool IsDestroyed =>
+            Damage.IsDestroyed ||
+            Bike.IsDestroyed;
 
-        public RaceVehicleState(BikeState bike, BikePerformance performance, float maximumEnergy, RaceEquipmentSystem equipmentSystem)
+        public RaceVehicleState(
+            BikeState bike,
+            BikePerformance performance,
+            EnergyPool energyPool,
+            RaceEquipmentSystem equipmentSystem)
         {
-            Bike = bike ?? throw new ArgumentNullException(nameof(bike));
-            Damage = new DamageMeter();
-            EnergyPool = new EnergyPool(maximumEnergy);
-            EquipmentSystem = equipmentSystem ?? throw new ArgumentNullException(nameof(equipmentSystem));
-            Performance = performance ?? throw new ArgumentNullException(nameof(performance));
+            Bike = bike
+                ?? throw new ArgumentNullException(
+                    nameof(bike));
+
+            Performance = performance
+                ?? throw new ArgumentNullException(
+                    nameof(performance));
+
+            EnergyPool = energyPool
+                ?? throw new ArgumentNullException(
+                    nameof(energyPool));
+
+            EquipmentSystem = equipmentSystem
+                ?? throw new ArgumentNullException(
+                    nameof(equipmentSystem));
+
+            Damage =
+                new DamageMeter();
         }
 
-        internal DamageResolution ApplyDamage(float incomingDamage)
+        internal DamageResolution ApplyDamage(
+            float incomingDamage)
         {
             if (incomingDamage <= 0f)
             {
@@ -34,14 +54,26 @@ namespace RaceFatal.Racing
                     shieldAbsorbed: 0f,
                     bikeDamage: 0f,
                     causedDestruction: false);
-                
             }
 
-            float remainingDamage = EquipmentSystem.AbsorbDamage(incomingDamage);
-            float shieldAbsorbed = incomingDamage - remainingDamage;
-            bool wasDestroyed = Damage.IsDestroyed;
-            float bikeDamage = Damage.ApplyDamage(remainingDamage);
-            bool destroyedNow = !wasDestroyed && Damage.IsDestroyed;
+            float remainingDamage =
+                EquipmentSystem.AbsorbDamage(
+                    incomingDamage);
+
+            float shieldAbsorbed =
+                incomingDamage -
+                remainingDamage;
+
+            bool wasDestroyed =
+                Damage.IsDestroyed;
+
+            float bikeDamage =
+                Damage.ApplyDamage(
+                    remainingDamage);
+
+            bool destroyedNow =
+                !wasDestroyed &&
+                Damage.IsDestroyed;
 
             return new DamageResolution(
                 incomingDamage: incomingDamage,
@@ -50,20 +82,25 @@ namespace RaceFatal.Racing
                 causedDestruction: destroyedNow);
         }
 
-        internal void Tick(float deltaTime)
+        internal void Tick(
+            float deltaTime)
         {
-            EquipmentSystem.Tick(deltaTime);
-        }
-        
-        internal bool TrySpendEnergy(float amount)
-        {
-            return EnergyPool.TrySpend(amount);
+            EquipmentSystem.Tick(
+                deltaTime);
         }
 
-        internal float RechargeEnergy(float amount)
+        internal bool TrySpendEnergy(
+            float amount)
         {
-            return EnergyPool.Recharge(amount);
+            return EnergyPool.TrySpend(
+                amount);
         }
 
+        internal float RechargeEnergy(
+            float amount)
+        {
+            return EnergyPool.Recharge(
+                amount);
+        }
     }
 }

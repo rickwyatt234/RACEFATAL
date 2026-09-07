@@ -1,7 +1,3 @@
-/*
-    BIKE MOTOR COMPONENT
-*/
-
 using RaceFatal.Presentation.Tracks;
 using RaceFatal.Vehicles;
 using UnityEngine;
@@ -10,78 +6,170 @@ namespace RaceFatal.Presentation.Vehicles
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(TrackSurfaceProbe))]
-    public sealed class BikeMotor :
+    public class BikeMotor :
         MonoBehaviour
     {
+#region Serialized Fields
         [Header("References")]
+        [SerializeField] private Transform centerOfMass;
 
-        [SerializeField]
-        private Transform centerOfMass;
+        [Header("Magnetic Surface Lock")][Tooltip("Desired distance between the bike root and the track surface.")]
+        [Min(0.01f)][SerializeField] private float desiredSurfaceDistance = 0.5f;
 
-        [Header("Track Adhesion")]
 
-        [Min(0f)]
-        [SerializeField]
-        private float adhesionAcceleration =
-            35f;
+        [Tooltip("How strongly the bike corrects surface-distance error. Higher values make the magnetic suspension stiffer.")]
+        [Min(0f)][SerializeField] private float surfaceSpringStrength = 90f;
 
-        [Min(0f)]
-        [SerializeField]
-        private float airGravityAcceleration =
-            12f;
 
-        [Min(0f)]
-        [SerializeField]
-        private float alignmentSpeed =
-            12f;
+        [Tooltip("Damps movement toward or away from the track. This is especially important at crests.")]
+        [Min(0f)][SerializeField] private float surfaceSpringDamping = 16f;
 
+
+        [Tooltip("Maximum acceleration the magnetic suspension may apply in either direction.")]
+        [Min(0f)][SerializeField] private float maximumSurfaceCorrection = 140f;
+
+
+        [Tooltip("When a surface is detected, outward velocity above this value is suppressed.")]
+        [Min(0f)][SerializeField] private float maximumSurfaceSeparationSpeed = 1.5f;
+
+
+        [Tooltip("The separation-speed limiter only operates while the track is within this distance.")]
+        [Min(0.1f)][SerializeField] private float surfaceLockDistance = 2f;
+#endregion
+
+#region Surface Loss
+        [Header("Surface Loss")]
+        [Tooltip("How long a newly spawned bike may wait for its first surface before airborne gravity begins.")]
+        [Min(0f)][SerializeField] private float initialSurfaceGraceTime = 0.5f;
+
+        [Tooltip("How long a bike may temporarily lose the track before being considered airborne.")]
+        [Min(0f)][SerializeField] private float surfaceLossGraceTime = 0.2f;
+
+        [Tooltip("Light magnetic pull retained during the surface loss grace period. Helps cross collider seams.")]
+        [Min(0f)][SerializeField] private float graceAdhesionAcceleration = 25f;
+
+        [Tooltip("Gravity used after the bike has genuinely become airborne.")]
+        [Min(0f)][SerializeField] private float airGravityAcceleration = 12f;
+
+
+#endregion
+
+#region Surface Alignment
+        [Header("Surface Alignment")]
+
+        [Tooltip("How quickly the bike's up axis aligns with the track surface normal.")]
+        [Min(0f)][SerializeField] private float alignmentSpeed = 14f;
+
+        [Header("Rotation Stability")]
+        [Tooltip("Prevents physics, collisions, and impacts from rotating the bike. Intentional steering still works through BikeMotor.")]
+        [SerializeField] private bool lockPhysicsRotation = true;
+#endregion
+
+#region Steering
         [Header("Steering")]
 
-        [Min(0f)]
-        [SerializeField]
-        private float lowSpeedTurnRate =
-            80f;
+        [Tooltip("Maximum steering rate at low speed, in degrees per second.")]
+        [Min(0f)][SerializeField] private float lowSpeedTurnRate = 120f;
 
-        [Min(0f)]
-        [SerializeField]
-        private float highSpeedTurnRate =
-            35f;
+        [Tooltip("Maximum steering rate near top speed.")]
+        [Min(0f)][SerializeField] private float highSpeedTurnRate = 35f;
 
-        [Min(0f)]
-        [SerializeField]
-        private float lateralGrip =
-            8f;
+        [Tooltip("How quickly lateral sliding is removed.")]
+        [Min(0f)][SerializeField] private float lateralGrip = 5f;
 
+        [Tooltip("Prevents lateral-grip corrections from producing huge destabilizing forces.")]
+        [Min(0f)][SerializeField] private float maximumLateralGripAcceleration = 35f;
+#endregion
+
+#region Braking
         [Header("Braking")]
 
-        [Min(0f)]
-        [SerializeField]
-        private float brakeDeceleration =
-            30f;
+        [Min(0f)][SerializeField] private float brakeDeceleration = 30f;
+#endregion
 
+#region Overspeed
         [Header("Overspeed")]
 
-        [Min(0f)]
-        [SerializeField]
-        private float overspeedCorrection =
-            3f;
+        [Min(0f)][SerializeField] private float overspeedCorrection = 3f;
+#endregion
 
+#region Collision Stability
+        [Header("Collision Stability")]
+
+        [Tooltip("Limits the velocity PhysX may use when resolving overlapping colliders. Lower values reduce catapult-like bike collisions.")]
+        [Min(0.1f)][SerializeField] private float maximumDepenetrationVelocity = 8f;
+#endregion
+
+
+#region Runtime Debug
+        [Header("Runtime Debug")]
+
+        [SerializeField]
+        private float debugThrottle;
+
+        [SerializeField]
+        private float debugBrake;
+
+        [SerializeField]
+        private float debugSteering;
+
+        [SerializeField]
+        private float debugSpeed;
+
+        [SerializeField]
+        private float debugForwardSpeed;
+
+        [SerializeField]
+        private float debugSurfaceDistance;
+
+        [SerializeField]
+        private float debugSurfaceNormalSpeed;
+
+        [SerializeField]
+        private float debugSurfaceCorrection;
+
+        [SerializeField]
+        private bool debugHasSurface;
+
+        [SerializeField]
+        private float debugTimeWithoutSurface;
+
+        [Header("Diagnostics")]
+
+        [SerializeField]
+        private bool logMissingSurface =
+            true;
+
+#endregion
+
+#region Runtime
         private Rigidbody body;
 
-        private TrackSurfaceProbe surfaceProbe;
+        private TrackSurfaceProbe
+            surfaceProbe;
 
-        private BikePerformance performance;
+        private BikePerformance
+            performance;
 
         private float throttleInput;
         private float brakeInput;
         private float steeringInput;
 
         private float speedMultiplier = 1f;
+
         private float accelerationMultiplier = 1f;
+
         private float handlingMultiplier = 1f;
 
-        public float SteeringInput =>
-            steeringInput;
+        private float timeWithoutSurface;
+
+        private bool missingSurfaceWarningIssued;
+
+
+
+        public float SteeringInput => steeringInput;
+
+        public bool HasSurface => surfaceProbe != null && surfaceProbe.HasSurface;
 
         public float SpeedMetersPerSecond
         {
@@ -90,15 +178,29 @@ namespace RaceFatal.Presentation.Vehicles
                 if (body == null)
                     return 0f;
 
-                return body.linearVelocity.magnitude;
+                return body
+                    .linearVelocity
+                    .magnitude;
             }
         }
-        public float SpeedFeetPerSecond =>
-            SpeedMetersPerSecond * 3.28084f;
-        public float SpeedKph =>
-            SpeedMetersPerSecond * 3.6f;
-        public float SpeedMPH =>
-            SpeedMetersPerSecond * 2.23694f;
+
+        public float SpeedFeetPerSecond => SpeedMetersPerSecond * 3.28084f;
+
+        public float SpeedKph => SpeedMetersPerSecond * 3.6f;
+
+        public float SpeedMPH => SpeedMetersPerSecond * 2.23694f;
+        private void OnCollisionEnter(Collision collision)
+        {
+            SuppressPhysicsRotation();
+        }
+
+        private void OnCollisionStay(Collision collision)
+        {
+            SuppressPhysicsRotation();
+        }
+#endregion
+
+#region Unity
 
         private void Awake()
         {
@@ -106,17 +208,64 @@ namespace RaceFatal.Presentation.Vehicles
                 GetComponent<Rigidbody>();
 
             surfaceProbe =
-                GetComponent<TrackSurfaceProbe>();
+                GetComponent<
+                    TrackSurfaceProbe>();
 
-            body.useGravity = false;
+            body.useGravity =
+                false;
+
+            body.maxDepenetrationVelocity =
+                maximumDepenetrationVelocity;
 
             if (centerOfMass != null)
             {
                 body.centerOfMass =
-                    transform.InverseTransformPoint(
-                        centerOfMass.position);
+                    transform
+                        .InverseTransformPoint(
+                            centerOfMass.position);
             }
         }
+
+        private void OnEnable()
+        {
+            timeWithoutSurface =
+                0f;
+
+            missingSurfaceWarningIssued =
+                false;
+        }
+
+        private void FixedUpdate()
+        {
+            if (performance == null) return;
+
+            SuppressPhysicsRotation();
+
+            debugSpeed = SpeedMetersPerSecond;
+
+            bool hasSurface = surfaceProbe.Sample();
+            debugHasSurface = hasSurface;
+
+            if (hasSurface)
+            {
+                timeWithoutSurface = 0f;
+                debugTimeWithoutSurface = 0f;
+                missingSurfaceWarningIssued = false;
+
+                RunSurfacePhysics();
+
+                SuppressPhysicsRotation();
+                return;
+            }
+
+            HandleMissingSurface();
+
+            SuppressPhysicsRotation();
+        }
+
+        // =====================================================
+        // INITIALIZATION
+        // =====================================================
 
         public void SetPerformance(
             BikePerformance bikePerformance)
@@ -124,7 +273,8 @@ namespace RaceFatal.Presentation.Vehicles
             performance =
                 bikePerformance;
 
-            if (performance != null)
+            if (performance != null &&
+                body != null)
             {
                 body.mass =
                     performance.Mass;
@@ -137,13 +287,19 @@ namespace RaceFatal.Presentation.Vehicles
             float handling)
         {
             speedMultiplier =
-                Mathf.Max(0f, speed);
+                Mathf.Max(
+                    0f,
+                    speed);
 
             accelerationMultiplier =
-                Mathf.Max(0f, acceleration);
+                Mathf.Max(
+                    0f,
+                    acceleration);
 
             handlingMultiplier =
-                Mathf.Max(0f, handling);
+                Mathf.Max(
+                    0f,
+                    handling);
         }
 
         public void SetControls(
@@ -152,47 +308,177 @@ namespace RaceFatal.Presentation.Vehicles
             float steering)
         {
             throttleInput =
-                Mathf.Clamp01(throttle);
+                Mathf.Clamp01(
+                    throttle);
 
             brakeInput =
-                Mathf.Clamp01(brake);
+                Mathf.Clamp01(
+                    brake);
 
             steeringInput =
                 Mathf.Clamp(
                     steering,
                     -1f,
                     1f);
+
+            debugThrottle =
+                throttleInput;
+
+            debugBrake =
+                brakeInput;
+
+            debugSteering =
+                steeringInput;
         }
 
-        private void FixedUpdate()
+        // =====================================================
+        // SURFACE PHYSICS
+        // =====================================================
+
+        private void RunSurfacePhysics()
         {
-            if (performance == null)
-                return;
+            Vector3 normal =
+                surfaceProbe
+                    .SurfaceNormal;
 
-            bool hasSurface =
-                surfaceProbe.Sample();
+            debugSurfaceDistance =
+                surfaceProbe
+                    .SurfaceDistance;
 
-            if (hasSurface)
-            {
-                Vector3 normal =
-                    surfaceProbe.SurfaceNormal;
+            ApplySurfaceLock(
+                normal);
 
-                AlignToSurface(normal);
+            ClampSurfaceSeparation(
+                normal);
 
-                ApplyAdhesion(normal);
+            AlignToSurface(
+                normal);
 
-                ApplyDrive(normal);
+            ApplyDrive(
+                normal);
 
-                ApplyBraking(normal);
+            ApplyBraking(
+                normal);
 
-                ApplyLateralGrip(normal);
-            }
-            else
-            {
-                ApplyAirGravity();
-            }
+            ApplyLateralGrip(
+                normal);
         }
 
+        // =====================================================
+        // MAGNETIC SUSPENSION
+        // =====================================================
+
+        private void ApplySurfaceLock(
+            Vector3 surfaceNormal)
+        {
+            float surfaceDistance =
+                surfaceProbe
+                    .SurfaceDistance;
+
+            /*
+             * Positive:
+             * bike is farther from the road than desired.
+             *
+             * Negative:
+             * bike is closer than desired.
+             */
+            float distanceError =
+                surfaceDistance -
+                desiredSurfaceDistance;
+
+            /*
+             * Positive normal velocity:
+             * bike is moving AWAY from the road.
+             *
+             * Negative:
+             * bike is moving TOWARD the road.
+             */
+            float normalVelocity =
+                Vector3.Dot(
+                    body.linearVelocity,
+                    surfaceNormal);
+
+            debugSurfaceNormalSpeed =
+                normalVelocity;
+
+            /*
+             * Spring:
+             * distance error creates restoring force.
+             *
+             * Damper:
+             * outward movement increases pull;
+             * inward movement reduces pull.
+             */
+            float correctionAcceleration =
+                distanceError *
+                surfaceSpringStrength;
+
+            correctionAcceleration +=
+                normalVelocity *
+                surfaceSpringDamping;
+
+            correctionAcceleration =
+                Mathf.Clamp(
+                    correctionAcceleration,
+                    -maximumSurfaceCorrection,
+                    maximumSurfaceCorrection);
+
+            debugSurfaceCorrection =
+                correctionAcceleration;
+
+            body.AddForce(
+                -surfaceNormal *
+                correctionAcceleration,
+                ForceMode.Acceleration);
+        }
+
+        private void ClampSurfaceSeparation(
+            Vector3 surfaceNormal)
+        {
+            if (surfaceProbe.SurfaceDistance >
+                surfaceLockDistance)
+            {
+                return;
+            }
+
+            float outwardSpeed =
+                Vector3.Dot(
+                    body.linearVelocity,
+                    surfaceNormal);
+
+            if (outwardSpeed <=
+                maximumSurfaceSeparationSpeed)
+            {
+                return;
+            }
+
+            float excess =
+                outwardSpeed -
+                maximumSurfaceSeparationSpeed;
+
+            /*
+             * This is deliberately an arcade-style magnetic
+             * constraint.
+             *
+             * At a crest, the road normal changes quickly.
+             * Rather than allowing tangent momentum to launch
+             * the bike before the spring catches up, remove
+             * excessive velocity moving away from the road.
+             */
+            body.linearVelocity -=
+                surfaceNormal *
+                excess;
+        }
+
+        // =====================================================
+        // ALIGNMENT / STEERING
+        // =====================================================
+        private void SuppressPhysicsRotation()
+        {
+            if (!lockPhysicsRotation) return;
+
+            body.angularVelocity = Vector3.zero;
+        }
         private void AlignToSurface(
             Vector3 normal)
         {
@@ -210,15 +496,19 @@ namespace RaceFatal.Presentation.Vehicles
             forward.Normalize();
 
             float effectiveHandling =
-                performance.Handling *
-                handlingMultiplier;
+                Mathf.Clamp(
+                    performance.Handling *
+                    handlingMultiplier,
+                    0.1f,
+                    3f);
 
             float speedRatio =
                 Mathf.Clamp01(
-                    SpeedKph /
+                    SpeedMetersPerSecond /
                     Mathf.Max(
-                        1f,
-                        performance.TopSpeedMPH));
+                        0.1f,
+                        performance
+                            .TopSpeedMetersPerSecond));
 
             float turnRate =
                 Mathf.Lerp(
@@ -228,7 +518,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             float steeringAuthority =
                 Mathf.Lerp(
-                    0.2f,
+                    0.25f,
                     1f,
                     Mathf.Clamp01(
                         SpeedMetersPerSecond /
@@ -252,55 +542,64 @@ namespace RaceFatal.Presentation.Vehicles
                     forward,
                     normal);
 
+            float alignmentT =
+                1f -
+                Mathf.Exp(
+                    -alignmentSpeed *
+                    Time.fixedDeltaTime);
+
             Quaternion aligned =
                 Quaternion.Slerp(
                     body.rotation,
                     targetRotation,
-                    alignmentSpeed *
-                    Time.fixedDeltaTime);
+                    alignmentT);
 
             body.MoveRotation(
                 aligned);
         }
 
-        private void ApplyAdhesion(
-            Vector3 surfaceNormal)
-        {
-            body.AddForce(
-                -surfaceNormal *
-                adhesionAcceleration,
-                ForceMode.Acceleration);
-        }
+        // =====================================================
+        // DRIVE
+        // =====================================================
 
         private void ApplyDrive(
             Vector3 surfaceNormal)
         {
-            if (throttleInput <= 0f)
-                return;
-
             Vector3 forward =
                 Vector3.ProjectOnPlane(
                     transform.forward,
-                    surfaceNormal)
-                .normalized;
+                    surfaceNormal);
+
+            if (forward.sqrMagnitude <
+                0.001f)
+            {
+                debugForwardSpeed = 0f;
+                return;
+            }
+
+            forward.Normalize();
 
             float forwardSpeed =
                 Vector3.Dot(
                     body.linearVelocity,
                     forward);
 
+            debugForwardSpeed =
+                forwardSpeed;
+
             float maximumSpeed =
                 performance
                     .TopSpeedMetersPerSecond *
                 speedMultiplier;
 
-            float acceleration =
-                performance.Acceleration *
-                accelerationMultiplier;
-
-            if (forwardSpeed <
+            if (throttleInput > 0f &&
+                forwardSpeed <
                 maximumSpeed)
             {
+                float acceleration =
+                    performance.Acceleration *
+                    accelerationMultiplier;
+
                 body.AddForce(
                     forward *
                     acceleration *
@@ -322,6 +621,10 @@ namespace RaceFatal.Presentation.Vehicles
                     ForceMode.Acceleration);
             }
         }
+
+        // =====================================================
+        // BRAKING
+        // =====================================================
 
         private void ApplyBraking(
             Vector3 surfaceNormal)
@@ -347,20 +650,38 @@ namespace RaceFatal.Presentation.Vehicles
                 ForceMode.Acceleration);
         }
 
+        // =====================================================
+        // LATERAL GRIP
+        // =====================================================
+
         private void ApplyLateralGrip(
             Vector3 surfaceNormal)
         {
             Vector3 forward =
                 Vector3.ProjectOnPlane(
                     transform.forward,
-                    surfaceNormal)
-                .normalized;
+                    surfaceNormal);
+
+            if (forward.sqrMagnitude <
+                0.001f)
+            {
+                return;
+            }
+
+            forward.Normalize();
 
             Vector3 right =
                 Vector3.Cross(
                     surfaceNormal,
-                    forward)
-                .normalized;
+                    forward);
+
+            if (right.sqrMagnitude <
+                0.001f)
+            {
+                return;
+            }
+
+            right.Normalize();
 
             float lateralSpeed =
                 Vector3.Dot(
@@ -369,14 +690,99 @@ namespace RaceFatal.Presentation.Vehicles
 
             float effectiveGrip =
                 lateralGrip *
-                performance.Handling *
-                handlingMultiplier;
+                Mathf.Clamp(
+                    performance.Handling *
+                    handlingMultiplier,
+                    0.1f,
+                    3f);
+
+            float lateralAcceleration =
+                -lateralSpeed *
+                effectiveGrip;
+
+            /*
+             * The old implementation could generate enormous
+             * acceleration when the bike got sideways.
+             *
+             * That often caused oscillation or launched bikes
+             * during collisions.
+             */
+            lateralAcceleration =
+                Mathf.Clamp(
+                    lateralAcceleration,
+                    -maximumLateralGripAcceleration,
+                    maximumLateralGripAcceleration);
 
             body.AddForce(
-                -right *
-                lateralSpeed *
-                effectiveGrip,
+                right *
+                lateralAcceleration,
                 ForceMode.Acceleration);
+        }
+
+        // =====================================================
+        // SURFACE LOSS
+        // =====================================================
+
+        private void HandleMissingSurface()
+        {
+            timeWithoutSurface +=
+                Time.fixedDeltaTime;
+
+            debugTimeWithoutSurface =
+                timeWithoutSurface;
+
+            debugSurfaceCorrection =
+                0f;
+
+            if (!surfaceProbe.HasSurface)
+            {
+                if (timeWithoutSurface <=
+                    initialSurfaceGraceTime)
+                {
+                    return;
+                }
+
+                WarnAboutMissingSurface();
+
+                ApplyAirGravity();
+
+                return;
+            }
+
+            if (timeWithoutSurface <=
+                surfaceLossGraceTime)
+            {
+                Vector3 estimatedNormal =
+                    surfaceProbe
+                        .LastSurfaceNormal;
+
+                AlignToSurface(
+                    estimatedNormal);
+
+
+                /*
+                 * Keep a modest magnetic pull during tiny
+                 * collider seams instead of instantly becoming
+                 * completely ballistic.
+                 */
+                body.AddForce(
+                    -estimatedNormal *
+                    graceAdhesionAcceleration,
+                    ForceMode.Acceleration);
+
+                ApplyDrive(
+                    estimatedNormal);
+
+                ApplyBraking(
+                    estimatedNormal);
+
+                ApplyLateralGrip(
+                    estimatedNormal);
+
+                return;
+            }
+
+            ApplyAirGravity();
         }
 
         private void ApplyAirGravity()
@@ -385,10 +791,43 @@ namespace RaceFatal.Presentation.Vehicles
                 -surfaceProbe
                     .LastSurfaceNormal;
 
+            if (gravityDirection.sqrMagnitude <
+                0.001f)
+            {
+                gravityDirection =
+                    -transform.up;
+            }
+
+            gravityDirection.Normalize();
+
             body.AddForce(
                 gravityDirection *
                 airGravityAcceleration,
                 ForceMode.Acceleration);
         }
+
+        // =====================================================
+        // DIAGNOSTICS
+        // =====================================================
+
+        private void WarnAboutMissingSurface()
+        {
+            if (!logMissingSurface)
+                return;
+
+            if (missingSurfaceWarningIssued)
+                return;
+
+            missingSurfaceWarningIssued =
+                true;
+
+            Debug.LogWarning(
+                $"BikeMotor on '{name}' could not acquire " +
+                $"a track surface after " +
+                $"{initialSurfaceGraceTime:F2} seconds. " +
+                $"TrackMask value = ",
+                this);
+        }
     }
+#endregion
 }

@@ -74,11 +74,11 @@ namespace RaceFatal.Racing
                         database,
                         energy);
 
-            var vehicle =
+            RaceVehicleState vehicle =
                 new RaceVehicleState(
                     bike,
                     performanceResult.Value,
-                    bikeDefinition.EnergyCapacity,
+                    energy,
                     equipmentResult.Value);
 
             return Result<RaceParticipant>.Success(

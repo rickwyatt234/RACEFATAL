@@ -5,9 +5,13 @@ namespace RaceFatal.Infrastructure.Input
         float Throttle { get; }
         float Brake { get; }
         float Steering { get; }
+
         bool EquipmentPressed { get; }
         bool EquipmentReleased { get; }
+
         bool NextEquipmentPressed { get; }
         bool PreviousEquipmentPressed { get; }
+
+        bool BoostHeld { get; }
     }
 }

@@ -8,6 +8,7 @@ namespace RaceFatal.Content.Vehicles
     {
         [Header("Chassis Info")]
         [SerializeField] private string id;
+        public string Id => id;
         [SerializeField] private string displayName;
 
         [Header("Performance Stats")]
@@ -29,6 +30,7 @@ namespace RaceFatal.Content.Vehicles
                 handlingModifier,
                 creditCost,
                 requiredTechnologyId);
-        }   
+        }
+
     } 
 }
