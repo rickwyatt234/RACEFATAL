@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
   id: prototype_machine_gun
   displayName: MachineGun Prototype
-  requiredNodeSize: 0
+  requiredNodeSize: 1
   creditCost: 0
   requiredTechnologyId: 
-  activationMode: 1
+  activationMode: 2
   aimMode: 0
   deliveryMode: 1
   range: 100
   projectileSpeed: 100
-  damage: 0
-  energyCostPerShot: 0
-  fireInterval: 0
+  damage: 2
+  energyCostPerShot: 0.3
+  fireInterval: 0.1
   chargeDuration: 0

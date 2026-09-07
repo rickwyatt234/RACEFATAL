@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7691977260005294198}
   - component: {fileID: 2166511656784370180}
   - component: {fileID: 1831404276803484439}
+  - component: {fileID: 2330243181631102343}
   m_Layer: 0
   m_Name: EnergyStrip
   m_TagString: Untagged
@@ -66,5 +67,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02a113b6e75452844a61bb65a66d92c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.EnergyStripTrigger
-  runtime: {fileID: 0}
-  rechargeAmount: 25
+  rechargePerSecond: 25
+  debugRacersOnStrip: 0
+  debugEnergyRestoredThisFrame: 0
+  debugTotalEnergyRestored: 0
+--- !u!114 &2330243181631102343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3196174881451327768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ef0cf9e02268c84095344c798c9539a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.EnergyStripAIAnchor
+  targetPoint: {fileID: 7691977260005294198}
+  pathSearchRadius: 30

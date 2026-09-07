@@ -21,3 +21,6 @@ MonoBehaviour:
   - equipment: {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
     nodeSize: 0
     nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+    nodeSize: 1
+    nodeIndex: 0

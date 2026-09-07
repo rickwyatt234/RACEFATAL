@@ -10,21 +10,15 @@ namespace RaceFatal.Presentation.Vehicles
     [RequireComponent(typeof(AIRacerSensor))]
     [RequireComponent(typeof(AIOvertakePlanner))]
     [RequireComponent(typeof(AIBoostPlanner))]
+    [RequireComponent(typeof(AIEnergyStripPlanner))]
     public class AIDriverController : MonoBehaviour
     {
         #region Path Following
 
         [Header("Path Following")]
-        [Tooltip("Minimum distance ahead that the AI aims toward.")]
         [Min(1f)][SerializeField] private float baseLookAheadDistance = 18f;
-
-        [Tooltip("Additional look-ahead per meter per second of speed.")]
         [Min(0f)][SerializeField] private float speedLookAheadMultiplier = 0.4f;
-
-        [Tooltip("Maximum steering look-ahead distance.")]
         [Min(1f)][SerializeField] private float maximumLookAheadDistance = 55f;
-
-        [Tooltip("Number of path segments searched around the previous segment.")]
         [Min(1)][SerializeField] private int pathSearchRadius = 20;
 
         #endregion
@@ -32,19 +26,10 @@ namespace RaceFatal.Presentation.Vehicles
         #region Track Width
 
         [Header("Track Width")]
-        [Tooltip("Approximate half-width of the physical racing surface.")]
         [Min(0.5f)][SerializeField] private float usableTrackHalfWidth = 6f;
-
-        [Tooltip("Space the desired line should leave between itself and the wall.")]
         [Min(0f)][SerializeField] private float wallSafetyMargin = 1.25f;
-
-        [Tooltip("Additional tolerance beyond the normal racing corridor before boundary recovery activates.")]
         [Min(0f)][SerializeField] private float boundaryRecoveryMargin = 0.5f;
-
-        [Tooltip("How far from center the racer should remain when recovering from a boundary.")]
         [Range(0f, 1f)][SerializeField] private float boundaryRecoveryTargetAmount = 0.4f;
-
-        [Tooltip("Maximum lateral line movement per second during boundary recovery.")]
         [Min(0.1f)][SerializeField] private float boundaryRecoveryShiftSpeed = 4f;
 
         #endregion
@@ -52,31 +37,14 @@ namespace RaceFatal.Presentation.Vehicles
         #region Racing Line
 
         [Header("Racing Line")]
-        [Tooltip("Distance ahead used to determine upcoming corner direction.")]
         [Min(5f)][SerializeField] private float cornerPreviewDistance = 90f;
-
-        [Tooltip("Distance ahead used to determine the corner the racer is currently entering.")]
         [Min(1f)][SerializeField] private float activeCornerProbeDistance = 25f;
-
-        [Tooltip("Lateral turn angle where racing-line movement begins.")]
         [Range(0.1f, 30f)][SerializeField] private float cornerStartAngle = 5f;
-
-        [Tooltip("Lateral turn angle considered a severe corner.")]
         [Range(1f, 90f)][SerializeField] private float fullCornerAngle = 35f;
-
-        [Tooltip("Maximum fraction of usable track width used for outside corner setup.")]
         [Range(0f, 1f)][SerializeField] private float outsideEntryAmount = 0.65f;
-
-        [Tooltip("Maximum fraction of usable track width used toward the apex.")]
         [Range(0f, 1f)][SerializeField] private float insideApexAmount = 0.55f;
-
-        [Tooltip("Maximum rate at which the normal desired racing line may move laterally.")]
         [Min(0.1f)][SerializeField] private float maximumLateralShiftSpeed = 2f;
-
-        [Tooltip("How quickly detected corner direction/severity is smoothed.")]
         [Min(0.1f)][SerializeField] private float cornerSignalResponse = 2.5f;
-
-        [Tooltip("Optional slow movement toward center on long straights. Zero preserves the current lane.")]
         [Min(0f)][SerializeField] private float straightCenteringSpeed = 0f;
 
         #endregion
@@ -84,7 +52,6 @@ namespace RaceFatal.Presentation.Vehicles
         #region Overtaking
 
         [Header("Overtaking")]
-        [Tooltip("New passes are not initiated when corner severity exceeds this value.")]
         [Range(0f, 1f)][SerializeField] private float maximumCornerSeverityForNewPass = 0.3f;
 
         #endregion
@@ -92,10 +59,7 @@ namespace RaceFatal.Presentation.Vehicles
         #region Pace Variation
 
         [Header("Prototype Pace Variation")]
-        [Tooltip("Slowest deterministic AI pace multiplier. Set both values to 1 to disable pace variation.")]
         [Range(0.8f, 1f)][SerializeField] private float minimumPaceMultiplier = 0.97f;
-
-        [Tooltip("Fastest deterministic AI pace multiplier.")]
         [Range(0.8f, 1f)][SerializeField] private float maximumPaceMultiplier = 1f;
 
         #endregion
@@ -103,16 +67,9 @@ namespace RaceFatal.Presentation.Vehicles
         #region Steering
 
         [Header("Steering")]
-        [Tooltip("Angle toward the pursuit target that represents full steering input.")]
         [Min(1f)][SerializeField] private float fullSteeringAngle = 30f;
-
-        [Tooltip("Steering errors smaller than this are ignored.")]
         [Range(0f, 10f)][SerializeField] private float steeringDeadZone = 0.75f;
-
-        [Tooltip("Approximate time required for steering input to settle toward its requested value.")]
         [Min(0.01f)][SerializeField] private float steeringSmoothTime = 0.15f;
-
-        [Tooltip("Maximum rate at which the steering input itself may change.")]
         [Min(0.1f)][SerializeField] private float maximumSteeringChangeSpeed = 6f;
 
         #endregion
@@ -120,22 +77,11 @@ namespace RaceFatal.Presentation.Vehicles
         #region Corner Speed Planning
 
         [Header("Corner Speed Planning")]
-        [Tooltip("How far ahead the AI searches for speed-limiting corners.")]
         [Min(10f)][SerializeField] private float cornerScanDistance = 140f;
-
-        [Tooltip("Distance between curvature samples.")]
         [Min(1f)][SerializeField] private float cornerSampleSpacing = 10f;
-
-        [Tooltip("Maximum lateral acceleration assumed to be sustainable.")]
         [Min(1f)][SerializeField] private float maximumCornerAcceleration = 25f;
-
-        [Tooltip("Safety multiplier applied to calculated corner speeds.")]
         [Range(0.1f, 1f)][SerializeField] private float cornerSpeedSafetyFactor = 0.95f;
-
-        [Tooltip("Lateral direction changes smaller than this are ignored by the speed planner.")]
         [Range(0f, 15f)][SerializeField] private float minimumCurveAngle = 1.5f;
-
-        [Tooltip("Lowest normal speed deliberately targeted for a corner.")]
         [Min(1f)][SerializeField] private float minimumCornerSpeedKph = 80f;
 
         #endregion
@@ -143,13 +89,8 @@ namespace RaceFatal.Presentation.Vehicles
         #region Braking
 
         [Header("Brake Planning")]
-        [Tooltip("Deceleration assumed to be available when planning braking distance.")]
         [Min(0.1f)][SerializeField] private float plannedBrakeDeceleration = 25f;
-
-        [Tooltip("Safety distance removed from the available braking distance.")]
         [Min(0f)][SerializeField] private float brakingSafetyDistance = 5f;
-
-        [Tooltip("Amount above target speed allowed before braking begins.")]
         [Min(0f)][SerializeField] private float brakeSpeedTolerance = 2f;
 
         #endregion
@@ -157,10 +98,7 @@ namespace RaceFatal.Presentation.Vehicles
         #region Speed Control
 
         [Header("Speed Control")]
-        [Tooltip("Amount below target speed that produces full throttle.")]
         [Min(0.1f)][SerializeField] private float fullThrottleSpeedDifference = 8f;
-
-        [Tooltip("Amount above target speed that produces full braking.")]
         [Min(0.1f)][SerializeField] private float fullBrakeSpeedDifference = 12f;
 
         #endregion
@@ -177,7 +115,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         [SerializeField] private float debugCrossTrackError;
         [SerializeField] private float debugBaseLateralOffset;
-        [SerializeField] private float debugTacticalOffset;
+        [SerializeField] private float debugOvertakeOffset;
+        [SerializeField] private float debugEnergyStripOffset;
         [SerializeField] private float debugFinalLateralOffset;
         [SerializeField] private float debugRawLateralTarget;
 
@@ -194,6 +133,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         [SerializeField] private float debugPaceMultiplier;
         [SerializeField] private string debugOvertakeState;
+        [SerializeField] private string debugTacticalState;
         [SerializeField] private float debugTrafficSpeedLimitKph;
 
         [SerializeField] private bool debugBoostActive;
@@ -222,6 +162,7 @@ namespace RaceFatal.Presentation.Vehicles
         private AIRacerSensor racerSensor;
         private AIOvertakePlanner overtakePlanner;
         private AIBoostPlanner boostPlanner;
+        private AIEnergyStripPlanner energyStripPlanner;
 
         private RaceParticipant participant;
         private RaceRuntimeController raceRuntime;
@@ -270,6 +211,7 @@ namespace RaceFatal.Presentation.Vehicles
             racerSensor = GetComponent<AIRacerSensor>();
             overtakePlanner = GetComponent<AIOvertakePlanner>();
             boostPlanner = GetComponent<AIBoostPlanner>();
+            energyStripPlanner = GetComponent<AIEnergyStripPlanner>();
         }
 
         private void FixedUpdate()
@@ -300,16 +242,12 @@ namespace RaceFatal.Presentation.Vehicles
             UpdateTacticalLine();
             UpdatePursuitTarget();
             CalculateSteering();
-
-            /*
-             * First calculate normal speed control from the
-             * boost state that existed entering this physics step.
-             */
             CalculateSpeedControl();
 
             bool trafficLimited =
                 !float.IsPositiveInfinity(
-                    overtakePlanner.TrafficSpeedLimitMetersPerSecond);
+                    overtakePlanner
+                        .TrafficSpeedLimitMetersPerSecond);
 
             bool boostChanged =
                 boostPlanner.UpdatePlan(
@@ -317,15 +255,11 @@ namespace RaceFatal.Presentation.Vehicles
                     currentBrake,
                     motor.SpeedMetersPerSecond,
                     trafficLimited,
-                    IsOvertaking);
+                    IsOvertaking,
+                    energyStripPlanner.IsTargetingStrip);
 
             ApplyEquipmentModifiers();
 
-            /*
-             * Starting/stopping boost changes the available top
-             * speed immediately. Recalculate this physics step so
-             * throttle/braking agrees with the new state.
-             */
             if (boostChanged)
                 CalculateSpeedControl();
 
@@ -375,7 +309,8 @@ namespace RaceFatal.Presentation.Vehicles
                 surfaceProbe == null ||
                 racerSensor == null ||
                 overtakePlanner == null ||
-                boostPlanner == null)
+                boostPlanner == null ||
+                energyStripPlanner == null)
             {
                 Debug.LogError(
                     $"{nameof(AIDriverController)} is missing required bike components.",
@@ -433,6 +368,18 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
+            if (!energyStripPlanner.Initialize(
+                    participant,
+                    raceRuntime,
+                    progressPath))
+            {
+                Debug.LogError(
+                    $"Energy Strip planner initialization failed for AI racer '{participant.RacerId}'.",
+                    this);
+
+                return false;
+            }
+
             ApplyEquipmentModifiers();
 
             motor.SetControls(
@@ -450,11 +397,12 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdatePathState()
         {
-            currentProgress = progressPath.GetProgress(
-                transform.position,
-                currentSegment,
-                pathSearchRadius,
-                out currentSegment);
+            currentProgress =
+                progressPath.GetProgress(
+                    transform.position,
+                    currentSegment,
+                    pathSearchRadius,
+                    out currentSegment);
 
             nearestPathPoint =
                 progressPath.GetPositionAtProgress(
@@ -613,7 +561,8 @@ namespace RaceFatal.Presentation.Vehicles
             float shiftSpeed =
                 maximumLateralShiftSpeed;
 
-            if (Mathf.Abs(debugCrossTrackError) >
+            if (Mathf.Abs(
+                    debugCrossTrackError) >
                 boundaryLimit)
             {
                 float side =
@@ -718,16 +667,55 @@ namespace RaceFatal.Presentation.Vehicles
                     usableTrackHalfWidth -
                     wallSafetyMargin);
 
+            /*
+             * If already committed to an Energy Strip, don't
+             * initiate a fresh overtake until the strip objective
+             * has completed.
+             */
             bool allowNewPass =
                 debugCornerSeverity <=
-                maximumCornerSeverityForNewPass;
+                    maximumCornerSeverityForNewPass &&
+                !energyStripPlanner.IsTargetingStrip;
 
-            float tacticalOffset =
+            float overtakeOffset =
                 overtakePlanner.UpdatePlan(
                     desiredLateralOffset,
                     availableHalfWidth,
                     motor.SpeedMetersPerSecond,
                     allowNewPass);
+
+            bool passing =
+                IsOvertaking;
+
+            float energyOffset =
+                energyStripPlanner.UpdatePlan(
+                    currentProgress,
+                    desiredLateralOffset,
+                    availableHalfWidth,
+                    debugCornerSeverity,
+                    passing);
+
+            float tacticalOffset;
+
+            if (energyStripPlanner.IsTargetingStrip &&
+                !passing)
+            {
+                tacticalOffset =
+                    energyOffset;
+
+                debugTacticalState =
+                    "Energy Strip";
+            }
+            else
+            {
+                tacticalOffset =
+                    overtakeOffset;
+
+                debugTacticalState =
+                    passing
+                        ? "Overtake"
+                        : "Normal";
+            }
 
             finalLateralOffset =
                 Mathf.Clamp(
@@ -736,8 +724,11 @@ namespace RaceFatal.Presentation.Vehicles
                     -availableHalfWidth,
                     availableHalfWidth);
 
-            debugTacticalOffset =
-                tacticalOffset;
+            debugOvertakeOffset =
+                overtakeOffset;
+
+            debugEnergyStripOffset =
+                energyOffset;
 
             debugFinalLateralOffset =
                 finalLateralOffset;
@@ -790,7 +781,8 @@ namespace RaceFatal.Presentation.Vehicles
                     surfaceNormal,
                     targetForward);
 
-            if (targetRight.sqrMagnitude < 0.001f)
+            if (targetRight.sqrMagnitude <
+                0.001f)
             {
                 targetRight =
                     Vector3.Cross(
@@ -965,6 +957,7 @@ namespace RaceFatal.Presentation.Vehicles
                 float.PositiveInfinity;
 
             debugMaximumCurveAngle = 0f;
+
             debugLimitingCurveSpeedKph =
                 maximumSpeed * 3.6f;
 
@@ -1148,7 +1141,8 @@ namespace RaceFatal.Presentation.Vehicles
                     minimumPaceMultiplier,
                     maximumPaceMultiplier);
 
-            uint hash = 2166136261u;
+            uint hash =
+                2166136261u;
 
             if (!string.IsNullOrEmpty(id))
             {

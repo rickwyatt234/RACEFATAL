@@ -21,12 +21,21 @@ namespace RaceFatal.Equipment
 
         public RaceShieldState Shield { get; private set; }
 
+        public bool HasWeapon => weapons.Count > 0;
         public string SelectedEquipmentId
         {
             get
             {
                 WeaponState weapon = GetSelectedWeapon();
                 return weapon?.Equipment.EquipmentId;
+            }
+        }
+        public WeaponDefinition SelectedWeaponDefinition
+        {
+            get
+            {
+                WeaponState weapon = GetSelectedWeapon();
+                return weapon?.Definition;
             }
         }
 

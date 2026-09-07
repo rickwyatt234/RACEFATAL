@@ -10,7 +10,7 @@ namespace RaceFatal.Presentation.Tracks
     {
         [Header("Recharge")]
         [Tooltip("Amount of Energy restored per second while a racer remains on the strip.")]
-        [Min(0f)][SerializeField] private float rechargePerSecond = 5f;
+        [Min(0f)][SerializeField] private float rechargePerSecond = 20f;
 
         [Header("Runtime Debug")]
         [SerializeField] private int debugRacersOnStrip;

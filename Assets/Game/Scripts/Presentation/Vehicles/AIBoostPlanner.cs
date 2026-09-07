@@ -69,6 +69,7 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private bool debugBoostActive;
         [SerializeField] private bool debugPassing;
         [SerializeField] private bool debugTrafficLimited;
+        [SerializeField] private bool debugSeekingEnergy;
 
         [SerializeField] private float debugEnergyPercent;
         [SerializeField] private float debugRuntimeAggression;
@@ -110,7 +111,9 @@ namespace RaceFatal.Presentation.Vehicles
 
         #region Initialization
 
-        public bool Initialize(RaceParticipant raceParticipant, RaceRuntimeController runtime)
+        public bool Initialize(
+            RaceParticipant raceParticipant,
+            RaceRuntimeController runtime)
         {
             if (raceParticipant == null)
             {
@@ -148,38 +151,53 @@ namespace RaceFatal.Presentation.Vehicles
                 CalculateDeterministicValue(
                     participant.RacerId);
 
-            runtimeEnergyReserve = Mathf.Lerp(
-                conservativeEnergyReserve,
-                aggressiveEnergyReserve,
-                aggression);
+            runtimeEnergyReserve =
+                Mathf.Lerp(
+                    conservativeEnergyReserve,
+                    aggressiveEnergyReserve,
+                    aggression);
 
-            runtimeRestartThreshold = Mathf.Clamp01(
-                runtimeEnergyReserve +
-                restartEnergyMargin);
+            runtimeRestartThreshold =
+                Mathf.Clamp01(
+                    runtimeEnergyReserve +
+                    restartEnergyMargin);
 
-            runtimeStartCornerSeverity = Mathf.Lerp(
-                conservativeStartCornerSeverity,
-                aggressiveStartCornerSeverity,
-                aggression);
+            runtimeStartCornerSeverity =
+                Mathf.Lerp(
+                    conservativeStartCornerSeverity,
+                    aggressiveStartCornerSeverity,
+                    aggression);
 
-            runtimeStraightCommitTime = Mathf.Lerp(
-                conservativeStraightCommitTime,
-                aggressiveStraightCommitTime,
-                aggression);
+            runtimeStraightCommitTime =
+                Mathf.Lerp(
+                    conservativeStraightCommitTime,
+                    aggressiveStraightCommitTime,
+                    aggression);
 
             straightTimer = 0f;
             cooldownTimer = 0f;
 
-            debugRuntimeAggression = aggression;
-            debugRuntimeEnergyReserve = runtimeEnergyReserve;
-            debugRuntimeRestartThreshold = runtimeRestartThreshold;
-            debugRuntimeStartCornerSeverity = runtimeStartCornerSeverity;
-            debugRuntimeStraightCommitTime = runtimeStraightCommitTime;
+            debugRuntimeAggression =
+                aggression;
 
-            debugHasBooster = equipment.HasBooster;
+            debugRuntimeEnergyReserve =
+                runtimeEnergyReserve;
+
+            debugRuntimeRestartThreshold =
+                runtimeRestartThreshold;
+
+            debugRuntimeStartCornerSeverity =
+                runtimeStartCornerSeverity;
+
+            debugRuntimeStraightCommitTime =
+                runtimeStraightCommitTime;
+
+            debugHasBooster =
+                equipment.HasBooster;
+
             debugInitialized = true;
-
             initialized = true;
+
             return true;
         }
 
@@ -192,7 +210,8 @@ namespace RaceFatal.Presentation.Vehicles
             float brakeInput,
             float speedMetersPerSecond,
             bool trafficLimited,
-            bool passing)
+            bool passing,
+            bool seekingEnergy)
         {
             if (!initialized)
                 return false;
@@ -211,6 +230,9 @@ namespace RaceFatal.Presentation.Vehicles
 
             debugTrafficLimited =
                 trafficLimited;
+
+            debugSeekingEnergy =
+                seekingEnergy;
 
             debugEnergyPercent =
                 participant.Vehicle.EnergyPool.MaxEnergy > 0f
@@ -236,11 +258,19 @@ namespace RaceFatal.Presentation.Vehicles
                 return wasActive != equipment.IsBoosterActive;
             }
 
+            if (seekingEnergy)
+            {
+                StopBoost("Seeking Energy");
+                return wasActive != equipment.IsBoosterActive;
+            }
+
             if (cooldownTimer > 0f)
             {
-                cooldownTimer = Mathf.Max(
-                    0f,
-                    cooldownTimer - Time.fixedDeltaTime);
+                cooldownTimer =
+                    Mathf.Max(
+                        0f,
+                        cooldownTimer -
+                        Time.fixedDeltaTime);
             }
 
             if (equipment.IsBoosterActive)
@@ -279,25 +309,29 @@ namespace RaceFatal.Presentation.Vehicles
             bool trafficLimited,
             bool passing)
         {
-            if (debugEnergyPercent <= runtimeEnergyReserve)
+            if (debugEnergyPercent <=
+                runtimeEnergyReserve)
             {
                 StopBoost("Energy Reserve");
                 return;
             }
 
-            if (cornerSeverity >= stopCornerSeverity)
+            if (cornerSeverity >=
+                stopCornerSeverity)
             {
                 StopBoost("Corner Ahead");
                 return;
             }
 
-            if (brakeInput >= stopBrakeThreshold)
+            if (brakeInput >=
+                stopBrakeThreshold)
             {
                 StopBoost("Braking");
                 return;
             }
 
-            if (trafficLimited && !passing)
+            if (trafficLimited &&
+                !passing)
             {
                 StopBoost("Blocked By Traffic");
                 return;
@@ -323,35 +357,40 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (debugEnergyPercent < runtimeRestartThreshold)
+            if (debugEnergyPercent <
+                runtimeRestartThreshold)
             {
                 straightTimer = 0f;
                 debugDecision = "Conserving Energy";
                 return;
             }
 
-            if (speedMetersPerSecond * 3.6f < minimumBoostSpeedKph)
+            if (speedMetersPerSecond * 3.6f <
+                minimumBoostSpeedKph)
             {
                 straightTimer = 0f;
                 debugDecision = "Below Boost Speed";
                 return;
             }
 
-            if (cornerSeverity > runtimeStartCornerSeverity)
+            if (cornerSeverity >
+                runtimeStartCornerSeverity)
             {
                 straightTimer = 0f;
                 debugDecision = "Corner Ahead";
                 return;
             }
 
-            if (brakeInput > maximumBrakeToStart)
+            if (brakeInput >
+                maximumBrakeToStart)
             {
                 straightTimer = 0f;
                 debugDecision = "Braking";
                 return;
             }
 
-            if (trafficLimited && !passing)
+            if (trafficLimited &&
+                !passing)
             {
                 straightTimer = 0f;
                 debugDecision = "Blocked By Traffic";
@@ -372,11 +411,15 @@ namespace RaceFatal.Presentation.Vehicles
                     ? "Preparing Pass Boost"
                     : "Straight Confirmed";
 
-            if (straightTimer < requiredCommitTime)
+            if (straightTimer <
+                requiredCommitTime)
+            {
                 return;
+            }
 
             bool activated =
-                equipment.SetBoostActive(true);
+                equipment.SetBoostActive(
+                    true);
 
             straightTimer = 0f;
 
@@ -388,13 +431,17 @@ namespace RaceFatal.Presentation.Vehicles
                     : "Boost Activation Failed";
         }
 
-        private void StopBoost(string reason)
+        private void StopBoost(
+            string reason)
         {
             if (equipment != null &&
                 equipment.IsBoosterActive)
             {
-                equipment.SetBoostActive(false);
-                cooldownTimer = boostCooldown;
+                equipment.SetBoostActive(
+                    false);
+
+                cooldownTimer =
+                    boostCooldown;
             }
 
             straightTimer = 0f;
@@ -422,16 +469,23 @@ namespace RaceFatal.Presentation.Vehicles
             if (raceRuntime.Director?.State == null)
                 return false;
 
-            return !raceRuntime.Director.State.IsFinished;
+            return !raceRuntime
+                .Director
+                .State
+                .IsFinished;
         }
 
-        private float CalculateDeterministicValue(string id)
+        private float CalculateDeterministicValue(
+            string id)
         {
-            uint hash = 2166136261u;
+            uint hash =
+                2166136261u;
 
             if (!string.IsNullOrEmpty(id))
             {
-                for (int i = 0; i < id.Length; i++)
+                for (int i = 0;
+                     i < id.Length;
+                     i++)
                 {
                     hash ^= id[i];
                     hash *= 16777619u;
