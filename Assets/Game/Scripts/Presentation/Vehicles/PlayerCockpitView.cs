@@ -8,75 +8,76 @@ namespace RaceFatal.Presentation.Vehicles
     public class PlayerCockpitView : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("Transform representing the rider's eye position and forward direction.")]
+        [Tooltip("Transform representing the rider's eye position and orientation.")]
         [SerializeField] private Transform cameraAnchor;
 
-        [Tooltip("Camera used only when this bike belongs to the player.")]
-        [SerializeField] private Camera playerCamera;
+        [Tooltip("Camera used by this bike if it belongs to the player.")]
+        [SerializeField] private Camera cockpitCamera;
 
-        [Tooltip("Audio listener associated with the player camera.")]
+        [Tooltip("Audio listener belonging to the cockpit camera.")]
         [SerializeField] private AudioListener audioListener;
 
-        [Header("Follow")]
-        [Tooltip("How quickly the camera follows cockpit position. Zero snaps immediately.")]
-        [Min(0f)][SerializeField] private float positionFollowSpeed = 30f;
+        [Tooltip("Optional player-only reticle canvas.")]
+        [SerializeField] private Canvas reticleCanvas;
 
-        [Tooltip("How quickly the camera follows cockpit rotation. Zero snaps immediately.")]
-        [Min(0f)][SerializeField] private float rotationFollowSpeed = 30f;
-
-        [Header("Field Of View")]
+        [Header("View")]
         [Min(1f)][SerializeField] private float normalFieldOfView = 75f;
         [Min(1f)][SerializeField] private float boostedFieldOfView = 82f;
-
-        [Tooltip("How quickly FOV reacts to boost state.")]
         [Min(0f)][SerializeField] private float fieldOfViewResponse = 8f;
+
+        [Header("Camera Motion")]
+        [Tooltip("Zero makes the camera follow the anchor position exactly.")]
+        [Min(0f)][SerializeField] private float positionFollowSpeed = 0f;
+
+        [Tooltip("Zero makes the camera follow the anchor rotation exactly.")]
+        [Min(0f)][SerializeField] private float rotationFollowSpeed = 0f;
 
         [Header("Cursor")]
         [SerializeField] private bool lockCursor = true;
 
         [Header("Runtime Debug")]
+        [SerializeField] private bool debugAwakeCalled;
+        [SerializeField] private bool debugHasRacerView;
+        [SerializeField] private bool debugRacerInitialized;
+        [SerializeField] private bool debugHasParticipant;
+        [SerializeField] private string debugRole = "Unknown";
+
         [SerializeField] private bool debugResolved;
-        [SerializeField] private bool debugPlayerViewActive;
-        [SerializeField] private bool debugBoostActive;
+        [SerializeField] private bool debugPlayerCameraActive;
+        [SerializeField] private bool debugBoosting;
         [SerializeField] private float debugCurrentFov;
 
         private RacerViewController racerView;
+        private bool resolved;
+        private bool activePlayerView;
 
-        private bool roleResolved;
-        private bool activeForPlayer;
+        public Camera CockpitCamera => cockpitCamera;
+        public bool IsActivePlayerView => activePlayerView;
 
         private void Awake()
         {
-            racerView =
-                GetComponent<RacerViewController>();
+            debugAwakeCalled = true;
 
-            if (playerCamera == null)
-            {
-                playerCamera =
-                    GetComponentInChildren<Camera>(true);
-            }
+            racerView = GetComponent<RacerViewController>();
+            debugHasRacerView = racerView != null;
 
-            if (audioListener == null &&
-                playerCamera != null)
-            {
-                audioListener =
-                    playerCamera.GetComponent<AudioListener>();
-            }
+            if (cockpitCamera == null)
+                cockpitCamera = GetComponentInChildren<Camera>(true);
 
-            SetCameraEnabled(false);
-        }
+            if (audioListener == null && cockpitCamera != null)
+                audioListener = cockpitCamera.GetComponent<AudioListener>();
 
-        private void Start()
-        {
-            TryResolveRole();
+            SetViewActive(false);
         }
 
         private void Update()
         {
-            if (!roleResolved)
-                TryResolveRole();
+            UpdateDebugState();
 
-            if (!activeForPlayer ||
+            if (!resolved)
+                TryResolvePlayer();
+
+            if (!activePlayerView ||
                 racerView.Participant?.Vehicle == null)
             {
                 return;
@@ -87,41 +88,57 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void LateUpdate()
         {
-            if (!activeForPlayer ||
-                playerCamera == null ||
+            if (!activePlayerView ||
+                cockpitCamera == null ||
                 cameraAnchor == null)
             {
                 return;
             }
 
-            float positionFactor =
-                positionFollowSpeed <= 0f
-                    ? 1f
-                    : 1f - Mathf.Exp(
-                        -positionFollowSpeed *
-                        Time.deltaTime);
+            Transform cameraTransform = cockpitCamera.transform;
 
-            float rotationFactor =
-                rotationFollowSpeed <= 0f
-                    ? 1f
-                    : 1f - Mathf.Exp(
-                        -rotationFollowSpeed *
-                        Time.deltaTime);
+            if (positionFollowSpeed <= 0f)
+            {
+                cameraTransform.position = cameraAnchor.position;
+            }
+            else
+            {
+                float factor = 1f - Mathf.Exp(-positionFollowSpeed * Time.deltaTime);
 
-            playerCamera.transform.position =
-                Vector3.Lerp(
-                    playerCamera.transform.position,
+                cameraTransform.position = Vector3.Lerp(
+                    cameraTransform.position,
                     cameraAnchor.position,
-                    positionFactor);
+                    factor);
+            }
 
-            playerCamera.transform.rotation =
-                Quaternion.Slerp(
-                    playerCamera.transform.rotation,
+            if (rotationFollowSpeed <= 0f)
+            {
+                cameraTransform.rotation = cameraAnchor.rotation;
+            }
+            else
+            {
+                float factor = 1f - Mathf.Exp(-rotationFollowSpeed * Time.deltaTime);
+
+                cameraTransform.rotation = Quaternion.Slerp(
+                    cameraTransform.rotation,
                     cameraAnchor.rotation,
-                    rotationFactor);
+                    factor);
+            }
         }
 
-        private void TryResolveRole()
+        private void UpdateDebugState()
+        {
+            debugHasRacerView = racerView != null;
+            debugRacerInitialized = racerView != null && racerView.IsInitialized;
+            debugHasParticipant = racerView != null && racerView.Participant != null;
+
+            debugRole =
+                racerView?.Participant != null
+                    ? racerView.Participant.Role.ToString()
+                    : "None";
+        }
+
+        private void TryResolvePlayer()
         {
             if (racerView == null ||
                 !racerView.IsInitialized ||
@@ -130,115 +147,110 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            roleResolved = true;
+            resolved = true;
             debugResolved = true;
 
-            activeForPlayer =
+            activePlayerView =
                 racerView.Participant.Role ==
                 RaceParticipantRole.Player;
 
-            debugPlayerViewActive =
-                activeForPlayer;
+            debugPlayerCameraActive = activePlayerView;
 
-            SetCameraEnabled(
-                activeForPlayer);
+            SetViewActive(activePlayerView);
 
-            if (!activeForPlayer)
+            if (!activePlayerView)
                 return;
 
-            SnapToAnchor();
+            SnapCamera();
 
-            if (playerCamera != null)
+            if (cockpitCamera != null)
             {
-                playerCamera.fieldOfView =
-                    normalFieldOfView;
+                cockpitCamera.fieldOfView = normalFieldOfView;
+                debugCurrentFov = cockpitCamera.fieldOfView;
             }
 
             if (lockCursor)
             {
-                Cursor.lockState =
-                    CursorLockMode.Locked;
-
-                Cursor.visible =
-                    false;
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
         }
 
         private void UpdateFieldOfView()
         {
+            if (cockpitCamera == null)
+                return;
+
             bool boosting =
-                racerView.Participant
-                    .Vehicle
+                racerView.Participant.Vehicle
                     .EquipmentSystem
                     .IsBoosterActive;
 
-            debugBoostActive =
-                boosting;
+            debugBoosting = boosting;
 
             float targetFov =
                 boosting
                     ? boostedFieldOfView
                     : normalFieldOfView;
 
-            float factor =
-                fieldOfViewResponse <= 0f
-                    ? 1f
-                    : 1f - Mathf.Exp(
+            if (fieldOfViewResponse <= 0f)
+            {
+                cockpitCamera.fieldOfView = targetFov;
+            }
+            else
+            {
+                float factor =
+                    1f -
+                    Mathf.Exp(
                         -fieldOfViewResponse *
                         Time.deltaTime);
 
-            playerCamera.fieldOfView =
-                Mathf.Lerp(
-                    playerCamera.fieldOfView,
-                    targetFov,
-                    factor);
+                cockpitCamera.fieldOfView =
+                    Mathf.Lerp(
+                        cockpitCamera.fieldOfView,
+                        targetFov,
+                        factor);
+            }
 
             debugCurrentFov =
-                playerCamera.fieldOfView;
+                cockpitCamera.fieldOfView;
         }
 
-        private void SnapToAnchor()
+        private void SnapCamera()
         {
-            if (playerCamera == null ||
+            if (cockpitCamera == null ||
                 cameraAnchor == null)
             {
                 return;
             }
 
-            playerCamera.transform.SetPositionAndRotation(
+            cockpitCamera.transform.SetPositionAndRotation(
                 cameraAnchor.position,
                 cameraAnchor.rotation);
         }
 
-        private void SetCameraEnabled(
-            bool enabled)
+        private void SetViewActive(bool active)
         {
-            if (playerCamera != null)
-            {
-                playerCamera.enabled =
-                    enabled;
-            }
+            if (cockpitCamera != null)
+                cockpitCamera.enabled = active;
 
             if (audioListener != null)
-            {
-                audioListener.enabled =
-                    enabled;
-            }
+                audioListener.enabled = active;
+
+            if (reticleCanvas != null)
+                reticleCanvas.enabled = active;
         }
 
         private void OnDestroy()
         {
-            if (!activeForPlayer ||
+            if (!activePlayerView ||
                 !lockCursor)
             {
                 return;
             }
 
-            Cursor.lockState =
-                CursorLockMode.None;
-
-            Cursor.visible =
-                true;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 }

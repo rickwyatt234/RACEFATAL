@@ -8,46 +8,50 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
-    public sealed class RaceWeaponPresenter : MonoBehaviour
+    public class RaceWeaponPresenter : MonoBehaviour
     {
         [Serializable]
-        private sealed class ProjectileBinding
+        private class ProjectileBinding
         {
-            [Tooltip(
-                "Must match the weapon definition ID exactly.")]
+            [Tooltip("Must match the weapon definition ID exactly.")]
             public string definitionId;
 
             public ProjectileView prefab;
         }
 
         [Header("Hitscan / Area")]
+        [SerializeField] private LayerMask hitMask = ~0;
 
-        [SerializeField]
-        private LayerMask hitMask = ~0;
+        [Tooltip("Maximum number of hits inspected by a single hitscan shot.")]
+        [Min(4)][SerializeField] private int hitscanBufferSize = 32;
 
         [Header("Projectile Prefabs")]
+        [SerializeField] private List<ProjectileBinding> projectilePrefabs =
+            new List<ProjectileBinding>();
 
-        [SerializeField]
-        private List<ProjectileBinding>
-            projectilePrefabs =
-                new List<ProjectileBinding>();
+        [Header("Runtime Debug")]
+        [SerializeField] private string debugLastShooter;
+        [SerializeField] private string debugLastWeapon;
+        [SerializeField] private bool debugUsedPlayerAim;
+        [SerializeField] private bool debugLastShotHit;
+        [SerializeField] private string debugLastVictim = "None";
+        [SerializeField] private Vector3 debugLastFireDirection;
+        [SerializeField] private Vector3 debugLastHitPoint;
 
-        private readonly Dictionary<
-            string,
-            ProjectileView>
-            projectileLookup =
-                new Dictionary<
-                    string,
-                    ProjectileView>();
+        private readonly Dictionary<string, ProjectileView> projectileLookup =
+            new Dictionary<string, ProjectileView>();
 
         private RaceRuntimeController runtime;
-
-        // ---------------------------------------------------------
-        // UNITY
-        // ---------------------------------------------------------
+        private RaycastHit[] hitscanBuffer;
 
         private void Awake()
         {
+            hitscanBuffer =
+                new RaycastHit[
+                    Mathf.Max(
+                        4,
+                        hitscanBufferSize)];
+
             BuildProjectileLookup();
         }
 
@@ -56,29 +60,18 @@ namespace RaceFatal.Presentation.Combat
             UnsubscribeFromRuntime();
         }
 
-        // ---------------------------------------------------------
-        // INITIALIZATION
-        // ---------------------------------------------------------
-
-        /// <summary>
-        /// Connects this presentation component to the active
-        /// race runtime.
-        ///
-        /// RaceSceneAssembler calls this after the RaceDirector
-        /// and physical race runtime have been created.
-        /// </summary>
         public void Initialize(
             RaceRuntimeController raceRuntime)
         {
             UnsubscribeFromRuntime();
 
-            runtime = raceRuntime;
+            runtime =
+                raceRuntime;
 
             if (runtime == null)
             {
                 Debug.LogError(
-                    "RaceWeaponPresenter requires a " +
-                    "RaceRuntimeController.",
+                    "RaceWeaponPresenter requires a RaceRuntimeController.",
                     this);
 
                 return;
@@ -87,8 +80,7 @@ namespace RaceFatal.Presentation.Combat
             if (runtime.Director == null)
             {
                 Debug.LogError(
-                    "RaceRuntimeController does not have an " +
-                    "initialized RaceDirector.",
+                    "RaceRuntimeController does not have an initialized RaceDirector.",
                     this);
 
                 return;
@@ -110,35 +102,25 @@ namespace RaceFatal.Presentation.Combat
                 OnWeaponFired;
         }
 
-        // ---------------------------------------------------------
-        // PROJECTILE LOOKUP
-        // ---------------------------------------------------------
-
         private void BuildProjectileLookup()
         {
             projectileLookup.Clear();
 
-            foreach (ProjectileBinding binding
-                     in projectilePrefabs)
+            foreach (ProjectileBinding binding in projectilePrefabs)
             {
-                if (binding == null)
-                    continue;
-
-                if (string.IsNullOrWhiteSpace(
-                        binding.definitionId))
+                if (binding == null ||
+                    string.IsNullOrWhiteSpace(
+                        binding.definitionId) ||
+                    binding.prefab == null)
                 {
                     continue;
                 }
-
-                if (binding.prefab == null)
-                    continue;
 
                 if (projectileLookup.ContainsKey(
                         binding.definitionId))
                 {
                     Debug.LogWarning(
-                        $"Duplicate projectile binding for " +
-                        $"'{binding.definitionId}'. " +
+                        $"Duplicate projectile binding for '{binding.definitionId}'. " +
                         "The later entry will replace the earlier one.",
                         this);
                 }
@@ -148,10 +130,6 @@ namespace RaceFatal.Presentation.Combat
                         binding.prefab;
             }
         }
-
-        // ---------------------------------------------------------
-        // WEAPON FIRING
-        // ---------------------------------------------------------
 
         private void OnWeaponFired(
             WeaponFireEvent fireEvent)
@@ -167,8 +145,7 @@ namespace RaceFatal.Presentation.Combat
                     out RacerViewController racer))
             {
                 Debug.LogWarning(
-                    $"No RacerViewController was found for " +
-                    $"racer '{fireEvent.RacerId}'.",
+                    $"No RacerViewController was found for racer '{fireEvent.RacerId}'.",
                     this);
 
                 return;
@@ -179,9 +156,8 @@ namespace RaceFatal.Presentation.Combat
                     out BikeEquipmentMountView mount))
             {
                 Debug.LogWarning(
-                    $"Racer '{fireEvent.RacerId}' has no " +
-                    $"physical mount bound to equipment " +
-                    $"'{fireEvent.EquipmentId}'.",
+                    $"Racer '{fireEvent.RacerId}' has no physical mount bound " +
+                    $"to equipment '{fireEvent.EquipmentId}'.",
                     racer);
 
                 return;
@@ -190,35 +166,63 @@ namespace RaceFatal.Presentation.Combat
             Transform origin =
                 mount.EquipmentOrigin;
 
+            Vector3 fireDirection =
+                ResolveFireDirection(
+                    racer,
+                    origin,
+                    fireEvent.Range);
+
+            PlayMuzzleFeedback(
+                mount);
+
+            debugLastShooter =
+                fireEvent.RacerId;
+
+            debugLastWeapon =
+                fireEvent.DefinitionId;
+
+            debugLastFireDirection =
+                fireDirection;
+
+            debugLastShotHit = false;
+            debugLastVictim = "None";
+
             switch (fireEvent.DeliveryMode)
             {
                 case WeaponDeliveryMode.Hitscan:
                     FireHitscan(
                         fireEvent,
-                        origin);
+                        origin,
+                        fireDirection);
                     break;
 
                 case WeaponDeliveryMode.Projectile:
                     SpawnProjectile(
                         fireEvent,
-                        origin);
+                        origin,
+                        fireDirection);
                     break;
 
                 case WeaponDeliveryMode.GuidedProjectile:
-                    // Proper target acquisition and homing will
-                    // be added with the targeting system.
-                    //
-                    // For now, this behaves like a normal
-                    // forward projectile.
+                    /*
+                     * Actual homing/locking comes later.
+                     * Initial launch still uses the resolved aim direction.
+                     */
                     SpawnProjectile(
                         fireEvent,
-                        origin);
+                        origin,
+                        fireDirection);
                     break;
 
                 case WeaponDeliveryMode.Dropped:
+                    /*
+                     * Dropped weapons should retain their physical
+                     * mount direction rather than cockpit convergence.
+                     */
                     SpawnProjectile(
                         fireEvent,
-                        origin);
+                        origin,
+                        origin.forward);
                     break;
 
                 case WeaponDeliveryMode.Area:
@@ -229,34 +233,84 @@ namespace RaceFatal.Presentation.Combat
 
                 default:
                     Debug.LogWarning(
-                        $"Unsupported weapon delivery mode " +
-                        $"'{fireEvent.DeliveryMode}'.",
+                        $"Unsupported weapon delivery mode '{fireEvent.DeliveryMode}'.",
                         this);
                     break;
             }
         }
 
-        // ---------------------------------------------------------
-        // HITSCAN
-        // ---------------------------------------------------------
+        private void PlayMuzzleFeedback(
+            BikeEquipmentMountView mount)
+        {
+            if (mount == null)
+                return;
+
+            WeaponMountFeedbackView feedback =
+                mount.GetComponentInChildren<
+                    WeaponMountFeedbackView>(true);
+
+            if (feedback != null)
+                feedback.PlayFire();
+        }
+
+        private Vector3 ResolveFireDirection(
+            RacerViewController racer,
+            Transform origin,
+            float range)
+        {
+            debugUsedPlayerAim = false;
+
+            if (origin == null)
+                return transform.forward;
+
+            PlayerWeaponAim playerAim =
+                racer.GetComponent<
+                    PlayerWeaponAim>();
+
+            if (playerAim != null &&
+                playerAim.TryGetAimDirection(
+                    origin,
+                    range,
+                    hitMask,
+                    out Vector3 aimDirection))
+            {
+                debugUsedPlayerAim = true;
+
+                return aimDirection;
+            }
+
+            return origin.forward;
+        }
 
         private void FireHitscan(
             WeaponFireEvent fireEvent,
-            Transform origin)
+            Transform origin,
+            Vector3 direction)
         {
-            if (origin == null)
-                return;
-
-            if (!Physics.Raycast(
-                    origin.position,
-                    origin.forward,
-                    out RaycastHit hit,
-                    fireEvent.Range,
-                    hitMask,
-                    QueryTriggerInteraction.Ignore))
+            if (origin == null ||
+                direction.sqrMagnitude <
+                    0.001f)
             {
                 return;
             }
+
+            direction.Normalize();
+
+            if (!TryGetFirstHitIgnoringOwner(
+                    origin.position,
+                    direction,
+                    fireEvent.Range,
+                    fireEvent.RacerId,
+                    out RaycastHit hit))
+            {
+                return;
+            }
+
+            debugLastShotHit =
+                true;
+
+            debugLastHitPoint =
+                hit.point;
 
             RacerViewController victim =
                 hit.collider
@@ -269,12 +323,14 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
-            // Never damage the weapon's owner.
             if (victim.RacerId ==
                 fireEvent.RacerId)
             {
                 return;
             }
+
+            debugLastVictim =
+                victim.RacerId;
 
             runtime.Director.ApplyDamage(
                 fireEvent.RacerId,
@@ -283,13 +339,79 @@ namespace RaceFatal.Presentation.Combat
                 DamageCause.Weapon);
         }
 
-        // ---------------------------------------------------------
-        // PROJECTILES
-        // ---------------------------------------------------------
+        private bool TryGetFirstHitIgnoringOwner(
+            Vector3 origin,
+            Vector3 direction,
+            float range,
+            string ownerRacerId,
+            out RaycastHit nearestHit)
+        {
+            nearestHit = default;
+
+            int hitCount =
+                Physics.RaycastNonAlloc(
+                    origin,
+                    direction,
+                    hitscanBuffer,
+                    range,
+                    hitMask,
+                    QueryTriggerInteraction.Ignore);
+
+            if (hitCount <= 0)
+                return false;
+
+            bool found =
+                false;
+
+            float nearestDistance =
+                float.PositiveInfinity;
+
+            for (int i = 0;
+                 i < hitCount;
+                 i++)
+            {
+                RaycastHit hit =
+                    hitscanBuffer[i];
+
+                if (hit.collider == null)
+                    continue;
+
+                RacerViewController hitRacer =
+                    hit.collider
+                        .GetComponentInParent<
+                            RacerViewController>();
+
+                if (hitRacer != null &&
+                    hitRacer.IsInitialized &&
+                    hitRacer.RacerId ==
+                        ownerRacerId)
+                {
+                    continue;
+                }
+
+                if (hit.distance >=
+                    nearestDistance)
+                {
+                    continue;
+                }
+
+                nearestDistance =
+                    hit.distance;
+
+                nearestHit =
+                    hit;
+
+                found =
+                    true;
+            }
+
+            return found;
+        }
 
         private void SpawnProjectile(
             WeaponFireEvent fireEvent,
-            Transform origin)
+            Transform origin,
+            Vector3 direction)
         {
             if (origin == null)
                 return;
@@ -299,9 +421,8 @@ namespace RaceFatal.Presentation.Combat
                     out ProjectileView prefab))
             {
                 Debug.LogWarning(
-                    $"No ProjectileView prefab is registered " +
-                    $"for weapon definition " +
-                    $"'{fireEvent.DefinitionId}'.",
+                    $"No ProjectileView prefab is registered for weapon " +
+                    $"definition '{fireEvent.DefinitionId}'.",
                     this);
 
                 return;
@@ -310,23 +431,55 @@ namespace RaceFatal.Presentation.Combat
             if (prefab == null)
                 return;
 
+            Quaternion rotation =
+                CalculateProjectileRotation(
+                    origin,
+                    direction);
+
             ProjectileView projectile =
                 Instantiate(
                     prefab,
                     origin.position,
-                    origin.rotation);
+                    rotation);
 
             projectile.Initialize(
                 runtime,
                 fireEvent.RacerId,
                 fireEvent.Damage,
                 fireEvent.ProjectileSpeed,
-                fireEvent.Range);
-        }
+                fireEvent.Range,
+                direction);
+                    }
 
-        // ---------------------------------------------------------
-        // AREA ATTACKS
-        // ---------------------------------------------------------
+        private Quaternion CalculateProjectileRotation(
+            Transform origin,
+            Vector3 direction)
+        {
+            if (direction.sqrMagnitude <
+                0.001f)
+            {
+                return origin.rotation;
+            }
+
+            direction.Normalize();
+
+            Vector3 up =
+                origin.up;
+
+            if (Mathf.Abs(
+                    Vector3.Dot(
+                        direction,
+                        up)) >
+                0.98f)
+            {
+                up =
+                    origin.right;
+            }
+
+            return Quaternion.LookRotation(
+                direction,
+                up);
+        }
 
         private void FireArea(
             WeaponFireEvent fireEvent,
@@ -342,8 +495,6 @@ namespace RaceFatal.Presentation.Combat
                     hitMask,
                     QueryTriggerInteraction.Ignore);
 
-            // A racer may have several colliders.
-            // Ensure an area attack only damages each racer once.
             var damagedRacerIds =
                 new HashSet<string>();
 

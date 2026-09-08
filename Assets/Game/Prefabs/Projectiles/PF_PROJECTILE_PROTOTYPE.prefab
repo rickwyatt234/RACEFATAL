@@ -154,3 +154,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.ProjectileView
   maximumLifetime: 10
+  impactPrefab: {fileID: 782207453580617835, guid: beb3a3f9b796e4642a9901a2553c9dc6, type: 3}
+  impactOffset: 0.01
+  debugInitialized: 0
+  debugImpactResolved: 0
+  debugAttackerRacerId: 
+  debugVictimRacerId: None
+  debugRemainingRange: 0
+  debugLifetime: 0
