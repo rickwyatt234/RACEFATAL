@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: e5ed5e42c59e34eeabc86088b23b6bfb
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303809
+  packageName: 'Aeon: Sci-Fi Sound Bundle'
+  packageVersion: 1.2.0
+  assetPath: Assets/Aeon Sci-Fi Sound Bundle/Future UI Sound Library/Audio/Errors
+    and Alarms/Alarm Tone Saw Loop.wav
+  uploadId: 983654

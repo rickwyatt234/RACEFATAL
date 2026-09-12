@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 86418a317176a48499d8bb9d5902ea61
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303809
+  packageName: 'Aeon: Sci-Fi Sound Bundle'
+  packageVersion: 1.2.0
+  assetPath: Assets/Aeon Sci-Fi Sound Bundle/Future UI Sound Library/Audio/Clicks
+    and Buttons/FUI Button Press Bubbly-1.wav
+  uploadId: 983654
