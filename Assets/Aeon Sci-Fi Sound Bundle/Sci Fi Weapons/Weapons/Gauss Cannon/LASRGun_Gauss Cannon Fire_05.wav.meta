@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: c2e7710462eac4849bbcb23fc91c70f9
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 7
+  defaultSettings:
+    serializedVersion: 2
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+    preloadAudioData: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303809
+  packageName: 'Aeon: Sci-Fi Sound Bundle'
+  packageVersion: 1.2.0
+  assetPath: Assets/Aeon Sci-Fi Sound Bundle/Sci Fi Weapons/Weapons/Gauss Cannon/LASRGun_Gauss
+    Cannon Fire_05.wav
+  uploadId: 983654

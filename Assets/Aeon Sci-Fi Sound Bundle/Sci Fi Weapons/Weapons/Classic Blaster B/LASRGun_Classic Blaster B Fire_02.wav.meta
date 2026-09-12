@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 23a7037c8769a4ccc8a892fc7aa82e24
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 7
+  defaultSettings:
+    serializedVersion: 2
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+    preloadAudioData: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303809
+  packageName: 'Aeon: Sci-Fi Sound Bundle'
+  packageVersion: 1.2.0
+  assetPath: Assets/Aeon Sci-Fi Sound Bundle/Sci Fi Weapons/Weapons/Classic Blaster
+    B/LASRGun_Classic Blaster B Fire_02.wav
+  uploadId: 983654
