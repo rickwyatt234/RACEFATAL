@@ -334,6 +334,7 @@ GameObject:
   - component: {fileID: 186401689900344523}
   - component: {fileID: 1108319881398465411}
   - component: {fileID: 8051740837735172641}
+  - component: {fileID: 8349441520992266588}
   m_Layer: 6
   m_Name: Road_Curve_Right_Wall.001
   m_TagString: Untagged
@@ -435,3 +436,15 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1658427596410002444, guid: 2cfc6b3afded1f941965331387488328, type: 3}
+--- !u!114 &8349441520992266588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8325427160603015665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c862e712649809e49966a7eb5fd43197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackWall

@@ -4,6 +4,7 @@ using RaceFatal.Infrastructure;
 using RaceFatal.Infrastructure.Input;
 using RaceFatal.Presentation.Bootstrap;
 using RaceFatal.Presentation.Tracks;
+using RaceFatal.Presentation.Vehicles;
 using RaceFatal.Racing;
 using UnityEngine;
 
@@ -21,11 +22,17 @@ namespace RaceFatal.Presentation.Racing
         private string playerRacerId;
 
         public RaceDirector Director => raceDirector;
+        public string PlayerRacerId => playerRacerId;
         public bool IsInitialized => raceDirector != null;
 
         public bool HasStarted =>
             raceDirector != null &&
             raceDirector.State.IsStarted;
+
+        public bool IsRaceActive =>
+            raceDirector != null &&
+            raceDirector.State.IsStarted &&
+            !raceDirector.State.IsFinished;
 
         public void Initialize(
             RaceDirector director,
@@ -56,8 +63,7 @@ namespace RaceFatal.Presentation.Racing
 
             foreach (RacerViewController view in racerViews.Values)
             {
-                trackRuntime.BindRacer(
-                    view);
+                trackRuntime.BindRacer(view);
             }
         }
 
@@ -132,6 +138,75 @@ namespace RaceFatal.Presentation.Racing
                 slot);
         }
 
+        /// <summary>
+        /// Stops presentation-side vehicle control for one racer.
+        /// This does not alter their Domain race status.
+        /// </summary>
+        public void StopRacerControl(
+            string racerId,
+            float brakeInput = 1f)
+        {
+            if (!TryGetRacerView(
+                    racerId,
+                    out RacerViewController view))
+            {
+                return;
+            }
+
+            RaceParticipant participant =
+                view.Participant;
+
+            if (participant?.Vehicle?.EquipmentSystem != null)
+            {
+                participant.Vehicle
+                    .EquipmentSystem
+                    .SetBoostActive(false);
+            }
+
+            BikeController playerController =
+                view.GetComponent<BikeController>();
+
+            AIDriverController aiDriver =
+                view.GetComponent<AIDriverController>();
+
+            BikeMotor motor =
+                view.GetComponent<BikeMotor>();
+
+            if (playerController != null)
+                playerController.enabled = false;
+
+            if (aiDriver != null)
+                aiDriver.enabled = false;
+
+            if (motor != null)
+            {
+                motor.SetControls(
+                    0f,
+                    Mathf.Clamp01(brakeInput),
+                    0f);
+            }
+        }
+
+        /// <summary>
+        /// Stops every physical racer after race resolution.
+        /// </summary>
+        public void StopAllVehicleControl(
+            float brakeInput = 1f)
+        {
+            foreach (RacerViewController view in racerViews.Values)
+            {
+                if (view == null ||
+                    !view.IsInitialized)
+                {
+                    continue;
+                }
+
+                StopRacerControl(
+                    view.RacerId,
+                    brakeInput);
+            }
+        }
+
         private void HandlePlayerEquipmentInput()
         {
             if (input == null ||
@@ -154,17 +229,20 @@ namespace RaceFatal.Presentation.Racing
                 return;
 
             bool raceActive =
-                HasStarted &&
-                !raceDirector.State.IsFinished &&
+                IsRaceActive &&
+                participant.Status ==
+                    RaceParticipantStatus.Racing &&
                 !participant.Vehicle.IsDestroyed;
 
             /*
-             * Boost is a dedicated continuous control, completely
+             * Boost is a dedicated continuous control,
              * independent from selected weapons.
              */
-            participant.Vehicle.EquipmentSystem.SetBoostActive(
-                raceActive &&
-                input.BoostHeld);
+            participant.Vehicle
+                .EquipmentSystem
+                .SetBoostActive(
+                    raceActive &&
+                    input.BoostHeld);
 
             if (!raceActive)
                 return;
@@ -197,20 +275,20 @@ namespace RaceFatal.Presentation.Racing
         private void OnRacerDestroyed(
             RaceParticipant participant)
         {
+            /*
+             * Ensure a destroyed racer cannot leave its booster
+             * active in race state.
+             */
+            participant.Vehicle
+                .EquipmentSystem
+                .SetBoostActive(false);
+
             if (!TryGetRacerView(
                     participant.RacerId,
                     out RacerViewController view))
             {
                 return;
             }
-
-            /*
-             * Ensure a destroyed player cannot leave its booster
-             * active in race state.
-             */
-            participant.Vehicle
-                .EquipmentSystem
-                .SetBoostActive(false);
 
             view.gameObject.SendMessage(
                 "OnRaceDestroyed",

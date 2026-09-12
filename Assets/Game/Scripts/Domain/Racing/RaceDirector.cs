@@ -7,11 +7,7 @@ using RaceFatal.Shared;
 
 namespace RaceFatal.Racing
 {
-    /// Coordinates the lifecycle and rules of a single race.
-    /// RaceDirector does not control Unity objects directly.
-    /// Scene-facing code reports events such as lap completion,
-    /// equipment input, damage, and energy-strip contact to this class.
-    public sealed class RaceDirector
+    public class RaceDirector
     {
         private readonly RaceState state;
         private readonly LapTracker lapTracker;
@@ -19,22 +15,38 @@ namespace RaceFatal.Racing
 
         private int nextFinishPosition = 1;
 
+        private RaceResult finalRaceResult;
+        private PostRaceResult postRaceResult;
+
         public RaceState State => state;
 
-#region Events
+        public RaceResult FinalRaceResult =>
+            finalRaceResult;
+
+        public PostRaceResult PostRaceResult =>
+            postRaceResult;
+
+        public float ElapsedRaceTime {
+            get;
+            private set;
+        }
+
+        #region Events
 
         public event Action<RaceParticipant> RacerFinished;
         public event Action<RaceParticipant> RacerDestroyed;
         public event Action<RaceParticipant> RacerRetired;
 
         public event Action<DamageEvent> DamageApplied;
-
         public event Action<WeaponFireEvent> WeaponFired;
 
         public event Action<RaceResult> RaceCompleted;
-#endregion
+        public event Action<PostRaceResult> PostRaceResolved;
 
-#region Initialization
+        #endregion
+
+        #region Initialization
+
         public RaceDirector(
             RaceState state,
             CareerManager careerManager)
@@ -47,8 +59,9 @@ namespace RaceFatal.Racing
                 ?? throw new ArgumentNullException(
                     nameof(careerManager));
 
-            lapTracker = new LapTracker(
-                state.RaceDefinition.LapCount);
+            lapTracker =
+                new LapTracker(
+                    state.RaceDefinition.LapCount);
 
             SubscribeToParticipants();
         }
@@ -67,11 +80,13 @@ namespace RaceFatal.Racing
         private void OnWeaponFired(
             WeaponFireEvent fireEvent)
         {
-            WeaponFired?.Invoke(fireEvent);
+            WeaponFired?.Invoke(
+                fireEvent);
         }
-#endregion
 
-#region Race Lifecycle
+        #endregion
+
+        #region Race Lifecycle
 
         public void StartRace()
         {
@@ -80,6 +95,8 @@ namespace RaceFatal.Racing
             {
                 return;
             }
+
+            ElapsedRaceTime = 0f;
 
             state.StartRace();
 
@@ -91,21 +108,17 @@ namespace RaceFatal.Racing
             }
         }
 
-        /// <summary>
-        /// Updates race-time systems such as shields,
-        /// weapon firing, charging, boosters, and countermeasure
-        /// cooldowns.
-        ///
-        /// Unity should call this once per frame while the race
-        /// is active.
-        /// </summary>
-        public void Tick(float deltaTime)
+        public void Tick(
+            float deltaTime)
         {
             if (!CanProcessRaceEvent())
                 return;
 
             if (deltaTime <= 0f)
                 return;
+
+            ElapsedRaceTime +=
+                deltaTime;
 
             foreach (RaceParticipant participant
                      in state.Participants)
@@ -120,9 +133,11 @@ namespace RaceFatal.Racing
                     deltaTime);
             }
         }
+
         #endregion
 
-#region Race Event Reporting
+        #region Race Event Reporting
+
         public void ReportCourseProgress(
             string racerId,
             float progress)
@@ -131,7 +146,8 @@ namespace RaceFatal.Racing
                 return;
 
             RaceParticipant participant =
-                state.FindParticipant(racerId);
+                state.FindParticipant(
+                    racerId);
 
             if (participant == null)
                 return;
@@ -147,7 +163,8 @@ namespace RaceFatal.Racing
                 return;
 
             RaceParticipant participant =
-                state.FindParticipant(racerId);
+                state.FindParticipant(
+                    racerId);
 
             if (participant == null)
                 return;
@@ -165,8 +182,31 @@ namespace RaceFatal.Racing
             if (!completedRace)
                 return;
 
+            ConfirmFinish(
+                participant,
+                false);
+        }
+
+        private void ConfirmFinish(
+            RaceParticipant participant,
+            bool fastResolved)
+        {
+            if (participant == null ||
+                participant.Status !=
+                    RaceParticipantStatus.Racing)
+            {
+                return;
+            }
+
+            float? finishTime =
+                fastResolved
+                    ? null
+                    : ElapsedRaceTime;
+
             participant.Finish(
-                nextFinishPosition);
+                nextFinishPosition,
+                finishTime,
+                fastResolved);
 
             nextFinishPosition++;
 
@@ -176,9 +216,10 @@ namespace RaceFatal.Racing
             RacerFinished?.Invoke(
                 participant);
         }
-#endregion
 
-#region Equipment Selection
+        #endregion
+
+        #region Equipment Selection
 
         public string SelectNextEquipment(
             string racerId)
@@ -215,9 +256,11 @@ namespace RaceFatal.Racing
                 .EquipmentSystem
                 .SelectPrevious();
         }
-#endregion
 
-#region Equipment Activation
+        #endregion
+
+        #region Equipment Activation
+
         public bool BeginEquipmentActivation(
             string racerId)
         {
@@ -235,6 +278,7 @@ namespace RaceFatal.Racing
                 .EquipmentSystem
                 .BeginSelectedActivation();
         }
+
         public bool EndEquipmentActivation(
             string racerId)
         {
@@ -253,9 +297,10 @@ namespace RaceFatal.Racing
                 .EndSelectedActivation();
         }
 
-#endregion
+        #endregion
 
-#region Damage
+        #region Damage
+
         public Result<DamageEvent> ApplyDamage(
             string attackerRacerId,
             string victimRacerId,
@@ -288,7 +333,7 @@ namespace RaceFatal.Racing
                 victim.Vehicle.ApplyDamage(
                     amount);
 
-            var damageEvent =
+            DamageEvent damageEvent =
                 new DamageEvent(
                     attackerRacerId,
                     victimRacerId,
@@ -310,9 +355,11 @@ namespace RaceFatal.Racing
             return Result<DamageEvent>.Success(
                 damageEvent);
         }
-#endregion
 
-#region Energy
+        #endregion
+
+        #region Energy
+
         public float RechargeEnergy(
             string racerId,
             float amount)
@@ -331,11 +378,14 @@ namespace RaceFatal.Racing
                 return 0f;
 
             return participant.Vehicle
-                .RechargeEnergy(amount);
+                .RechargeEnergy(
+                    amount);
         }
-#endregion
 
-#region Countermeasures
+        #endregion
+
+        #region Countermeasures
+
         public bool TryTriggerCountermeasure(
             string racerId,
             CountermeasureType type)
@@ -350,11 +400,15 @@ namespace RaceFatal.Racing
             if (participant == null)
                 return false;
 
-            return participant.Vehicle.EquipmentSystem.TryTriggerCountermeasure(type);
+            return participant.Vehicle
+                .EquipmentSystem
+                .TryTriggerCountermeasure(
+                    type);
         }
-#endregion
 
-#region Retirement
+        #endregion
+
+        #region Retirement
 
         public void RetireRacer(
             string racerId)
@@ -374,25 +428,98 @@ namespace RaceFatal.Racing
             RacerRetired?.Invoke(
                 participant);
         }
-#endregion
 
-#region Race Completion
+        #endregion
+
+        #region Race Completion
+
+        public RaceResult ResolveRemainingRace()
+        {
+            if (state.IsFinished)
+            {
+                return finalRaceResult
+                    ?? BuildResult();
+            }
+
+            if (!state.IsStarted)
+                return null;
+
+            IReadOnlyList<RaceParticipant> currentOrder =
+                state.GetCurrentOrder();
+
+            foreach (RaceParticipant participant
+                     in currentOrder)
+            {
+                if (participant.Status !=
+                    RaceParticipantStatus.Racing)
+                {
+                    continue;
+                }
+
+                ConfirmFinish(
+                    participant,
+                    true);
+            }
+
+            return CompleteRace();
+        }
+
         public RaceResult CompleteRace()
         {
             if (state.IsFinished)
             {
-                return BuildResult();
+                return finalRaceResult
+                    ?? BuildResult();
             }
 
             state.FinishRace();
 
-            RaceResult result =
+            finalRaceResult =
                 BuildResult();
 
-            RaceCompleted?.Invoke(
-                result);
+            ResolvePostRace(
+                finalRaceResult);
 
-            return result;
+            RaceCompleted?.Invoke(
+                finalRaceResult);
+
+            return finalRaceResult;
+        }
+
+        private void ResolvePostRace(
+            RaceResult raceResult)
+        {
+            if (postRaceResult != null)
+                return;
+
+            RaceParticipant player =
+                FindPlayerParticipant();
+
+            if (player == null)
+                return;
+
+            postRaceResult =
+                careerManager.ResolvePostRace(
+                    raceResult,
+                    player.Racer);
+
+            PostRaceResolved?.Invoke(
+                postRaceResult);
+        }
+
+        private RaceParticipant FindPlayerParticipant()
+        {
+            foreach (RaceParticipant participant
+                     in state.Participants)
+            {
+                if (participant.Role ==
+                    RaceParticipantRole.Player)
+                {
+                    return participant;
+                }
+            }
+
+            return null;
         }
 
         private RaceResult BuildResult()
@@ -400,7 +527,7 @@ namespace RaceFatal.Racing
             IReadOnlyList<RaceParticipant> order =
                 state.GetCurrentOrder();
 
-            var results =
+            List<RaceResultEntry> results =
                 new List<RaceResultEntry>(
                     order.Count);
 
@@ -414,40 +541,39 @@ namespace RaceFatal.Racing
                 results.Add(
                     new RaceResultEntry(
                         participant.RacerId,
+                        participant.Racer.Name,
                         participant.TeamId,
+                        participant.TeamName,
                         i + 1,
                         participant.CompletedLaps,
-                        participant.Status));
+                        participant.Status,
+                        participant.FinishTimeSeconds,
+                        participant.WasFastResolved));
             }
 
             return new RaceResult(
                 state.RaceDefinition.Id,
                 results);
         }
-#endregion
 
-#region Permanent Destruction
+        #endregion
+
+        #region Permanent Destruction
+
         private void PermanentlyDestroy(
             RaceParticipant participant)
         {
-            // Permanently destroys the physical bike and every
-            // component currently installed on it.
             participant.Bike.Destroy();
 
-            // Marks this participant as destroyed for this race.
             participant.Destroy();
 
             if (participant.Role ==
                 RaceParticipantRole.Player)
             {
-                // CareerRun.Kill() kills the player's RacerState
-                // and ends the current character's career.
                 careerManager.KillCurrentRun();
             }
             else
             {
-                // AI partner and opponent racers also die
-                // permanently when destroyed.
                 participant.Racer.Kill();
             }
 
@@ -455,9 +581,9 @@ namespace RaceFatal.Racing
                 participant);
         }
 
-        // =========================================================
-        // HELPERS
-        // =========================================================
+        #endregion
+
+        #region Helpers
 
         private bool CanProcessRaceEvent()
         {
@@ -489,6 +615,7 @@ namespace RaceFatal.Racing
 
             return participant;
         }
-#endregion
+
+        #endregion
     }
 }

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
   m_Name: EQ_MachineGun_Prototype
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: prototype_machine_gun
-  displayName: MachineGun Prototype
+  id: weapon_machine_gun
+  displayName: Machine Gun
   requiredNodeSize: 1
   creditCost: 0
   requiredTechnologyId: 
@@ -22,7 +22,7 @@ MonoBehaviour:
   deliveryMode: 1
   range: 150
   projectileSpeed: 350
-  damage: 50
-  energyCostPerShot: 0.3
+  damage: 3
+  startingAmmo: 250
   fireInterval: 0.1
   chargeDuration: 0

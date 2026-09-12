@@ -9,17 +9,14 @@ namespace RaceFatal.Equipment
         public WeaponDeliveryMode DeliveryMode { get; }
 
         public float Range { get; }
-
         public float ProjectileSpeed { get; }
-
         public float Damage { get; }
 
-        public float EnergyCostPerShot { get; }
+        public int StartingAmmo { get; }
 
-
-        // Seconds between shots for Hold weapons. Ignored by Press and ChargeRelease weapons.
+        // Seconds between shots for Hold weapons.
+        // Ignored by Press and ChargeRelease weapons.
         public float FireInterval { get; }
-
 
         // Seconds required to fully charge a ChargeRelease weapon.
         public float ChargeDuration { get; }
@@ -34,7 +31,7 @@ namespace RaceFatal.Equipment
             float range,
             float projectileSpeed,
             float damage,
-            float energyCostPerShot,
+            int startingAmmo,
             float fireInterval,
             float chargeDuration,
             int creditCost,
@@ -48,25 +45,32 @@ namespace RaceFatal.Equipment
                 creditCost,
                 requiredTechnologyId)
         {
-            if (activationMode !=
-                    EquipmentActivationMode.Press &&
-                activationMode !=
-                    EquipmentActivationMode.Hold &&
-                activationMode !=
-                    EquipmentActivationMode.ChargeRelease)
+            if (activationMode != EquipmentActivationMode.Press &&
+                activationMode != EquipmentActivationMode.Hold &&
+                activationMode != EquipmentActivationMode.ChargeRelease)
             {
                 throw new ArgumentException(
                     "Weapons must use Press, Hold, or ChargeRelease.");
             }
 
-            Damage = damage;
-            EnergyCostPerShot = energyCostPerShot;
-            FireInterval = fireInterval;
-            ChargeDuration = chargeDuration;
+            if (startingAmmo <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(startingAmmo),
+                    "Weapons must begin a race with at least one round of ammunition.");
+            }
+
             AimMode = aimMode;
             DeliveryMode = deliveryMode;
+
             Range = range;
             ProjectileSpeed = projectileSpeed;
+            Damage = damage;
+
+            StartingAmmo = startingAmmo;
+
+            FireInterval = fireInterval;
+            ChargeDuration = chargeDuration;
         }
     }
 }

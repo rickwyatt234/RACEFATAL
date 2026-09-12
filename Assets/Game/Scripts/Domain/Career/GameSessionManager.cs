@@ -5,21 +5,14 @@ using RaceFatal.Vehicles;
 
 namespace RaceFatal.Career
 {
-    public sealed class GameSessionManager
+    public class GameSessionManager
     {
         private readonly GameDatabase database;
-
         private readonly CareerManager careerManager;
-
         private readonly WorldFactory worldFactory;
+        private readonly BikeBuildFactory bikeBuildFactory;
 
-        private readonly BikeBuildFactory
-            bikeBuildFactory;
-
-        public GameSessionState Current {
-            get;
-            private set;
-        }
+        public GameSessionState Current { get; private set; }
 
         public bool HasSession =>
             Current != null;
@@ -31,29 +24,31 @@ namespace RaceFatal.Career
             BikeBuildFactory bikeBuildFactory)
         {
             this.database =
-                database ??
-                throw new ArgumentNullException(
+                database
+                ?? throw new ArgumentNullException(
                     nameof(database));
 
             this.careerManager =
-                careerManager ??
-                throw new ArgumentNullException(
+                careerManager
+                ?? throw new ArgumentNullException(
                     nameof(careerManager));
 
             this.worldFactory =
-                worldFactory ??
-                throw new ArgumentNullException(
+                worldFactory
+                ?? throw new ArgumentNullException(
                     nameof(worldFactory));
 
             this.bikeBuildFactory =
-                bikeBuildFactory ??
-                throw new ArgumentNullException(
+                bikeBuildFactory
+                ?? throw new ArgumentNullException(
                     nameof(bikeBuildFactory));
+
+            this.careerManager.CurrentRunChanged +=
+                OnCurrentRunChanged;
         }
 
-        public Result<GameSessionState>
-            CreateNewSession(
-                NewGameRequest request)
+        public Result<GameSessionState> CreateNewSession(
+            NewGameRequest request)
         {
             if (request == null)
             {
@@ -89,7 +84,7 @@ namespace RaceFatal.Career
                 Guid.NewGuid()
                     .ToString("N");
 
-            var team =
+            TeamState team =
                 new TeamState(
                     teamId,
                     request.TeamName,
@@ -100,7 +95,7 @@ namespace RaceFatal.Career
             // PLAYER
             // -------------------------------------------------
 
-            var player =
+            RacerState player =
                 new RacerState(
                     Guid.NewGuid()
                         .ToString("N"),
@@ -134,7 +129,7 @@ namespace RaceFatal.Career
                     "was not found.");
             }
 
-            var partner =
+            RacerState partner =
                 new RacerState(
                     partnerDefinition.Id,
                     partnerDefinition.DisplayName,
@@ -226,7 +221,7 @@ namespace RaceFatal.Career
             // PLAYER CAREER
             // -------------------------------------------------
 
-            var careerRun =
+            CareerRun careerRun =
                 new CareerRun(
                     Guid.NewGuid().ToString("N"),
                     team,
@@ -251,6 +246,16 @@ namespace RaceFatal.Career
 
             return Result<GameSessionState>.Success(
                 Current);
+        }
+
+        private void OnCurrentRunChanged(
+            CareerRun run)
+        {
+            if (Current == null)
+                return;
+
+            Current.SetCareerRun(
+                run);
         }
     }
 }

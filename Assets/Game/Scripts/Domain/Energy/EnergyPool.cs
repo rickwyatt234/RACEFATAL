@@ -9,30 +9,66 @@ namespace RaceFatal.Energy
 
         public bool IsEmpty => CurrentEnergy <= 0f;
 
+        public float EnergyRatio =>
+            MaxEnergy > 0f
+                ? CurrentEnergy / MaxEnergy
+                : 0f;
+
         public event Action<float, float> OnEnergyChanged;
 
         public EnergyPool(float maxEnergy)
         {
             if (maxEnergy <= 0f)
-                throw new ArgumentOutOfRangeException(nameof(maxEnergy), "Max energy must be greater than zero.");
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxEnergy),
+                    "Max energy must be greater than zero.");
+            }
+
             MaxEnergy = maxEnergy;
             CurrentEnergy = maxEnergy;
         }
 
         public bool CanSpend(float amount)
         {
-            return amount >= 0f && CurrentEnergy >= amount;
+            return amount >= 0f &&
+                   CurrentEnergy >= amount;
         }
 
         public bool TrySpend(float amount)
         {
-            if (CanSpend(amount))
+            if (!CanSpend(amount))
+                return false;
+
+            CurrentEnergy -= amount;
+
+            OnEnergyChanged?.Invoke(
+                CurrentEnergy,
+                MaxEnergy);
+
+            return true;
+        }
+
+        public float SpendUpTo(float amount)
+        {
+            if (amount <= 0f ||
+                CurrentEnergy <= 0f)
             {
-                CurrentEnergy -= amount;
-                OnEnergyChanged?.Invoke(CurrentEnergy, MaxEnergy);
-                return true;
+                return 0f;
             }
-            return false;
+
+            float spent =
+                Math.Min(
+                    CurrentEnergy,
+                    amount);
+
+            CurrentEnergy -= spent;
+
+            OnEnergyChanged?.Invoke(
+                CurrentEnergy,
+                MaxEnergy);
+
+            return spent;
         }
 
         public float Recharge(float amount)
@@ -40,11 +76,13 @@ namespace RaceFatal.Energy
             if (amount <= 0f)
                 return 0f;
 
-            float previous = CurrentEnergy;
+            float previous =
+                CurrentEnergy;
 
-            CurrentEnergy = Math.Min(
-                MaxEnergy,
-                CurrentEnergy + amount);
+            CurrentEnergy =
+                Math.Min(
+                    MaxEnergy,
+                    CurrentEnergy + amount);
 
             float restored =
                 CurrentEnergy - previous;

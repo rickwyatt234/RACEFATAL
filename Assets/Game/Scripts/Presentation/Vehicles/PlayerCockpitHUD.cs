@@ -29,6 +29,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         [Header("Weapon")]
         [SerializeField] private TextMeshProUGUI weaponText;
+        [SerializeField] private TextMeshProUGUI ammoText;
 
         [Header("Race")]
         [SerializeField] private TextMeshProUGUI positionText;
@@ -54,8 +55,16 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private bool debugResolved;
         [SerializeField] private float debugEnergyPercent;
         [SerializeField] private float debugDamagePercent;
-        [SerializeField] private float debugShieldPercent;
+
+        [SerializeField] private float debugShieldCurrent;
+        [SerializeField] private float debugShieldMaximum;
+        [SerializeField] private float debugShieldBaseMaximum;
+
         [SerializeField] private string debugWeapon = "None";
+        [SerializeField] private int debugWeaponAmmo;
+        [SerializeField] private int debugWeaponMaximumAmmo;
+        [SerializeField] private bool debugWeaponEmpty;
+
         [SerializeField] private int debugPosition;
         [SerializeField] private int debugCurrentLap;
 
@@ -70,6 +79,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private float previousDamage;
         private float previousShield;
+        private float previousShieldMaximum;
         private float damageFlashTimer;
 
         private bool resolved;
@@ -82,17 +92,13 @@ namespace RaceFatal.Presentation.Vehicles
         {
             racerView = GetComponent<RacerViewController>();
             cockpitView = GetComponent<PlayerCockpitView>();
-
             SetDamageFlashAlpha(0f);
         }
 
         private void Update()
         {
-            if (!resolved)
-            {
-                if (!TryResolve())
-                    return;
-            }
+            if (!resolved && !TryResolve())
+                return;
 
             if (participant?.Vehicle == null)
                 return;
@@ -108,12 +114,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private bool TryResolve()
         {
-            if (racerView == null ||
-                !racerView.IsInitialized ||
-                racerView.Participant == null)
-            {
+            if (racerView == null || !racerView.IsInitialized || racerView.Participant == null)
                 return false;
-            }
 
             if (racerView.Participant.Role != RaceParticipantRole.Player)
             {
@@ -121,29 +123,18 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            if (cockpitView == null ||
-                !cockpitView.IsActivePlayerView)
-            {
+            if (cockpitView == null || !cockpitView.IsActivePlayerView)
                 return false;
-            }
 
             participant = racerView.Participant;
+            raceRuntime = FindFirstObjectByType<RaceRuntimeController>();
 
-            raceRuntime =
-                FindFirstObjectByType<RaceRuntimeController>();
+            previousDamage = participant.Vehicle.Damage.Percent;
 
-            previousDamage =
-                participant.Vehicle.Damage.Percent;
+            RaceShieldState shield = participant.Vehicle.EquipmentSystem.Shield;
 
-            RaceShieldState shield =
-                participant.Vehicle
-                    .EquipmentSystem
-                    .Shield;
-
-            previousShield =
-                shield != null
-                    ? shield.Current
-                    : 0f;
+            previousShield = shield != null ? shield.Current : 0f;
+            previousShieldMaximum = shield != null ? shield.Maximum : 0f;
 
             resolved = true;
             debugResolved = true;
@@ -157,8 +148,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateVehicleHUD()
         {
-            RaceVehicleState vehicle =
-                participant.Vehicle;
+            RaceVehicleState vehicle = participant.Vehicle;
 
             UpdateEnergy(vehicle);
             UpdateDamage(vehicle);
@@ -166,90 +156,66 @@ namespace RaceFatal.Presentation.Vehicles
             UpdateWeapon(vehicle);
         }
 
-        private void UpdateEnergy(
-            RaceVehicleState vehicle)
+        private void UpdateEnergy(RaceVehicleState vehicle)
         {
-            float maximum =
-                vehicle.EnergyPool.MaxEnergy;
+            float maximum = vehicle.EnergyPool.MaxEnergy;
+            float current = vehicle.EnergyPool.CurrentEnergy;
+            float normalized = maximum > 0f ? current / maximum : 0f;
 
-            float current =
-                vehicle.EnergyPool.CurrentEnergy;
-
-            float normalized =
-                maximum > 0f
-                    ? current / maximum
-                    : 0f;
-
-            normalized =
-                Mathf.Clamp01(normalized);
+            normalized = Mathf.Clamp01(normalized);
 
             if (energyFill != null)
                 energyFill.fillAmount = normalized;
 
             if (energyText != null)
-            {
-                energyText.text =
-                    $"ENERGY  {normalized * 100f:0}%";
-            }
+                energyText.text = $"ENERGY  {normalized * 100f:0}%";
 
-            debugEnergyPercent =
-                normalized * 100f;
+            debugEnergyPercent = normalized * 100f;
         }
 
-        private void UpdateDamage(
-            RaceVehicleState vehicle)
+        private void UpdateDamage(RaceVehicleState vehicle)
         {
-            float damage =
-                vehicle.Damage.Percent;
-
-            float normalized =
-                Mathf.Clamp01(
-                    damage /
-                    RaceFatal.Combat.DamageMeter.MaxDamage);
+            float damage = vehicle.Damage.Percent;
+            float normalized = Mathf.Clamp01(
+                damage / RaceFatal.Combat.DamageMeter.MaxDamage);
 
             if (damageFill != null)
                 damageFill.fillAmount = normalized;
 
             if (damageText != null)
-            {
-                damageText.text =
-                    $"DAMAGE  {damage:0}%";
-            }
+                damageText.text = $"DAMAGE  {damage:0}%";
 
-            debugDamagePercent =
-                damage;
+            debugDamagePercent = damage;
         }
 
-        private void UpdateShield(
-            RaceVehicleState vehicle)
+        private void UpdateShield(RaceVehicleState vehicle)
         {
-            RaceShieldState shield =
-                vehicle.EquipmentSystem.Shield;
+            RaceShieldState shield = vehicle.EquipmentSystem.Shield;
+            bool hasShield = shield != null;
 
-            bool hasShield =
-                shield != null;
-
-            if (shieldGroup != null &&
-                shieldGroup.activeSelf != hasShield)
-            {
-                shieldGroup.SetActive(
-                    hasShield);
-            }
+            if (shieldGroup != null && shieldGroup.activeSelf != hasShield)
+                shieldGroup.SetActive(hasShield);
 
             if (!hasShield)
             {
-                debugShieldPercent = 0f;
+                debugShieldCurrent = 0f;
+                debugShieldMaximum = 0f;
+                debugShieldBaseMaximum = 0f;
                 return;
             }
 
-            float normalized =
-                shield.Maximum > 0f
-                    ? shield.Current /
-                      shield.Maximum
-                    : 0f;
+            /*
+             * Fill is based on the shield's original capacity rather
+             * than its current energy-limited maximum.
+             *
+             * This means boosting visibly shortens the available
+             * shield bar instead of showing 100% of a smaller pool.
+             */
+            float normalized = shield.BaseMaximum > 0f
+                ? shield.Current / shield.BaseMaximum
+                : 0f;
 
-            normalized =
-                Mathf.Clamp01(normalized);
+            normalized = Mathf.Clamp01(normalized);
 
             if (shieldFill != null)
                 shieldFill.fillAmount = normalized;
@@ -257,33 +223,47 @@ namespace RaceFatal.Presentation.Vehicles
             if (shieldText != null)
             {
                 shieldText.text =
-                    $"SHIELD  {normalized * 100f:0}%";
+                    $"SHIELD  {shield.Current:0} / {shield.Maximum:0}";
             }
 
-            debugShieldPercent =
-                normalized * 100f;
+            debugShieldCurrent = shield.Current;
+            debugShieldMaximum = shield.Maximum;
+            debugShieldBaseMaximum = shield.BaseMaximum;
         }
 
-        private void UpdateWeapon(
-            RaceVehicleState vehicle)
+        private void UpdateWeapon(RaceVehicleState vehicle)
         {
-            WeaponDefinition weapon =
-                vehicle.EquipmentSystem
-                    .SelectedWeaponDefinition;
+            RaceEquipmentSystem equipment = vehicle.EquipmentSystem;
+            WeaponDefinition weapon = equipment.SelectedWeaponDefinition;
 
-            string displayName =
-                weapon != null
-                    ? weapon.DisplayName
-                    : "NO WEAPON";
-
-            if (weaponText != null)
+            if (weapon == null)
             {
-                weaponText.text =
-                    $"WEAPON  {displayName.ToUpperInvariant()}";
+                if (weaponText != null)
+                    weaponText.text = "WEAPON  NO WEAPON";
+
+                if (ammoText != null)
+                    ammoText.text = "AMMO  --";
+
+                debugWeapon = "None";
+                debugWeaponAmmo = 0;
+                debugWeaponMaximumAmmo = 0;
+                debugWeaponEmpty = false;
+                return;
             }
 
-            debugWeapon =
-                displayName;
+            int currentAmmo = equipment.SelectedWeaponAmmo;
+            int maximumAmmo = equipment.SelectedWeaponMaximumAmmo;
+
+            if (weaponText != null)
+                weaponText.text = $"WEAPON  {weapon.DisplayName.ToUpperInvariant()}";
+
+            if (ammoText != null)
+                ammoText.text = $"AMMO  {currentAmmo} / {maximumAmmo}";
+
+            debugWeapon = weapon.DisplayName;
+            debugWeaponAmmo = currentAmmo;
+            debugWeaponMaximumAmmo = maximumAmmo;
+            debugWeaponEmpty = equipment.SelectedWeaponIsEmpty;
         }
 
         #endregion
@@ -292,11 +272,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateRaceHUD()
         {
-            if (raceRuntime == null ||
-                raceRuntime.Director == null)
-            {
+            if (raceRuntime == null || raceRuntime.Director == null)
                 return;
-            }
 
             UpdatePosition();
             UpdateLap();
@@ -305,19 +282,14 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdatePosition()
         {
             IReadOnlyList<RaceParticipant> order =
-                raceRuntime.Director
-                    .State
-                    .GetCurrentOrder();
+                raceRuntime.Director.State.GetCurrentOrder();
 
             int position = 0;
 
             for (int i = 0; i < order.Count; i++)
             {
-                if (order[i].RacerId !=
-                    participant.RacerId)
-                {
+                if (order[i].RacerId != participant.RacerId)
                     continue;
-                }
 
                 position = i + 1;
                 break;
@@ -325,38 +297,28 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (positionText != null)
             {
-                positionText.text =
-                    position > 0
-                        ? $"POS  {position}/{order.Count}"
-                        : $"POS  --/{order.Count}";
+                positionText.text = position > 0
+                    ? $"POS  {position}/{order.Count}"
+                    : $"POS  --/{order.Count}";
             }
 
-            debugPosition =
-                position;
+            debugPosition = position;
         }
 
         private void UpdateLap()
         {
             int totalLaps =
-                raceRuntime.Director
-                    .State
-                    .RaceDefinition
-                    .LapCount;
+                raceRuntime.Director.State.RaceDefinition.LapCount;
 
-            int currentLap =
-                Mathf.Clamp(
-                    participant.CompletedLaps + 1,
-                    1,
-                    Mathf.Max(1, totalLaps));
+            int currentLap = Mathf.Clamp(
+                participant.CompletedLaps + 1,
+                1,
+                Mathf.Max(1, totalLaps));
 
             if (lapText != null)
-            {
-                lapText.text =
-                    $"LAP  {currentLap}/{totalLaps}";
-            }
+                lapText.text = $"LAP  {currentLap}/{totalLaps}";
 
-            debugCurrentLap =
-                currentLap;
+            debugCurrentLap = currentLap;
         }
 
         #endregion
@@ -365,42 +327,42 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateDamageFeedback()
         {
-            float currentDamage =
-                participant.Vehicle
-                    .Damage
-                    .Percent;
+            float currentDamage = participant.Vehicle.Damage.Percent;
 
             RaceShieldState shield =
-                participant.Vehicle
-                    .EquipmentSystem
-                    .Shield;
+                participant.Vehicle.EquipmentSystem.Shield;
 
-            float currentShield =
-                shield != null
-                    ? shield.Current
-                    : 0f;
+            float currentShield = shield != null ? shield.Current : 0f;
+            float currentShieldMaximum = shield != null ? shield.Maximum : 0f;
 
             bool bikeWasHit =
-                currentDamage >
-                previousDamage + 0.001f;
+                currentDamage > previousDamage + 0.001f;
+
+            /*
+             * Boost can lower both Current and Maximum because Current
+             * is clamped to the available shield capacity.
+             *
+             * That capacity loss must not look like incoming damage.
+             */
+            float shieldLoss =
+                Mathf.Max(0f, previousShield - currentShield);
+
+            float capacityLoss =
+                Mathf.Max(0f, previousShieldMaximum - currentShieldMaximum);
+
+            float damageRelatedShieldLoss =
+                Mathf.Max(0f, shieldLoss - capacityLoss);
 
             bool shieldWasHit =
                 shield != null &&
-                currentShield <
-                previousShield - 0.001f;
+                damageRelatedShieldLoss > 0.001f;
 
-            if (bikeWasHit ||
-                shieldWasHit)
-            {
-                damageFlashTimer =
-                    damageFlashDuration;
-            }
+            if (bikeWasHit || shieldWasHit)
+                damageFlashTimer = damageFlashDuration;
 
-            previousDamage =
-                currentDamage;
-
-            previousShield =
-                currentShield;
+            previousDamage = currentDamage;
+            previousShield = currentShield;
+            previousShieldMaximum = currentShieldMaximum;
 
             if (damageFlashTimer <= 0f)
             {
@@ -409,36 +371,24 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             damageFlashTimer =
-                Mathf.Max(
-                    0f,
-                    damageFlashTimer -
-                    Time.deltaTime);
+                Mathf.Max(0f, damageFlashTimer - Time.deltaTime);
 
-            float normalized =
-                damageFlashDuration > 0f
-                    ? damageFlashTimer /
-                      damageFlashDuration
-                    : 0f;
+            float normalized = damageFlashDuration > 0f
+                ? damageFlashTimer / damageFlashDuration
+                : 0f;
 
             SetDamageFlashAlpha(
-                normalized *
-                damageFlashMaximumAlpha);
+                normalized * damageFlashMaximumAlpha);
         }
 
-        private void SetDamageFlashAlpha(
-            float alpha)
+        private void SetDamageFlashAlpha(float alpha)
         {
             if (damageFlash == null)
                 return;
 
-            Color color =
-                damageFlash.color;
-
-            color.a =
-                Mathf.Clamp01(alpha);
-
-            damageFlash.color =
-                color;
+            Color color = damageFlash.color;
+            color.a = Mathf.Clamp01(alpha);
+            damageFlash.color = color;
         }
 
         #endregion

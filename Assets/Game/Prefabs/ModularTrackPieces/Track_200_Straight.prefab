@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 1486871439460241721}
   - component: {fileID: 8693891562043418851}
   - component: {fileID: 6457572144651948151}
-  - component: {fileID: 1367171157987496622}
+  - component: {fileID: 2421701017306256430}
+  - component: {fileID: 3463334924768514746}
+  - component: {fileID: 4019012818631870261}
   m_Layer: 6
   m_Name: Road_Straight_Wall
   m_TagString: Untagged
@@ -91,8 +93,20 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1367171157987496622
-MeshCollider:
+--- !u!114 &2421701017306256430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2500428560032876692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c862e712649809e49966a7eb5fd43197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackWall
+--- !u!65 &3463334924768514746
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,10 +123,30 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -9153228231490206238, guid: c1b0629be9e8d3e41968535a4a463977, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 3.3084927, y: 9.999999, z: 200.00003}
+  m_Center: {x: -20.845753, y: 5.3960395, z: 100.000015}
+--- !u!65 &4019012818631870261
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2500428560032876692}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.3341637, y: 9.999999, z: 200.00003}
+  m_Center: {x: 20.832918, y: 5.3960395, z: 100.000015}
 --- !u!1 &3479010397882785301
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,6 @@ MonoBehaviour:
   displayName: Prototype Race
   track: {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
   engineClass: 0
-  lapCount: 3
+  lapCount: 1
   entrantCount: 12
   teamSize: 2

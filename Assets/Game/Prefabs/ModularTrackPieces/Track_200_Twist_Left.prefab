@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8386943822173513164}
   - component: {fileID: 7847347682166737943}
   - component: {fileID: 575367110168127776}
+  - component: {fileID: 1016713429282706280}
   m_Layer: 6
   m_Name: Road_Twist_Left_Wall
   m_TagString: Untagged
@@ -113,6 +114,18 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8730359222896487606, guid: 4ca0fc6aeadb53341bf895c8c7b3ce90, type: 3}
+--- !u!114 &1016713429282706280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2603766495270069059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c862e712649809e49966a7eb5fd43197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackWall
 --- !u!1 &2679755890289182536
 GameObject:
   m_ObjectHideFlags: 0

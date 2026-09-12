@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 6619529797614347171}
   - component: {fileID: 4197913043568820105}
   - component: {fileID: 6796800735314395539}
-  - component: {fileID: 5237230256279504384}
+  - component: {fileID: 2096341741625759623}
+  - component: {fileID: 768376585244337798}
+  - component: {fileID: 4878421767244917106}
   m_Layer: 6
   m_Name: Road_Curve_Down_Wall
   m_TagString: Untagged
@@ -91,8 +93,20 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &5237230256279504384
-MeshCollider:
+--- !u!114 &2096341741625759623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 930012996030538376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c862e712649809e49966a7eb5fd43197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackWall
+--- !u!65 &768376585244337798
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,10 +123,30 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -4237049140599893789, guid: ad68b3ae6f1f8ed4db76bf6de624084b, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 3.4244804, y: 210.79472, z: 210.6131}
+  m_Center: {x: 20.751123, y: -94.797356, z: 105.30655}
+--- !u!65 &4878421767244917106
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 930012996030538376}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.4244804, y: 210.79472, z: 210.6131}
+  m_Center: {x: -20.8, y: -94.797356, z: 105.30655}
 --- !u!1 &3674431192942257843
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8451685907032785595}
   - component: {fileID: 447919745128635740}
+  - component: {fileID: 5431617018836700815}
   m_Layer: 3
   m_Name: LapLineTrigger
   m_TagString: Untagged
@@ -53,6 +54,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 100, y: 100, z: 1}
   m_Center: {x: 0, y: 0, z: 200}
+--- !u!114 &5431617018836700815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177511200913333782}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d00f4b34d04c4cc4abac431dc388f638, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.LapLineTrigger
+  forwardReference: {fileID: 7410438629097487483}
+  minimumForwardSpeed: 1
+  crossingCooldown: 1
+  debugLastRacer: None
+  debugLastCollider: None
+  debugLastResult: No Crossing
+  debugForwardSpeed: 0
+  debugTraversalBefore: 0
+  debugTraversalAfter: 0
+  debugCourseProgress: 0
+  debugLapsBefore: 0
+  debugLapsAfter: 0
+  debugLapAccepted: 0
+  debugTriggerCount: 0
+  debugIgnoredNonRacerCount: 0
 --- !u!1 &968209931055145039
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,7 +189,6 @@ GameObject:
   - component: {fileID: 8073883763019529012}
   - component: {fileID: 1057292309716995699}
   - component: {fileID: 1289908308893564630}
-  - component: {fileID: 4369071440960852514}
   m_Layer: 3
   m_Name: Track_200_Straight_Start
   m_TagString: Untagged
@@ -282,21 +309,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8169044024069081611, guid: c1b0629be9e8d3e41968535a4a463977, type: 3}
---- !u!114 &4369071440960852514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2042720201777573880}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d00f4b34d04c4cc4abac431dc388f638, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.LapLineTrigger
-  forwardReference: {fileID: 8542424828055322196}
-  minimumForwardSpeed: 1
-  crossingCooldown: 1
 --- !u!1 &2219752986287882144
 GameObject:
   m_ObjectHideFlags: 0
@@ -599,6 +611,9 @@ GameObject:
   - component: {fileID: 8879694672488614277}
   - component: {fileID: 9186652041390118629}
   - component: {fileID: 8155736286726181296}
+  - component: {fileID: 2075075814006172431}
+  - component: {fileID: 7412807257241533031}
+  - component: {fileID: 7744839028613630274}
   m_Layer: 6
   m_Name: Road_Straight_Wall
   m_TagString: Untagged
@@ -678,6 +693,60 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2075075814006172431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945270785511474799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c862e712649809e49966a7eb5fd43197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.TrackWall
+--- !u!65 &7412807257241533031
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945270785511474799}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.3084927, y: 9.999999, z: 200.00003}
+  m_Center: {x: -20.845753, y: 5.3960395, z: 100.000015}
+--- !u!65 &7744839028613630274
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945270785511474799}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.2616997, y: 9.999999, z: 200.00003}
+  m_Center: {x: 20.86915, y: 5.3960395, z: 100.000015}
 --- !u!1 &7423076377921575509
 GameObject:
   m_ObjectHideFlags: 0

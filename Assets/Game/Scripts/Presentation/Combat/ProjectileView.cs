@@ -7,15 +7,46 @@ namespace RaceFatal.Presentation.Combat
     [RequireComponent(typeof(Collider))]
     public class ProjectileView : MonoBehaviour
     {
+        #region Lifetime
+
         [Header("Lifetime")]
         [Min(0.1f)][SerializeField] private float maximumLifetime = 10f;
 
-        [Header("Impact")]
+        #endregion
+
+        #region Flight Feedback
+
+        [Header("Flight Audio")]
+        [Tooltip("Optional AudioSource located on the projectile prefab.")]
+        [SerializeField] private AudioSource flightAudioSource;
+
+        [Tooltip("Optional looping sound played while the projectile is flying.")]
+        [SerializeField] private AudioClip flightLoopClip;
+
+        [Range(0f, 1f)][SerializeField] private float flightVolume = 1f;
+
+        #endregion
+
+        #region Impact Feedback
+
+        [Header("Impact VFX")]
         [Tooltip("Optional particle effect spawned when this projectile strikes a solid collider.")]
         [SerializeField] private ParticleSystem impactPrefab;
 
         [Tooltip("Small offset preventing impact particles from clipping into surfaces.")]
         [Min(0f)][SerializeField] private float impactOffset = 0.01f;
+
+        [Header("Impact Audio")]
+        [SerializeField] private AudioClip impactClip;
+
+        [Range(0f, 1f)][SerializeField] private float impactVolume = 1f;
+
+        [Tooltip("Random pitch variation applied to impact sounds.")]
+        [Range(0f, 0.5f)][SerializeField] private float impactPitchVariation = 0.05f;
+
+        #endregion
+
+        #region Runtime Debug
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
@@ -27,11 +58,12 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private Vector3 debugTravelDirection;
         [SerializeField] private float debugSpeed;
 
+        #endregion
+
         private RaceRuntimeController runtime;
         private Collider projectileCollider;
 
         private string attackerRacerId;
-
         private Vector3 travelDirection;
 
         private float damage;
@@ -44,7 +76,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void Awake()
         {
-            projectileCollider = GetComponent<Collider>();
+            projectileCollider =
+                GetComponent<Collider>();
         }
 
         public void Initialize(
@@ -67,11 +100,6 @@ namespace RaceFatal.Presentation.Combat
                     ? worldDirection.normalized
                     : transform.forward;
 
-            /*
-             * The projectile's orientation and its movement direction
-             * are established once here. Nothing about the bike's
-             * later orientation can alter its trajectory.
-             */
             transform.rotation =
                 Quaternion.LookRotation(
                     travelDirection,
@@ -89,6 +117,7 @@ namespace RaceFatal.Presentation.Combat
             debugSpeed = speed;
 
             IgnoreOwnerCollisions();
+            StartFlightAudio();
 
             initialized = true;
             debugInitialized = true;
@@ -106,10 +135,6 @@ namespace RaceFatal.Presentation.Combat
                 speed *
                 Time.deltaTime;
 
-            /*
-             * IMPORTANT:
-             * Move using the launch direction, not transform.forward.
-             */
             transform.position +=
                 travelDirection *
                 movement;
@@ -132,21 +157,17 @@ namespace RaceFatal.Presentation.Combat
         {
             if (!initialized ||
                 impactResolved ||
-                other == null)
+                other == null ||
+                other.isTrigger)
             {
                 return;
             }
 
-            if (other.isTrigger)
-                return;
-
             RacerViewController victim =
-                other.GetComponentInParent<
-                    RacerViewController>();
+                other.GetComponentInParent<RacerViewController>();
 
             if (victim != null &&
-                victim.RacerId ==
-                    attackerRacerId)
+                victim.RacerId == attackerRacerId)
             {
                 return;
             }
@@ -154,7 +175,19 @@ namespace RaceFatal.Presentation.Combat
             impactResolved = true;
             debugImpactResolved = true;
 
-            SpawnImpact(other);
+            Vector3 impactPoint =
+                other.ClosestPoint(
+                    transform.position);
+
+            Vector3 impactNormal =
+                -travelDirection;
+
+            SpawnImpactVFX(
+                impactPoint,
+                impactNormal);
+
+            PlayImpactAudio(
+                impactPoint);
 
             if (victim != null &&
                 victim.IsInitialized)
@@ -171,6 +204,115 @@ namespace RaceFatal.Presentation.Combat
 
             Destroy(gameObject);
         }
+
+        #region Flight Audio
+
+        private void StartFlightAudio()
+        {
+            if (flightAudioSource == null ||
+                flightLoopClip == null)
+            {
+                return;
+            }
+
+            flightAudioSource.clip =
+                flightLoopClip;
+
+            flightAudioSource.loop =
+                true;
+
+            flightAudioSource.volume =
+                Mathf.Clamp01(
+                    flightVolume);
+
+            flightAudioSource.Play();
+        }
+
+        #endregion
+
+        #region Impact Feedback
+
+        private void SpawnImpactVFX(
+            Vector3 impactPoint,
+            Vector3 impactNormal)
+        {
+            if (impactPrefab == null)
+                return;
+
+            Quaternion rotation =
+                Quaternion.LookRotation(
+                    impactNormal);
+
+            ParticleSystem impact =
+                Instantiate(
+                    impactPrefab,
+                    impactPoint +
+                        impactNormal *
+                        impactOffset,
+                    rotation);
+
+            impact.Play(true);
+
+            Destroy(
+                impact.gameObject,
+                GetParticleLifetime(impact));
+        }
+
+        private void PlayImpactAudio(
+            Vector3 impactPoint)
+        {
+            if (impactClip == null)
+                return;
+
+            GameObject audioObject =
+                new GameObject(
+                    "ProjectileImpactAudio");
+
+            audioObject.transform.position =
+                impactPoint;
+
+            AudioSource source =
+                audioObject.AddComponent<AudioSource>();
+
+            source.clip =
+                impactClip;
+
+            source.volume =
+                Mathf.Clamp01(
+                    impactVolume);
+
+            source.spatialBlend = 1f;
+
+            source.pitch =
+                Random.Range(
+                    1f - impactPitchVariation,
+                    1f + impactPitchVariation);
+
+            source.Play();
+
+            Destroy(
+                audioObject,
+                impactClip.length /
+                Mathf.Max(
+                    0.01f,
+                    Mathf.Abs(source.pitch)) +
+                0.1f);
+        }
+
+        private float GetParticleLifetime(
+            ParticleSystem particles)
+        {
+            ParticleSystem.MainModule main =
+                particles.main;
+
+            return main.duration +
+                   main.startLifetime.constantMax +
+                   1f;
+        }
+
+        #endregion
+
+        #region Collision Ignore
 
         private void IgnoreOwnerCollisions()
         {
@@ -190,8 +332,8 @@ namespace RaceFatal.Presentation.Combat
             }
 
             Collider[] ownerColliders =
-                owner.GetComponentsInChildren<
-                    Collider>(true);
+                owner.GetComponentsInChildren<Collider>(
+                    true);
 
             for (int i = 0;
                  i < ownerColliders.Length;
@@ -214,35 +356,6 @@ namespace RaceFatal.Presentation.Combat
             }
         }
 
-        private void SpawnImpact(
-            Collider hitCollider)
-        {
-            if (impactPrefab == null ||
-                hitCollider == null)
-            {
-                return;
-            }
-
-            Vector3 impactPoint =
-                hitCollider.ClosestPoint(
-                    transform.position);
-
-            Vector3 impactNormal =
-                -travelDirection;
-
-            Quaternion rotation =
-                Quaternion.LookRotation(
-                    impactNormal);
-
-            ParticleSystem impact =
-                Instantiate(
-                    impactPrefab,
-                    impactPoint +
-                        impactNormal *
-                        impactOffset,
-                    rotation);
-
-            impact.Play(true);
-        }
+        #endregion
     }
 }

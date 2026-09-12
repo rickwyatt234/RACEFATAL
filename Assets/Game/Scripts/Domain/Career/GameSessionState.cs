@@ -6,17 +6,13 @@ namespace RaceFatal.Career
     {
         public TeamState PlayerTeam { get; }
 
-        public CareerRun CareerRun { get; }
+        public CareerRun CareerRun {
+            get;
+            private set;
+        }
 
         public WorldState World { get; }
 
-        /*
-         * These are simply the selections made when the
-         * new game was created.
-         *
-         * They make our prototype race launcher much
-         * easier to use.
-         */
         public string DefaultPartnerRacerId { get; }
 
         public string DefaultPlayerBikeId { get; }
@@ -32,18 +28,18 @@ namespace RaceFatal.Career
             string defaultPartnerBikeId)
         {
             PlayerTeam =
-                playerTeam ??
-                throw new ArgumentNullException(
+                playerTeam
+                ?? throw new ArgumentNullException(
                     nameof(playerTeam));
 
             CareerRun =
-                careerRun ??
-                throw new ArgumentNullException(
+                careerRun
+                ?? throw new ArgumentNullException(
                     nameof(careerRun));
 
             World =
-                world ??
-                throw new ArgumentNullException(
+                world
+                ?? throw new ArgumentNullException(
                     nameof(world));
 
             DefaultPartnerRacerId =
@@ -54,6 +50,13 @@ namespace RaceFatal.Career
 
             DefaultPartnerBikeId =
                 defaultPartnerBikeId;
+        }
+
+        internal void SetCareerRun(
+            CareerRun careerRun)
+        {
+            CareerRun =
+                careerRun;
         }
     }
 }
