@@ -1,5 +1,37 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &976664987821167755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3955587186058621726}
+  m_Layer: 0
+  m_Name: TrailParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3955587186058621726
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 976664987821167755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5116053751468516783}
+  m_Father: {fileID: 5116053750971879922}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4042447725415412246
 GameObject:
   m_ObjectHideFlags: 0
@@ -96,23 +128,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e043dc2be05804a4cbd2da378cfe3406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.ProjectileView
-  maximumLifetime: 10
-  flightAudioSource: {fileID: 0}
-  flightLoopClip: {fileID: 0}
-  flightVolume: 1
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  sweepRadius: 0.04
+  hitBufferSize: 16
   impactPrefab: {fileID: 3305186517166574312, guid: 22ca012b795730b4389f4c72cc06902f, type: 3}
-  impactOffset: 0.01
-  impactClip: {fileID: 8300000, guid: d8aadec56975940c9b8f248c71835e37, type: 3}
-  impactVolume: 1
-  impactPitchVariation: 0.05
+  alignImpactToNormal: 1
+  impactLifetimeFallback: 3
+  trails: []
+  detachTrails: 1
+  trailCleanupPadding: 0.1
   debugInitialized: 0
-  debugImpactResolved: 0
-  debugAttackerRacerId: 
-  debugVictimRacerId: None
-  debugRemainingRange: 0
-  debugLifetime: 0
-  debugTravelDirection: {x: 0, y: 0, z: 0}
-  debugSpeed: 0
+  debugResolved: 0
+  debugDistanceTravelled: 0
+  debugLastHit: None
+  debugLastVictim: None
 --- !u!82 &2747923088079281513
 AudioSource:
   m_ObjectHideFlags: 0
@@ -238,8 +269,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5116053750971879922}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
@@ -5074,11 +5105,11 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3953565798514739637}
-  - {fileID: 5116053751468516783}
+  - {fileID: 3955587186058621726}
   m_Father: {fileID: 55006821885633188}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!198 &5116053750971879920
@@ -9909,12 +9940,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5116053751468516780}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.10000001, y: 0.10000001, z: 0.10000001}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5116053750971879922}
+  m_Father: {fileID: 3955587186058621726}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!96 &5116053751468516782
 TrailRenderer:
@@ -9987,8 +10018,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.39131927, b: 1, a: 1}
-      key1: {r: 0, g: 0.39131927, b: 1, a: 1}
+      key0: {r: 1, g: 0.78632927, b: 0, a: 1}
+      key1: {r: 1, g: 0.4367327, b: 0, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -10012,7 +10043,7 @@ TrailRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
