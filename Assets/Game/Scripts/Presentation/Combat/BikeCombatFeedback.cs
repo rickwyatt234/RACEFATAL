@@ -1,103 +1,116 @@
 using RaceFatal.Combat;
-using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
+using RaceFatal.Racing;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace RaceFatal.Presentation.Combat
 {
     [RequireComponent(typeof(RacerViewController))]
     public class BikeCombatFeedback : MonoBehaviour
     {
-        #region Origins
+        [Header("Directional Shield Effects")]
+        [SerializeField] private ShieldImpactEffectView frontShieldEffect;
+        [SerializeField] private ShieldImpactEffectView rearShieldEffect;
+        [SerializeField] private ShieldImpactEffectView leftShieldEffect;
+        [SerializeField] private ShieldImpactEffectView rightShieldEffect;
+        [SerializeField] private ShieldImpactEffectView fallbackShieldEffect;
 
-        [Header("Effect Origins")]
-        [Tooltip("Origin used for shield hit/break effects. Defaults to the bike root.")]
-        [SerializeField] private Transform shieldEffectOrigin;
-
-        [Tooltip("Origin used for hull hit effects. Defaults to the bike root.")]
-        [SerializeField] private Transform hullEffectOrigin;
-
-        #endregion
-
-        #region Shield
-
-        [Header("Shield Audio")]
-        [SerializeField] private AudioClip shieldHitClip;
-        [SerializeField] private AudioClip shieldDepletedClip;
-
-        [Header("Shield VFX")]
-        [SerializeField] private ParticleSystem shieldHitPrefab;
+        [Header("Shield Break")]
+        [SerializeField] private Transform shieldBreakOrigin;
         [SerializeField] private ParticleSystem shieldDepletedPrefab;
+        [SerializeField] private AudioClip[] shieldDepletedClips;
+        [Range(0f, 1f)][SerializeField] private float shieldDepletedVolume = 1f;
+        [SerializeField] private bool playDirectionalPulseOnBreak = true;
 
-        #endregion
+        [Header("Shield Hit Audio")]
+        [SerializeField] private AudioClip[] shieldHitClips;
+        [Range(0f, 1f)][SerializeField] private float shieldHitVolume = 0.75f;
 
-        #region Hull
-
-        [Header("Hull Audio")]
-        [SerializeField] private AudioClip hullHitClip;
-
-        [Header("Hull VFX")]
+        [Header("Hull Hit")]
+        [SerializeField] private Transform hullEffectOrigin;
         [SerializeField] private ParticleSystem hullHitPrefab;
+        [SerializeField] private AudioClip[] hullHitClips;
+        [Range(0f, 1f)][SerializeField] private float hullHitVolume = 0.8f;
 
-        #endregion
+        [Header("Audio")]
+        [SerializeField] private AudioSource impactAudioSource;
 
-        #region Collision Audio
+        [Header("Audio Mixer Routing")]
+        [SerializeField] private AudioMixerGroup impactGroup;
 
-        [Header("Collision Audio")]
-        [Tooltip("Additional impact sound used when another racer causes the damage.")]
-        [SerializeField] private AudioClip racerCollisionClip;
+        [Header("Player / Opponent Mix")]
+        [Range(0f, 2f)][SerializeField] private float playerVolumeMultiplier = 1f;
+        [Range(0f, 2f)][SerializeField] private float opponentVolumeMultiplier = 0.5f;
+        [Range(0f, 1f)][SerializeField] private float playerSpatialBlend = 0.35f;
+        [Range(0f, 1f)][SerializeField] private float opponentSpatialBlend = 1f;
 
-        [Tooltip("Additional impact sound used for track-wall/environmental damage.")]
-        [SerializeField] private AudioClip wallCollisionClip;
+        [Header("Audio Variation")]
+        [Range(0f, 0.25f)][SerializeField] private float pitchVariation = 0.04f;
 
-        [Min(0f)][SerializeField] private float collisionAudioCooldown = 0.08f;
-
-        #endregion
-
-        #region Audio
-
-        [Header("Audio Source")]
-        [Tooltip("3D AudioSource used for one-shot combat sounds.")]
-        [SerializeField] private AudioSource oneShotAudioSource;
-
-        [Range(0f, 1f)][SerializeField] private float shieldVolume = 1f;
-        [Range(0f, 1f)][SerializeField] private float hullVolume = 1f;
-        [Range(0f, 1f)][SerializeField] private float collisionVolume = 1f;
-
-        #endregion
-
-        #region Debug
+        [Header("Damage Intensity")]
+        [Min(0.01f)][SerializeField] private float damageForFullIntensity = 20f;
+        [Range(0f, 1f)][SerializeField] private float minimumImpactIntensity = 0.3f;
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugBound;
-        [SerializeField] private string debugLastDamageCause = "None";
-        [SerializeField] private float debugLastShieldDamage;
+        [SerializeField] private bool debugIsPlayer;
+        [SerializeField] private string debugMixerGroup = "Unassigned";
+        [SerializeField] private string debugLastCause = "None";
+        [SerializeField] private string debugLastShieldDirection = "Unknown";
+        [SerializeField] private float debugLastIncomingDamage;
+        [SerializeField] private float debugLastShieldAbsorbed;
         [SerializeField] private float debugLastHullDamage;
         [SerializeField] private bool debugLastShieldDepleted;
-
-        #endregion
+        [SerializeField] private bool debugLastDestroyed;
 
         private RacerViewController racerView;
         private RaceRuntimeController runtime;
 
         private bool bound;
-        private float lastCollisionAudioTime = -1000f;
+        private bool isPlayer;
+
+        private int lastShieldHitClip = -1;
+        private int lastShieldDepletedClip = -1;
+        private int lastHullHitClip = -1;
 
         private void Awake()
         {
-            racerView = GetComponent<RacerViewController>();
+            racerView =
+                GetComponent<RacerViewController>();
 
-            if (shieldEffectOrigin == null)
-                shieldEffectOrigin = transform;
+            if (shieldBreakOrigin == null)
+                shieldBreakOrigin = transform;
 
             if (hullEffectOrigin == null)
                 hullEffectOrigin = transform;
+
+            if (impactAudioSource != null)
+            {
+                impactAudioSource.playOnAwake = false;
+                impactAudioSource.loop = false;
+
+                if (impactGroup != null)
+                {
+                    impactAudioSource.outputAudioMixerGroup =
+                        impactGroup;
+
+                    debugMixerGroup =
+                        impactGroup.name;
+                }
+            }
         }
 
         private void Update()
         {
             if (!bound)
                 TryBind();
+        }
+
+        private void OnDisable()
+        {
+            Unbind();
+            HideDirectionalShields();
         }
 
         private void OnDestroy()
@@ -115,7 +128,11 @@ namespace RaceFatal.Presentation.Combat
             }
 
             if (runtime == null)
-                runtime = FindFirstObjectByType<RaceRuntimeController>();
+            {
+                runtime =
+                    FindFirstObjectByType<
+                        RaceRuntimeController>();
+            }
 
             if (runtime == null ||
                 runtime.Director == null)
@@ -123,133 +140,304 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
-            runtime.Director.DamageApplied += OnDamageApplied;
+            isPlayer =
+                racerView.Participant.Role ==
+                RaceParticipantRole.Player;
+
+            ConfigureAudioMix();
+
+            runtime.Director.DamageApplied +=
+                OnDamageApplied;
 
             bound = true;
             debugBound = true;
+            debugIsPlayer = isPlayer;
         }
 
         private void Unbind()
         {
-            if (!bound ||
-                runtime == null ||
-                runtime.Director == null)
-            {
+            if (!bound)
                 return;
+
+            if (runtime != null &&
+                runtime.Director != null)
+            {
+                runtime.Director.DamageApplied -=
+                    OnDamageApplied;
             }
 
-            runtime.Director.DamageApplied -= OnDamageApplied;
-
             bound = false;
+            debugBound = false;
         }
 
-        private void OnDamageApplied(DamageEvent damageEvent)
+        private void OnDamageApplied(
+            DamageEvent damageEvent)
         {
             if (racerView == null ||
                 racerView.Participant == null ||
-                damageEvent.VictimRacerId != racerView.RacerId)
+                damageEvent.VictimRacerId !=
+                racerView.RacerId)
             {
                 return;
             }
 
-            debugLastDamageCause = damageEvent.Cause.ToString();
-            debugLastShieldDamage = damageEvent.ShieldAbsorbed;
-            debugLastHullDamage = damageEvent.BikeDamage;
+            debugLastCause =
+                damageEvent.Cause.ToString();
 
-            PlayCollisionFeedback(damageEvent);
+            debugLastShieldDirection =
+                damageEvent.ImpactSide.ToString();
+
+            debugLastIncomingDamage =
+                damageEvent.IncomingDamage;
+
+            debugLastShieldAbsorbed =
+                damageEvent.ShieldAbsorbed;
+
+            debugLastHullDamage =
+                damageEvent.BikeDamage;
+
+            debugLastShieldDepleted =
+                damageEvent.ShieldDepleted;
+
+            debugLastDestroyed =
+                damageEvent.CausedDestruction;
 
             if (damageEvent.ShieldAbsorbed > 0f)
-                PlayShieldFeedback();
-
-            if (damageEvent.BikeDamage > 0f)
-                PlayHullFeedback();
-        }
-
-        private void PlayShieldFeedback()
-        {
-            RaceShieldState shield =
-                racerView.Participant.Vehicle
-                    .EquipmentSystem.Shield;
-
-            bool depleted =
-                shield != null &&
-                shield.IsDepleted;
-
-            debugLastShieldDepleted = depleted;
-
-            if (depleted)
             {
-                PlayOneShot(
-                    shieldDepletedClip,
-                    shieldVolume);
-
-                SpawnParticle(
-                    shieldDepletedPrefab,
-                    shieldEffectOrigin);
-
-                return;
+                PlayShieldHit(
+                    damageEvent);
             }
 
-            PlayOneShot(
-                shieldHitClip,
-                shieldVolume);
-
-            SpawnParticle(
-                shieldHitPrefab,
-                shieldEffectOrigin);
+            if (damageEvent.BikeDamage > 0f)
+            {
+                PlayHullHit(
+                    damageEvent.BikeDamage);
+            }
         }
 
-        private void PlayHullFeedback()
+        private void PlayShieldHit(
+            DamageEvent damageEvent)
         {
-            PlayOneShot(
-                hullHitClip,
-                hullVolume);
+            float intensity =
+                CalculateIntensity(
+                    damageEvent.ShieldAbsorbed);
+
+            if (!damageEvent.ShieldDepleted ||
+                playDirectionalPulseOnBreak)
+            {
+                ShieldImpactEffectView effect =
+                    GetDirectionalShield(
+                        damageEvent.ImpactSide);
+
+                effect?.Pulse();
+
+                PlayRandomClip(
+                    shieldHitClips,
+                    ref lastShieldHitClip,
+                    shieldHitVolume *
+                    intensity);
+            }
+
+            if (damageEvent.ShieldDepleted)
+                PlayShieldDepleted();
+        }
+
+        private void PlayShieldDepleted()
+        {
+            PlayRandomClip(
+                shieldDepletedClips,
+                ref lastShieldDepletedClip,
+                shieldDepletedVolume);
+
+            SpawnParticle(
+                shieldDepletedPrefab,
+                shieldBreakOrigin);
+
+            HideDirectionalShields();
+        }
+
+        private ShieldImpactEffectView GetDirectionalShield(
+            DamageImpactSide side)
+        {
+            switch (side)
+            {
+                case DamageImpactSide.Front:
+                    return frontShieldEffect != null
+                        ? frontShieldEffect
+                        : fallbackShieldEffect;
+
+                case DamageImpactSide.Rear:
+                    return rearShieldEffect != null
+                        ? rearShieldEffect
+                        : fallbackShieldEffect;
+
+                case DamageImpactSide.Left:
+                    return leftShieldEffect != null
+                        ? leftShieldEffect
+                        : fallbackShieldEffect;
+
+                case DamageImpactSide.Right:
+                    return rightShieldEffect != null
+                        ? rightShieldEffect
+                        : fallbackShieldEffect;
+
+                default:
+                    return fallbackShieldEffect;
+            }
+        }
+
+        private void HideDirectionalShields()
+        {
+            frontShieldEffect?.HideImmediate();
+            rearShieldEffect?.HideImmediate();
+            leftShieldEffect?.HideImmediate();
+            rightShieldEffect?.HideImmediate();
+            fallbackShieldEffect?.HideImmediate();
+        }
+
+        private void PlayHullHit(
+            float hullDamage)
+        {
+            float intensity =
+                CalculateIntensity(
+                    hullDamage);
+
+            PlayRandomClip(
+                hullHitClips,
+                ref lastHullHitClip,
+                hullHitVolume *
+                intensity);
 
             SpawnParticle(
                 hullHitPrefab,
                 hullEffectOrigin);
         }
 
-        private void PlayCollisionFeedback(
-            DamageEvent damageEvent)
+        private void ConfigureAudioMix()
         {
-            if (Time.time - lastCollisionAudioTime <
-                collisionAudioCooldown)
+            if (impactAudioSource == null)
+                return;
+
+            impactAudioSource.spatialBlend =
+                isPlayer
+                    ? playerSpatialBlend
+                    : opponentSpatialBlend;
+
+            if (impactGroup != null)
             {
-                return;
+                impactAudioSource.outputAudioMixerGroup =
+                    impactGroup;
+
+                debugMixerGroup =
+                    impactGroup.name;
             }
-
-            AudioClip clip = null;
-
-            if (damageEvent.Cause == DamageCause.Collision)
-                clip = racerCollisionClip;
-
-            if (damageEvent.Cause == DamageCause.Environmental)
-                clip = wallCollisionClip;
-
-            if (clip == null)
-                return;
-
-            lastCollisionAudioTime = Time.time;
-
-            PlayOneShot(
-                clip,
-                collisionVolume);
         }
 
-        private void PlayOneShot(
-            AudioClip clip,
-            float volume)
+        private void PlayRandomClip(
+            AudioClip[] clips,
+            ref int previousIndex,
+            float baseVolume)
         {
-            if (oneShotAudioSource == null ||
-                clip == null)
+            if (impactAudioSource == null ||
+                clips == null ||
+                clips.Length == 0)
             {
                 return;
             }
 
-            oneShotAudioSource.PlayOneShot(
-                clip,
-                Mathf.Clamp01(volume));
+            int index =
+                SelectClipIndex(
+                    clips,
+                    previousIndex);
+
+            if (index < 0 ||
+                clips[index] == null)
+            {
+                return;
+            }
+
+            previousIndex = index;
+
+            float roleMultiplier =
+                isPlayer
+                    ? playerVolumeMultiplier
+                    : opponentVolumeMultiplier;
+
+            impactAudioSource.pitch =
+                Random.Range(
+                    1f - pitchVariation,
+                    1f + pitchVariation);
+
+            impactAudioSource.PlayOneShot(
+                clips[index],
+                Mathf.Clamp01(
+                    baseVolume *
+                    roleMultiplier));
+        }
+
+        private int SelectClipIndex(
+            AudioClip[] clips,
+            int previousIndex)
+        {
+            int validCount = 0;
+
+            for (int i = 0;
+                 i < clips.Length;
+                 i++)
+            {
+                if (clips[i] != null)
+                    validCount++;
+            }
+
+            if (validCount == 0)
+                return -1;
+
+            int ordinal =
+                Random.Range(
+                    0,
+                    validCount);
+
+            int selected =
+                GetValidClipIndex(
+                    clips,
+                    ordinal);
+
+            if (validCount > 1 &&
+                selected == previousIndex)
+            {
+                ordinal =
+                    (ordinal + 1) %
+                    validCount;
+
+                selected =
+                    GetValidClipIndex(
+                        clips,
+                        ordinal);
+            }
+
+            return selected;
+        }
+
+        private int GetValidClipIndex(
+            AudioClip[] clips,
+            int ordinal)
+        {
+            int current = 0;
+
+            for (int i = 0;
+                 i < clips.Length;
+                 i++)
+            {
+                if (clips[i] == null)
+                    continue;
+
+                if (current == ordinal)
+                    return i;
+
+                current++;
+            }
+
+            return -1;
         }
 
         private void SpawnParticle(
@@ -264,17 +452,18 @@ namespace RaceFatal.Presentation.Combat
                     ? origin
                     : transform;
 
-            ParticleSystem instance =
+            ParticleSystem effect =
                 Instantiate(
                     prefab,
                     spawnOrigin.position,
                     spawnOrigin.rotation);
 
-            instance.Play(true);
+            effect.Play(true);
 
             Destroy(
-                instance.gameObject,
-                GetParticleLifetime(instance));
+                effect.gameObject,
+                GetParticleLifetime(
+                    effect));
         }
 
         private float GetParticleLifetime(
@@ -286,9 +475,27 @@ namespace RaceFatal.Presentation.Combat
             ParticleSystem.MainModule main =
                 particles.main;
 
-            return main.duration +
-                   main.startLifetime.constantMax +
-                   1f;
+            return
+                main.duration +
+                main.startDelay.constantMax +
+                main.startLifetime.constantMax +
+                0.5f;
+        }
+
+        private float CalculateIntensity(
+            float damage)
+        {
+            float normalized =
+                Mathf.Clamp01(
+                    damage /
+                    Mathf.Max(
+                        0.01f,
+                        damageForFullIntensity));
+
+            return Mathf.Lerp(
+                minimumImpactIntensity,
+                1f,
+                normalized);
         }
     }
 }

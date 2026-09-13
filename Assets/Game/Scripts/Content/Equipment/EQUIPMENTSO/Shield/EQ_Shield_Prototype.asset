@@ -17,6 +17,6 @@ MonoBehaviour:
   requiredNodeSize: 0
   creditCost: 0
   requiredTechnologyId: 
-  capacity: 20
-  rechargePerSecond: 5
+  capacity: 60
+  rechargePerSecond: 10
   rechargeDelay: 5

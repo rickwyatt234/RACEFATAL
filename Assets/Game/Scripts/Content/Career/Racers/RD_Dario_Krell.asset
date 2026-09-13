@@ -10,7 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc06c030ca40f30419e9f8a05e4ed8f3, type: 3}
-  m_Name: RD_C2
+  m_Name: RD_Dario_Krell
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
-  id: racer_C2
-  displayName: RD_C2
+  id: racer_dario_krell
+  displayName: Dario Krell
+  pace: 0.87
+  aggression: 0.84
+  overtakingSkill: 0.41
+  defensiveSkill: 0.89
+  weaponAggression: 0.58

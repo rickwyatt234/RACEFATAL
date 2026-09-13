@@ -10,7 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc06c030ca40f30419e9f8a05e4ed8f3, type: 3}
-  m_Name: RD_D1
+  m_Name: RD_Luca_Moretti
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
-  id: racer_D1
-  displayName: RD_D1
+  id: racer_luca_moretti
+  displayName: Luca Moretti
+  pace: 0.82
+  aggression: 0.73
+  overtakingSkill: 0.83
+  defensiveSkill: 0.81
+  weaponAggression: 0.65

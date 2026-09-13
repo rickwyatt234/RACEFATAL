@@ -10,7 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc06c030ca40f30419e9f8a05e4ed8f3, type: 3}
-  m_Name: RD_E1
+  m_Name: RD_Iris_Kross
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
-  id: racer_E1
-  displayName: RD_E1
+  id: racer_iris_kross
+  displayName: Iris Kross
+  pace: 0.63
+  aggression: 0.16
+  overtakingSkill: 0.42
+  defensiveSkill: 0.75
+  weaponAggression: 0.93

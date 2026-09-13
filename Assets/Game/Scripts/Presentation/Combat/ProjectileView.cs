@@ -7,77 +7,78 @@ namespace RaceFatal.Presentation.Combat
     [RequireComponent(typeof(Collider))]
     public class ProjectileView : MonoBehaviour
     {
-        #region Lifetime
+        [Header("Swept Collision")]
+        [SerializeField] private LayerMask collisionMask = ~0;
+        [Min(0.001f)][SerializeField] private float sweepRadius = 0.04f;
+        [Min(4)][SerializeField] private int hitBufferSize = 16;
 
-        [Header("Lifetime")]
-        [Min(0.1f)][SerializeField] private float maximumLifetime = 10f;
+        [Header("Orientation")]
+        [SerializeField] private bool alignToTravelDirection = true;
 
-        #endregion
-
-        #region Flight Feedback
-
-        [Header("Flight Audio")]
-        [Tooltip("Optional AudioSource located on the projectile prefab.")]
-        [SerializeField] private AudioSource flightAudioSource;
-
-        [Tooltip("Optional looping sound played while the projectile is flying.")]
-        [SerializeField] private AudioClip flightLoopClip;
-
-        [Range(0f, 1f)][SerializeField] private float flightVolume = 1f;
-
-        #endregion
-
-        #region Impact Feedback
-
-        [Header("Impact VFX")]
-        [Tooltip("Optional particle effect spawned when this projectile strikes a solid collider.")]
+        [Header("Impact")]
         [SerializeField] private ParticleSystem impactPrefab;
+        [SerializeField] private bool alignImpactToNormal = true;
+        [Min(0.1f)][SerializeField] private float impactLifetimeFallback = 3f;
 
-        [Tooltip("Small offset preventing impact particles from clipping into surfaces.")]
-        [Min(0f)][SerializeField] private float impactOffset = 0.01f;
-
-        [Header("Impact Audio")]
-        [SerializeField] private AudioClip impactClip;
-
-        [Range(0f, 1f)][SerializeField] private float impactVolume = 1f;
-
-        [Tooltip("Random pitch variation applied to impact sounds.")]
-        [Range(0f, 0.5f)][SerializeField] private float impactPitchVariation = 0.05f;
-
-        #endregion
-
-        #region Runtime Debug
+        [Header("Trails")]
+        [SerializeField] private TrailRenderer[] trails;
+        [SerializeField] private bool detachTrails = true;
+        [Min(0f)][SerializeField] private float trailCleanupPadding = 0.1f;
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
-        [SerializeField] private bool debugImpactResolved;
-        [SerializeField] private string debugAttackerRacerId;
-        [SerializeField] private string debugVictimRacerId = "None";
-        [SerializeField] private float debugRemainingRange;
-        [SerializeField] private float debugLifetime;
-        [SerializeField] private Vector3 debugTravelDirection;
-        [SerializeField] private float debugSpeed;
+        [SerializeField] private bool debugResolved;
+        [SerializeField] private float debugDistanceTravelled;
+        [SerializeField] private float debugCurrentSpeed;
+        [SerializeField] private string debugLastHit = "None";
+        [SerializeField] private string debugLastVictim = "None";
+        [SerializeField] private string debugImpactSide = "Unknown";
 
-        #endregion
+        private Collider projectileCollider;
+        private RaycastHit[] hitBuffer;
 
         private RaceRuntimeController runtime;
-        private Collider projectileCollider;
-
         private string attackerRacerId;
-        private Vector3 travelDirection;
 
         private float damage;
         private float speed;
-        private float remainingRange;
-        private float lifetime;
+        private float currentMovementSpeed;
+        private float maximumRange;
+        private float distanceTravelled;
+
+        private Vector3 direction;
 
         private bool initialized;
-        private bool impactResolved;
+        private bool resolved;
 
-        private void Awake()
+        protected Vector3 CurrentDirection => direction;
+        protected float BaseSpeed => speed;
+        protected float CurrentSpeed => currentMovementSpeed;
+        protected float MaximumRange => maximumRange;
+        protected float DistanceTravelled => distanceTravelled;
+        protected string AttackerRacerId => attackerRacerId;
+        protected RaceRuntimeController Runtime => runtime;
+        protected bool IsResolved => resolved;
+
+        protected virtual void Awake()
         {
-            projectileCollider =
-                GetComponent<Collider>();
+            projectileCollider = GetComponent<Collider>();
+
+            if (projectileCollider != null)
+                projectileCollider.isTrigger = true;
+
+            hitBuffer = new RaycastHit[Mathf.Max(4, hitBufferSize)];
+
+            if (trails == null || trails.Length == 0)
+                trails = GetComponentsInChildren<TrailRenderer>(true);
+        }
+
+        protected virtual void Update()
+        {
+            if (!initialized || resolved)
+                return;
+
+            MoveProjectile(Time.deltaTime);
         }
 
         public void Initialize(
@@ -85,277 +86,482 @@ namespace RaceFatal.Presentation.Combat
             string attackerId,
             float projectileDamage,
             float projectileSpeed,
-            float maximumRange,
-            Vector3 worldDirection)
+            float range,
+            Vector3 launchDirection)
         {
             runtime = raceRuntime;
             attackerRacerId = attackerId;
 
-            damage = projectileDamage;
+            damage = Mathf.Max(0f, projectileDamage);
             speed = Mathf.Max(0f, projectileSpeed);
-            remainingRange = Mathf.Max(0f, maximumRange);
+            currentMovementSpeed = speed;
+            maximumRange = Mathf.Max(0f, range);
 
-            travelDirection =
-                worldDirection.sqrMagnitude > 0.001f
-                    ? worldDirection.normalized
+            direction =
+                launchDirection.sqrMagnitude > 0.001f
+                    ? launchDirection.normalized
                     : transform.forward;
+
+            distanceTravelled = 0f;
+            resolved = false;
+            initialized = true;
+
+            debugInitialized = true;
+            debugResolved = false;
+            debugDistanceTravelled = 0f;
+            debugCurrentSpeed = currentMovementSpeed;
+            debugLastHit = "None";
+            debugLastVictim = "None";
+            debugImpactSide = "Unknown";
+
+            UpdateProjectileRotation();
+        }
+
+        protected virtual float ResolveMovementSpeed(float deltaTime)
+        {
+            return speed;
+        }
+
+        protected virtual Vector3 ResolveMovementDirection(float deltaTime)
+        {
+            return direction;
+        }
+
+        private void MoveProjectile(float deltaTime)
+        {
+            if (deltaTime <= 0f)
+                return;
+
+            currentMovementSpeed =
+                Mathf.Max(
+                    0f,
+                    ResolveMovementSpeed(deltaTime));
+
+            debugCurrentSpeed =
+                currentMovementSpeed;
+
+            if (currentMovementSpeed <= 0f)
+                return;
+
+            Vector3 resolvedDirection =
+                ResolveMovementDirection(deltaTime);
+
+            if (resolvedDirection.sqrMagnitude > 0.001f)
+                direction = resolvedDirection.normalized;
+
+            UpdateProjectileRotation();
+
+            float rangeRemaining =
+                maximumRange - distanceTravelled;
+
+            if (rangeRemaining <= 0f)
+            {
+                ExpireProjectile();
+                return;
+            }
+
+            float stepDistance =
+                Mathf.Min(
+                    currentMovementSpeed * deltaTime,
+                    rangeRemaining);
+
+            if (stepDistance <= 0f)
+                return;
+
+            Vector3 start =
+                transform.position;
+
+            if (TryGetFirstValidHit(
+                    start,
+                    direction,
+                    stepDistance,
+                    out RaycastHit hit))
+            {
+                distanceTravelled += hit.distance;
+                debugDistanceTravelled = distanceTravelled;
+
+                transform.position = hit.point;
+
+                ResolveImpact(
+                    hit.collider,
+                    hit.point,
+                    hit.normal);
+
+                return;
+            }
+
+            transform.position =
+                start +
+                direction * stepDistance;
+
+            distanceTravelled += stepDistance;
+            debugDistanceTravelled = distanceTravelled;
+
+            if (distanceTravelled >= maximumRange)
+                ExpireProjectile();
+        }
+
+        private void UpdateProjectileRotation()
+        {
+            if (!alignToTravelDirection ||
+                direction.sqrMagnitude < 0.001f)
+            {
+                return;
+            }
+
+            Vector3 up =
+                transform.up;
+
+            if (Mathf.Abs(
+                    Vector3.Dot(
+                        direction,
+                        up)) > 0.98f)
+            {
+                up = transform.right;
+            }
 
             transform.rotation =
                 Quaternion.LookRotation(
-                    travelDirection,
-                    transform.up);
-
-            lifetime = 0f;
-            impactResolved = false;
-
-            debugAttackerRacerId = attackerRacerId;
-            debugRemainingRange = remainingRange;
-            debugLifetime = 0f;
-            debugImpactResolved = false;
-            debugVictimRacerId = "None";
-            debugTravelDirection = travelDirection;
-            debugSpeed = speed;
-
-            IgnoreOwnerCollisions();
-            StartFlightAudio();
-
-            initialized = true;
-            debugInitialized = true;
+                    direction,
+                    up);
         }
 
-        private void Update()
+        private bool TryGetFirstValidHit(
+            Vector3 origin,
+            Vector3 castDirection,
+            float distance,
+            out RaycastHit nearestHit)
         {
-            if (!initialized ||
-                impactResolved)
+            nearestHit = default;
+
+            int hitCount =
+                Physics.SphereCastNonAlloc(
+                    origin,
+                    sweepRadius,
+                    castDirection,
+                    hitBuffer,
+                    distance,
+                    collisionMask,
+                    QueryTriggerInteraction.Collide);
+
+            if (hitCount <= 0)
+                return false;
+
+            bool found = false;
+            float nearestDistance = float.PositiveInfinity;
+
+            for (int i = 0; i < hitCount; i++)
             {
-                return;
+                RaycastHit hit = hitBuffer[i];
+
+                if (hit.collider == null)
+                    continue;
+
+                if (!IsValidHitCollider(hit.collider))
+                    continue;
+
+                if (hit.distance >= nearestDistance)
+                    continue;
+
+                nearestDistance = hit.distance;
+                nearestHit = hit;
+                found = true;
             }
 
-            float movement =
-                speed *
-                Time.deltaTime;
-
-            transform.position +=
-                travelDirection *
-                movement;
-
-            remainingRange -= movement;
-            lifetime += Time.deltaTime;
-
-            debugRemainingRange = remainingRange;
-            debugLifetime = lifetime;
-
-            if (remainingRange <= 0f ||
-                lifetime >= maximumLifetime)
-            {
-                Destroy(gameObject);
-            }
+            return found;
         }
 
-        private void OnTriggerEnter(
-            Collider other)
+        private bool IsValidHitCollider(Collider hitCollider)
         {
-            if (!initialized ||
-                impactResolved ||
-                other == null ||
-                other.isTrigger)
+            if (hitCollider == null)
+                return false;
+
+            if (IsProjectileCollider(hitCollider))
+                return false;
+
+            if (IsOwnerCollider(hitCollider))
+                return false;
+
+            if (!hitCollider.isTrigger)
+                return true;
+
+            return hitCollider.GetComponentInParent<RacerViewController>() != null;
+        }
+
+        private bool IsProjectileCollider(Collider hitCollider)
+        {
+            if (hitCollider == projectileCollider)
+                return true;
+
+            return hitCollider.transform == transform ||
+                   hitCollider.transform.IsChildOf(transform);
+        }
+
+        private bool IsOwnerCollider(Collider hitCollider)
+        {
+            if (hitCollider == null ||
+                string.IsNullOrWhiteSpace(attackerRacerId))
             {
-                return;
+                return false;
             }
+
+            RacerViewController racer =
+                hitCollider.GetComponentInParent<RacerViewController>();
+
+            return racer != null &&
+                   racer.IsInitialized &&
+                   racer.RacerId == attackerRacerId;
+        }
+
+        private void ResolveImpact(
+            Collider hitCollider,
+            Vector3 hitPoint,
+            Vector3 hitNormal)
+        {
+            if (resolved)
+                return;
+
+            resolved = true;
+            debugResolved = true;
+
+            if (hitCollider != null)
+                debugLastHit = hitCollider.name;
 
             RacerViewController victim =
-                other.GetComponentInParent<RacerViewController>();
+                hitCollider != null
+                    ? hitCollider.GetComponentInParent<RacerViewController>()
+                    : null;
 
             if (victim != null &&
-                victim.RacerId == attackerRacerId)
+                victim.IsInitialized &&
+                victim.RacerId != attackerRacerId)
+            {
+                DamageImpactSide impactSide =
+                    ResolveImpactSide(
+                        victim.transform,
+                        hitPoint,
+                        hitNormal);
+
+                debugLastVictim = victim.RacerId;
+                debugImpactSide = impactSide.ToString();
+
+                if (runtime != null &&
+                    runtime.Director != null)
+                {
+                    runtime.Director.ApplyDamage(
+                        attackerRacerId,
+                        victim.RacerId,
+                        damage,
+                        DamageCause.Weapon,
+                        impactSide);
+                }
+            }
+
+            SpawnImpact(hitPoint, hitNormal);
+            FinishProjectile();
+        }
+
+        private DamageImpactSide ResolveImpactSide(
+            Transform victimTransform,
+            Vector3 hitPoint,
+            Vector3 hitNormal)
+        {
+            if (victimTransform == null)
+                return DamageImpactSide.Unknown;
+
+            if (hitNormal.sqrMagnitude > 0.001f)
+            {
+                Vector3 localNormal =
+                    victimTransform.InverseTransformDirection(
+                        hitNormal.normalized);
+
+                localNormal.y = 0f;
+
+                if (localNormal.sqrMagnitude > 0.001f)
+                    return ClassifyLocalDirection(localNormal);
+            }
+
+            Vector3 localPoint =
+                victimTransform.InverseTransformPoint(hitPoint);
+
+            localPoint.y = 0f;
+
+            if (localPoint.sqrMagnitude > 0.001f)
+                return ClassifyLocalDirection(localPoint);
+
+            Vector3 localApproach =
+                victimTransform.InverseTransformDirection(
+                    -direction);
+
+            localApproach.y = 0f;
+
+            if (localApproach.sqrMagnitude > 0.001f)
+                return ClassifyLocalDirection(localApproach);
+
+            return DamageImpactSide.Unknown;
+        }
+
+        private DamageImpactSide ClassifyLocalDirection(Vector3 localDirection)
+        {
+            localDirection.Normalize();
+
+            float forwardAmount =
+                Mathf.Abs(localDirection.z);
+
+            float sideAmount =
+                Mathf.Abs(localDirection.x);
+
+            if (forwardAmount >= sideAmount)
+            {
+                return localDirection.z >= 0f
+                    ? DamageImpactSide.Front
+                    : DamageImpactSide.Rear;
+            }
+
+            return localDirection.x >= 0f
+                ? DamageImpactSide.Right
+                : DamageImpactSide.Left;
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!initialized ||
+                resolved ||
+                other == null)
             {
                 return;
             }
 
-            impactResolved = true;
-            debugImpactResolved = true;
+            if (!IsValidHitCollider(other))
+                return;
 
-            Vector3 impactPoint =
+            Vector3 hitPoint =
                 other.ClosestPoint(
                     transform.position);
 
-            Vector3 impactNormal =
-                -travelDirection;
+            Vector3 hitNormal =
+                -direction;
 
-            SpawnImpactVFX(
-                impactPoint,
-                impactNormal);
-
-            PlayImpactAudio(
-                impactPoint);
-
-            if (victim != null &&
-                victim.IsInitialized)
-            {
-                debugVictimRacerId =
-                    victim.RacerId;
-
-                runtime?.Director?.ApplyDamage(
-                    attackerRacerId,
-                    victim.RacerId,
-                    damage,
-                    DamageCause.Weapon);
-            }
-
-            Destroy(gameObject);
+            ResolveImpact(
+                other,
+                hitPoint,
+                hitNormal);
         }
 
-        #region Flight Audio
-
-        private void StartFlightAudio()
-        {
-            if (flightAudioSource == null ||
-                flightLoopClip == null)
-            {
-                return;
-            }
-
-            flightAudioSource.clip =
-                flightLoopClip;
-
-            flightAudioSource.loop =
-                true;
-
-            flightAudioSource.volume =
-                Mathf.Clamp01(
-                    flightVolume);
-
-            flightAudioSource.Play();
-        }
-
-        #endregion
-
-        #region Impact Feedback
-
-        private void SpawnImpactVFX(
-            Vector3 impactPoint,
-            Vector3 impactNormal)
+        private void SpawnImpact(
+            Vector3 position,
+            Vector3 normal)
         {
             if (impactPrefab == null)
                 return;
 
-            Quaternion rotation =
-                Quaternion.LookRotation(
-                    impactNormal);
+            if (normal.sqrMagnitude < 0.001f)
+                normal = -direction;
 
-            ParticleSystem impact =
+            Quaternion rotation =
+                alignImpactToNormal
+                    ? Quaternion.LookRotation(normal.normalized)
+                    : Quaternion.identity;
+
+            ParticleSystem effect =
                 Instantiate(
                     impactPrefab,
-                    impactPoint +
-                        impactNormal *
-                        impactOffset,
+                    position,
                     rotation);
 
-            impact.Play(true);
+            effect.Play(true);
 
             Destroy(
-                impact.gameObject,
-                GetParticleLifetime(impact));
+                effect.gameObject,
+                GetParticleLifetime(effect));
         }
 
-        private void PlayImpactAudio(
-            Vector3 impactPoint)
+        private float GetParticleLifetime(ParticleSystem root)
         {
-            if (impactClip == null)
-                return;
+            if (root == null)
+                return impactLifetimeFallback;
 
-            GameObject audioObject =
-                new GameObject(
-                    "ProjectileImpactAudio");
+            ParticleSystem[] systems =
+                root.GetComponentsInChildren<ParticleSystem>(true);
 
-            audioObject.transform.position =
-                impactPoint;
+            float longest = 0f;
 
-            AudioSource source =
-                audioObject.AddComponent<AudioSource>();
-
-            source.clip =
-                impactClip;
-
-            source.volume =
-                Mathf.Clamp01(
-                    impactVolume);
-
-            source.spatialBlend = 1f;
-
-            source.pitch =
-                Random.Range(
-                    1f - impactPitchVariation,
-                    1f + impactPitchVariation);
-
-            source.Play();
-
-            Destroy(
-                audioObject,
-                impactClip.length /
-                Mathf.Max(
-                    0.01f,
-                    Mathf.Abs(source.pitch)) +
-                0.1f);
-        }
-
-        private float GetParticleLifetime(
-            ParticleSystem particles)
-        {
-            ParticleSystem.MainModule main =
-                particles.main;
-
-            return main.duration +
-                   main.startLifetime.constantMax +
-                   1f;
-        }
-
-        #endregion
-
-        #region Collision Ignore
-
-        private void IgnoreOwnerCollisions()
-        {
-            if (runtime == null ||
-                projectileCollider == null ||
-                string.IsNullOrEmpty(
-                    attackerRacerId))
+            for (int i = 0; i < systems.Length; i++)
             {
-                return;
+                ParticleSystem system = systems[i];
+
+                if (system == null)
+                    continue;
+
+                ParticleSystem.MainModule main =
+                    system.main;
+
+                float lifetime =
+                    main.duration +
+                    main.startDelay.constantMax +
+                    main.startLifetime.constantMax;
+
+                longest =
+                    Mathf.Max(
+                        longest,
+                        lifetime);
             }
 
-            if (!runtime.TryGetRacerView(
-                    attackerRacerId,
-                    out RacerViewController owner))
-            {
+            return longest > 0f
+                ? longest + 0.25f
+                : impactLifetimeFallback;
+        }
+
+        private void ExpireProjectile()
+        {
+            if (resolved)
                 return;
-            }
 
-            Collider[] ownerColliders =
-                owner.GetComponentsInChildren<Collider>(
-                    true);
+            resolved = true;
+            debugResolved = true;
 
-            for (int i = 0;
-                 i < ownerColliders.Length;
-                 i++)
+            FinishProjectile();
+        }
+
+        private void FinishProjectile()
+        {
+            if (projectileCollider != null)
+                projectileCollider.enabled = false;
+
+            PreserveTrails();
+            Destroy(gameObject);
+        }
+
+        private void PreserveTrails()
+        {
+            if (trails == null)
+                return;
+
+            for (int i = 0; i < trails.Length; i++)
             {
-                Collider ownerCollider =
-                    ownerColliders[i];
+                TrailRenderer trail = trails[i];
 
-                if (ownerCollider == null ||
-                    ownerCollider ==
-                        projectileCollider)
+                if (trail == null)
+                    continue;
+
+                trail.emitting = false;
+
+                if (!detachTrails ||
+                    trail.transform == transform ||
+                    !trail.transform.IsChildOf(transform))
                 {
                     continue;
                 }
 
-                Physics.IgnoreCollision(
-                    projectileCollider,
-                    ownerCollider,
-                    true);
+                trail.transform.SetParent(null, true);
+
+                Destroy(
+                    trail.gameObject,
+                    Mathf.Max(
+                        0.05f,
+                        trail.time +
+                        trailCleanupPadding));
             }
         }
-
-        #endregion
     }
 }

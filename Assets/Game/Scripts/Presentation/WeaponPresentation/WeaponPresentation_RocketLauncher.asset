@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abd48beaac2d02f4cbb76032c34dfb0d, type: 3}
+  m_Name: WeaponPresentation_RocketLauncher
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
+  weaponDefinitionId: weapon_rocket_launcher
+  projectilePrefab: {fileID: 1782490939341998590, guid: df0bb3bc14a5d154a84542199c1d336e, type: 3}
+  muzzlePrefab: {fileID: 69906001918393858, guid: bd8904af5c913ae408d7b43bb899625b, type: 3}
+  muzzleFallbackLifetime: 2
+  fireClips:
+  - {fileID: 8300000, guid: e0bfb1c36318d4174aae02723b975437, type: 3}
+  - {fileID: 8300000, guid: d4bf706e37f6f4578bb47c2af69331f2, type: 3}
+  - {fileID: 8300000, guid: 5e6fe790db4c640b88dd0f78d5fdc721, type: 3}
+  - {fileID: 8300000, guid: 21e9673d312804c629e17e3114d88279, type: 3}
+  - {fileID: 8300000, guid: ff65225ed9f3c43a6a9817f93695510e, type: 3}
+  - {fileID: 8300000, guid: 58b7d18a1e80b468f90de20169b43f96, type: 3}
+  fireVolume: 1
+  fireVolumeVariation: 0.04
+  minimumFirePitch: 0.97
+  maximumFirePitch: 1.03
+  fireSpatialBlend: 1
+  fireMinDistance: 3
+  fireMaxDistance: 120
+  fireRolloffMode: 0
+  fireDopplerLevel: 0.1

@@ -24,7 +24,13 @@ namespace RaceFatal.Equipment
         private int selectedIndex;
         private float passiveHandlingMultiplier = 1f;
 
+        private bool boostAllowed = true;
+        private bool weaponsAllowed = true;
+
         public RaceShieldState Shield { get; private set; }
+
+        public bool BoostAllowed => boostAllowed;
+        public bool WeaponsAllowed => weaponsAllowed;
 
         public bool HasWeapon =>
             weapons.Count > 0;
@@ -281,6 +287,29 @@ namespace RaceFatal.Equipment
             }
         }
 
+        #region Race Permissions
+
+        public void SetRaceActivationPermissions(
+            bool allowBoost,
+            bool allowWeapons)
+        {
+            boostAllowed = allowBoost;
+            weaponsAllowed = allowWeapons;
+
+            if (!boostAllowed)
+            {
+                SetAllBoostersActive(
+                    false);
+            }
+
+            if (!weaponsAllowed)
+            {
+                StopAllWeaponActivations();
+            }
+        }
+
+        #endregion
+
         #region Weapon Selection
 
         public string SelectNext()
@@ -313,11 +342,6 @@ namespace RaceFatal.Equipment
             return SelectedEquipmentId;
         }
 
-        /// <summary>
-        /// Keeps the current weapon if it has ammo. Otherwise
-        /// selects the next weapon that still has ammunition.
-        /// Primarily useful for AI.
-        /// </summary>
         public bool SelectWeaponWithAmmo()
         {
             if (weapons.Count == 0)
@@ -358,6 +382,9 @@ namespace RaceFatal.Equipment
 
         public bool BeginSelectedActivation()
         {
+            if (!weaponsAllowed)
+                return false;
+
             WeaponState weapon =
                 GetSelectedWeapon();
 
@@ -386,8 +413,11 @@ namespace RaceFatal.Equipment
         private bool BeginWeapon(
             WeaponState weapon)
         {
-            if (weapon.CurrentAmmo <= 0)
+            if (!weaponsAllowed ||
+                weapon.CurrentAmmo <= 0)
+            {
                 return false;
+            }
 
             switch (weapon.Definition.ActivationMode)
             {
@@ -441,8 +471,11 @@ namespace RaceFatal.Equipment
 
                     weapon.ChargeTime = 0f;
 
-                    if (!fullyCharged)
+                    if (!fullyCharged ||
+                        !weaponsAllowed)
+                    {
                         return false;
+                    }
 
                     return TryFire(
                         weapon,
@@ -464,8 +497,23 @@ namespace RaceFatal.Equipment
             if (boosters.Count == 0)
                 return false;
 
-            if (active &&
-                energy.IsEmpty)
+            if (!active)
+            {
+                SetAllBoostersActive(
+                    false);
+
+                return true;
+            }
+
+            if (!boostAllowed)
+            {
+                SetAllBoostersActive(
+                    false);
+
+                return false;
+            }
+
+            if (energy.IsEmpty)
             {
                 SetAllBoostersActive(
                     false);
@@ -474,7 +522,7 @@ namespace RaceFatal.Equipment
             }
 
             SetAllBoostersActive(
-                active);
+                true);
 
             return true;
         }
@@ -519,11 +567,6 @@ namespace RaceFatal.Equipment
                     deltaTime);
             }
 
-            /*
-             * Boost drains Energy first.
-             * Shield then observes the resulting effective
-             * capacity during the same tick.
-             */
             TickBoosters(
                 deltaTime);
 
@@ -535,6 +578,14 @@ namespace RaceFatal.Equipment
             WeaponState weapon,
             float deltaTime)
         {
+            if (!weaponsAllowed)
+            {
+                StopWeaponActivation(
+                    weapon);
+
+                return;
+            }
+
             if (weapon.IsCharging)
             {
                 weapon.ChargeTime +=
@@ -585,6 +636,14 @@ namespace RaceFatal.Equipment
         private void TickBoosters(
             float deltaTime)
         {
+            if (!boostAllowed)
+            {
+                SetAllBoostersActive(
+                    false);
+
+                return;
+            }
+
             float totalCostPerSecond = 0f;
             bool anyActive = false;
 
@@ -622,8 +681,11 @@ namespace RaceFatal.Equipment
             WeaponState weapon,
             float chargeRatio)
         {
-            if (weapon.CurrentAmmo <= 0)
+            if (!weaponsAllowed ||
+                weapon.CurrentAmmo <= 0)
+            {
                 return false;
+            }
 
             weapon.CurrentAmmo--;
 
@@ -707,8 +769,28 @@ namespace RaceFatal.Equipment
             if (weapon == null)
                 return;
 
+            StopWeaponActivation(
+                weapon);
+        }
+
+        private void StopAllWeaponActivations()
+        {
+            foreach (WeaponState weapon in weapons)
+            {
+                StopWeaponActivation(
+                    weapon);
+            }
+        }
+
+        private void StopWeaponActivation(
+            WeaponState weapon)
+        {
+            if (weapon == null)
+                return;
+
             weapon.IsHeld = false;
             weapon.IsCharging = false;
+            weapon.FireTimer = 0f;
             weapon.ChargeTime = 0f;
         }
 
@@ -745,16 +827,13 @@ namespace RaceFatal.Equipment
                 : base(equipment)
             {
                 Definition = definition;
-
-                CurrentAmmo =
-                    definition.StartingAmmo;
+                CurrentAmmo = definition.StartingAmmo;
             }
         }
 
         private class BoosterState : ActivatableState
         {
             public BoosterDefinition Definition { get; }
-
             public bool IsActive;
 
             public BoosterState(

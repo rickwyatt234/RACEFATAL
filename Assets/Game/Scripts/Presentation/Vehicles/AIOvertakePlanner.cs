@@ -16,13 +16,13 @@ namespace RaceFatal.Presentation.Vehicles
         #region Hunt
 
         [Header("Hunt")]
-        [Tooltip("Distance at which another racer ahead becomes a target worth actively pursuing.")]
+        [Tooltip("Base distance at which another racer ahead becomes worth actively pursuing.")]
         [Min(1f)][SerializeField] private float huntDistance = 90f;
 
-        [Tooltip("Distance at which the AI begins setting up an actual passing lane.")]
+        [Tooltip("Base distance at which the AI begins preparing an actual passing lane.")]
         [Min(1f)][SerializeField] private float passPreparationDistance = 55f;
 
-        [Tooltip("How much faster the target may be while the AI still attempts to chase and pass it.")]
+        [Tooltip("Base speed deficit still considered potentially passable.")]
         [Min(0f)][SerializeField] private float maximumPassSpeedDeficit = 4f;
 
         #endregion
@@ -44,22 +44,22 @@ namespace RaceFatal.Presentation.Vehicles
         #region Commitment
 
         [Header("Pass Commitment")]
-        [Tooltip("Minimum time the AI remains committed to its chosen side.")]
+        [Tooltip("Base minimum time the AI remains committed to its chosen side.")]
         [Min(0f)][SerializeField] private float minimumCommitTime = 1.25f;
 
-        [Tooltip("Maximum duration of one continuous passing attempt before briefly resetting.")]
+        [Tooltip("Base maximum duration of one continuous passing attempt.")]
         [Min(0.1f)][SerializeField] private float maximumPassTime = 10f;
 
         [Tooltip("Distance ahead of the target required before the pass is considered complete.")]
         [Min(0f)][SerializeField] private float completionLeadDistance = 4f;
 
-        [Tooltip("Cooldown after a successfully completed pass.")]
+        [Tooltip("Base cooldown after a successfully completed pass.")]
         [Min(0f)][SerializeField] private float passCooldown = 0.75f;
 
-        [Tooltip("Short retry delay when a pass times out without being completed.")]
+        [Tooltip("Base retry delay after a failed passing attempt.")]
         [Min(0f)][SerializeField] private float failedPassRetryDelay = 0.35f;
 
-        [Tooltip("How quickly the temporary passing line moves sideways.")]
+        [Tooltip("Base speed at which the temporary passing line moves sideways.")]
         [Min(0.1f)][SerializeField] private float tacticalOffsetShiftSpeed = 5.5f;
 
         #endregion
@@ -67,7 +67,7 @@ namespace RaceFatal.Presentation.Vehicles
         #region Following
 
         [Header("Following")]
-        [Tooltip("Distance where the AI begins respecting the speed of traffic directly ahead.")]
+        [Tooltip("Distance where the AI begins respecting traffic speed ahead.")]
         [Min(0.1f)][SerializeField] private float followingDistance = 16f;
 
         [Tooltip("Very close distance where collision avoidance strongly limits closing speed.")]
@@ -76,7 +76,7 @@ namespace RaceFatal.Presentation.Vehicles
         [Tooltip("Additional speed allowed at the outer edge of the following zone.")]
         [Min(0f)][SerializeField] private float followingSpeedBuffer = 4.5f;
 
-        [Tooltip("Small closing-speed allowance retained even during emergency following.")]
+        [Tooltip("Small closing-speed allowance retained during emergency following.")]
         [Min(0f)][SerializeField] private float emergencyFollowingSpeedBuffer = 1.5f;
 
         [Tooltip("Once this fraction of the passing offset has been reached, normal traffic speed matching is removed.")]
@@ -84,9 +84,47 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
+        #region Skill Mapping
+
+        [Header("Overtaking Skill Mapping")]
+        [Tooltip("Multiplier applied to Hunt Distance at Overtaking Skill = 0.")]
+        [Range(0.1f, 1f)][SerializeField] private float lowSkillHuntDistanceMultiplier = 0.6f;
+
+        [Tooltip("Multiplier applied to Pass Preparation Distance at Overtaking Skill = 0.")]
+        [Range(0.1f, 1f)][SerializeField] private float lowSkillPreparationDistanceMultiplier = 0.65f;
+
+        [Tooltip("Multiplier applied to lateral shift speed at Overtaking Skill = 0.")]
+        [Range(0.1f, 1f)][SerializeField] private float lowSkillShiftSpeedMultiplier = 0.55f;
+
+        [Tooltip("Multiplier applied to lateral shift speed at Overtaking Skill = 1.")]
+        [Min(1f)][SerializeField] private float highSkillShiftSpeedMultiplier = 1.15f;
+
+        [Tooltip("Multiplier applied to successful-pass cooldown at Overtaking Skill = 0.")]
+        [Min(1f)][SerializeField] private float lowSkillCooldownMultiplier = 1.6f;
+
+        [Tooltip("Multiplier applied to successful-pass cooldown at Overtaking Skill = 1.")]
+        [Range(0.1f, 1f)][SerializeField] private float highSkillCooldownMultiplier = 0.65f;
+
+        [Tooltip("Multiplier applied to failed-pass retry delay at Overtaking Skill = 0.")]
+        [Min(1f)][SerializeField] private float lowSkillRetryMultiplier = 2f;
+
+        [Tooltip("Multiplier applied to failed-pass retry delay at Overtaking Skill = 1.")]
+        [Range(0.1f, 1f)][SerializeField] private float highSkillRetryMultiplier = 0.75f;
+
+        [Tooltip("Low-skill racers may stay trapped in an unsuccessful pass longer.")]
+        [Min(1f)][SerializeField] private float lowSkillMaximumPassTimeMultiplier = 1.25f;
+
+        [Tooltip("High-skill racers identify a failed attempt and reset sooner.")]
+        [Range(0.1f, 1f)][SerializeField] private float highSkillMaximumPassTimeMultiplier = 0.8f;
+
+        #endregion
+
         #region Debug
 
         [Header("Runtime Debug")]
+        [SerializeField] private bool debugInitialized;
+        [SerializeField] private float debugOvertakingSkill;
+
         [SerializeField] private OvertakeState currentState;
         [SerializeField] private bool debugHunting;
         [SerializeField] private string debugHuntTarget = "None";
@@ -99,7 +137,15 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugTrafficSpeedLimitKph;
         [SerializeField] private bool debugLeftClear;
         [SerializeField] private bool debugRightClear;
-        [SerializeField] private string debugDecision = "Idle";
+        [SerializeField] private string debugDecision = "Not Initialized";
+
+        [Header("Runtime Skill Values")]
+        [SerializeField] private float debugRuntimeHuntDistance;
+        [SerializeField] private float debugRuntimePreparationDistance;
+        [SerializeField] private float debugRuntimeShiftSpeed;
+        [SerializeField] private float debugRuntimePassCooldown;
+        [SerializeField] private float debugRuntimeFailedRetryDelay;
+        [SerializeField] private float debugRuntimeMaximumPassTime;
 
         #endregion
 
@@ -108,16 +154,29 @@ namespace RaceFatal.Presentation.Vehicles
         private AIRacerSensor sensor;
         private AIRacerSensor passTarget;
 
+        private float overtakingSkill;
+
+        private float runtimeHuntDistance;
+        private float runtimePassPreparationDistance;
+        private float runtimeTacticalOffsetShiftSpeed;
+        private float runtimePassCooldown;
+        private float runtimeFailedPassRetryDelay;
+        private float runtimeMaximumPassTime;
+
         private float passTimer;
         private float cooldownTimer;
         private float currentTacticalOffset;
+
         private bool isHunting;
+        private bool initialized;
 
         public OvertakeState CurrentState => currentState;
         public float CurrentTacticalOffset => currentTacticalOffset;
         public float TrafficSpeedLimitMetersPerSecond { get; private set; } = float.PositiveInfinity;
 
+        public bool IsInitialized => initialized;
         public bool IsHunting => isHunting;
+        public float OvertakingSkill => overtakingSkill;
 
         public bool IsPassing =>
             currentState == OvertakeState.PassingLeft ||
@@ -139,15 +198,106 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void OnDisable()
         {
+            ResetRuntimeState();
+        }
+
+        #endregion
+
+        #region Initialization
+
+        public bool Initialize(float skill)
+        {
+            if (sensor == null)
+            {
+                Debug.LogError(
+                    $"{nameof(AIOvertakePlanner)} requires an {nameof(AIRacerSensor)}.",
+                    this);
+
+                return false;
+            }
+
+            overtakingSkill = Mathf.Clamp01(skill);
+
+            runtimeHuntDistance =
+                huntDistance *
+                Mathf.Lerp(
+                    lowSkillHuntDistanceMultiplier,
+                    1f,
+                    overtakingSkill);
+
+            runtimePassPreparationDistance =
+                passPreparationDistance *
+                Mathf.Lerp(
+                    lowSkillPreparationDistanceMultiplier,
+                    1f,
+                    overtakingSkill);
+
+            runtimeTacticalOffsetShiftSpeed =
+                tacticalOffsetShiftSpeed *
+                Mathf.Lerp(
+                    lowSkillShiftSpeedMultiplier,
+                    highSkillShiftSpeedMultiplier,
+                    overtakingSkill);
+
+            runtimePassCooldown =
+                passCooldown *
+                Mathf.Lerp(
+                    lowSkillCooldownMultiplier,
+                    highSkillCooldownMultiplier,
+                    overtakingSkill);
+
+            runtimeFailedPassRetryDelay =
+                failedPassRetryDelay *
+                Mathf.Lerp(
+                    lowSkillRetryMultiplier,
+                    highSkillRetryMultiplier,
+                    overtakingSkill);
+
+            runtimeMaximumPassTime =
+                maximumPassTime *
+                Mathf.Lerp(
+                    lowSkillMaximumPassTimeMultiplier,
+                    highSkillMaximumPassTimeMultiplier,
+                    overtakingSkill);
+
+            ResetRuntimeState();
+
+            initialized = true;
+            debugInitialized = true;
+            debugOvertakingSkill = overtakingSkill;
+
+            debugRuntimeHuntDistance = runtimeHuntDistance;
+            debugRuntimePreparationDistance = runtimePassPreparationDistance;
+            debugRuntimeShiftSpeed = runtimeTacticalOffsetShiftSpeed;
+            debugRuntimePassCooldown = runtimePassCooldown;
+            debugRuntimeFailedRetryDelay = runtimeFailedPassRetryDelay;
+            debugRuntimeMaximumPassTime = runtimeMaximumPassTime;
+
+            debugDecision = "Idle";
+
+            return true;
+        }
+
+        private void ResetRuntimeState()
+        {
             passTarget = null;
+
             passTimer = 0f;
             cooldownTimer = 0f;
             currentTacticalOffset = 0f;
+
             currentState = OvertakeState.Idle;
             isHunting = false;
 
             TrafficSpeedLimitMetersPerSecond =
                 float.PositiveInfinity;
+
+            debugHunting = false;
+            debugHuntTarget = "None";
+            debugPassTarget = "None";
+            debugPassTimer = 0f;
+            debugCooldownTimer = 0f;
+            debugTacticalOffset = 0f;
         }
 
         #endregion
@@ -160,14 +310,24 @@ namespace RaceFatal.Presentation.Vehicles
             float currentSpeed,
             bool allowNewPass)
         {
+            if (!initialized)
+                return 0f;
+
             sensor.Scan();
 
-            float deltaTime = Time.fixedDeltaTime;
+            float deltaTime =
+                Time.fixedDeltaTime;
 
             UpdateHuntState();
 
             if (cooldownTimer > 0f)
-                cooldownTimer = Mathf.Max(0f, cooldownTimer - deltaTime);
+            {
+                cooldownTimer =
+                    Mathf.Max(
+                        0f,
+                        cooldownTimer -
+                        deltaTime);
+            }
 
             switch (currentState)
             {
@@ -181,13 +341,16 @@ namespace RaceFatal.Presentation.Vehicles
 
                 case OvertakeState.PassingLeft:
                 case OvertakeState.PassingRight:
-                    UpdateActivePass(deltaTime);
+                    UpdateActivePass(
+                        deltaTime);
                     break;
 
                 case OvertakeState.Cooldown:
                     if (cooldownTimer <= 0f)
                     {
-                        currentState = OvertakeState.Idle;
+                        currentState =
+                            OvertakeState.Idle;
+
                         debugDecision =
                             isHunting
                                 ? "Hunting / Ready"
@@ -198,15 +361,25 @@ namespace RaceFatal.Presentation.Vehicles
 
             float desiredTacticalOffset = 0f;
 
-            if (currentState == OvertakeState.PassingLeft)
-                desiredTacticalOffset = -passOffset;
-            else if (currentState == OvertakeState.PassingRight)
-                desiredTacticalOffset = passOffset;
+            if (currentState ==
+                OvertakeState.PassingLeft)
+            {
+                desiredTacticalOffset =
+                    -passOffset;
+            }
+            else if (currentState ==
+                     OvertakeState.PassingRight)
+            {
+                desiredTacticalOffset =
+                    passOffset;
+            }
 
-            currentTacticalOffset = Mathf.MoveTowards(
-                currentTacticalOffset,
-                desiredTacticalOffset,
-                tacticalOffsetShiftSpeed * deltaTime);
+            currentTacticalOffset =
+                Mathf.MoveTowards(
+                    currentTacticalOffset,
+                    desiredTacticalOffset,
+                    runtimeTacticalOffsetShiftSpeed *
+                    deltaTime);
 
             UpdateTrafficSpeedLimit();
             UpdateDebug();
@@ -216,14 +389,17 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateHuntState()
         {
-            AIRacerSensor target = sensor.AheadRacer;
+            AIRacerSensor target =
+                sensor.AheadRacer;
 
             isHunting =
                 target != null &&
                 target.isActiveAndEnabled &&
-                sensor.AheadDistance <= huntDistance;
+                sensor.AheadDistance <=
+                runtimeHuntDistance;
 
             debugHunting = isHunting;
+
             debugHuntTarget =
                 isHunting
                     ? target.RacerId
@@ -239,8 +415,11 @@ namespace RaceFatal.Presentation.Vehicles
                     ? sensor.AheadClosingSpeed
                     : 0f;
 
-            if (currentState != OvertakeState.Idle)
+            if (currentState !=
+                OvertakeState.Idle)
+            {
                 return;
+            }
 
             debugDecision =
                 isHunting
@@ -259,25 +438,35 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (!allowNewPass)
             {
-                debugDecision = "Hunting / Corner Hold";
+                debugDecision =
+                    "Hunting / Corner Hold";
+
                 return;
             }
 
             if (cooldownTimer > 0f)
             {
-                debugDecision = "Hunting / Cooldown";
+                debugDecision =
+                    "Hunting / Cooldown";
+
                 return;
             }
 
-            if (currentSpeed < minimumPassSpeed)
+            if (currentSpeed <
+                minimumPassSpeed)
             {
-                debugDecision = "Hunting / Below Pass Speed";
+                debugDecision =
+                    "Hunting / Below Pass Speed";
+
                 return;
             }
 
-            if (sensor.AheadDistance > passPreparationDistance)
+            if (sensor.AheadDistance >
+                runtimePassPreparationDistance)
             {
-                debugDecision = "Hunting / Closing Gap";
+                debugDecision =
+                    "Hunting / Closing Gap";
+
                 return;
             }
 
@@ -286,12 +475,15 @@ namespace RaceFatal.Presentation.Vehicles
                 -maximumPassSpeedDeficit;
 
             bool forcedAttack =
-                sensor.AheadDistance <= forcedPassDistance;
+                sensor.AheadDistance <=
+                forcedPassDistance;
 
             if (targetTooFast &&
                 !forcedAttack)
             {
-                debugDecision = "Hunting / Target Pulling Away";
+                debugDecision =
+                    "Hunting / Target Pulling Away";
+
                 return;
             }
 
@@ -304,23 +496,28 @@ namespace RaceFatal.Presentation.Vehicles
             float baseOffset,
             float maximumAbsoluteOffset)
         {
-            AIRacerSensor target = sensor.AheadRacer;
+            AIRacerSensor target =
+                sensor.AheadRacer;
 
             if (target == null)
                 return;
 
             float leftCandidate =
-                baseOffset - passOffset;
+                baseOffset -
+                passOffset;
 
             float rightCandidate =
-                baseOffset + passOffset;
+                baseOffset +
+                passOffset;
 
             bool leftWithinTrack =
-                Mathf.Abs(leftCandidate) <=
+                Mathf.Abs(
+                    leftCandidate) <=
                 maximumAbsoluteOffset;
 
             bool rightWithinTrack =
-                Mathf.Abs(rightCandidate) <=
+                Mathf.Abs(
+                    rightCandidate) <=
                 maximumAbsoluteOffset;
 
             debugLeftClear =
@@ -338,7 +535,9 @@ namespace RaceFatal.Presentation.Vehicles
             if (!debugLeftClear &&
                 !debugRightClear)
             {
-                debugDecision = "Hunting / No Passing Lane";
+                debugDecision =
+                    "Hunting / No Passing Lane";
+
                 return;
             }
 
@@ -389,29 +588,40 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             /*
-             * Prefer the opposite side of the leading racer
-             * when its lateral position makes that obvious.
+             * With both sides available, skilled racers pay
+             * more attention to the opponent's positioning.
+             *
+             * Low-skill racers simply favor whichever side
+             * currently has more track room.
              */
-            if (sensor.AheadLateralOffset > 0.25f)
-                return -1;
+            if (overtakingSkill >= 0.45f)
+            {
+                if (sensor.AheadLateralOffset >
+                    0.25f)
+                {
+                    return -1;
+                }
 
-            if (sensor.AheadLateralOffset < -0.25f)
-                return 1;
+                if (sensor.AheadLateralOffset <
+                    -0.25f)
+                {
+                    return 1;
+                }
+            }
 
-            /*
-             * Otherwise use whichever candidate leaves more
-             * remaining room to the track boundary.
-             */
             float leftWallRoom =
                 maximumAbsoluteOffset -
-                Mathf.Abs(leftCandidate);
+                Mathf.Abs(
+                    leftCandidate);
 
             float rightWallRoom =
                 maximumAbsoluteOffset -
-                Mathf.Abs(rightCandidate);
+                Mathf.Abs(
+                    rightCandidate);
 
             return
-                rightWallRoom > leftWallRoom
+                rightWallRoom >
+                leftWallRoom
                     ? 1
                     : -1;
         }
@@ -419,13 +629,17 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdateActivePass(
             float deltaTime)
         {
-            passTimer += deltaTime;
+            passTimer +=
+                deltaTime;
 
             if (passTarget == null ||
                 !passTarget.isActiveAndEnabled)
             {
-                if (passTimer >= minimumCommitTime)
+                if (passTimer >=
+                    minimumCommitTime)
+                {
                     FinishPass(true);
+                }
 
                 return;
             }
@@ -438,23 +652,32 @@ namespace RaceFatal.Presentation.Vehicles
                 longitudinalDistance <=
                 -completionLeadDistance;
 
-            if (passTimer >= minimumCommitTime &&
+            if (passTimer >=
+                    minimumCommitTime &&
                 clearlyAhead)
             {
-                debugDecision = "Pass Complete";
+                debugDecision =
+                    "Pass Complete";
+
                 FinishPass(true);
+
                 return;
             }
 
-            if (passTimer >= maximumPassTime)
+            if (passTimer >=
+                runtimeMaximumPassTime)
             {
-                debugDecision = "Pass Retry";
+                debugDecision =
+                    "Pass Retry";
+
                 FinishPass(false);
+
                 return;
             }
 
             debugDecision =
-                currentState == OvertakeState.PassingLeft
+                currentState ==
+                OvertakeState.PassingLeft
                     ? "Passing Left"
                     : "Passing Right";
         }
@@ -467,8 +690,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             cooldownTimer =
                 completed
-                    ? passCooldown
-                    : failedPassRetryDelay;
+                    ? runtimePassCooldown
+                    : runtimeFailedPassRetryDelay;
 
             currentState =
                 OvertakeState.Cooldown;
@@ -492,14 +715,10 @@ namespace RaceFatal.Presentation.Vehicles
             float distance =
                 sensor.AheadDistance;
 
-            /*
-             * Once sufficiently established beside the opponent,
-             * don't make the AI match their speed. At this point
-             * it should continue attacking.
-             */
             bool establishedInPassLane =
                 IsPassing &&
-                Mathf.Abs(currentTacticalOffset) >=
+                Mathf.Abs(
+                    currentTacticalOffset) >=
                 passOffset *
                 establishedPassLaneThreshold;
 
@@ -516,8 +735,11 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (distance >= followingDistance)
+            if (distance >=
+                followingDistance)
+            {
                 return;
+            }
 
             float normalizedDistance =
                 Mathf.InverseLerp(

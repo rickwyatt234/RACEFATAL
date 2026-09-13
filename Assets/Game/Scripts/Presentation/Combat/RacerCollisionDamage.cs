@@ -3,13 +3,14 @@ using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Presentation.Tracks;
 using RaceFatal.Presentation.Vehicles;
-using UnityEngine;
 using RaceFatal.Racing;
+using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
     [RequireComponent(typeof(RacerViewController))]
     [RequireComponent(typeof(BikeMotor))]
+    [RequireComponent(typeof(CollisionFeedbackView))]
     public class RacerCollisionDamage : MonoBehaviour
     {
         #region Racer Collisions
@@ -78,6 +79,7 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private float debugWallImpactAngle;
         [SerializeField] private float debugDamage;
         [SerializeField] private float debugRebound;
+        [SerializeField] private float debugFeedbackSeverity;
         [SerializeField] private bool debugFatalWallImpact;
         [SerializeField] private bool debugRuntimeResolved;
 
@@ -88,6 +90,7 @@ namespace RaceFatal.Presentation.Combat
         private RaceRuntimeController runtime;
         private RacerViewController racer;
         private BikeMotor motor;
+        private CollisionFeedbackView collisionFeedback;
 
         private string lastRacerCollisionId;
         private float lastRacerCollisionTime = -1000f;
@@ -99,27 +102,36 @@ namespace RaceFatal.Presentation.Combat
         {
             racer = GetComponent<RacerViewController>();
             motor = GetComponent<BikeMotor>();
+            collisionFeedback = GetComponent<CollisionFeedbackView>();
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (collision == null || collision.collider == null)
+            if (collision == null ||
+                collision.collider == null)
+            {
                 return;
+            }
 
             if (!CanProcessCollision())
                 return;
 
             RacerViewController other =
-                collision.collider.GetComponentInParent<RacerViewController>();
+                collision.collider.GetComponentInParent<
+                    RacerViewController>();
 
             if (other != null)
             {
-                HandleRacerCollision(collision, other);
+                HandleRacerCollision(
+                    collision,
+                    other);
+
                 return;
             }
 
             TrackWall wall =
-                collision.collider.GetComponentInParent<TrackWall>();
+                collision.collider.GetComponentInParent<
+                    TrackWall>();
 
             if (wall != null)
                 HandleWallCollision(collision);
@@ -131,20 +143,35 @@ namespace RaceFatal.Presentation.Combat
             Collision collision,
             RacerViewController other)
         {
-            if (other == null || !other.IsInitialized || other.Participant == null)
-                return;
-
-            if (other == racer || other.RacerId == racer.RacerId)
-                return;
-
-            if (lastRacerCollisionId == other.RacerId &&
-                Time.time - lastRacerCollisionTime < racerCollisionCooldown)
+            if (other == null ||
+                !other.IsInitialized ||
+                other.Participant == null)
             {
                 return;
             }
 
-            if (!TryGetImpact(collision, out float impactSpeed, out _, out _))
+            if (other == racer ||
+                other.RacerId == racer.RacerId)
+            {
                 return;
+            }
+
+            if (lastRacerCollisionId == other.RacerId &&
+                Time.time - lastRacerCollisionTime <
+                racerCollisionCooldown)
+            {
+                return;
+            }
+
+            if (!TryGetImpact(
+                    collision,
+                    out float impactSpeed,
+                    out Vector3 contactPoint,
+                    out Vector3 contactNormal,
+                    out _))
+            {
+                return;
+            }
 
             debugCollisionType = "Racer";
             debugOtherRacer = other.RacerId;
@@ -156,19 +183,35 @@ namespace RaceFatal.Presentation.Combat
             if (impactSpeed < minimumRacerImpactSpeed)
             {
                 debugDamage = 0f;
+                debugFeedbackSeverity = 0f;
                 return;
             }
 
-            float damage = Mathf.Min(
-                maximumRacerCollisionDamage,
-                (impactSpeed - minimumRacerImpactSpeed) * racerDamageMultiplier);
+            float damage =
+                Mathf.Min(
+                    maximumRacerCollisionDamage,
+                    (impactSpeed - minimumRacerImpactSpeed) *
+                    racerDamageMultiplier);
 
             if (damage <= 0f)
                 return;
 
             lastRacerCollisionId = other.RacerId;
             lastRacerCollisionTime = Time.time;
+
             debugDamage = damage;
+
+            float severity =
+                CalculateRacerFeedbackSeverity(
+                    impactSpeed);
+
+            debugFeedbackSeverity = severity;
+
+            collisionFeedback?.PlayImpact(
+                CollisionImpactType.Racer,
+                contactPoint,
+                contactNormal,
+                severity);
 
             runtime.Director.ApplyDamage(
                 other.RacerId,
@@ -181,14 +224,19 @@ namespace RaceFatal.Presentation.Combat
 
         #region Wall Collision
 
-        private void HandleWallCollision(Collision collision)
+        private void HandleWallCollision(
+            Collision collision)
         {
-            if (Time.time - lastWallCollisionTime < wallCollisionCooldown)
+            if (Time.time - lastWallCollisionTime <
+                wallCollisionCooldown)
+            {
                 return;
+            }
 
             if (!TryGetImpact(
                     collision,
                     out float impactSpeed,
+                    out Vector3 contactPoint,
                     out Vector3 contactNormal,
                     out float impactAngle))
             {
@@ -203,11 +251,21 @@ namespace RaceFatal.Presentation.Combat
 
             lastWallCollisionTime = Time.time;
 
-            if (IsFatalWallImpact(impactSpeed, impactAngle))
+            if (IsFatalWallImpact(
+                    impactSpeed,
+                    impactAngle))
             {
                 debugFatalWallImpact = true;
                 debugDamage = GetLethalDamage();
                 debugRebound = 0f;
+                debugFeedbackSeverity = 1f;
+
+                collisionFeedback?.PlayImpact(
+                    CollisionImpactType.TrackWall,
+                    contactPoint,
+                    contactNormal,
+                    1f,
+                    true);
 
                 runtime.Director.ApplyDamage(
                     null,
@@ -222,22 +280,39 @@ namespace RaceFatal.Presentation.Combat
             {
                 debugDamage = 0f;
                 debugRebound = 0f;
+                debugFeedbackSeverity = 0f;
                 return;
             }
 
             float excessImpact =
-                impactSpeed - minimumWallImpactSpeed;
+                impactSpeed -
+                minimumWallImpactSpeed;
 
-            float damage = Mathf.Min(
-                maximumWallCollisionDamage,
-                excessImpact * wallDamageMultiplier);
+            float damage =
+                Mathf.Min(
+                    maximumWallCollisionDamage,
+                    excessImpact *
+                    wallDamageMultiplier);
 
-            float rebound = Mathf.Min(
-                maximumWallRebound,
-                excessImpact * wallReboundMultiplier);
+            float rebound =
+                Mathf.Min(
+                    maximumWallRebound,
+                    excessImpact *
+                    wallReboundMultiplier);
+
+            float severity =
+                CalculateWallFeedbackSeverity(
+                    impactSpeed);
 
             debugDamage = damage;
             debugRebound = rebound;
+            debugFeedbackSeverity = severity;
+
+            collisionFeedback?.PlayImpact(
+                CollisionImpactType.TrackWall,
+                contactPoint,
+                contactNormal,
+                severity);
 
             if (damage > 0f)
             {
@@ -248,8 +323,13 @@ namespace RaceFatal.Presentation.Combat
                     DamageCause.Environmental);
             }
 
-            if (rebound > 0f && motor != null)
-                motor.ApplyCollisionRebound(contactNormal, rebound);
+            if (rebound > 0f &&
+                motor != null)
+            {
+                motor.ApplyCollisionRebound(
+                    contactNormal,
+                    rebound);
+            }
         }
 
         private bool IsFatalWallImpact(
@@ -260,13 +340,15 @@ namespace RaceFatal.Presentation.Combat
                 return false;
 
             if (fatalWallImpactsPlayerOnly &&
-                racer.Participant.Role != RaceParticipantRole.Player)
+                racer.Participant.Role !=
+                RaceParticipantRole.Player)
             {
                 return false;
             }
 
-            return impactSpeed >= fatalWallImpactSpeed &&
-                   impactAngle >= fatalWallImpactAngle;
+            return
+                impactSpeed >= fatalWallImpactSpeed &&
+                impactAngle >= fatalWallImpactAngle;
         }
 
         private float GetLethalDamage()
@@ -288,13 +370,54 @@ namespace RaceFatal.Presentation.Combat
                     ? shield.Current
                     : 0f;
 
-            /*
-             * Enough incoming damage to erase the complete
-             * remaining shield and hull, plus a small safety margin.
-             */
-            return remainingShield +
-                   remainingHull +
-                   1f;
+            return
+                remainingShield +
+                remainingHull +
+                1f;
+        }
+
+        #endregion
+
+        #region Feedback Severity
+
+        private float CalculateRacerFeedbackSeverity(
+            float impactSpeed)
+        {
+            float speedForMaximumDamage;
+
+            if (racerDamageMultiplier <= 0.001f)
+            {
+                speedForMaximumDamage =
+                    minimumRacerImpactSpeed + 1f;
+            }
+            else
+            {
+                speedForMaximumDamage =
+                    minimumRacerImpactSpeed +
+                    maximumRacerCollisionDamage /
+                    racerDamageMultiplier;
+            }
+
+            return Mathf.Clamp01(
+                Mathf.InverseLerp(
+                    minimumRacerImpactSpeed,
+                    speedForMaximumDamage,
+                    impactSpeed));
+        }
+
+        private float CalculateWallFeedbackSeverity(
+            float impactSpeed)
+        {
+            float maximumReferenceSpeed =
+                Mathf.Max(
+                    minimumWallImpactSpeed + 0.01f,
+                    fatalWallImpactSpeed);
+
+            return Mathf.Clamp01(
+                Mathf.InverseLerp(
+                    minimumWallImpactSpeed,
+                    maximumReferenceSpeed,
+                    impactSpeed));
         }
 
         #endregion
@@ -311,11 +434,18 @@ namespace RaceFatal.Presentation.Combat
                 return false;
             }
 
-            if (racer.Participant.Status != RaceParticipantStatus.Racing)
+            if (racer.Participant.Status !=
+                RaceParticipantStatus.Racing)
+            {
                 return false;
+            }
 
             if (runtime == null)
-                runtime = FindFirstObjectByType<RaceRuntimeController>();
+            {
+                runtime =
+                    FindFirstObjectByType<
+                        RaceRuntimeController>();
+            }
 
             debugRuntimeResolved =
                 runtime != null &&
@@ -327,11 +457,13 @@ namespace RaceFatal.Presentation.Combat
         private bool TryGetImpact(
             Collision collision,
             out float impactSpeed,
+            out Vector3 contactPoint,
             out Vector3 contactNormal,
             out float impactAngle)
         {
             impactSpeed = 0f;
             impactAngle = 0f;
+            contactPoint = Vector3.zero;
             contactNormal = Vector3.zero;
 
             if (collision == null ||
@@ -344,15 +476,12 @@ namespace RaceFatal.Presentation.Combat
             ContactPoint contact =
                 collision.GetContact(0);
 
-            contactNormal =
-                contact.normal.normalized;
+            contactPoint = contact.point;
+            contactNormal = contact.normal.normalized;
 
             Vector3 velocityDirection =
                 collision.relativeVelocity.normalized;
 
-            /*
-             * Normal component of collision velocity.
-             */
             float normalRatio =
                 Mathf.Clamp01(
                     Mathf.Abs(
@@ -364,12 +493,6 @@ namespace RaceFatal.Presentation.Combat
                 collision.relativeVelocity.magnitude *
                 normalRatio;
 
-            /*
-             * Convert into a human-friendly wall-impact angle:
-             *
-             * 0 degrees  = parallel / grazing
-             * 90 degrees = perpendicular / head-on
-             */
             impactAngle =
                 Mathf.Asin(normalRatio) *
                 Mathf.Rad2Deg;

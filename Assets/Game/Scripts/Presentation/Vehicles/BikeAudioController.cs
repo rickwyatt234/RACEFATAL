@@ -2,6 +2,7 @@ using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace RaceFatal.Presentation.Vehicles
 {
@@ -16,6 +17,13 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private AudioSource windSource;
         [SerializeField] private AudioSource boostLoopSource;
         [SerializeField] private AudioSource oneShotSource;
+
+        [Header("Audio Mixer Routing")]
+        [Tooltip("Mixer group used by the player's engine, wind and boost sounds.")]
+        [SerializeField] private AudioMixerGroup playerVehicleGroup;
+
+        [Tooltip("Mixer group used by opponent engine, wind and boost sounds.")]
+        [SerializeField] private AudioMixerGroup opponentVehicleGroup;
 
         #endregion
 
@@ -40,10 +48,10 @@ namespace RaceFatal.Presentation.Vehicles
         [Tooltip("Final engine-volume multiplier for the player's own bike.")]
         [Range(0f, 2f)][SerializeField] private float playerEngineVolumeMultiplier = 1.15f;
 
-        [Tooltip("Final engine-volume multiplier for opponent bikes. Keep substantially lower because many opponents can be audible simultaneously.")]
+        [Tooltip("Final engine-volume multiplier for opponent bikes.")]
         [Range(0f, 2f)][SerializeField] private float opponentEngineVolumeMultiplier = 0.35f;
 
-        [Tooltip("Spatial blend of the player's engine. Lower values make it feel anchored to the cockpit rather than entirely outside the listener.")]
+        [Tooltip("Spatial blend of the player's engine.")]
         [Range(0f, 1f)][SerializeField] private float playerEngineSpatialBlend = 0.25f;
 
         [Tooltip("Opponent engines should normally remain fully positional.")]
@@ -116,6 +124,8 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
         [SerializeField] private bool debugIsPlayer;
+        [SerializeField] private string debugMixerGroup = "Unassigned";
+
         [SerializeField] private float debugSpeedNormalized;
         [SerializeField] private float debugThrottle;
         [SerializeField] private float debugEngineVolume;
@@ -127,6 +137,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
+        #region Runtime
+
         private BikeMotor motor;
         private RacerViewController racerView;
         private RaceEquipmentSystem equipment;
@@ -134,6 +146,10 @@ namespace RaceFatal.Presentation.Vehicles
         private bool initialized;
         private bool isPlayer;
         private bool previousBoosting;
+
+        #endregion
+
+        #region Unity
 
         private void Awake()
         {
@@ -164,6 +180,8 @@ namespace RaceFatal.Presentation.Vehicles
                 StartContinuousAudio();
         }
 
+        #endregion
+
         #region Initialization
 
         private bool TryInitialize()
@@ -191,12 +209,14 @@ namespace RaceFatal.Presentation.Vehicles
             previousBoosting =
                 equipment.IsBoosterActive;
 
+            ConfigureRoleMix();
+            ConfigureMixerRouting();
+
             initialized = true;
 
             debugInitialized = true;
             debugIsPlayer = isPlayer;
 
-            ConfigureRoleMix();
             StartContinuousAudio();
 
             if (previousBoosting)
@@ -267,13 +287,66 @@ namespace RaceFatal.Presentation.Vehicles
             }
         }
 
+        private void ConfigureMixerRouting()
+        {
+            AudioMixerGroup targetGroup =
+                isPlayer
+                    ? playerVehicleGroup
+                    : opponentVehicleGroup;
+
+            if (targetGroup == null)
+            {
+                debugMixerGroup = "Unassigned";
+
+                Debug.LogWarning(
+                    $"{nameof(BikeAudioController)} on '{name}' has no " +
+                    $"{(isPlayer ? "Player Vehicle" : "Opponent Vehicle")} mixer group assigned.",
+                    this);
+
+                return;
+            }
+
+            SetMixerGroup(
+                engineSource,
+                targetGroup);
+
+            SetMixerGroup(
+                windSource,
+                targetGroup);
+
+            SetMixerGroup(
+                boostLoopSource,
+                targetGroup);
+
+            SetMixerGroup(
+                oneShotSource,
+                targetGroup);
+
+            debugMixerGroup =
+                targetGroup.name;
+        }
+
+        private void SetMixerGroup(
+            AudioSource source,
+            AudioMixerGroup group)
+        {
+            if (source == null)
+                return;
+
+            source.outputAudioMixerGroup =
+                group;
+        }
+
         private void StartContinuousAudio()
         {
             if (engineSource != null &&
                 engineLoopClip != null)
             {
-                engineSource.clip = engineLoopClip;
-                engineSource.loop = true;
+                engineSource.clip =
+                    engineLoopClip;
+
+                engineSource.loop =
+                    true;
 
                 if (!engineSource.isPlaying)
                     engineSource.Play();
@@ -287,8 +360,11 @@ namespace RaceFatal.Presentation.Vehicles
                 windSource != null &&
                 windLoopClip != null)
             {
-                windSource.clip = windLoopClip;
-                windSource.loop = true;
+                windSource.clip =
+                    windLoopClip;
+
+                windSource.loop =
+                    true;
 
                 if (!windSource.isPlaying)
                     windSource.Play();
@@ -469,7 +545,8 @@ namespace RaceFatal.Presentation.Vehicles
             debugBoosting =
                 boosting;
 
-            if (boosting != previousBoosting)
+            if (boosting !=
+                previousBoosting)
             {
                 if (boosting)
                     OnBoostStarted();
@@ -511,7 +588,8 @@ namespace RaceFatal.Presentation.Vehicles
             boostLoopSource.clip =
                 boostLoopClip;
 
-            boostLoopSource.loop = true;
+            boostLoopSource.loop =
+                true;
 
             if (!boostLoopSource.isPlaying)
             {
@@ -596,12 +674,13 @@ namespace RaceFatal.Presentation.Vehicles
         private float CalculateResponse(
             float responseSpeed)
         {
-            return 1f -
-                   Mathf.Exp(
-                       -Mathf.Max(
-                           0.01f,
-                           responseSpeed) *
-                       Time.deltaTime);
+            return
+                1f -
+                Mathf.Exp(
+                    -Mathf.Max(
+                        0.01f,
+                        responseSpeed) *
+                    Time.deltaTime);
         }
 
         private void StopAllAudio()

@@ -17,6 +17,9 @@ namespace RaceFatal.Presentation.Vehicles
         [Tooltip("Hard upper limit on AI combat acquisition distance. Weapon range may reduce this further.")]
         [Min(1f)][SerializeField] private float maximumTargetDistance = 150f;
 
+        [Tooltip("Low-aggression racers use this fraction of Maximum Target Distance.")]
+        [Range(0.1f, 1f)][SerializeField] private float lowAggressionTargetDistanceMultiplier = 0.6f;
+
         [Tooltip("Maximum angle from the physical weapon muzzle direction at which a target is considered shootable.")]
         [Range(0.1f, 45f)][SerializeField] private float firingHalfAngle = 6f;
 
@@ -28,7 +31,10 @@ namespace RaceFatal.Presentation.Vehicles
         #region Racing Conditions
 
         [Header("Racing Conditions")]
-        [Tooltip("AI does not start or continue attacks through corners more severe than this.")]
+        [Tooltip("Corner severity tolerated by a racer with minimum Weapon Aggression.")]
+        [Range(0f, 1f)][SerializeField] private float conservativeCornerSeverity = 0.18f;
+
+        [Tooltip("Corner severity tolerated by a racer with maximum Weapon Aggression.")]
         [Range(0f, 1f)][SerializeField] private float maximumCornerSeverity = 0.35f;
 
         [Tooltip("If enabled, AI will not fire weapons while boosting.")]
@@ -39,16 +45,16 @@ namespace RaceFatal.Presentation.Vehicles
         #region Automatic Weapons
 
         [Header("Hold Weapons")]
-        [Tooltip("Minimum duration of an automatic-fire burst.")]
+        [Tooltip("Burst duration used by the least weapon-aggressive AI.")]
         [Min(0.05f)][SerializeField] private float minimumBurstDuration = 0.45f;
 
-        [Tooltip("Maximum duration of an automatic-fire burst.")]
+        [Tooltip("Burst duration used by the most weapon-aggressive AI.")]
         [Min(0.05f)][SerializeField] private float maximumBurstDuration = 1f;
 
-        [Tooltip("Minimum pause between automatic-fire bursts.")]
+        [Tooltip("Burst cooldown used by the most weapon-aggressive AI.")]
         [Min(0f)][SerializeField] private float minimumBurstCooldown = 0.35f;
 
-        [Tooltip("Maximum pause between automatic-fire bursts.")]
+        [Tooltip("Burst cooldown used by the least weapon-aggressive AI.")]
         [Min(0f)][SerializeField] private float maximumBurstCooldown = 0.8f;
 
         #endregion
@@ -56,8 +62,14 @@ namespace RaceFatal.Presentation.Vehicles
         #region Press Weapons
 
         [Header("Press Weapons")]
-        [Tooltip("Minimum delay between separate press-weapon activations.")]
+        [Tooltip("Base delay between separate press-weapon activations.")]
         [Min(0.05f)][SerializeField] private float pressWeaponCooldown = 1.25f;
+
+        [Tooltip("Press cooldown multiplier at minimum Weapon Aggression.")]
+        [Min(1f)][SerializeField] private float lowAggressionPressCooldownMultiplier = 1.5f;
+
+        [Tooltip("Press cooldown multiplier at maximum Weapon Aggression.")]
+        [Range(0.1f, 1f)][SerializeField] private float highAggressionPressCooldownMultiplier = 0.65f;
 
         #endregion
 
@@ -66,6 +78,13 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
         [SerializeField] private string debugDecision = "Not Initialized";
+
+        [SerializeField] private float debugWeaponAggression;
+        [SerializeField] private float debugRuntimeTargetDistance;
+        [SerializeField] private float debugRuntimeCornerSeverity;
+        [SerializeField] private float debugRuntimeBurstDuration;
+        [SerializeField] private float debugRuntimeBurstCooldown;
+        [SerializeField] private float debugRuntimePressCooldown;
 
         [SerializeField] private string debugSelectedWeapon;
         [SerializeField] private string debugActivationMode;
@@ -99,12 +118,24 @@ namespace RaceFatal.Presentation.Vehicles
         private bool initialized;
         private bool weaponActive;
 
+        private float weaponAggression;
+
         private float burstTimer;
         private float cooldownTimer;
         private float chargeTimer;
 
+        private float runtimeTargetDistance;
+        private float runtimeMaximumCornerSeverity;
         private float runtimeBurstDuration;
         private float runtimeBurstCooldown;
+        private float runtimePressWeaponCooldown;
+
+        #endregion
+
+        #region Public
+
+        public bool IsInitialized => initialized;
+        public float WeaponAggression => weaponAggression;
 
         #endregion
 
@@ -120,7 +151,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void FixedUpdate()
         {
-            if (!initialized && !TryInitialize())
+            if (!initialized)
                 return;
 
             if (!CanConsiderCombat())
@@ -132,15 +163,21 @@ namespace RaceFatal.Presentation.Vehicles
             if (cooldownTimer > 0f)
             {
                 cooldownTimer =
-                    Mathf.Max(0f, cooldownTimer - Time.fixedDeltaTime);
+                    Mathf.Max(
+                        0f,
+                        cooldownTimer -
+                        Time.fixedDeltaTime);
             }
 
             /*
-             * If the current weapon emptied during its previous burst,
-             * end that activation before changing selection.
+             * If the current weapon emptied during its previous
+             * burst, end that activation before changing selection.
              */
-            if (equipment.SelectedWeaponIsEmpty && weaponActive)
+            if (equipment.SelectedWeaponIsEmpty &&
+                weaponActive)
+            {
                 CancelWeapon();
+            }
 
             if (!equipment.SelectWeaponWithAmmo())
             {
@@ -170,7 +207,8 @@ namespace RaceFatal.Presentation.Vehicles
             debugAmmo = equipment.SelectedWeaponAmmo;
             debugMaximumAmmo = equipment.SelectedWeaponMaximumAmmo;
 
-            if (driver.CurrentCornerSeverity > maximumCornerSeverity)
+            if (driver.CurrentCornerSeverity >
+                runtimeMaximumCornerSeverity)
             {
                 debugDecision = "Corner / Hold Fire";
                 CancelWeapon();
@@ -186,7 +224,9 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            currentTarget = FindBestTarget(weapon);
+            currentTarget =
+                FindBestTarget(
+                    weapon);
 
             if (currentTarget == null)
             {
@@ -199,7 +239,8 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            UpdateWeapon(weapon);
+            UpdateWeapon(
+                weapon);
         }
 
         private void OnDisable()
@@ -211,53 +252,112 @@ namespace RaceFatal.Presentation.Vehicles
 
         #region Initialization
 
-        private bool TryInitialize()
+        public bool Initialize(
+            RaceParticipant raceParticipant,
+            float aggression)
         {
-            if (racerView == null ||
-                !racerView.IsInitialized ||
-                racerView.Participant == null)
+            if (raceParticipant == null)
             {
+                Debug.LogError(
+                    $"{nameof(AICombatPlanner)} requires a RaceParticipant.",
+                    this);
+
+                return false;
+            }
+
+            if (raceParticipant.Role ==
+                RaceParticipantRole.Player)
+            {
+                Debug.LogError(
+                    $"{nameof(AICombatPlanner)} cannot initialize for the player racer.",
+                    this);
+
+                return false;
+            }
+
+            if (raceParticipant.Vehicle?.EquipmentSystem == null)
+            {
+                Debug.LogError(
+                    $"{nameof(AICombatPlanner)} requires a race vehicle with an equipment system.",
+                    this);
+
                 return false;
             }
 
             if (driver == null ||
-                !driver.IsInitialized ||
-                !driver.enabled)
+                !driver.IsInitialized)
             {
+                Debug.LogError(
+                    $"{nameof(AICombatPlanner)} requires an initialized {nameof(AIDriverController)}.",
+                    this);
+
                 return false;
             }
 
-            participant = racerView.Participant;
-
-            if (participant.Role == RaceParticipantRole.Player)
+            if (racerView == null ||
+                !racerView.IsInitialized)
             {
-                enabled = false;
+                Debug.LogError(
+                    $"{nameof(AICombatPlanner)} requires an initialized {nameof(RacerViewController)}.",
+                    this);
+
                 return false;
             }
 
-            if (participant.Vehicle?.EquipmentSystem == null)
-            {
-                enabled = false;
-                return false;
-            }
-
+            participant = raceParticipant;
             equipment = participant.Vehicle.EquipmentSystem;
 
-            float personality =
-                CalculateDeterministicValue(participant.RacerId);
+            weaponAggression =
+                Mathf.Clamp01(
+                    aggression);
 
-            runtimeBurstDuration = Mathf.Lerp(
-                minimumBurstDuration,
-                maximumBurstDuration,
-                personality);
+            runtimeTargetDistance =
+                maximumTargetDistance *
+                Mathf.Lerp(
+                    lowAggressionTargetDistanceMultiplier,
+                    1f,
+                    weaponAggression);
 
-            runtimeBurstCooldown = Mathf.Lerp(
-                maximumBurstCooldown,
-                minimumBurstCooldown,
-                personality);
+            runtimeMaximumCornerSeverity =
+                Mathf.Lerp(
+                    conservativeCornerSeverity,
+                    maximumCornerSeverity,
+                    weaponAggression);
 
-            initialized = true;
+            runtimeBurstDuration =
+                Mathf.Lerp(
+                    minimumBurstDuration,
+                    maximumBurstDuration,
+                    weaponAggression);
+
+            runtimeBurstCooldown =
+                Mathf.Lerp(
+                    maximumBurstCooldown,
+                    minimumBurstCooldown,
+                    weaponAggression);
+
+            runtimePressWeaponCooldown =
+                pressWeaponCooldown *
+                Mathf.Lerp(
+                    lowAggressionPressCooldownMultiplier,
+                    highAggressionPressCooldownMultiplier,
+                    weaponAggression);
+
+            burstTimer = 0f;
+            cooldownTimer = 0f;
+            chargeTimer = 0f;
+            weaponActive = false;
+            currentTarget = null;
+
+            debugWeaponAggression = weaponAggression;
+            debugRuntimeTargetDistance = runtimeTargetDistance;
+            debugRuntimeCornerSeverity = runtimeMaximumCornerSeverity;
+            debugRuntimeBurstDuration = runtimeBurstDuration;
+            debugRuntimeBurstCooldown = runtimeBurstCooldown;
+            debugRuntimePressCooldown = runtimePressWeaponCooldown;
+
             debugInitialized = true;
+            initialized = true;
 
             debugDecision =
                 equipment.HasUsableWeapon
@@ -275,7 +375,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private bool CanConsiderCombat()
         {
-            if (participant == null || participant.Vehicle == null)
+            if (participant == null ||
+                participant.Vehicle == null)
             {
                 debugDecision = "No Participant";
                 return false;
@@ -289,7 +390,8 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            if (participant.Status != RaceParticipantStatus.Racing)
+            if (participant.Status !=
+                RaceParticipantStatus.Racing)
             {
                 debugDecision = "Not Racing";
                 return false;
@@ -320,7 +422,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         #region Targeting
 
-        private RacerViewController FindBestTarget(WeaponDefinition weapon)
+        private RacerViewController FindBestTarget(
+            WeaponDefinition weapon)
         {
             if (weapon == null)
                 return null;
@@ -333,20 +436,27 @@ namespace RaceFatal.Presentation.Vehicles
                 return null;
             }
 
-            Transform origin = mount.EquipmentOrigin;
+            Transform origin =
+                mount.EquipmentOrigin;
 
             float searchRange =
-                Mathf.Min(maximumTargetDistance, weapon.Range);
+                Mathf.Min(
+                    runtimeTargetDistance,
+                    weapon.Range);
 
             RacerViewController bestTarget = null;
             float bestDistance = float.PositiveInfinity;
             float bestAngle = 0f;
 
-            var racers = AIRacerSensor.ActiveSensors;
+            var racers =
+                AIRacerSensor.ActiveSensors;
 
-            for (int i = 0; i < racers.Count; i++)
+            for (int i = 0;
+                 i < racers.Count;
+                 i++)
             {
-                AIRacerSensor candidateSensor = racers[i];
+                AIRacerSensor candidateSensor =
+                    racers[i];
 
                 if (candidateSensor == null ||
                     candidateSensor == sensor ||
@@ -368,8 +478,11 @@ namespace RaceFatal.Presentation.Vehicles
                 RaceParticipant candidate =
                     candidateView.Participant;
 
-                if (candidate.Status != RaceParticipantStatus.Racing)
+                if (candidate.Status !=
+                    RaceParticipantStatus.Racing)
+                {
                     continue;
+                }
 
                 if (candidate.Vehicle == null ||
                     candidate.Vehicle.IsDestroyed)
@@ -386,35 +499,53 @@ namespace RaceFatal.Presentation.Vehicles
                 }
 
                 Vector3 toTarget =
-                    candidateView.transform.position - origin.position;
+                    candidateView.transform.position -
+                    origin.position;
 
-                float distance = toTarget.magnitude;
+                float distance =
+                    toTarget.magnitude;
 
-                if (distance < minimumTargetDistance ||
-                    distance > searchRange)
+                if (distance <
+                        minimumTargetDistance ||
+                    distance >
+                        searchRange)
                 {
                     continue;
                 }
 
-                if (toTarget.sqrMagnitude < 0.001f)
+                if (toTarget.sqrMagnitude <
+                    0.001f)
+                {
                     continue;
+                }
 
-                Vector3 direction = toTarget.normalized;
+                Vector3 direction =
+                    toTarget.normalized;
 
                 float forwardDot =
-                    Vector3.Dot(origin.forward, direction);
+                    Vector3.Dot(
+                        origin.forward,
+                        direction);
 
                 if (forwardDot <= 0f)
                     continue;
 
                 float angle =
-                    Vector3.Angle(origin.forward, direction);
+                    Vector3.Angle(
+                        origin.forward,
+                        direction);
 
-                if (angle > firingHalfAngle)
+                if (angle >
+                    firingHalfAngle)
+                {
                     continue;
+                }
 
-                if (distance >= bestDistance)
+                if (distance >=
+                    bestDistance)
+                {
                     continue;
+                }
 
                 bestTarget = candidateView;
                 bestDistance = distance;
@@ -423,9 +554,14 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (bestTarget != null)
             {
-                debugTargetRacer = bestTarget.RacerId;
-                debugTargetDistance = bestDistance;
-                debugTargetAngle = bestAngle;
+                debugTargetRacer =
+                    bestTarget.RacerId;
+
+                debugTargetDistance =
+                    bestDistance;
+
+                debugTargetAngle =
+                    bestAngle;
             }
 
             return bestTarget;
@@ -435,7 +571,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         #region Weapon Control
 
-        private void UpdateWeapon(WeaponDefinition weapon)
+        private void UpdateWeapon(
+            WeaponDefinition weapon)
         {
             switch (weapon.ActivationMode)
             {
@@ -448,7 +585,8 @@ namespace RaceFatal.Presentation.Vehicles
                     break;
 
                 case EquipmentActivationMode.ChargeRelease:
-                    UpdateChargeWeapon(weapon);
+                    UpdateChargeWeapon(
+                        weapon);
                     break;
 
                 default:
@@ -471,10 +609,16 @@ namespace RaceFatal.Presentation.Vehicles
 
             equipment.EndSelectedActivation();
 
-            cooldownTimer = pressWeaponCooldown;
+            cooldownTimer =
+                runtimePressWeaponCooldown;
 
-            debugAmmo = equipment.SelectedWeaponAmmo;
-            debugDecision = fired ? "Press Fired" : "Press Failed";
+            debugAmmo =
+                equipment.SelectedWeaponAmmo;
+
+            debugDecision =
+                fired
+                    ? "Press Fired"
+                    : "Press Failed";
         }
 
         private void UpdateHoldWeapon()
@@ -492,9 +636,10 @@ namespace RaceFatal.Presentation.Vehicles
 
                 if (!started)
                 {
-                    debugDecision = equipment.SelectedWeaponIsEmpty
-                        ? "Out Of Ammo"
-                        : "Burst Failed";
+                    debugDecision =
+                        equipment.SelectedWeaponIsEmpty
+                            ? "Out Of Ammo"
+                            : "Burst Failed";
 
                     return;
                 }
@@ -506,9 +651,14 @@ namespace RaceFatal.Presentation.Vehicles
                 debugDecision = "Burst Started";
             }
 
-            burstTimer -= Time.fixedDeltaTime;
-            debugBurstTimer = burstTimer;
-            debugAmmo = equipment.SelectedWeaponAmmo;
+            burstTimer -=
+                Time.fixedDeltaTime;
+
+            debugBurstTimer =
+                burstTimer;
+
+            debugAmmo =
+                equipment.SelectedWeaponAmmo;
 
             if (equipment.SelectedWeaponIsEmpty)
             {
@@ -540,7 +690,8 @@ namespace RaceFatal.Presentation.Vehicles
             debugDecision = "Burst Complete";
         }
 
-        private void UpdateChargeWeapon(WeaponDefinition weapon)
+        private void UpdateChargeWeapon(
+            WeaponDefinition weapon)
         {
             if (!weaponActive)
             {
@@ -555,9 +706,10 @@ namespace RaceFatal.Presentation.Vehicles
 
                 if (!started)
                 {
-                    debugDecision = equipment.SelectedWeaponIsEmpty
-                        ? "Out Of Ammo"
-                        : "Charge Failed";
+                    debugDecision =
+                        equipment.SelectedWeaponIsEmpty
+                            ? "Out Of Ammo"
+                            : "Charge Failed";
 
                     return;
                 }
@@ -571,10 +723,14 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            chargeTimer += Time.fixedDeltaTime;
-            debugChargeTimer = chargeTimer;
+            chargeTimer +=
+                Time.fixedDeltaTime;
 
-            if (chargeTimer < weapon.ChargeDuration)
+            debugChargeTimer =
+                chargeTimer;
+
+            if (chargeTimer <
+                weapon.ChargeDuration)
             {
                 debugDecision = "Charging";
                 return;
@@ -585,11 +741,15 @@ namespace RaceFatal.Presentation.Vehicles
 
             weaponActive = false;
             chargeTimer = 0f;
-            cooldownTimer = pressWeaponCooldown;
+
+            cooldownTimer =
+                runtimePressWeaponCooldown;
 
             debugWeaponActive = false;
             debugChargeTimer = 0f;
-            debugAmmo = equipment.SelectedWeaponAmmo;
+
+            debugAmmo =
+                equipment.SelectedWeaponAmmo;
 
             debugDecision =
                 fired
@@ -599,7 +759,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void CancelWeapon()
         {
-            if (!weaponActive || equipment == null)
+            if (!weaponActive ||
+                equipment == null)
             {
                 debugWeaponActive = false;
                 return;
@@ -614,26 +775,6 @@ namespace RaceFatal.Presentation.Vehicles
             debugWeaponActive = false;
             debugBurstTimer = 0f;
             debugChargeTimer = 0f;
-        }
-
-        #endregion
-
-        #region Personality
-
-        private float CalculateDeterministicValue(string id)
-        {
-            uint hash = 2166136261u;
-
-            if (!string.IsNullOrEmpty(id))
-            {
-                for (int i = 0; i < id.Length; i++)
-                {
-                    hash ^= id[i];
-                    hash *= 16777619u;
-                }
-            }
-
-            return (hash & 0x00FFFFFFu) / 16777215f;
         }
 
         #endregion

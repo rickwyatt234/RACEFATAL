@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using RaceFatal.Presentation.Racing;
+using RaceFatal.Racing;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace RaceFatal.Presentation.Combat
 {
@@ -12,6 +15,13 @@ namespace RaceFatal.Presentation.Combat
         [Tooltip("Number of overlapping fire sounds this mount can play independently.")]
         [Range(1, 12)][SerializeField] private int fireAudioVoiceCount = 4;
 
+        [Header("Audio Mixer Routing")]
+        [Tooltip("Mixer group used when this weapon belongs to the player.")]
+        [SerializeField] private AudioMixerGroup playerWeaponGroup;
+
+        [Tooltip("Mixer group used when this weapon belongs to an opponent.")]
+        [SerializeField] private AudioMixerGroup opponentWeaponGroup;
+
         [Header("Runtime Debug")]
         [SerializeField] private string debugLastWeapon = "None";
         [SerializeField] private string debugLastClip = "None";
@@ -20,15 +30,27 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private bool debugPlayedMuzzle;
         [SerializeField] private bool debugPlayedAudio;
 
+        [SerializeField] private bool debugRoleResolved;
+        [SerializeField] private bool debugIsPlayer;
+        [SerializeField] private string debugMixerGroup = "Unresolved";
+
         private readonly List<AudioSource> fireVoices =
             new List<AudioSource>();
+
+        private RacerViewController racerView;
 
         private WeaponPresentationProfile lastProfile;
         private int lastFireClipIndex = -1;
         private int nextVoiceIndex;
 
+        private bool roleResolved;
+        private bool isPlayer;
+
         private void Awake()
         {
+            racerView =
+                GetComponentInParent<RacerViewController>();
+
             InitializeAudioVoices();
         }
 
@@ -39,6 +61,8 @@ namespace RaceFatal.Presentation.Combat
             if (profile == null)
                 return;
 
+            ResolveRoleRouting();
+
             Transform origin =
                 fireOrigin != null
                     ? fireOrigin
@@ -48,8 +72,12 @@ namespace RaceFatal.Presentation.Combat
             debugPlayedMuzzle = false;
             debugPlayedAudio = false;
 
-            PlayMuzzle(profile, origin);
-            PlayAudio(profile);
+            PlayMuzzle(
+                profile,
+                origin);
+
+            PlayAudio(
+                profile);
         }
 
         #region Muzzle
@@ -90,7 +118,8 @@ namespace RaceFatal.Presentation.Combat
                 return fallback;
 
             ParticleSystem[] particles =
-                effect.GetComponentsInChildren<ParticleSystem>(true);
+                effect.GetComponentsInChildren<
+                    ParticleSystem>(true);
 
             if (particles == null ||
                 particles.Length == 0)
@@ -100,9 +129,12 @@ namespace RaceFatal.Presentation.Combat
 
             float longestLifetime = 0f;
 
-            for (int i = 0; i < particles.Length; i++)
+            for (int i = 0;
+                 i < particles.Length;
+                 i++)
             {
-                ParticleSystem particle = particles[i];
+                ParticleSystem particle =
+                    particles[i];
 
                 if (particle == null)
                     continue;
@@ -128,6 +160,69 @@ namespace RaceFatal.Presentation.Combat
 
         #endregion
 
+        #region Routing
+
+        private void ResolveRoleRouting()
+        {
+            if (roleResolved)
+                return;
+
+            if (racerView == null)
+            {
+                racerView =
+                    GetComponentInParent<
+                        RacerViewController>();
+            }
+
+            if (racerView == null ||
+                !racerView.IsInitialized ||
+                racerView.Participant == null)
+            {
+                return;
+            }
+
+            isPlayer =
+                racerView.Participant.Role ==
+                RaceParticipantRole.Player;
+
+            AudioMixerGroup targetGroup =
+                isPlayer
+                    ? playerWeaponGroup
+                    : opponentWeaponGroup;
+
+            if (targetGroup != null)
+            {
+                for (int i = 0;
+                     i < fireVoices.Count;
+                     i++)
+                {
+                    AudioSource voice =
+                        fireVoices[i];
+
+                    if (voice != null)
+                    {
+                        voice.outputAudioMixerGroup =
+                            targetGroup;
+                    }
+                }
+
+                debugMixerGroup =
+                    targetGroup.name;
+            }
+            else
+            {
+                debugMixerGroup =
+                    "Unassigned";
+            }
+
+            roleResolved = true;
+
+            debugRoleResolved = true;
+            debugIsPlayer = isPlayer;
+        }
+
+        #endregion
+
         #region Audio
 
         private void InitializeAudioVoices()
@@ -135,10 +230,17 @@ namespace RaceFatal.Presentation.Combat
             fireVoices.Clear();
 
             if (fireAudioSource == null)
-                fireAudioSource = GetComponent<AudioSource>();
+            {
+                fireAudioSource =
+                    GetComponent<AudioSource>();
+            }
 
             if (fireAudioSource == null)
-                fireAudioSource = gameObject.AddComponent<AudioSource>();
+            {
+                fireAudioSource =
+                    gameObject.AddComponent<
+                        AudioSource>();
+            }
 
             ConfigureBaseVoice(
                 fireAudioSource);
@@ -151,10 +253,13 @@ namespace RaceFatal.Presentation.Combat
                     1,
                     fireAudioVoiceCount);
 
-            for (int i = 1; i < targetCount; i++)
+            for (int i = 1;
+                 i < targetCount;
+                 i++)
             {
                 AudioSource voice =
-                    gameObject.AddComponent<AudioSource>();
+                    gameObject.AddComponent<
+                        AudioSource>();
 
                 CopyAudioSourceSettings(
                     fireAudioSource,
@@ -300,10 +405,6 @@ namespace RaceFatal.Presentation.Combat
             if (fireVoices.Count == 0)
                 return null;
 
-            /*
-             * Prefer an unused voice so existing gunshots can
-             * finish naturally.
-             */
             for (int offset = 0;
                  offset < fireVoices.Count;
                  offset++)
@@ -328,10 +429,6 @@ namespace RaceFatal.Presentation.Combat
                 return voice;
             }
 
-            /*
-             * All voices are occupied. Reuse the oldest position
-             * in the round-robin pool.
-             */
             AudioSource fallback =
                 fireVoices[nextVoiceIndex];
 
@@ -361,7 +458,9 @@ namespace RaceFatal.Presentation.Combat
 
             int validCount = 0;
 
-            for (int i = 0; i < clips.Length; i++)
+            for (int i = 0;
+                 i < clips.Length;
+                 i++)
             {
                 if (clips[i] != null)
                     validCount++;
@@ -380,13 +479,10 @@ namespace RaceFatal.Presentation.Combat
                     clips,
                     selectedOrdinal);
 
-            /*
-             * If possible, never use the exact same recording twice
-             * in succession for this weapon.
-             */
             if (validCount > 1 &&
                 profile == lastProfile &&
-                selectedIndex == lastFireClipIndex)
+                selectedIndex ==
+                lastFireClipIndex)
             {
                 selectedOrdinal =
                     (selectedOrdinal + 1) %
@@ -413,7 +509,9 @@ namespace RaceFatal.Presentation.Combat
         {
             int ordinal = 0;
 
-            for (int i = 0; i < clips.Length; i++)
+            for (int i = 0;
+                 i < clips.Length;
+                 i++)
             {
                 if (clips[i] == null)
                     continue;

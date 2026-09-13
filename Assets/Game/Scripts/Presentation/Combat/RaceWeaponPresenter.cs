@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using RaceFatal.Combat;
 using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
+using RaceFatal.Racing;
 using RaceFatal.Shared;
 using UnityEngine;
 
@@ -9,8 +10,6 @@ namespace RaceFatal.Presentation.Combat
 {
     public class RaceWeaponPresenter : MonoBehaviour
     {
-        #region Configuration
-
         [Header("Hitscan / Area")]
         [SerializeField] private LayerMask hitMask = ~0;
 
@@ -22,10 +21,6 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private List<WeaponPresentationProfile> weaponProfiles =
             new List<WeaponPresentationProfile>();
 
-        #endregion
-
-        #region Debug
-
         [Header("Runtime Debug")]
         [SerializeField] private string debugLastShooter;
         [SerializeField] private string debugLastWeapon;
@@ -36,9 +31,11 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private Vector3 debugLastFireDirection;
         [SerializeField] private Vector3 debugLastHitPoint;
 
-        #endregion
-
-        #region Runtime
+        [SerializeField] private bool debugGuidedShot;
+        [SerializeField] private bool debugGuidedTargetFound;
+        [SerializeField] private string debugGuidedTarget = "None";
+        [SerializeField] private float debugGuidedTargetDistance;
+        [SerializeField] private float debugGuidedTargetAngle;
 
         private readonly Dictionary<string, WeaponPresentationProfile>
             presentationLookup =
@@ -46,10 +43,6 @@ namespace RaceFatal.Presentation.Combat
 
         private RaceRuntimeController runtime;
         private RaycastHit[] hitscanBuffer;
-
-        #endregion
-
-        #region Unity
 
         private void Awake()
         {
@@ -66,8 +59,6 @@ namespace RaceFatal.Presentation.Combat
         {
             UnsubscribeFromRuntime();
         }
-
-        #endregion
 
         #region Initialization
 
@@ -190,14 +181,15 @@ namespace RaceFatal.Presentation.Combat
                 GetPresentationProfile(
                     fireEvent.DefinitionId);
 
-            debugLastShooter =
-                fireEvent.RacerId;
+            debugLastShooter = fireEvent.RacerId;
+            debugLastWeapon = fireEvent.DefinitionId;
+            debugPresentationFound = profile != null;
 
-            debugLastWeapon =
-                fireEvent.DefinitionId;
-
-            debugPresentationFound =
-                profile != null;
+            debugGuidedShot = false;
+            debugGuidedTargetFound = false;
+            debugGuidedTarget = "None";
+            debugGuidedTargetDistance = 0f;
+            debugGuidedTargetAngle = 0f;
 
             Vector3 fireDirection =
                 ResolveFireDirection(
@@ -205,9 +197,7 @@ namespace RaceFatal.Presentation.Combat
                     origin,
                     fireEvent.Range);
 
-            debugLastFireDirection =
-                fireDirection;
-
+            debugLastFireDirection = fireDirection;
             debugLastShotHit = false;
             debugLastVictim = "None";
 
@@ -234,9 +224,10 @@ namespace RaceFatal.Presentation.Combat
                     break;
 
                 case WeaponDeliveryMode.GuidedProjectile:
-                    SpawnProjectile(
+                    SpawnGuidedProjectile(
                         fireEvent,
                         profile,
+                        racer,
                         origin,
                         fireDirection);
                     break;
@@ -269,11 +260,8 @@ namespace RaceFatal.Presentation.Combat
         private WeaponPresentationProfile GetPresentationProfile(
             string definitionId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    definitionId))
-            {
+            if (string.IsNullOrWhiteSpace(definitionId))
                 return null;
-            }
 
             if (presentationLookup.TryGetValue(
                     definitionId,
@@ -292,7 +280,7 @@ namespace RaceFatal.Presentation.Combat
 
         #endregion
 
-        #region Fire Feedback
+        #region Feedback
 
         private void PlayFireFeedback(
             BikeEquipmentMountView mount,
@@ -379,7 +367,8 @@ namespace RaceFatal.Presentation.Combat
             debugLastHitPoint = hit.point;
 
             RacerViewController victim =
-                hit.collider.GetComponentInParent<RacerViewController>();
+                hit.collider.GetComponentInParent<
+                    RacerViewController>();
 
             if (victim == null ||
                 !victim.IsInitialized)
@@ -425,7 +414,6 @@ namespace RaceFatal.Presentation.Combat
                 return false;
 
             bool found = false;
-
             float nearestDistance =
                 float.PositiveInfinity;
 
@@ -440,13 +428,13 @@ namespace RaceFatal.Presentation.Combat
                     continue;
 
                 RacerViewController hitRacer =
-                    hit.collider
-                        .GetComponentInParent<RacerViewController>();
+                    hit.collider.GetComponentInParent<
+                        RacerViewController>();
 
                 if (hitRacer != null &&
                     hitRacer.IsInitialized &&
                     hitRacer.RacerId ==
-                        ownerRacerId)
+                    ownerRacerId)
                 {
                     continue;
                 }
@@ -460,9 +448,7 @@ namespace RaceFatal.Presentation.Combat
                 nearestDistance =
                     hit.distance;
 
-                nearestHit =
-                    hit;
-
+                nearestHit = hit;
                 found = true;
             }
 
@@ -479,42 +465,20 @@ namespace RaceFatal.Presentation.Combat
             Transform origin,
             Vector3 direction)
         {
-            if (origin == null)
-                return;
-
-            if (profile == null)
-            {
-                Debug.LogWarning(
-                    $"Weapon '{fireEvent.DefinitionId}' cannot spawn a projectile " +
-                    "because it has no WeaponPresentationProfile.",
-                    this);
-
-                return;
-            }
-
-            ProjectileView prefab =
-                profile.ProjectilePrefab;
-
-            if (prefab == null)
-            {
-                Debug.LogWarning(
-                    $"Weapon presentation profile '{profile.name}' does not " +
-                    $"have a Projectile Prefab assigned.",
-                    profile);
-
-                return;
-            }
-
-            Quaternion rotation =
-                CalculateProjectileRotation(
+            if (!TryGetProjectilePrefab(
+                    fireEvent,
+                    profile,
                     origin,
-                    direction);
+                    out ProjectileView prefab))
+            {
+                return;
+            }
 
             ProjectileView projectile =
-                Instantiate(
+                SpawnProjectileInstance(
                     prefab,
-                    origin.position,
-                    rotation);
+                    origin,
+                    direction);
 
             projectile.Initialize(
                 runtime,
@@ -523,6 +487,130 @@ namespace RaceFatal.Presentation.Combat
                 fireEvent.ProjectileSpeed,
                 fireEvent.Range,
                 direction);
+        }
+
+        private void SpawnGuidedProjectile(
+            WeaponFireEvent fireEvent,
+            WeaponPresentationProfile profile,
+            RacerViewController shooter,
+            Transform origin,
+            Vector3 direction)
+        {
+            debugGuidedShot = true;
+
+            if (!TryGetProjectilePrefab(
+                    fireEvent,
+                    profile,
+                    origin,
+                    out ProjectileView prefab))
+            {
+                return;
+            }
+
+            GuidedProjectileView guidedPrefab =
+                prefab as GuidedProjectileView;
+
+            if (guidedPrefab == null)
+            {
+                Debug.LogWarning(
+                    $"Weapon '{fireEvent.DefinitionId}' uses GuidedProjectile delivery, " +
+                    $"but its projectile prefab does not use {nameof(GuidedProjectileView)}. " +
+                    "It will fly straight.",
+                    prefab);
+
+                ProjectileView fallback =
+                    SpawnProjectileInstance(
+                        prefab,
+                        origin,
+                        direction);
+
+                fallback.Initialize(
+                    runtime,
+                    fireEvent.RacerId,
+                    fireEvent.Damage,
+                    fireEvent.ProjectileSpeed,
+                    fireEvent.Range,
+                    direction);
+
+                return;
+            }
+
+            RacerViewController target =
+                FindGuidedTarget(
+                    shooter,
+                    origin,
+                    direction,
+                    fireEvent.Range,
+                    guidedPrefab);
+
+            GuidedProjectileView projectile =
+                Instantiate(
+                    guidedPrefab,
+                    origin.position,
+                    CalculateProjectileRotation(
+                        origin,
+                        direction));
+
+            projectile.Initialize(
+                runtime,
+                fireEvent.RacerId,
+                fireEvent.Damage,
+                fireEvent.ProjectileSpeed,
+                fireEvent.Range,
+                direction);
+
+            projectile.InitializeGuidance(
+                target);
+        }
+
+        private bool TryGetProjectilePrefab(
+            WeaponFireEvent fireEvent,
+            WeaponPresentationProfile profile,
+            Transform origin,
+            out ProjectileView prefab)
+        {
+            prefab = null;
+
+            if (origin == null)
+                return false;
+
+            if (profile == null)
+            {
+                Debug.LogWarning(
+                    $"Weapon '{fireEvent.DefinitionId}' cannot spawn a projectile " +
+                    "because it has no WeaponPresentationProfile.",
+                    this);
+
+                return false;
+            }
+
+            prefab = profile.ProjectilePrefab;
+
+            if (prefab != null)
+                return true;
+
+            Debug.LogWarning(
+                $"Weapon presentation profile '{profile.name}' does not " +
+                "have a Projectile Prefab assigned.",
+                profile);
+
+            return false;
+        }
+
+        private ProjectileView SpawnProjectileInstance(
+            ProjectileView prefab,
+            Transform origin,
+            Vector3 direction)
+        {
+            Quaternion rotation =
+                CalculateProjectileRotation(
+                    origin,
+                    direction);
+
+            return Instantiate(
+                prefab,
+                origin.position,
+                rotation);
         }
 
         private Quaternion CalculateProjectileRotation(
@@ -534,21 +622,160 @@ namespace RaceFatal.Presentation.Combat
 
             direction.Normalize();
 
-            Vector3 up =
-                origin.up;
+            Vector3 up = origin.up;
 
-            if (Mathf.Abs(
-                    Vector3.Dot(
-                        direction,
-                        up)) >
-                0.98f)
-            {
+            if (Mathf.Abs(Vector3.Dot(direction, up)) > 0.98f)
                 up = origin.right;
-            }
 
             return Quaternion.LookRotation(
                 direction,
                 up);
+        }
+
+        #endregion
+
+        #region Guided Targeting
+
+        private RacerViewController FindGuidedTarget(
+            RacerViewController shooter,
+            Transform origin,
+            Vector3 fireDirection,
+            float weaponRange,
+            GuidedProjectileView guidedPrefab)
+        {
+            if (shooter == null ||
+                shooter.Participant == null ||
+                origin == null ||
+                guidedPrefab == null)
+            {
+                return null;
+            }
+
+            if (fireDirection.sqrMagnitude < 0.001f)
+                fireDirection = origin.forward;
+
+            fireDirection.Normalize();
+
+            RaceParticipant shooterParticipant =
+                shooter.Participant;
+
+            RacerViewController bestTarget = null;
+
+            float bestScore = float.PositiveInfinity;
+            float bestDistance = 0f;
+            float bestAngle = 0f;
+
+            foreach (RaceParticipant candidate
+                     in runtime.Director.State.Participants)
+            {
+                if (candidate == null ||
+                    candidate.RacerId ==
+                    shooterParticipant.RacerId)
+                {
+                    continue;
+                }
+
+                if (candidate.Status !=
+                    RaceParticipantStatus.Racing)
+                {
+                    continue;
+                }
+
+                if (candidate.Vehicle == null ||
+                    candidate.Vehicle.IsDestroyed)
+                {
+                    continue;
+                }
+
+                if (string.Equals(
+                        candidate.TeamId,
+                        shooterParticipant.TeamId,
+                        System.StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (!runtime.TryGetRacerView(
+                        candidate.RacerId,
+                        out RacerViewController candidateView))
+                {
+                    continue;
+                }
+
+                if (candidateView == null ||
+                    !candidateView.IsInitialized)
+                {
+                    continue;
+                }
+
+                Vector3 toTarget =
+                    candidateView.transform.position -
+                    origin.position;
+
+                float distance =
+                    toTarget.magnitude;
+
+                if (distance <
+                        guidedPrefab.MinimumAcquisitionDistance ||
+                    distance >
+                        weaponRange)
+                {
+                    continue;
+                }
+
+                if (toTarget.sqrMagnitude < 0.001f)
+                    continue;
+
+                float angle =
+                    Vector3.Angle(
+                        fireDirection,
+                        toTarget.normalized);
+
+                if (angle >
+                    guidedPrefab.AcquisitionHalfAngle)
+                {
+                    continue;
+                }
+
+                /*
+                 * Favor whatever racer is closest to the player's
+                 * crosshair/muzzle direction. Distance is a smaller
+                 * secondary preference.
+                 */
+                float angleScore =
+                    angle /
+                    Mathf.Max(
+                        0.01f,
+                        guidedPrefab.AcquisitionHalfAngle);
+
+                float distanceScore =
+                    distance /
+                    Mathf.Max(
+                        0.01f,
+                        weaponRange);
+
+                float score =
+                    angleScore * 0.8f +
+                    distanceScore * 0.2f;
+
+                if (score >= bestScore)
+                    continue;
+
+                bestScore = score;
+                bestTarget = candidateView;
+                bestDistance = distance;
+                bestAngle = angle;
+            }
+
+            if (bestTarget != null)
+            {
+                debugGuidedTargetFound = true;
+                debugGuidedTarget = bestTarget.RacerId;
+                debugGuidedTargetDistance = bestDistance;
+                debugGuidedTargetAngle = bestAngle;
+            }
+
+            return bestTarget;
         }
 
         #endregion
@@ -578,7 +805,8 @@ namespace RaceFatal.Presentation.Combat
                     continue;
 
                 RacerViewController victim =
-                    hit.GetComponentInParent<RacerViewController>();
+                    hit.GetComponentInParent<
+                        RacerViewController>();
 
                 if (victim == null ||
                     !victim.IsInitialized)

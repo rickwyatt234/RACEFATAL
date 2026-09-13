@@ -10,7 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc06c030ca40f30419e9f8a05e4ed8f3, type: 3}
-  m_Name: RD_B2
+  m_Name: RD_Silas_Rook
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
-  id: racer_B2
-  displayName: RD_B2
+  id: racer_silas_rook
+  displayName: Silas Rook
+  pace: 0.92
+  aggression: 0.32
+  overtakingSkill: 0.53
+  defensiveSkill: 0.8
+  weaponAggression: 0.31

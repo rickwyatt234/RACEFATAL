@@ -19,19 +19,10 @@ namespace RaceFatal.Racing
         private PostRaceResult postRaceResult;
 
         public RaceState State => state;
+        public RaceResult FinalRaceResult => finalRaceResult;
+        public PostRaceResult PostRaceResult => postRaceResult;
 
-        public RaceResult FinalRaceResult =>
-            finalRaceResult;
-
-        public PostRaceResult PostRaceResult =>
-            postRaceResult;
-
-        public float ElapsedRaceTime {
-            get;
-            private set;
-        }
-
-        #region Events
+        public float ElapsedRaceTime { get; private set; }
 
         public event Action<RaceParticipant> RacerFinished;
         public event Action<RaceParticipant> RacerDestroyed;
@@ -43,295 +34,170 @@ namespace RaceFatal.Racing
         public event Action<RaceResult> RaceCompleted;
         public event Action<PostRaceResult> PostRaceResolved;
 
-        #endregion
-
-        #region Initialization
-
-        public RaceDirector(
-            RaceState state,
-            CareerManager careerManager)
+        public RaceDirector(RaceState state, CareerManager careerManager)
         {
-            this.state = state
-                ?? throw new ArgumentNullException(
-                    nameof(state));
+            this.state = state ?? throw new ArgumentNullException(nameof(state));
+            this.careerManager = careerManager ?? throw new ArgumentNullException(nameof(careerManager));
 
-            this.careerManager = careerManager
-                ?? throw new ArgumentNullException(
-                    nameof(careerManager));
-
-            lapTracker =
-                new LapTracker(
-                    state.RaceDefinition.LapCount);
-
+            lapTracker = new LapTracker(state.RaceDefinition.LapCount);
             SubscribeToParticipants();
         }
 
         private void SubscribeToParticipants()
         {
-            foreach (RaceParticipant participant
-                     in state.Participants)
-            {
-                participant.Vehicle
-                    .EquipmentSystem
-                    .WeaponFired += OnWeaponFired;
-            }
+            foreach (RaceParticipant participant in state.Participants)
+                participant.Vehicle.EquipmentSystem.WeaponFired += OnWeaponFired;
         }
 
-        private void OnWeaponFired(
-            WeaponFireEvent fireEvent)
+        private void OnWeaponFired(WeaponFireEvent fireEvent)
         {
-            WeaponFired?.Invoke(
-                fireEvent);
+            WeaponFired?.Invoke(fireEvent);
         }
-
-        #endregion
-
-        #region Race Lifecycle
 
         public void StartRace()
         {
-            if (state.IsStarted ||
-                state.IsFinished)
-            {
+            if (state.IsStarted || state.IsFinished)
                 return;
-            }
 
             ElapsedRaceTime = 0f;
-
             state.StartRace();
 
-            foreach (RaceParticipant participant
-                     in state.Participants)
-            {
-                participant.Racer
-                    .RecordRaceEntered();
-            }
+            foreach (RaceParticipant participant in state.Participants)
+                participant.Racer.RecordRaceEntered();
         }
 
-        public void Tick(
-            float deltaTime)
+        public void Tick(float deltaTime)
         {
-            if (!CanProcessRaceEvent())
+            if (!CanProcessRaceEvent() || deltaTime <= 0f)
                 return;
 
-            if (deltaTime <= 0f)
-                return;
+            ElapsedRaceTime += deltaTime;
 
-            ElapsedRaceTime +=
-                deltaTime;
-
-            foreach (RaceParticipant participant
-                     in state.Participants)
+            foreach (RaceParticipant participant in state.Participants)
             {
-                if (participant.Status !=
-                    RaceParticipantStatus.Racing)
-                {
+                if (participant.Status != RaceParticipantStatus.Racing)
                     continue;
-                }
 
-                participant.Vehicle.Tick(
-                    deltaTime);
+                participant.Vehicle.Tick(deltaTime);
             }
         }
 
-        #endregion
-
-        #region Race Event Reporting
-
-        public void ReportCourseProgress(
-            string racerId,
-            float progress)
+        public void ReportCourseProgress(string racerId, float progress)
         {
             if (!CanProcessRaceEvent())
                 return;
 
-            RaceParticipant participant =
-                state.FindParticipant(
-                    racerId);
-
-            if (participant == null)
-                return;
-
-            participant.SetCourseProgress(
-                progress);
+            RaceParticipant participant = state.FindParticipant(racerId);
+            participant?.SetCourseProgress(progress);
         }
 
-        public void ReportLapCompleted(
-            string racerId)
+        public void ReportLapCompleted(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return;
 
-            RaceParticipant participant =
-                state.FindParticipant(
-                    racerId);
+            RaceParticipant participant = state.FindParticipant(racerId);
 
-            if (participant == null)
+            if (participant == null ||
+                participant.Status != RaceParticipantStatus.Racing)
                 return;
 
-            if (participant.Status !=
-                RaceParticipantStatus.Racing)
-            {
-                return;
-            }
-
-            bool completedRace =
-                lapTracker.CompleteLap(
-                    participant);
-
-            if (!completedRace)
-                return;
-
-            ConfirmFinish(
-                participant,
-                false);
+            if (lapTracker.CompleteLap(participant))
+                ConfirmFinish(participant, false);
         }
 
-        private void ConfirmFinish(
-            RaceParticipant participant,
-            bool fastResolved)
+        private void ConfirmFinish(RaceParticipant participant, bool fastResolved)
         {
             if (participant == null ||
-                participant.Status !=
-                    RaceParticipantStatus.Racing)
-            {
+                participant.Status != RaceParticipantStatus.Racing)
                 return;
-            }
 
-            float? finishTime =
-                fastResolved
-                    ? null
-                    : ElapsedRaceTime;
+            float? finishTime = fastResolved ? null : ElapsedRaceTime;
 
-            participant.Finish(
-                nextFinishPosition,
-                finishTime,
-                fastResolved);
-
+            participant.Finish(nextFinishPosition, finishTime, fastResolved);
             nextFinishPosition++;
 
-            participant.Racer.RecordFinish(
-                participant.FinishPosition);
-
-            RacerFinished?.Invoke(
-                participant);
+            participant.Racer.RecordFinish(participant.FinishPosition);
+            RacerFinished?.Invoke(participant);
         }
 
-        #endregion
-
-        #region Equipment Selection
-
-        public string SelectNextEquipment(
-            string racerId)
+        public string SelectNextEquipment(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return null;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            if (participant == null)
-                return null;
-
-            return participant.Vehicle
-                .EquipmentSystem
-                .SelectNext();
+            return participant?.Vehicle.EquipmentSystem.SelectNext();
         }
 
-        public string SelectPreviousEquipment(
-            string racerId)
+        public string SelectPreviousEquipment(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return null;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            if (participant == null)
-                return null;
-
-            return participant.Vehicle
-                .EquipmentSystem
-                .SelectPrevious();
+            return participant?.Vehicle.EquipmentSystem.SelectPrevious();
         }
 
-        #endregion
-
-        #region Equipment Activation
-
-        public bool BeginEquipmentActivation(
-            string racerId)
+        public bool BeginEquipmentActivation(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return false;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            if (participant == null)
-                return false;
-
-            return participant.Vehicle
-                .EquipmentSystem
-                .BeginSelectedActivation();
+            return participant != null &&
+                   participant.Vehicle.EquipmentSystem.BeginSelectedActivation();
         }
 
-        public bool EndEquipmentActivation(
-            string racerId)
+        public bool EndEquipmentActivation(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return false;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            if (participant == null)
-                return false;
-
-            return participant.Vehicle
-                .EquipmentSystem
-                .EndSelectedActivation();
+            return participant != null &&
+                   participant.Vehicle.EquipmentSystem.EndSelectedActivation();
         }
-
-        #endregion
-
-        #region Damage
 
         public Result<DamageEvent> ApplyDamage(
             string attackerRacerId,
             string victimRacerId,
             float amount,
-            DamageCause cause)
+            DamageCause cause,
+            DamageImpactSide impactSide = DamageImpactSide.Unknown)
         {
             if (!CanProcessRaceEvent())
-            {
-                return Result<DamageEvent>.Failure(
-                    "Race is not active.");
-            }
+                return Result<DamageEvent>.Failure("Race is not active.");
 
             if (amount <= 0f)
-            {
-                return Result<DamageEvent>.Failure(
-                    "Damage must be greater than zero.");
-            }
+                return Result<DamageEvent>.Failure("Damage must be greater than zero.");
 
-            RaceParticipant victim =
-                GetRacingParticipant(
-                    victimRacerId);
+            RaceParticipant victim = GetRacingParticipant(victimRacerId);
 
             if (victim == null)
-            {
                 return Result<DamageEvent>.Failure(
                     "Victim was not found or is no longer racing.");
-            }
+
+            RaceShieldState shield =
+                victim.Vehicle.EquipmentSystem.Shield;
+
+            bool shieldWasActive =
+                shield != null &&
+                !shield.IsDepleted &&
+                shield.Current > 0f;
 
             DamageResolution resolution =
-                victim.Vehicle.ApplyDamage(
-                    amount);
+                victim.Vehicle.ApplyDamage(amount);
+
+            bool shieldDepleted =
+                shieldWasActive &&
+                resolution.ShieldAbsorbed > 0f &&
+                shield != null &&
+                shield.IsDepleted;
 
             DamageEvent damageEvent =
                 new DamageEvent(
@@ -341,50 +207,29 @@ namespace RaceFatal.Racing
                     resolution.ShieldAbsorbed,
                     resolution.BikeDamage,
                     cause,
+                    impactSide,
+                    shieldDepleted,
                     resolution.CausedDestruction);
 
-            DamageApplied?.Invoke(
-                damageEvent);
+            DamageApplied?.Invoke(damageEvent);
 
             if (resolution.CausedDestruction)
-            {
-                PermanentlyDestroy(
-                    victim);
-            }
+                PermanentlyDestroy(victim);
 
-            return Result<DamageEvent>.Success(
-                damageEvent);
+            return Result<DamageEvent>.Success(damageEvent);
         }
 
-        #endregion
-
-        #region Energy
-
-        public float RechargeEnergy(
-            string racerId,
-            float amount)
+        public float RechargeEnergy(string racerId, float amount)
         {
-            if (!CanProcessRaceEvent())
+            if (!CanProcessRaceEvent() || amount <= 0f)
                 return 0f;
 
-            if (amount <= 0f)
-                return 0f;
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
-
-            if (participant == null)
-                return 0f;
-
-            return participant.Vehicle
-                .RechargeEnergy(
-                    amount);
+            return participant != null
+                ? participant.Vehicle.RechargeEnergy(amount)
+                : 0f;
         }
-
-        #endregion
-
-        #region Countermeasures
 
         public bool TryTriggerCountermeasure(
             string racerId,
@@ -393,53 +238,31 @@ namespace RaceFatal.Racing
             if (!CanProcessRaceEvent())
                 return false;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
-            if (participant == null)
-                return false;
-
-            return participant.Vehicle
-                .EquipmentSystem
-                .TryTriggerCountermeasure(
-                    type);
+            return participant != null &&
+                   participant.Vehicle.EquipmentSystem
+                       .TryTriggerCountermeasure(type);
         }
 
-        #endregion
-
-        #region Retirement
-
-        public void RetireRacer(
-            string racerId)
+        public void RetireRacer(string racerId)
         {
             if (!CanProcessRaceEvent())
                 return;
 
-            RaceParticipant participant =
-                GetRacingParticipant(
-                    racerId);
+            RaceParticipant participant = GetRacingParticipant(racerId);
 
             if (participant == null)
                 return;
 
             participant.Retire();
-
-            RacerRetired?.Invoke(
-                participant);
+            RacerRetired?.Invoke(participant);
         }
-
-        #endregion
-
-        #region Race Completion
 
         public RaceResult ResolveRemainingRace()
         {
             if (state.IsFinished)
-            {
-                return finalRaceResult
-                    ?? BuildResult();
-            }
+                return finalRaceResult ?? BuildResult();
 
             if (!state.IsStarted)
                 return null;
@@ -447,18 +270,10 @@ namespace RaceFatal.Racing
             IReadOnlyList<RaceParticipant> currentOrder =
                 state.GetCurrentOrder();
 
-            foreach (RaceParticipant participant
-                     in currentOrder)
+            foreach (RaceParticipant participant in currentOrder)
             {
-                if (participant.Status !=
-                    RaceParticipantStatus.Racing)
-                {
-                    continue;
-                }
-
-                ConfirmFinish(
-                    participant,
-                    true);
+                if (participant.Status == RaceParticipantStatus.Racing)
+                    ConfirmFinish(participant, true);
             }
 
             return CompleteRace();
@@ -467,33 +282,25 @@ namespace RaceFatal.Racing
         public RaceResult CompleteRace()
         {
             if (state.IsFinished)
-            {
-                return finalRaceResult
-                    ?? BuildResult();
-            }
+                return finalRaceResult ?? BuildResult();
 
             state.FinishRace();
 
-            finalRaceResult =
-                BuildResult();
+            finalRaceResult = BuildResult();
 
-            ResolvePostRace(
-                finalRaceResult);
+            ResolvePostRace(finalRaceResult);
 
-            RaceCompleted?.Invoke(
-                finalRaceResult);
+            RaceCompleted?.Invoke(finalRaceResult);
 
             return finalRaceResult;
         }
 
-        private void ResolvePostRace(
-            RaceResult raceResult)
+        private void ResolvePostRace(RaceResult raceResult)
         {
             if (postRaceResult != null)
                 return;
 
-            RaceParticipant player =
-                FindPlayerParticipant();
+            RaceParticipant player = FindPlayerParticipant();
 
             if (player == null)
                 return;
@@ -503,20 +310,15 @@ namespace RaceFatal.Racing
                     raceResult,
                     player.Racer);
 
-            PostRaceResolved?.Invoke(
-                postRaceResult);
+            PostRaceResolved?.Invoke(postRaceResult);
         }
 
         private RaceParticipant FindPlayerParticipant()
         {
-            foreach (RaceParticipant participant
-                     in state.Participants)
+            foreach (RaceParticipant participant in state.Participants)
             {
-                if (participant.Role ==
-                    RaceParticipantRole.Player)
-                {
+                if (participant.Role == RaceParticipantRole.Player)
                     return participant;
-                }
             }
 
             return null;
@@ -528,15 +330,11 @@ namespace RaceFatal.Racing
                 state.GetCurrentOrder();
 
             List<RaceResultEntry> results =
-                new List<RaceResultEntry>(
-                    order.Count);
+                new List<RaceResultEntry>(order.Count);
 
-            for (int i = 0;
-                 i < order.Count;
-                 i++)
+            for (int i = 0; i < order.Count; i++)
             {
-                RaceParticipant participant =
-                    order[i];
+                RaceParticipant participant = order[i];
 
                 results.Add(
                     new RaceResultEntry(
@@ -556,34 +354,18 @@ namespace RaceFatal.Racing
                 results);
         }
 
-        #endregion
-
-        #region Permanent Destruction
-
-        private void PermanentlyDestroy(
-            RaceParticipant participant)
+        private void PermanentlyDestroy(RaceParticipant participant)
         {
             participant.Bike.Destroy();
-
             participant.Destroy();
 
-            if (participant.Role ==
-                RaceParticipantRole.Player)
-            {
+            if (participant.Role == RaceParticipantRole.Player)
                 careerManager.KillCurrentRun();
-            }
             else
-            {
                 participant.Racer.Kill();
-            }
 
-            RacerDestroyed?.Invoke(
-                participant);
+            RacerDestroyed?.Invoke(participant);
         }
-
-        #endregion
-
-        #region Helpers
 
         private bool CanProcessRaceEvent()
         {
@@ -591,31 +373,19 @@ namespace RaceFatal.Racing
                    !state.IsFinished;
         }
 
-        private RaceParticipant GetRacingParticipant(
-            string racerId)
+        private RaceParticipant GetRacingParticipant(string racerId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    racerId))
-            {
+            if (string.IsNullOrWhiteSpace(racerId))
                 return null;
-            }
 
             RaceParticipant participant =
-                state.FindParticipant(
-                    racerId);
+                state.FindParticipant(racerId);
 
-            if (participant == null)
+            if (participant == null ||
+                participant.Status != RaceParticipantStatus.Racing)
                 return null;
-
-            if (participant.Status !=
-                RaceParticipantStatus.Racing)
-            {
-                return null;
-            }
 
             return participant;
         }
-
-        #endregion
     }
 }

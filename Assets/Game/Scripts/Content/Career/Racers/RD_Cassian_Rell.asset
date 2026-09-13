@@ -10,7 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc06c030ca40f30419e9f8a05e4ed8f3, type: 3}
-  m_Name: RD_E2
+  m_Name: RD_Cassian_Rell
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
-  id: racer_E2
-  displayName: RD_E2
+  id: racer_cassian_rell
+  displayName: Cassian_Rell
+  pace: 0.74
+  aggression: 0.74
+  overtakingSkill: 0.79
+  defensiveSkill: 0.6
+  weaponAggression: 0.67

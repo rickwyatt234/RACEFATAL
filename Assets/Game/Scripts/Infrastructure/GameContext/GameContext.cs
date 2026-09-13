@@ -8,7 +8,7 @@ using RaceFatal.Vehicles;
 
 namespace RaceFatal.Infrastructure
 {
-    public sealed class GameContext
+    public class GameContext
     {
         public CareerManager Career { get; }
 

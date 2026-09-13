@@ -22,7 +22,7 @@ MonoBehaviour:
   deliveryMode: 1
   range: 150
   projectileSpeed: 350
-  damage: 3
+  damage: 2
   startingAmmo: 250
   fireInterval: 0.1
   chargeDuration: 0
