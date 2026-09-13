@@ -21,8 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Arrow_Mat4_Add
-  m_Shader: {fileID: -6465566751694194690, guid: 9665439ac7e1b83489c673e35dcefd05,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 9665439ac7e1b83489c673e35dcefd05, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -196,6 +195,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 1
+    - _DstBlend2: 10
     - _EdgeSoftness: 0
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
@@ -218,6 +218,7 @@ Material:
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
     - _Parallax: 0.02
+    - _PerPixelSorting: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RenderQueueType: 3
@@ -273,6 +274,7 @@ Material:
     - _SoftParticleFadeParams: {r: 0, g: 2.857143, b: 0, a: 0}
     - _TintColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &4998574320687721195
 MonoBehaviour:
   m_ObjectHideFlags: 11
