@@ -28,6 +28,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 463ff824628f33a4d82909b70c48124c, type: 2}
   - {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
   - {fileID: 11400000, guid: 49380ec564638b5458e951a9350f1fe3, type: 2}
+  - {fileID: 11400000, guid: f7d70ce11d6673c439b1a91745b3d660, type: 2}
+  - {fileID: 11400000, guid: 4365eae4d206dd3448e2cb7576eaa371, type: 2}
   racerDefinitions:
   - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
   - {fileID: 11400000, guid: 3c307af10d5676c4ba9196e9e2e17166, type: 2}

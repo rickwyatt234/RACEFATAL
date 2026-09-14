@@ -399,6 +399,7 @@ MonoBehaviour:
   weaponProfiles:
   - {fileID: 11400000, guid: ea653208e7e11e14085a9518393c1149, type: 2}
   - {fileID: 11400000, guid: 192f81dae3e31514cbe0a1f5772d6e29, type: 2}
+  - {fileID: 11400000, guid: 6a420c9a4e49f94439aecdc522bbfff9, type: 2}
   debugLastShooter: 
   debugLastWeapon: 
   debugPresentationFound: 0

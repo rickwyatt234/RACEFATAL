@@ -260,10 +260,7 @@ namespace RaceFatal.Presentation.Combat
         private WeaponPresentationProfile GetPresentationProfile(
             string definitionId)
         {
-            if (string.IsNullOrWhiteSpace(definitionId))
-                return null;
-
-            if (presentationLookup.TryGetValue(
+            if (TryGetPresentationProfile(
                     definitionId,
                     out WeaponPresentationProfile profile))
             {
@@ -276,6 +273,22 @@ namespace RaceFatal.Presentation.Combat
                 this);
 
             return null;
+        }
+        public bool TryGetPresentationProfile(
+            string definitionId,
+            out WeaponPresentationProfile profile)
+        {
+            profile = null;
+
+            if (string.IsNullOrWhiteSpace(
+                    definitionId))
+            {
+                return false;
+            }
+
+            return presentationLookup.TryGetValue(
+                definitionId,
+                out profile);
         }
 
         #endregion

@@ -20865,6 +20865,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &650738146953294769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5575961681163536751}
+  m_Layer: 0
+  m_Name: FlareOrigin_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5575961681163536751
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650738146953294769}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.13051623, y: -0.9914462, z: 0.000000013615825, w: -0.00000010341563}
+  m_LocalPosition: {x: -0.217, y: 0.717, z: 1.301}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4788296122791041005}
+  m_LocalEulerAnglesHint: {x: 0, y: 540, z: -14.999}
 --- !u!1 &795130461929264396
 GameObject:
   m_ObjectHideFlags: 0
@@ -32552,6 +32583,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2468063370489236906
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2316056087009981454}
+  m_Layer: 0
+  m_Name: FlareOrigin_L
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2316056087009981454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2468063370489236906}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 5.684342e-14, z: -0.25882855, w: 0.96592337}
+  m_LocalPosition: {x: 0.227, y: 0.717, z: 1.301}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4788296122791041005}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -30.001}
 --- !u!1 &2528735502426908507
 GameObject:
   m_ObjectHideFlags: 0
@@ -48713,6 +48775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -48721,6 +48784,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved
@@ -55806,6 +55872,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -55814,6 +55881,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved
@@ -55852,6 +55922,7 @@ Transform:
   - {fileID: 2998684727860653486}
   - {fileID: 3504328799561208082}
   - {fileID: 5911672624896702204}
+  - {fileID: 4788296122791041005}
   m_Father: {fileID: 6325671042044266881}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &4566053424999334284
@@ -56808,6 +56879,9 @@ GameObject:
   - component: {fileID: 817332311955959876}
   - component: {fileID: 1773245670663643801}
   - component: {fileID: 8758842294056317196}
+  - component: {fileID: 664039682654831883}
+  - component: {fileID: 3045689758750969344}
+  - component: {fileID: 4291613158119095364}
   m_Layer: 0
   m_Name: CombatBike
   m_TagString: Untagged
@@ -57835,6 +57909,81 @@ MonoBehaviour:
   debugSeverity: 0
   debugAudioVolume: 0
   debugMixerGroup: Unassigned
+--- !u!114 &664039682654831883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0d1ce75b7d49724aa733ce9fd1837d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.MissileThreatReceiver
+  debugThreatCount: 0
+  debugNearestMissile: None
+  debugNearestDistance: 0
+--- !u!114 &3045689758750969344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d6edce4c31240442b000980e06fdc10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.AutomaticCountermeasureController
+  models:
+  - definitionId: countermeasure_flare_standard
+    startingUses: 4
+    triggerDistance: 25
+    defeatRadius: 35
+    flarePrefab: {fileID: 2521211044671056872, guid: d8df2a9fcd92cdd40a4e00d643a15951, type: 3}
+    flareCount: 2
+    flareEjectionSpeed: 30
+    horizontalSpread: 15
+    upwardAngle: 8
+    flareLifetime: 1.5
+  flareOrigins:
+  - {fileID: 2316056087009981454}
+  - {fileID: 5575961681163536751}
+  audioSource: {fileID: 4199775553047604825}
+  deploymentClips:
+  - {fileID: 8300000, guid: ab633d717c0c4482ebc224d823c942da, type: 3}
+  - {fileID: 8300000, guid: ed05f325726b248488086ecfbf5bea50, type: 3}
+  - {fileID: 8300000, guid: c26e7bdd4d620474b99fdcff5bd0ee98, type: 3}
+  deploymentVolume: 1
+  debugResolved: 0
+  debugHasCountermeasure: 0
+  debugDefinitionId: None
+  debugRemainingUses: 0
+  debugMaximumUses: 0
+  debugThreatCount: 0
+  debugNearestThreatDistance: 0
+  debugLastMissilesCountered: 0
+  debugState: Resolving
+--- !u!114 &4291613158119095364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5858c8b95a12e86458b031342051e5b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponChargePresentationController
+  weaponPresenter: {fileID: 0}
+  debugResolved: 0
+  debugCharging: 0
+  debugWeapon: None
+  debugEquipment: None
+  debugChargeRatio: 0
+  debugFailure: None
 --- !u!1 &4984040193429863932
 GameObject:
   m_ObjectHideFlags: 0
@@ -59143,6 +59292,39 @@ MonoBehaviour:
   racerNameText: {fileID: 5424026634110263328}
   teamNameText: {fileID: 5629139007436783138}
   raceTimeText: {fileID: 378679102765174066}
+--- !u!1 &5534352771850261297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4788296122791041005}
+  m_Layer: 0
+  m_Name: CountermeasureOrigins
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4788296122791041005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5534352771850261297}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2316056087009981454}
+  - {fileID: 5575961681163536751}
+  m_Father: {fileID: 6949741953834781975}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5548484647610688925
 GameObject:
   m_ObjectHideFlags: 0
@@ -59666,6 +59848,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -59674,6 +59857,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved
@@ -60190,6 +60376,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -60198,6 +60385,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved
@@ -60737,6 +60927,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -60745,6 +60936,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved
@@ -83064,6 +83258,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponMountFeedbackView
   fireAudioSource: {fileID: 4199775553047604825}
   fireAudioVoiceCount: 4
+  chargeAudioSource: {fileID: 0}
   playerWeaponGroup: {fileID: -66158873355743107, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   opponentWeaponGroup: {fileID: 4943092782103046331, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   debugLastWeapon: None
@@ -83072,6 +83267,9 @@ MonoBehaviour:
   debugLastPitch: 0
   debugPlayedMuzzle: 0
   debugPlayedAudio: 0
+  debugCharging: 0
+  debugChargeRatio: 0
+  debugFullChargeTriggered: 0
   debugRoleResolved: 0
   debugIsPlayer: 0
   debugMixerGroup: Unresolved

@@ -8,18 +8,16 @@ namespace RaceFatal.Presentation.Combat
 {
     public class WeaponMountFeedbackView : MonoBehaviour
     {
-        [Header("Audio")]
-        [Tooltip("Base AudioSource used for weapon firing. Additional voices are generated from this at runtime.")]
+        [Header("Fire Audio")]
         [SerializeField] private AudioSource fireAudioSource;
-
-        [Tooltip("Number of overlapping fire sounds this mount can play independently.")]
         [Range(1, 12)][SerializeField] private int fireAudioVoiceCount = 4;
 
-        [Header("Audio Mixer Routing")]
-        [Tooltip("Mixer group used when this weapon belongs to the player.")]
-        [SerializeField] private AudioMixerGroup playerWeaponGroup;
+        [Header("Charge Audio")]
+        [Tooltip("Dedicated looping source used while a ChargeRelease weapon is charging.")]
+        [SerializeField] private AudioSource chargeAudioSource;
 
-        [Tooltip("Mixer group used when this weapon belongs to an opponent.")]
+        [Header("Audio Mixer Routing")]
+        [SerializeField] private AudioMixerGroup playerWeaponGroup;
         [SerializeField] private AudioMixerGroup opponentWeaponGroup;
 
         [Header("Runtime Debug")]
@@ -29,6 +27,10 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private float debugLastPitch;
         [SerializeField] private bool debugPlayedMuzzle;
         [SerializeField] private bool debugPlayedAudio;
+
+        [SerializeField] private bool debugCharging;
+        [SerializeField] private float debugChargeRatio;
+        [SerializeField] private bool debugFullChargeTriggered;
 
         [SerializeField] private bool debugRoleResolved;
         [SerializeField] private bool debugIsPlayer;
@@ -40,11 +42,19 @@ namespace RaceFatal.Presentation.Combat
         private RacerViewController racerView;
 
         private WeaponPresentationProfile lastProfile;
+        private WeaponPresentationProfile activeChargeProfile;
+
+        private GameObject activeChargeEffect;
+        private WeaponChargeEffectView activeChargeEffectView;
+        private Transform activeChargeOrigin;
+
         private int lastFireClipIndex = -1;
         private int nextVoiceIndex;
 
         private bool roleResolved;
         private bool isPlayer;
+        private bool chargeActive;
+        private bool fullChargeTriggered;
 
         private void Awake()
         {
@@ -52,6 +62,12 @@ namespace RaceFatal.Presentation.Combat
                 GetComponentInParent<RacerViewController>();
 
             InitializeAudioVoices();
+            InitializeChargeAudioSource();
+        }
+
+        private void OnDisable()
+        {
+            CancelCharge();
         }
 
         public void PlayFire(
@@ -61,6 +77,7 @@ namespace RaceFatal.Presentation.Combat
             if (profile == null)
                 return;
 
+            CancelCharge();
             ResolveRoleRouting();
 
             Transform origin =
@@ -76,9 +93,209 @@ namespace RaceFatal.Presentation.Combat
                 profile,
                 origin);
 
-            PlayAudio(
+            PlayFireAudio(
                 profile);
         }
+
+        #region Charge
+
+        public void BeginCharge(
+            WeaponPresentationProfile profile,
+            Transform fireOrigin)
+        {
+            if (profile == null)
+                return;
+
+            if (chargeActive &&
+                activeChargeProfile == profile &&
+                activeChargeOrigin == fireOrigin)
+            {
+                return;
+            }
+
+            CancelCharge();
+            ResolveRoleRouting();
+
+            activeChargeProfile = profile;
+
+            activeChargeOrigin =
+                fireOrigin != null
+                    ? fireOrigin
+                    : transform;
+
+            chargeActive = true;
+            fullChargeTriggered = false;
+
+            debugCharging = true;
+            debugChargeRatio = 0f;
+            debugFullChargeTriggered = false;
+            debugLastWeapon = profile.WeaponDefinitionId;
+
+            if (profile.ChargePrefab != null)
+            {
+                activeChargeEffect =
+                    Instantiate(
+                        profile.ChargePrefab,
+                        activeChargeOrigin.position,
+                        activeChargeOrigin.rotation,
+                        activeChargeOrigin);
+
+                activeChargeEffectView =
+                    activeChargeEffect.GetComponentInChildren<
+                        WeaponChargeEffectView>(true);
+
+                activeChargeEffectView?.SetCharge(0f);
+            }
+
+            BeginChargeAudio(profile);
+        }
+
+        public void UpdateCharge(
+            WeaponPresentationProfile profile,
+            Transform fireOrigin,
+            float ratio)
+        {
+            if (profile == null)
+                return;
+
+            if (!chargeActive ||
+                activeChargeProfile != profile)
+            {
+                BeginCharge(
+                    profile,
+                    fireOrigin);
+            }
+
+            ratio =
+                Mathf.Clamp01(
+                    ratio);
+
+            debugChargeRatio = ratio;
+
+            activeChargeEffectView?.SetCharge(
+                ratio);
+
+            UpdateChargeAudio(
+                profile,
+                ratio);
+
+            if (ratio >= 0.999f &&
+                !fullChargeTriggered)
+            {
+                TriggerFullCharge(
+                    profile);
+            }
+        }
+
+        public void CancelCharge()
+        {
+            if (chargeAudioSource != null)
+            {
+                chargeAudioSource.Stop();
+                chargeAudioSource.clip = null;
+            }
+
+            if (activeChargeEffect != null)
+                Destroy(activeChargeEffect);
+
+            activeChargeEffect = null;
+            activeChargeEffectView = null;
+            activeChargeOrigin = null;
+            activeChargeProfile = null;
+
+            chargeActive = false;
+            fullChargeTriggered = false;
+
+            debugCharging = false;
+            debugChargeRatio = 0f;
+            debugFullChargeTriggered = false;
+        }
+
+        private void TriggerFullCharge(
+            WeaponPresentationProfile profile)
+        {
+            fullChargeTriggered = true;
+            debugFullChargeTriggered = true;
+
+            Transform origin =
+                activeChargeOrigin != null
+                    ? activeChargeOrigin
+                    : transform;
+
+            if (profile.FullChargePrefab != null)
+            {
+                GameObject effect =
+                    Instantiate(
+                        profile.FullChargePrefab,
+                        origin.position,
+                        origin.rotation,
+                        origin);
+
+                Destroy(
+                    effect,
+                    CalculateEffectLifetime(
+                        effect,
+                        profile.FullChargeFallbackLifetime));
+            }
+
+            if (profile.FullChargeClip != null)
+            {
+                PlayClipOnVoice(
+                    profile,
+                    profile.FullChargeClip,
+                    profile.FullChargeVolume,
+                    1f);
+            }
+        }
+
+        private void BeginChargeAudio(
+            WeaponPresentationProfile profile)
+        {
+            if (chargeAudioSource == null ||
+                profile.ChargeLoopClip == null)
+            {
+                return;
+            }
+
+            ConfigureSourceForProfile(
+                chargeAudioSource,
+                profile);
+
+            chargeAudioSource.Stop();
+            chargeAudioSource.clip = profile.ChargeLoopClip;
+            chargeAudioSource.loop = true;
+            chargeAudioSource.volume = profile.MinimumChargeVolume;
+            chargeAudioSource.pitch = profile.MinimumChargePitch;
+            chargeAudioSource.Play();
+        }
+
+        private void UpdateChargeAudio(
+            WeaponPresentationProfile profile,
+            float ratio)
+        {
+            if (chargeAudioSource == null ||
+                profile.ChargeLoopClip == null)
+            {
+                return;
+            }
+
+            if (!chargeAudioSource.isPlaying)
+                BeginChargeAudio(profile);
+
+            chargeAudioSource.volume =
+                Mathf.Lerp(
+                    profile.MinimumChargeVolume,
+                    profile.MaximumChargeVolume,
+                    ratio);
+
+            chargeAudioSource.pitch =
+                Mathf.Lerp(
+                    profile.MinimumChargePitch,
+                    profile.MaximumChargePitch,
+                    ratio);
+        }
+
+        #endregion
 
         #region Muzzle
 
@@ -98,14 +315,11 @@ namespace RaceFatal.Presentation.Combat
                     origin.position,
                     origin.rotation);
 
-            float lifetime =
-                CalculateEffectLifetime(
-                    muzzle,
-                    profile.MuzzleFallbackLifetime);
-
             Destroy(
                 muzzle,
-                lifetime);
+                CalculateEffectLifetime(
+                    muzzle,
+                    profile.MuzzleFallbackLifetime));
 
             debugPlayedMuzzle = true;
         }
@@ -129,9 +343,7 @@ namespace RaceFatal.Presentation.Combat
 
             float longestLifetime = 0f;
 
-            for (int i = 0;
-                 i < particles.Length;
-                 i++)
+            for (int i = 0; i < particles.Length; i++)
             {
                 ParticleSystem particle =
                     particles[i];
@@ -192,18 +404,19 @@ namespace RaceFatal.Presentation.Combat
 
             if (targetGroup != null)
             {
-                for (int i = 0;
-                     i < fireVoices.Count;
-                     i++)
+                for (int i = 0; i < fireVoices.Count; i++)
                 {
-                    AudioSource voice =
-                        fireVoices[i];
-
-                    if (voice != null)
+                    if (fireVoices[i] != null)
                     {
-                        voice.outputAudioMixerGroup =
+                        fireVoices[i].outputAudioMixerGroup =
                             targetGroup;
                     }
+                }
+
+                if (chargeAudioSource != null)
+                {
+                    chargeAudioSource.outputAudioMixerGroup =
+                        targetGroup;
                 }
 
                 debugMixerGroup =
@@ -223,23 +436,19 @@ namespace RaceFatal.Presentation.Combat
 
         #endregion
 
-        #region Audio
+        #region Audio Setup
 
         private void InitializeAudioVoices()
         {
             fireVoices.Clear();
 
             if (fireAudioSource == null)
-            {
-                fireAudioSource =
-                    GetComponent<AudioSource>();
-            }
+                fireAudioSource = GetComponent<AudioSource>();
 
             if (fireAudioSource == null)
             {
                 fireAudioSource =
-                    gameObject.AddComponent<
-                        AudioSource>();
+                    gameObject.AddComponent<AudioSource>();
             }
 
             ConfigureBaseVoice(
@@ -253,13 +462,10 @@ namespace RaceFatal.Presentation.Combat
                     1,
                     fireAudioVoiceCount);
 
-            for (int i = 1;
-                 i < targetCount;
-                 i++)
+            for (int i = 1; i < targetCount; i++)
             {
                 AudioSource voice =
-                    gameObject.AddComponent<
-                        AudioSource>();
+                    gameObject.AddComponent<AudioSource>();
 
                 CopyAudioSourceSettings(
                     fireAudioSource,
@@ -271,6 +477,23 @@ namespace RaceFatal.Presentation.Combat
                 fireVoices.Add(
                     voice);
             }
+        }
+
+        private void InitializeChargeAudioSource()
+        {
+            if (chargeAudioSource == null ||
+                chargeAudioSource == fireAudioSource)
+            {
+                chargeAudioSource =
+                    gameObject.AddComponent<AudioSource>();
+
+                CopyAudioSourceSettings(
+                    fireAudioSource,
+                    chargeAudioSource);
+            }
+
+            chargeAudioSource.playOnAwake = false;
+            chargeAudioSource.loop = true;
         }
 
         private void ConfigureBaseVoice(
@@ -321,12 +544,13 @@ namespace RaceFatal.Presentation.Combat
                 source.spatialize;
         }
 
-        private void PlayAudio(
+        #endregion
+
+        #region Fire Audio
+
+        private void PlayFireAudio(
             WeaponPresentationProfile profile)
         {
-            if (fireVoices.Count == 0)
-                return;
-
             if (!TrySelectFireClip(
                     profile,
                     out AudioClip clip,
@@ -335,26 +559,14 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
-            AudioSource voice =
-                GetNextVoice();
-
-            if (voice == null)
-                return;
-
-            float minimumPitch =
-                Mathf.Min(
-                    profile.MinimumFirePitch,
-                    profile.MaximumFirePitch);
-
-            float maximumPitch =
-                Mathf.Max(
-                    profile.MinimumFirePitch,
-                    profile.MaximumFirePitch);
-
             float pitch =
                 Random.Range(
-                    minimumPitch,
-                    maximumPitch);
+                    Mathf.Min(
+                        profile.MinimumFirePitch,
+                        profile.MaximumFirePitch),
+                    Mathf.Max(
+                        profile.MinimumFirePitch,
+                        profile.MaximumFirePitch));
 
             float volume =
                 profile.FireVolume +
@@ -366,30 +578,11 @@ namespace RaceFatal.Presentation.Combat
                 Mathf.Clamp01(
                     volume);
 
-            voice.Stop();
-
-            voice.clip = clip;
-            voice.volume = volume;
-            voice.pitch = pitch;
-
-            voice.spatialBlend =
-                profile.FireSpatialBlend;
-
-            voice.rolloffMode =
-                profile.FireRolloffMode;
-
-            voice.minDistance =
-                profile.FireMinDistance;
-
-            voice.maxDistance =
-                Mathf.Max(
-                    profile.FireMinDistance,
-                    profile.FireMaxDistance);
-
-            voice.dopplerLevel =
-                profile.FireDopplerLevel;
-
-            voice.Play();
+            PlayClipOnVoice(
+                profile,
+                clip,
+                volume,
+                pitch);
 
             lastProfile = profile;
             lastFireClipIndex = clipIndex;
@@ -400,14 +593,70 @@ namespace RaceFatal.Presentation.Combat
             debugPlayedAudio = true;
         }
 
+        private void PlayClipOnVoice(
+            WeaponPresentationProfile profile,
+            AudioClip clip,
+            float volume,
+            float pitch)
+        {
+            if (clip == null)
+                return;
+
+            ResolveRoleRouting();
+
+            AudioSource voice =
+                GetNextVoice();
+
+            if (voice == null)
+                return;
+
+            ConfigureSourceForProfile(
+                voice,
+                profile);
+
+            voice.Stop();
+
+            voice.clip = clip;
+            voice.loop = false;
+            voice.volume = Mathf.Clamp01(volume);
+            voice.pitch = pitch;
+            voice.Play();
+        }
+
+        private void ConfigureSourceForProfile(
+            AudioSource source,
+            WeaponPresentationProfile profile)
+        {
+            if (source == null ||
+                profile == null)
+            {
+                return;
+            }
+
+            source.spatialBlend =
+                profile.FireSpatialBlend;
+
+            source.rolloffMode =
+                profile.FireRolloffMode;
+
+            source.minDistance =
+                profile.FireMinDistance;
+
+            source.maxDistance =
+                Mathf.Max(
+                    profile.FireMinDistance,
+                    profile.FireMaxDistance);
+
+            source.dopplerLevel =
+                profile.FireDopplerLevel;
+        }
+
         private AudioSource GetNextVoice()
         {
             if (fireVoices.Count == 0)
                 return null;
 
-            for (int offset = 0;
-                 offset < fireVoices.Count;
-                 offset++)
+            for (int offset = 0; offset < fireVoices.Count; offset++)
             {
                 int index =
                     (nextVoiceIndex + offset) %
@@ -458,9 +707,7 @@ namespace RaceFatal.Presentation.Combat
 
             int validCount = 0;
 
-            for (int i = 0;
-                 i < clips.Length;
-                 i++)
+            for (int i = 0; i < clips.Length; i++)
             {
                 if (clips[i] != null)
                     validCount++;
@@ -509,9 +756,7 @@ namespace RaceFatal.Presentation.Combat
         {
             int ordinal = 0;
 
-            for (int i = 0;
-                 i < clips.Length;
-                 i++)
+            for (int i = 0; i < clips.Length; i++)
             {
                 if (clips[i] == null)
                     continue;

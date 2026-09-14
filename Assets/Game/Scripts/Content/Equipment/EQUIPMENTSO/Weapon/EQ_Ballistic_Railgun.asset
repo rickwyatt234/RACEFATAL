@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
+  m_Name: EQ_Ballistic_Railgun
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
+  id: weapon_ballistic_railgun
+  displayName: Ballistic Railgun
+  requiredNodeSize: 2
+  creditCost: 0
+  requiredTechnologyId: 
+  activationMode: 3
+  aimMode: 0
+  deliveryMode: 1
+  range: 500
+  projectileSpeed: 700
+  damage: 50
+  startingAmmo: 10
+  fireInterval: 0
+  chargeDuration: 3

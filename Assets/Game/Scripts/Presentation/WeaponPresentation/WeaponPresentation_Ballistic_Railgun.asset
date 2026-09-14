@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abd48beaac2d02f4cbb76032c34dfb0d, type: 3}
+  m_Name: WeaponPresentation_Ballistic_Railgun
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
+  weaponDefinitionId: weapon_ballistic_railgun
+  projectilePrefab: {fileID: 7690832473685224879, guid: 2471c629cedfade46aafe41fb76c0e94, type: 3}
+  muzzlePrefab: {fileID: 4117298910186226353, guid: 1afdc2131fd2e9f44aeac1227aad646f, type: 3}
+  muzzleFallbackLifetime: 2
+  chargePrefab: {fileID: 0}
+  fullChargePrefab: {fileID: 0}
+  fullChargeFallbackLifetime: 2
+  chargeLoopClip: {fileID: 8300000, guid: 20e5cd4c0b5014f11a56c410c4651575, type: 3}
+  fullChargeClip: {fileID: 8300000, guid: b7a87dc586b2b4bd38134ffb8763dd00, type: 3}
+  minimumChargeVolume: 0.2
+  maximumChargeVolume: 0.8
+  minimumChargePitch: 0.7
+  maximumChargePitch: 1.25
+  fullChargeVolume: 1
+  fireClips:
+  - {fileID: 8300000, guid: b2dcba9141f87437d9a76b6e00787530, type: 3}
+  - {fileID: 8300000, guid: 0a71daa9a8e2d492e9b5d98f0f91b331, type: 3}
+  - {fileID: 8300000, guid: 4ea3a828ca47b4f6591b234f658a855c, type: 3}
+  - {fileID: 8300000, guid: 5db7f146861664af4a60f8c5c459b9ff, type: 3}
+  - {fileID: 8300000, guid: 91e627ce9656e47a5ae399a45b031367, type: 3}
+  - {fileID: 8300000, guid: 352d0bbc7f9c74690906187a195aef0a, type: 3}
+  - {fileID: 8300000, guid: 662634f473d0942b69b89e0767f6a107, type: 3}
+  fireVolume: 1
+  fireVolumeVariation: 0.04
+  minimumFirePitch: 0.9
+  maximumFirePitch: 1.05
+  fireSpatialBlend: 1
+  fireMinDistance: 3
+  fireMaxDistance: 120
+  fireRolloffMode: 0
+  fireDopplerLevel: 0.1

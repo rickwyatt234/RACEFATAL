@@ -313,7 +313,16 @@ namespace RaceFatal.Presentation.Racing
 
                 view.Initialize(
                     participant);
+                    
+                WeaponChargePresentationController chargePresentation =
+                    bikeObject.GetComponentInChildren<
+                        WeaponChargePresentationController>(true);
 
+                if (chargePresentation != null)
+                {
+                    chargePresentation.Initialize(
+                        weaponPresenter);
+                }
                 BikeController playerController =
                     bikeObject.GetComponent<
                         BikeController>();

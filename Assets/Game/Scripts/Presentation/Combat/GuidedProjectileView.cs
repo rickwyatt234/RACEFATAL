@@ -11,27 +11,25 @@ namespace RaceFatal.Presentation.Combat
         [Min(0f)][SerializeField] private float minimumAcquisitionDistance = 5f;
 
         [Header("Launch")]
-        [Tooltip("How long the missile deliberately climbs after leaving the launcher.")]
         [Min(0f)][SerializeField] private float loftDuration = 0.3f;
-
-        [Tooltip("Initial climb angle relative to the launcher's local surface plane.")]
         [Range(0f, 45f)][SerializeField] private float loftAngle = 14f;
-
-        [Tooltip("Time before target guidance is allowed to begin.")]
         [Min(0f)][SerializeField] private float guidanceDelay = 0.2f;
 
         [Header("Cruise / Terminal Guidance")]
-        [Tooltip("How far above the target the missile aims while still at long range.")]
-        [Min(0f)][SerializeField] private float cruiseHeight = 4f;
+        [Tooltip("Height above the target maintained during normal missile cruise.")]
+        [Min(0f)][SerializeField] private float cruiseHeight = 6f;
 
-        [Tooltip("Inside this distance, the missile begins lowering its aim point toward the target.")]
-        [Min(0.1f)][SerializeField] private float terminalDiveDistance = 22f;
+        [Tooltip("Distance from the target at which the missile begins descending from cruise height.")]
+        [Min(0.1f)][SerializeField] private float terminalDiveStartDistance = 16f;
 
-        [Tooltip("Distance beyond Terminal Dive Distance over which full cruise height is reached.")]
-        [Min(0.1f)][SerializeField] private float cruiseHeightFadeDistance = 28f;
+        [Tooltip("Distance at which the missile finishes most of its descent and aims almost directly at the bike.")]
+        [Min(0.1f)][SerializeField] private float impactDiveDistance = 4f;
 
-        [Tooltip("Local point on the target motorcycle used as the final impact aim point.")]
-        [SerializeField] private Vector3 targetLocalOffset = new Vector3(0f, 0.7f, 0f);
+        [Tooltip("Minimum height retained above the target until the missile reaches its final impact distance.")]
+        [Min(0f)][SerializeField] private float minimumTerminalHeight = 0.5f;
+
+        [Tooltip("Local impact point on the target motorcycle.")]
+        [SerializeField] private Vector3 targetLocalOffset = new Vector3(0f, 0.9f, 0f);
 
         [Header("Steering")]
         [Min(0f)][SerializeField] private float turnRateDegreesPerSecond = 150f;
@@ -45,11 +43,12 @@ namespace RaceFatal.Presentation.Combat
         [Range(1f, 180f)][SerializeField] private float maximumTrackingAngle = 135f;
 
         [Header("Speed")]
-        [Tooltip("Fraction of Projectile Speed used immediately after launch.")]
         [Range(0.1f, 1f)][SerializeField] private float initialSpeedMultiplier = 0.7f;
-
-        [Tooltip("Seconds required to accelerate to the WeaponDefinition Projectile Speed.")]
         [Min(0.01f)][SerializeField] private float accelerationDuration = 0.4f;
+
+        [Header("Countermeasure Defeat")]
+        [Min(0f)][SerializeField] private float countermeasureTurnRate = 240f;
+        [Min(0f)][SerializeField] private float countermeasureClimbBias = 2f;
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugHasTarget;
@@ -57,35 +56,56 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private bool debugLofting;
         [SerializeField] private bool debugTerminalDive;
         [SerializeField] private bool debugLostLock;
+        [SerializeField] private bool debugCountered;
+
         [SerializeField] private string debugTargetRacer = "None";
+
         [SerializeField] private float debugFlightAge;
         [SerializeField] private float debugTargetDistance;
         [SerializeField] private float debugTargetAngle;
         [SerializeField] private float debugAimHeight;
         [SerializeField] private float debugSpeed;
+
         [SerializeField] private Vector3 debugDesiredDirection;
 
         private RacerViewController target;
         private Rigidbody targetBody;
+        private MissileThreatReceiver targetThreatReceiver;
 
         private Vector3 launchForward;
         private Vector3 launchUp;
+        private Vector3 countermeasureEscapeDirection;
 
         private float flightAge;
+
         private bool guidanceLost;
+        private bool countered;
 
-        public float AcquisitionHalfAngle => acquisitionHalfAngle;
-        public float MinimumAcquisitionDistance => minimumAcquisitionDistance;
+        public float AcquisitionHalfAngle =>
+            acquisitionHalfAngle;
 
-        public RacerViewController Target => target;
+        public float MinimumAcquisitionDistance =>
+            minimumAcquisitionDistance;
+
+        public RacerViewController Target =>
+            target;
 
         public bool HasTarget =>
             target != null &&
-            !guidanceLost;
+            !guidanceLost &&
+            !countered;
+
+        public bool IsActiveThreat =>
+            target != null &&
+            !guidanceLost &&
+            !countered &&
+            !IsResolved;
 
         public void InitializeGuidance(
             RacerViewController targetRacer)
         {
+            UnregisterThreat();
+
             target = targetRacer;
 
             targetBody =
@@ -105,20 +125,25 @@ namespace RaceFatal.Presentation.Combat
 
             flightAge = 0f;
             guidanceLost = false;
+            countered = false;
 
             debugHasTarget = target != null;
             debugGuidanceActive = false;
             debugLofting = true;
             debugTerminalDive = false;
             debugLostLock = false;
+            debugCountered = false;
 
             debugTargetRacer =
                 target != null
                     ? target.RacerId
                     : "None";
+
+            RegisterThreat();
         }
 
-        protected override float ResolveMovementSpeed(float deltaTime)
+        protected override float ResolveMovementSpeed(
+            float deltaTime)
         {
             flightAge += deltaTime;
 
@@ -145,12 +170,26 @@ namespace RaceFatal.Presentation.Combat
             return resolvedSpeed;
         }
 
-        protected override Vector3 ResolveMovementDirection(float deltaTime)
+        protected override Vector3 ResolveMovementDirection(
+            float deltaTime)
         {
             Vector3 currentDirection =
                 CurrentDirection.sqrMagnitude > 0.001f
                     ? CurrentDirection.normalized
                     : launchForward;
+
+            if (countered)
+            {
+                debugGuidanceActive = false;
+                debugLofting = false;
+                debugTerminalDive = false;
+
+                return RotateToward(
+                    currentDirection,
+                    countermeasureEscapeDirection,
+                    countermeasureTurnRate,
+                    deltaTime);
+            }
 
             if (flightAge < loftDuration)
             {
@@ -169,18 +208,15 @@ namespace RaceFatal.Presentation.Combat
             {
                 debugGuidanceActive = false;
 
-                return RotateToward(
-                    currentDirection,
-                    launchForward,
-                    deltaTime);
+                return currentDirection;
             }
 
-            Vector3 targetPoint =
+            Vector3 predictedTargetPoint =
                 target.transform.TransformPoint(
                     targetLocalOffset);
 
             Vector3 rawToTarget =
-                targetPoint -
+                predictedTargetPoint -
                 transform.position;
 
             float distance =
@@ -192,30 +228,9 @@ namespace RaceFatal.Presentation.Combat
             if (distance <= 0.001f)
                 return currentDirection;
 
-            float heightFactor =
-                Mathf.Clamp01(
-                    (distance - terminalDiveDistance) /
-                    cruiseHeightFadeDistance);
-
-            float currentAimHeight =
-                cruiseHeight *
-                heightFactor;
-
-            debugAimHeight =
-                currentAimHeight;
-
-            debugTerminalDive =
-                heightFactor < 1f;
-
             /*
-             * Target.transform.up is important here rather than
-             * Vector3.up because RACE//FATAL tracks can bank,
-             * curve vertically, and go upside-down.
+             * Predict where the bike will be first.
              */
-            targetPoint +=
-                target.transform.up *
-                currentAimHeight;
-
             if (targetBody != null &&
                 CurrentSpeed > 0.01f &&
                 leadAmount > 0f)
@@ -226,14 +241,44 @@ namespace RaceFatal.Presentation.Combat
                         distance /
                         CurrentSpeed);
 
-                targetPoint +=
+                predictedTargetPoint +=
                     targetBody.linearVelocity *
                     leadTime *
                     leadAmount;
             }
 
+            /*
+             * Stay at full cruise height until we are genuinely
+             * close to the bike.
+             *
+             * Then descend progressively:
+             *
+             * > terminalDiveStartDistance = full cruise height
+             * impactDiveDistance          = minimum terminal height
+             */
+            float aimHeight =
+                ResolveAimHeight(
+                    distance);
+
+            debugAimHeight =
+                aimHeight;
+
+            debugTerminalDive =
+                distance <=
+                terminalDiveStartDistance;
+
+            /*
+             * Use target-local up, not world up.
+             * This keeps guidance correct on banked, vertical,
+             * and upside-down track sections.
+             */
+            Vector3 aimPoint =
+                predictedTargetPoint +
+                target.transform.up *
+                aimHeight;
+
             Vector3 toAimPoint =
-                targetPoint -
+                aimPoint -
                 transform.position;
 
             if (toAimPoint.sqrMagnitude <= 0.001f)
@@ -257,7 +302,6 @@ namespace RaceFatal.Presentation.Combat
                 maximumTrackingAngle)
             {
                 LoseGuidance();
-
                 return currentDirection;
             }
 
@@ -266,7 +310,91 @@ namespace RaceFatal.Presentation.Combat
             return RotateToward(
                 currentDirection,
                 desiredDirection,
+                turnRateDegreesPerSecond,
                 deltaTime);
+        }
+
+        private float ResolveAimHeight(
+            float targetDistance)
+        {
+            /*
+             * Long range:
+             * stay fully elevated.
+             */
+            if (targetDistance >=
+                terminalDiveStartDistance)
+            {
+                return cruiseHeight;
+            }
+
+            /*
+             * Extremely close:
+             * aim directly at the target's configured
+             * local impact point.
+             */
+            if (targetDistance <=
+                impactDiveDistance)
+            {
+                return 0f;
+            }
+
+            /*
+             * Between those distances, smoothly descend
+             * from cruise height toward a small amount of
+             * remaining clearance.
+             */
+            float t =
+                Mathf.InverseLerp(
+                    impactDiveDistance,
+                    terminalDiveStartDistance,
+                    targetDistance);
+
+            t =
+                Mathf.SmoothStep(
+                    0f,
+                    1f,
+                    t);
+
+            return Mathf.Lerp(
+                minimumTerminalHeight,
+                cruiseHeight,
+                t);
+        }
+
+        public void DefeatByCountermeasure(
+            Vector3 escapeUp)
+        {
+            if (!IsActiveThreat)
+                return;
+
+            Vector3 currentDirection =
+                CurrentDirection.sqrMagnitude > 0.001f
+                    ? CurrentDirection.normalized
+                    : transform.forward;
+
+            Vector3 up =
+                escapeUp.sqrMagnitude > 0.001f
+                    ? escapeUp.normalized
+                    : transform.up;
+
+            countermeasureEscapeDirection =
+                (currentDirection +
+                 up *
+                 countermeasureClimbBias)
+                .normalized;
+
+            countered = true;
+            guidanceLost = true;
+
+            debugCountered = true;
+            debugLostLock = true;
+            debugHasTarget = false;
+            debugGuidanceActive = false;
+
+            UnregisterThreat();
+
+            target = null;
+            targetBody = null;
         }
 
         private Vector3 ResolveLoftDirection()
@@ -300,13 +428,14 @@ namespace RaceFatal.Presentation.Combat
         private Vector3 RotateToward(
             Vector3 currentDirection,
             Vector3 desiredDirection,
+            float turnRate,
             float deltaTime)
         {
             if (desiredDirection.sqrMagnitude < 0.001f)
                 return currentDirection;
 
             float maximumTurnRadians =
-                turnRateDegreesPerSecond *
+                turnRate *
                 Mathf.Deg2Rad *
                 deltaTime;
 
@@ -324,9 +453,7 @@ namespace RaceFatal.Presentation.Combat
                 !target.IsInitialized ||
                 target.Participant == null)
             {
-                if (target != null)
-                    LoseGuidance();
-
+                LoseGuidance();
                 return false;
             }
 
@@ -350,13 +477,50 @@ namespace RaceFatal.Presentation.Combat
             return true;
         }
 
+        private void RegisterThreat()
+        {
+            if (target == null)
+                return;
+
+            targetThreatReceiver =
+                target.GetComponent<
+                    MissileThreatReceiver>();
+
+            if (targetThreatReceiver != null)
+            {
+                targetThreatReceiver.RegisterThreat(
+                    this);
+            }
+        }
+
+        private void UnregisterThreat()
+        {
+            if (targetThreatReceiver == null)
+                return;
+
+            targetThreatReceiver.UnregisterThreat(
+                this);
+
+            targetThreatReceiver = null;
+        }
+
         private void LoseGuidance()
         {
+            if (guidanceLost)
+                return;
+
             guidanceLost = true;
 
             debugHasTarget = false;
             debugGuidanceActive = false;
             debugLostLock = true;
+
+            UnregisterThreat();
+        }
+
+        private void OnDestroy()
+        {
+            UnregisterThreat();
         }
     }
 }
