@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: EQ_Countermeasure_Flare_Standard
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.CountermeasureDefinitionSO
   id: countermeasure_flare_standard
-  displayName: Countermeasure Flare
+  displayName: Standard Countermeasure Flare
   requiredNodeSize: 0
   creditCost: 0
   requiredTechnologyId: 
   countermeasureType: 1
   cooldown: 0
+  usesPerRace: 3
+  triggerDistance: 20
+  defeatRadius: 35

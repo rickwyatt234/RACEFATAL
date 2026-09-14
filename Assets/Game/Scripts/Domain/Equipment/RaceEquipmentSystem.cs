@@ -318,6 +318,129 @@ namespace RaceFatal.Equipment
 
         #region Weapon Selection
 
+        public bool TryGetWeaponSnapshot(
+            int index,
+            out RaceWeaponSnapshot snapshot)
+        {
+            snapshot =
+                default;
+
+            if (index < 0 ||
+                index >= weapons.Count)
+            {
+                return false;
+            }
+
+            WeaponState weapon =
+                weapons[index];
+
+            if (weapon == null ||
+                weapon.Definition == null ||
+                weapon.Equipment == null)
+            {
+                return false;
+            }
+
+            snapshot =
+                new RaceWeaponSnapshot(
+                    weapon.Equipment.EquipmentId,
+                    weapon.Definition,
+                    weapon.CurrentAmmo,
+                    weapon.Definition.StartingAmmo,
+                    index == selectedIndex);
+
+            return true;
+        }
+
+        public bool TryGetWeaponSnapshot(
+            string equipmentId,
+            out RaceWeaponSnapshot snapshot)
+        {
+            snapshot =
+                default;
+
+            if (string.IsNullOrWhiteSpace(
+                    equipmentId))
+            {
+                return false;
+            }
+
+            for (int i = 0;
+                i < weapons.Count;
+                i++)
+            {
+                WeaponState weapon =
+                    weapons[i];
+
+                if (weapon == null ||
+                    weapon.Equipment == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(
+                        weapon.Equipment.EquipmentId,
+                        equipmentId,
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                snapshot =
+                    new RaceWeaponSnapshot(
+                        weapon.Equipment.EquipmentId,
+                        weapon.Definition,
+                        weapon.CurrentAmmo,
+                        weapon.Definition.StartingAmmo,
+                        i == selectedIndex);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool SelectWeapon(
+            string equipmentId)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    equipmentId))
+            {
+                return false;
+            }
+
+            for (int i = 0;
+                i < weapons.Count;
+                i++)
+            {
+                WeaponState weapon =
+                    weapons[i];
+
+                if (weapon?.Equipment == null)
+                    continue;
+
+                if (!string.Equals(
+                        weapon.Equipment.EquipmentId,
+                        equipmentId,
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (selectedIndex == i)
+                    return true;
+
+                StopCurrentWeaponActivation();
+
+                selectedIndex =
+                    i;
+
+                return true;
+            }
+
+            return false;
+        }
+
         public string SelectNext()
         {
             StopCurrentWeaponActivation();
@@ -667,10 +790,10 @@ namespace RaceFatal.Equipment
 
         #region Countermeasures
 
-        public bool TryGetFirstCountermeasureDefinitionId(
-            out string definitionId)
+        public bool TryGetFirstCountermeasureDefinition(
+            out CountermeasureDefinition definition)
         {
-            definitionId = null;
+            definition = null;
 
             if (countermeasures.Count == 0)
                 return false;
@@ -681,42 +804,28 @@ namespace RaceFatal.Equipment
             if (state?.Definition == null)
                 return false;
 
+            definition =
+                state.Definition;
+
+            return true;
+        }
+
+        public bool TryGetFirstCountermeasureDefinitionId(
+            out string definitionId)
+        {
+            definitionId = null;
+
+            if (!TryGetFirstCountermeasureDefinition(
+                    out CountermeasureDefinition definition))
+            {
+                return false;
+            }
+
             definitionId =
-                state.Definition.Id;
+                definition.Id;
 
             return !string.IsNullOrWhiteSpace(
                 definitionId);
-        }
-
-        public bool ConfigureCountermeasureUses(
-            string definitionId,
-            int startingUses)
-        {
-            if (string.IsNullOrWhiteSpace(definitionId))
-                return false;
-
-            foreach (CountermeasureState state in countermeasures)
-            {
-                if (!string.Equals(
-                        state.Definition.Id,
-                        definitionId,
-                        StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                state.MaximumUses =
-                    Math.Max(
-                        0,
-                        startingUses);
-
-                state.RemainingUses =
-                    state.MaximumUses;
-
-                return true;
-            }
-
-            return false;
         }
 
         public int GetCountermeasureRemainingUses(
@@ -917,8 +1026,13 @@ namespace RaceFatal.Equipment
 
         private class CountermeasureState
         {
-            public EquipmentState Equipment { get; }
-            public CountermeasureDefinition Definition { get; }
+            public EquipmentState Equipment {
+                get;
+            }
+
+            public CountermeasureDefinition Definition {
+                get;
+            }
 
             public int MaximumUses;
             public int RemainingUses;
@@ -928,8 +1042,22 @@ namespace RaceFatal.Equipment
                 EquipmentState equipment,
                 CountermeasureDefinition definition)
             {
-                Equipment = equipment;
-                Definition = definition;
+                Equipment =
+                    equipment;
+
+                Definition =
+                    definition;
+
+                MaximumUses =
+                    Math.Max(
+                        0,
+                        definition.UsesPerRace);
+
+                RemainingUses =
+                    MaximumUses;
+
+                CooldownRemaining =
+                    0f;
             }
         }
 

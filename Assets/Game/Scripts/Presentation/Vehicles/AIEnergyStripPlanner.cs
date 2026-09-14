@@ -1,12 +1,14 @@
-using RaceFatal.Presentation.Racing;
+using System;
+using System.Collections.Generic;
 using RaceFatal.Presentation.Tracks;
+using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    public class AIEnergyStripPlanner : MonoBehaviour
+    [Serializable]
+    public class AIEnergyStripPlanner
     {
         #region Energy Strategy
 
@@ -104,8 +106,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (raceParticipant == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a RaceParticipant.",
-                    this);
+                    $"{nameof(AIEnergyStripPlanner)} requires a RaceParticipant.");
 
                 return false;
             }
@@ -113,8 +114,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (runtime == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a RaceRuntimeController.",
-                    this);
+                    $"{nameof(AIEnergyStripPlanner)} requires a RaceRuntimeController.");
 
                 return false;
             }
@@ -122,8 +122,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (path == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a TrackProgressPath.",
-                    this);
+                    $"{nameof(AIEnergyStripPlanner)} requires a TrackProgressPath.");
 
                 return false;
             }
@@ -131,8 +130,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (raceParticipant.Vehicle?.EnergyPool == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a race vehicle with Energy.",
-                    this);
+                    $"{nameof(AIEnergyStripPlanner)} requires a race vehicle with Energy.");
 
                 return false;
             }
@@ -270,7 +268,8 @@ namespace RaceFatal.Presentation.Vehicles
                 return ReturnOffsetToZero();
             }
 
-            debugDecision = "Strip Target Acquired";
+            debugDecision =
+                "Strip Target Acquired";
 
             return UpdateTargetOffset(
                 baseLateralOffset,
@@ -293,9 +292,7 @@ namespace RaceFatal.Presentation.Vehicles
             IReadOnlyList<EnergyStripAIAnchor> strips =
                 EnergyStripAIAnchor.ActiveAnchors;
 
-            for (int i = 0;
-                 i < strips.Count;
-                 i++)
+            for (int i = 0; i < strips.Count; i++)
             {
                 EnergyStripAIAnchor strip =
                     strips[i];
@@ -319,10 +316,8 @@ namespace RaceFatal.Presentation.Vehicles
                         currentProgress,
                         stripProgress);
 
-                if (forwardDistance <
-                        minimumDistance ||
-                    forwardDistance >
-                        maximumDistance)
+                if (forwardDistance < minimumDistance ||
+                    forwardDistance > maximumDistance)
                 {
                     continue;
                 }
@@ -386,6 +381,7 @@ namespace RaceFatal.Presentation.Vehicles
                     Time.fixedDeltaTime);
 
             debugTargetingStrip = true;
+
             debugTargetName =
                 targetStrip != null
                     ? targetStrip.name
@@ -397,7 +393,8 @@ namespace RaceFatal.Presentation.Vehicles
             debugTacticalOffset =
                 currentTacticalOffset;
 
-            debugDecision = "Seeking Strip";
+            debugDecision =
+                "Seeking Strip";
 
             return currentTacticalOffset;
         }
@@ -415,6 +412,12 @@ namespace RaceFatal.Presentation.Vehicles
                 currentTacticalOffset;
 
             return currentTacticalOffset;
+        }
+
+        public void ResetPlanning()
+        {
+            ClearTarget("Reset");
+            currentTacticalOffset = 0f;
         }
 
         private void ClearTarget(
@@ -502,16 +505,6 @@ namespace RaceFatal.Presentation.Vehicles
                 .Director
                 .State
                 .IsFinished;
-        }
-
-        #endregion
-
-        #region Unity
-
-        private void OnDisable()
-        {
-            ClearTarget("Disabled");
-            currentTacticalOffset = 0f;
         }
 
         #endregion

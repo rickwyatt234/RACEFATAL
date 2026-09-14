@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
@@ -11,65 +10,56 @@ namespace RaceFatal.Presentation.Combat
     [RequireComponent(typeof(MissileThreatReceiver))]
     public class AutomaticCountermeasureController : MonoBehaviour
     {
-        [Serializable]
-        private class CountermeasureModelSettings
-        {
-            [Tooltip("Must exactly match the installed CountermeasureDefinition ID.")]
-            [SerializeField] private string definitionId;
+        #region Configuration
 
-            [Tooltip("Number of automatic deployments available for one race.")]
-            [Min(1)][SerializeField] private int startingUses = 4;
-
-            [Tooltip("Nearest missile distance at which this unit automatically deploys.")]
-            [Min(0.1f)][SerializeField] private float triggerDistance = 25f;
-
-            [Tooltip("All missiles targeting this racer within this radius are defeated by the deployment.")]
-            [Min(0.1f)][SerializeField] private float defeatRadius = 35f;
-
-            [Header("Flare Presentation")]
-            [SerializeField] private CountermeasureFlareView flarePrefab;
-            [Min(1)][SerializeField] private int flareCount = 2;
-            [Min(0f)][SerializeField] private float flareEjectionSpeed = 30f;
-            [Range(0f, 60f)][SerializeField] private float horizontalSpread = 15f;
-            [Range(-30f, 60f)][SerializeField] private float upwardAngle = 8f;
-            [Min(0.1f)][SerializeField] private float flareLifetime = 1.5f;
-
-            public string DefinitionId => definitionId;
-            public int StartingUses => startingUses;
-            public float TriggerDistance => triggerDistance;
-            public float DefeatRadius => defeatRadius;
-
-            public CountermeasureFlareView FlarePrefab => flarePrefab;
-            public int FlareCount => flareCount;
-            public float FlareEjectionSpeed => flareEjectionSpeed;
-            public float HorizontalSpread => horizontalSpread;
-            public float UpwardAngle => upwardAngle;
-            public float FlareLifetime => flareLifetime;
-        }
-
-        [Header("Countermeasure Models")]
-        [SerializeField] private List<CountermeasureModelSettings> models =
-            new List<CountermeasureModelSettings>();
+        [Header("Countermeasure Presentation")]
+        [Tooltip("Shared presentation profiles for all countermeasure definitions.")]
+        [SerializeField] private CountermeasureRuntimeCatalogSO catalog;
 
         [Header("Flare Origins")]
-        [Tooltip("Rear-mounted flare origins. Alternated when multiple flares deploy.")]
+        [Tooltip("Bike-specific rear-mounted flare origins. Alternated when multiple flares deploy.")]
         [SerializeField] private Transform[] flareOrigins;
+
+        #endregion
+
+        #region Audio
 
         [Header("Optional Audio")]
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip[] deploymentClips;
-        [Range(0f, 1f)][SerializeField] private float deploymentVolume = 1f;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float deploymentVolume = 1f;
+
+        #endregion
+
+        #region Debug
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugResolved;
         [SerializeField] private bool debugHasCountermeasure;
+        [SerializeField] private bool debugProfileResolved;
+
         [SerializeField] private string debugDefinitionId = "None";
+        [SerializeField] private string debugProfile = "None";
+        [SerializeField] private string debugCountermeasureType = "None";
+
+        [SerializeField] private float debugCooldown;
+        [SerializeField] private float debugTriggerDistance;
+        [SerializeField] private float debugDefeatRadius;
+
         [SerializeField] private int debugRemainingUses;
         [SerializeField] private int debugMaximumUses;
+
         [SerializeField] private int debugThreatCount;
         [SerializeField] private float debugNearestThreatDistance;
         [SerializeField] private int debugLastMissilesCountered;
+
         [SerializeField] private string debugState = "Resolving";
+
+        #endregion
+
+        #region Runtime
 
         private RacerViewController racerView;
         private MissileThreatReceiver threatReceiver;
@@ -77,10 +67,16 @@ namespace RaceFatal.Presentation.Combat
 
         private RaceParticipant participant;
         private RaceEquipmentSystem equipment;
-        private CountermeasureModelSettings activeSettings;
+
+        private CountermeasureDefinition activeDefinition;
+        private CountermeasureRuntimeProfileSO activeProfile;
 
         private string activeDefinitionId;
         private bool resolved;
+
+        #endregion
+
+        #region Unity
 
         private void Awake()
         {
@@ -95,8 +91,11 @@ namespace RaceFatal.Presentation.Combat
 
             if (audioSource != null)
             {
-                audioSource.playOnAwake = false;
-                audioSource.loop = false;
+                audioSource.playOnAwake =
+                    false;
+
+                audioSource.loop =
+                    false;
             }
         }
 
@@ -110,17 +109,23 @@ namespace RaceFatal.Presentation.Combat
 
             if (participant == null ||
                 participant.Vehicle == null ||
-                participant.Status != RaceParticipantStatus.Racing ||
+                participant.Status !=
+                    RaceParticipantStatus.Racing ||
                 participant.Vehicle.IsDestroyed)
             {
-                debugState = "Inactive";
+                debugState =
+                    "Inactive";
+
                 return;
             }
 
-            if (activeSettings == null ||
+            if (activeDefinition == null ||
+                activeProfile == null ||
                 equipment == null)
             {
-                debugState = "No Countermeasure";
+                debugState =
+                    "No Countermeasure";
+
                 return;
             }
 
@@ -133,8 +138,12 @@ namespace RaceFatal.Presentation.Combat
                     out GuidedProjectileView nearest,
                     out float nearestDistance))
             {
-                debugNearestThreatDistance = 0f;
-                debugState = "Armed";
+                debugNearestThreatDistance =
+                    0f;
+
+                debugState =
+                    "Armed";
+
                 return;
             }
 
@@ -142,28 +151,38 @@ namespace RaceFatal.Presentation.Combat
                 nearestDistance;
 
             if (nearestDistance >
-                activeSettings.TriggerDistance)
+                activeDefinition.TriggerDistance)
             {
-                debugState = "Threat Detected";
+                debugState =
+                    "Threat Detected";
+
                 return;
             }
 
             if (equipment.GetCountermeasureRemainingUses(
                     activeDefinitionId) <= 0)
             {
-                debugState = "Depleted";
+                debugState =
+                    "Depleted";
+
                 return;
             }
 
             if (!equipment.TryTriggerCountermeasure(
                     activeDefinitionId))
             {
-                debugState = "Cooldown";
+                debugState =
+                    "Cooldown";
+
                 return;
             }
 
             DeployCountermeasure();
         }
+
+        #endregion
+
+        #region Resolution
 
         private void TryResolve()
         {
@@ -184,72 +203,119 @@ namespace RaceFatal.Presentation.Combat
             if (equipment == null)
                 return;
 
-            resolved = true;
-            debugResolved = true;
+            resolved =
+                true;
 
-            if (!equipment.TryGetFirstCountermeasureDefinitionId(
-                    out activeDefinitionId))
+            debugResolved =
+                true;
+
+            if (!equipment.TryGetFirstCountermeasureDefinition(
+                    out activeDefinition))
             {
-                debugHasCountermeasure = false;
-                debugState = "No Countermeasure";
+                debugHasCountermeasure =
+                    false;
+
+                debugDefinitionId =
+                    "None";
+
+                debugProfileResolved =
+                    false;
+
+                debugProfile =
+                    "None";
+
+                debugState =
+                    "No Countermeasure";
+
                 return;
             }
 
-            debugHasCountermeasure = true;
-            debugDefinitionId = activeDefinitionId;
+            activeDefinitionId =
+                activeDefinition.Id;
 
-            activeSettings =
-                FindModelSettings(
-                    activeDefinitionId);
+            debugHasCountermeasure =
+                true;
 
-            if (activeSettings == null)
+            debugDefinitionId =
+                activeDefinitionId;
+
+            debugCountermeasureType =
+                activeDefinition
+                    .CountermeasureType
+                    .ToString();
+
+            debugCooldown =
+                activeDefinition.Cooldown;
+
+            debugTriggerDistance =
+                activeDefinition.TriggerDistance;
+
+            debugDefeatRadius =
+                activeDefinition.DefeatRadius;
+
+            if (catalog == null)
             {
-                debugState = "No Model Settings";
+                debugProfileResolved =
+                    false;
+
+                debugState =
+                    "No Presentation Catalog";
 
                 Debug.LogWarning(
-                    $"No automatic countermeasure settings are configured for " +
+                    $"{nameof(AutomaticCountermeasureController)} " +
+                    $"on '{name}' has no countermeasure presentation " +
+                    "catalog assigned.",
+                    this);
+
+                return;
+            }
+
+            if (!catalog.TryGetProfile(
+                    activeDefinitionId,
+                    out activeProfile))
+            {
+                debugProfileResolved =
+                    false;
+
+                debugProfile =
+                    "None";
+
+                debugState =
+                    "No Presentation Profile";
+
+                Debug.LogWarning(
+                    $"No countermeasure presentation profile exists for " +
                     $"definition '{activeDefinitionId}'.",
                     this);
 
                 return;
             }
 
-            equipment.ConfigureCountermeasureUses(
-                activeDefinitionId,
-                activeSettings.StartingUses);
+            debugProfileResolved =
+                true;
+
+            debugProfile =
+                activeProfile.name;
 
             UpdateUsageDebug();
 
-            debugState = "Armed";
+            debugState =
+                "Armed";
         }
 
-        private CountermeasureModelSettings FindModelSettings(
-            string definitionId)
-        {
-            for (int i = 0; i < models.Count; i++)
-            {
-                CountermeasureModelSettings model =
-                    models[i];
+        #endregion
 
-                if (model == null)
-                    continue;
-
-                if (string.Equals(
-                        model.DefinitionId,
-                        definitionId,
-                        StringComparison.Ordinal))
-                {
-                    return model;
-                }
-            }
-
-            return null;
-        }
+        #region Deployment
 
         private void DeployCountermeasure()
         {
             SpawnFlares();
 
+            /*
+             * Countermeasure escape direction deliberately uses
+             * local bike up. This keeps missile defeat correct
+             * on walls, loops and inverted track sections.
+             */
             Vector3 escapeUp =
                 transform.up;
 
@@ -258,7 +324,9 @@ namespace RaceFatal.Presentation.Combat
 
             int defeatedCount = 0;
 
-            for (int i = 0; i < threats.Count; i++)
+            for (int i = 0;
+                 i < threats.Count;
+                 i++)
             {
                 GuidedProjectileView missile =
                     threats[i];
@@ -275,7 +343,7 @@ namespace RaceFatal.Presentation.Combat
                         missile.transform.position);
 
                 if (distance >
-                    activeSettings.DefeatRadius)
+                    activeDefinition.DefeatRadius)
                 {
                     continue;
                 }
@@ -300,10 +368,17 @@ namespace RaceFatal.Presentation.Combat
                     : "Depleted";
         }
 
+        #endregion
+
+        #region Flares
+
         private void SpawnFlares()
         {
-            if (activeSettings.FlarePrefab == null)
+            if (activeProfile == null ||
+                activeProfile.FlarePrefab == null)
+            {
                 return;
+            }
 
             Vector3 inheritedVelocity =
                 body != null
@@ -311,11 +386,12 @@ namespace RaceFatal.Presentation.Combat
                     : Vector3.zero;
 
             for (int i = 0;
-                 i < activeSettings.FlareCount;
+                 i < activeProfile.FlareCount;
                  i++)
             {
                 Transform origin =
-                    ResolveFlareOrigin(i);
+                    ResolveFlareOrigin(
+                        i);
 
                 Vector3 position =
                     origin != null
@@ -344,34 +420,35 @@ namespace RaceFatal.Presentation.Combat
 
                 float horizontal =
                     Mathf.Tan(
-                        activeSettings.HorizontalSpread *
+                        activeProfile.HorizontalSpread *
                         Mathf.Deg2Rad) *
-                    UnityEngine.Random.Range(
+                    Random.Range(
                         -1f,
                         1f);
 
                 float vertical =
                     Mathf.Tan(
-                        activeSettings.UpwardAngle *
+                        activeProfile.UpwardAngle *
                         Mathf.Deg2Rad);
 
                 Vector3 direction =
-                    (back +
-                     right * horizontal +
-                     up * vertical)
-                    .normalized;
+                    (
+                        back +
+                        right * horizontal +
+                        up * vertical
+                    ).normalized;
 
                 CountermeasureFlareView flare =
                     Instantiate(
-                        activeSettings.FlarePrefab,
+                        activeProfile.FlarePrefab,
                         position,
                         rotation);
 
                 flare.Initialize(
                     inheritedVelocity,
                     direction,
-                    activeSettings.FlareEjectionSpeed,
-                    activeSettings.FlareLifetime);
+                    activeProfile.FlareEjectionSpeed,
+                    activeProfile.FlareLifetime);
             }
         }
 
@@ -389,6 +466,10 @@ namespace RaceFatal.Presentation.Combat
                 flareOrigins.Length];
         }
 
+        #endregion
+
+        #region Audio
+
         private void PlayDeploymentAudio()
         {
             if (audioSource == null ||
@@ -398,19 +479,61 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
-            AudioClip clip =
-                deploymentClips[
-                    UnityEngine.Random.Range(
-                        0,
-                        deploymentClips.Length)];
+            int validCount = 0;
 
-            if (clip == null)
+            for (int i = 0;
+                 i < deploymentClips.Length;
+                 i++)
+            {
+                if (deploymentClips[i] != null)
+                    validCount++;
+            }
+
+            if (validCount == 0)
+                return;
+
+            int target =
+                Random.Range(
+                    0,
+                    validCount);
+
+            int current = 0;
+
+            AudioClip selectedClip =
+                null;
+
+            for (int i = 0;
+                 i < deploymentClips.Length;
+                 i++)
+            {
+                AudioClip clip =
+                    deploymentClips[i];
+
+                if (clip == null)
+                    continue;
+
+                if (current == target)
+                {
+                    selectedClip =
+                        clip;
+
+                    break;
+                }
+
+                current++;
+            }
+
+            if (selectedClip == null)
                 return;
 
             audioSource.PlayOneShot(
-                clip,
+                selectedClip,
                 deploymentVolume);
         }
+
+        #endregion
+
+        #region Debug
 
         private void UpdateUsageDebug()
         {
@@ -418,6 +541,12 @@ namespace RaceFatal.Presentation.Combat
                 string.IsNullOrWhiteSpace(
                     activeDefinitionId))
             {
+                debugRemainingUses =
+                    0;
+
+                debugMaximumUses =
+                    0;
+
                 return;
             }
 
@@ -429,5 +558,7 @@ namespace RaceFatal.Presentation.Combat
                 equipment.GetCountermeasureMaximumUses(
                     activeDefinitionId);
         }
+
+        #endregion
     }
 }

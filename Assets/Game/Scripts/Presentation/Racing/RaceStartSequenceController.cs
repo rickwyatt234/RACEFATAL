@@ -33,8 +33,12 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip countdownClip;
         [SerializeField] private AudioClip goClip;
-        [Range(0f, 1f)][SerializeField] private float countdownVolume = 1f;
-        [Range(0f, 1f)][SerializeField] private float goVolume = 1f;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float countdownVolume = 1f;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float goVolume = 1f;
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugRunning;
@@ -42,20 +46,27 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private bool debugBoostAllowed;
         [SerializeField] private bool debugWeaponsAllowed;
         [SerializeField] private string debugDisplay = "";
-        [SerializeField] private int debugCapturedControllers;
+        [SerializeField] private int debugCapturedDrivers;
 
-        private readonly List<ControllerState> controllerStates =
-            new List<ControllerState>();
+        private readonly List<DriverState> driverStates =
+            new List<DriverState>();
 
         private RaceRuntimeController raceRuntime;
         private Coroutine sequenceRoutine;
         private Coroutine boostRoutine;
         private Coroutine weaponRoutine;
 
-        public bool IsRunning => debugRunning;
-        public bool RaceStarted => debugRaceStarted;
-        public bool BoostAllowed => debugBoostAllowed;
-        public bool WeaponsAllowed => debugWeaponsAllowed;
+        public bool IsRunning =>
+            debugRunning;
+
+        public bool RaceStarted =>
+            debugRaceStarted;
+
+        public bool BoostAllowed =>
+            debugBoostAllowed;
+
+        public bool WeaponsAllowed =>
+            debugWeaponsAllowed;
 
         public event Action OnRaceStarted;
         public event Action OnBoostUnlocked;
@@ -65,14 +76,18 @@ namespace RaceFatal.Presentation.Racing
         {
             if (audioSource != null)
             {
-                audioSource.playOnAwake = false;
-                audioSource.loop = false;
+                audioSource.playOnAwake =
+                    false;
+
+                audioSource.loop =
+                    false;
             }
 
             HideCountdown();
         }
 
-        public void Begin(RaceRuntimeController runtime)
+        public void Begin(
+            RaceRuntimeController runtime)
         {
             if (debugRunning)
                 return;
@@ -80,7 +95,8 @@ namespace RaceFatal.Presentation.Racing
             if (runtime == null)
             {
                 Debug.LogError(
-                    $"{nameof(RaceStartSequenceController)} requires a RaceRuntimeController.",
+                    $"{nameof(RaceStartSequenceController)} " +
+                    "requires a RaceRuntimeController.",
                     this);
 
                 return;
@@ -89,7 +105,8 @@ namespace RaceFatal.Presentation.Racing
             if (runtime.Director?.State == null)
             {
                 Debug.LogError(
-                    $"{nameof(RaceStartSequenceController)} requires an initialized race runtime.",
+                    $"{nameof(RaceStartSequenceController)} " +
+                    "requires an initialized race runtime.",
                     this);
 
                 return;
@@ -98,13 +115,15 @@ namespace RaceFatal.Presentation.Racing
             if (runtime.HasStarted)
             {
                 Debug.LogWarning(
-                    "Race start sequence cannot begin because the race has already started.",
+                    "Race start sequence cannot begin because " +
+                    "the race has already started.",
                     this);
 
                 return;
             }
 
-            raceRuntime = runtime;
+            raceRuntime =
+                runtime;
 
             debugRunning = true;
             debugRaceStarted = false;
@@ -115,7 +134,7 @@ namespace RaceFatal.Presentation.Racing
                 allowBoost: false,
                 allowWeapons: false);
 
-            CaptureAndDisableRaceControllers();
+            CaptureAndDisableDrivers();
 
             sequenceRoutine =
                 StartCoroutine(
@@ -128,8 +147,9 @@ namespace RaceFatal.Presentation.Racing
 
             if (preCountdownDelay > 0f)
             {
-                yield return new WaitForSecondsRealtime(
-                    preCountdownDelay);
+                yield return
+                    new WaitForSecondsRealtime(
+                        preCountdownDelay);
             }
 
             for (int value = countdownFrom;
@@ -143,8 +163,9 @@ namespace RaceFatal.Presentation.Racing
                     countdownClip,
                     countdownVolume);
 
-                yield return new WaitForSecondsRealtime(
-                    countdownStepDuration);
+                yield return
+                    new WaitForSecondsRealtime(
+                        countdownStepDuration);
             }
 
             StartRace();
@@ -180,8 +201,9 @@ namespace RaceFatal.Presentation.Racing
 
             if (goDisplayDuration > 0f)
             {
-                yield return new WaitForSecondsRealtime(
-                    goDisplayDuration);
+                yield return
+                    new WaitForSecondsRealtime(
+                        goDisplayDuration);
             }
 
             HideCountdown();
@@ -200,17 +222,19 @@ namespace RaceFatal.Presentation.Racing
 
             raceRuntime.StartRace();
 
-            RestoreRaceControllers();
+            RestoreDrivers();
 
-            debugRaceStarted = true;
+            debugRaceStarted =
+                true;
 
             OnRaceStarted?.Invoke();
         }
 
         private IEnumerator UnlockBoostAfterDelay()
         {
-            yield return new WaitForSecondsRealtime(
-                boostUnlockDelay);
+            yield return
+                new WaitForSecondsRealtime(
+                    boostUnlockDelay);
 
             UnlockBoost();
 
@@ -219,8 +243,9 @@ namespace RaceFatal.Presentation.Racing
 
         private IEnumerator UnlockWeaponsAfterDelay()
         {
-            yield return new WaitForSecondsRealtime(
-                weaponUnlockDelay);
+            yield return
+                new WaitForSecondsRealtime(
+                    weaponUnlockDelay);
 
             UnlockWeapons();
 
@@ -229,18 +254,22 @@ namespace RaceFatal.Presentation.Racing
 
         private void UnlockBoost()
         {
-            SetBoostPermission(true);
+            SetBoostPermission(
+                true);
 
-            debugBoostAllowed = true;
+            debugBoostAllowed =
+                true;
 
             OnBoostUnlocked?.Invoke();
         }
 
         private void UnlockWeapons()
         {
-            SetWeaponPermission(true);
+            SetWeaponPermission(
+                true);
 
-            debugWeaponsAllowed = true;
+            debugWeaponsAllowed =
+                true;
 
             OnWeaponsUnlocked?.Invoke();
         }
@@ -258,7 +287,8 @@ namespace RaceFatal.Presentation.Racing
                      in raceRuntime.Director.State.Participants)
             {
                 RaceEquipmentSystem equipment =
-                    participant.Vehicle?.EquipmentSystem;
+                    participant.Vehicle?
+                        .EquipmentSystem;
 
                 equipment?.SetRaceActivationPermissions(
                     allowBoost,
@@ -276,7 +306,8 @@ namespace RaceFatal.Presentation.Racing
                      in raceRuntime.Director.State.Participants)
             {
                 RaceEquipmentSystem equipment =
-                    participant.Vehicle?.EquipmentSystem;
+                    participant.Vehicle?
+                        .EquipmentSystem;
 
                 if (equipment == null)
                     continue;
@@ -297,7 +328,8 @@ namespace RaceFatal.Presentation.Racing
                      in raceRuntime.Director.State.Participants)
             {
                 RaceEquipmentSystem equipment =
-                    participant.Vehicle?.EquipmentSystem;
+                    participant.Vehicle?
+                        .EquipmentSystem;
 
                 if (equipment == null)
                     continue;
@@ -310,74 +342,64 @@ namespace RaceFatal.Presentation.Racing
 
         #endregion
 
-        #region Controller Lock
+        #region Driver Lock
 
-        private void CaptureAndDisableRaceControllers()
+        private void CaptureAndDisableDrivers()
         {
-            controllerStates.Clear();
+            driverStates.Clear();
 
-            BikeController[] playerControllers =
-                FindObjectsByType<BikeController>(
+            BikeRuntimeController[] bikes =
+                FindObjectsByType<
+                    BikeRuntimeController>(
                     FindObjectsInactive.Include,
                     FindObjectsSortMode.None);
 
             for (int i = 0;
-                 i < playerControllers.Length;
+                 i < bikes.Length;
                  i++)
             {
-                CaptureController(
-                    playerControllers[i]);
+                BikeRuntimeController bike =
+                    bikes[i];
+
+                if (bike == null ||
+                    !bike.IsDriverConfigured)
+                {
+                    continue;
+                }
+
+                driverStates.Add(
+                    new DriverState(
+                        bike,
+                        bike.DriverControlEnabled));
+
+                bike.SetDriverControlEnabled(
+                    false);
             }
 
-            AIDriverController[] aiControllers =
-                FindObjectsByType<AIDriverController>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
-
-            for (int i = 0;
-                 i < aiControllers.Length;
-                 i++)
-            {
-                CaptureController(
-                    aiControllers[i]);
-            }
-
-            debugCapturedControllers =
-                controllerStates.Count;
+            debugCapturedDrivers =
+                driverStates.Count;
         }
 
-        private void CaptureController(
-            Behaviour behaviour)
-        {
-            if (behaviour == null)
-                return;
-
-            controllerStates.Add(
-                new ControllerState(
-                    behaviour,
-                    behaviour.enabled));
-
-            behaviour.enabled = false;
-        }
-
-        private void RestoreRaceControllers()
+        private void RestoreDrivers()
         {
             for (int i = 0;
-                 i < controllerStates.Count;
+                 i < driverStates.Count;
                  i++)
             {
-                ControllerState state =
-                    controllerStates[i];
+                DriverState state =
+                    driverStates[i];
 
-                if (state.Behaviour == null)
+                if (state.Bike == null)
                     continue;
 
-                state.Behaviour.enabled =
-                    state.WasEnabled;
+                state.Bike.SetDriverControlEnabled(
+                    state.WasEnabled);
             }
 
-            controllerStates.Clear();
-            debugCapturedControllers = 0;
+            driverStates.Clear();
+
+            debugCapturedDrivers =
+                0;
         }
 
         #endregion
@@ -389,33 +411,51 @@ namespace RaceFatal.Presentation.Racing
             if (countdownGroup == null)
                 return;
 
-            countdownGroup.alpha = 1f;
-            countdownGroup.interactable = false;
-            countdownGroup.blocksRaycasts = false;
+            countdownGroup.alpha =
+                1f;
+
+            countdownGroup.interactable =
+                false;
+
+            countdownGroup.blocksRaycasts =
+                false;
         }
 
         private void HideCountdown()
         {
             if (countdownGroup != null)
             {
-                countdownGroup.alpha = 0f;
-                countdownGroup.interactable = false;
-                countdownGroup.blocksRaycasts = false;
+                countdownGroup.alpha =
+                    0f;
+
+                countdownGroup.interactable =
+                    false;
+
+                countdownGroup.blocksRaycasts =
+                    false;
             }
 
             if (countdownText != null)
-                countdownText.text = "";
+            {
+                countdownText.text =
+                    "";
+            }
 
-            debugDisplay = "";
+            debugDisplay =
+                "";
         }
 
         private void SetCountdownText(
             string text)
         {
             if (countdownText != null)
-                countdownText.text = text;
+            {
+                countdownText.text =
+                    text;
+            }
 
-            debugDisplay = text;
+            debugDisplay =
+                text;
         }
 
         #endregion
@@ -434,27 +474,36 @@ namespace RaceFatal.Presentation.Racing
 
             audioSource.PlayOneShot(
                 clip,
-                Mathf.Clamp01(volume));
+                Mathf.Clamp01(
+                    volume));
         }
 
         #endregion
 
         private void OnDestroy()
         {
-            RestoreRaceControllers();
+            RestoreDrivers();
         }
 
-        private class ControllerState
+        private class DriverState
         {
-            public Behaviour Behaviour { get; }
-            public bool WasEnabled { get; }
+            public BikeRuntimeController Bike {
+                get;
+            }
 
-            public ControllerState(
-                Behaviour behaviour,
+            public bool WasEnabled {
+                get;
+            }
+
+            public DriverState(
+                BikeRuntimeController bike,
                 bool wasEnabled)
             {
-                Behaviour = behaviour;
-                WasEnabled = wasEnabled;
+                Bike =
+                    bike;
+
+                WasEnabled =
+                    wasEnabled;
             }
         }
     }

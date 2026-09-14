@@ -113,7 +113,8 @@ namespace RaceFatal.Presentation.Vehicles
                 GetComponent<RacerViewController>();
 
             cockpitView =
-                GetComponent<PlayerCockpitView>();
+                GetComponentInChildren<
+                    PlayerCockpitView>(true);
 
             body =
                 GetComponent<Rigidbody>();

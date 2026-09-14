@@ -1,29 +1,22 @@
+using System;
 using RaceFatal.Equipment;
-using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using UnityEngine;
+using RaceFatal.Presentation.Racing;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    [RequireComponent(typeof(AIOvertakePlanner))]
-    public class AIBoostPlanner : MonoBehaviour
+    [Serializable]
+    public class AIBoostPlanner
     {
         #region Energy Strategy
 
         [Header("Energy Strategy")]
-        [Tooltip("Normal Energy reserve used by the most aggressive AI.")]
         [Range(0f, 1f)][SerializeField] private float aggressiveEnergyReserve = 0.12f;
-
-        [Tooltip("Normal Energy reserve used by the most conservative AI.")]
         [Range(0f, 1f)][SerializeField] private float conservativeEnergyReserve = 0.22f;
-
-        [Tooltip("Normal Energy recovery margin required before boost can restart.")]
         [Range(0f, 0.5f)][SerializeField] private float restartEnergyMargin = 0.08f;
 
-        [Tooltip("Multiplier applied to the normal Energy reserve while hunting another racer.")]
         [Range(0f, 1f)][SerializeField] private float huntEnergyReserveMultiplier = 0.75f;
-
-        [Tooltip("Multiplier applied to the normal Energy reserve during an active pass.")]
         [Range(0f, 1f)][SerializeField] private float passingEnergyReserveMultiplier = 0.5f;
 
         #endregion
@@ -31,19 +24,12 @@ namespace RaceFatal.Presentation.Vehicles
         #region Racing Pressure
 
         [Header("Racing Pressure")]
-        [Tooltip("Within this hunt distance, passing takes priority over seeking an Energy strip.")]
         [Min(1f)][SerializeField] private float attackPriorityDistance = 55f;
 
-        [Tooltip("Additional corner severity tolerated when starting boost while hunting.")]
         [Range(0f, 0.5f)][SerializeField] private float huntStartCornerBonus = 0.08f;
-
-        [Tooltip("Additional corner severity tolerated when starting boost during a pass.")]
         [Range(0f, 0.5f)][SerializeField] private float passingStartCornerBonus = 0.16f;
 
-        [Tooltip("Corner severity where a hunting boost is cancelled.")]
         [Range(0f, 1f)][SerializeField] private float huntStopCornerSeverity = 0.34f;
-
-        [Tooltip("Corner severity where boost is cancelled during an active pass.")]
         [Range(0f, 1f)][SerializeField] private float passingStopCornerSeverity = 0.42f;
 
         #endregion
@@ -51,22 +37,13 @@ namespace RaceFatal.Presentation.Vehicles
         #region Driving Conditions
 
         [Header("Driving Conditions")]
-        [Tooltip("AI will not intentionally begin boosting below this speed.")]
         [Min(0f)][SerializeField] private float minimumBoostSpeedKph = 70f;
 
-        [Tooltip("Maximum corner severity at which a conservative AI normally starts boosting.")]
         [Range(0f, 1f)][SerializeField] private float conservativeStartCornerSeverity = 0.10f;
-
-        [Tooltip("Maximum corner severity at which an aggressive AI normally starts boosting.")]
         [Range(0f, 1f)][SerializeField] private float aggressiveStartCornerSeverity = 0.20f;
-
-        [Tooltip("Normal corner severity where an active boost is cancelled.")]
         [Range(0f, 1f)][SerializeField] private float stopCornerSeverity = 0.28f;
 
-        [Tooltip("Maximum brake input allowed when beginning boost.")]
         [Range(0f, 1f)][SerializeField] private float maximumBrakeToStart = 0.05f;
-
-        [Tooltip("An active boost is cancelled once braking reaches this amount.")]
         [Range(0f, 1f)][SerializeField] private float stopBrakeThreshold = 0.15f;
 
         #endregion
@@ -74,24 +51,16 @@ namespace RaceFatal.Presentation.Vehicles
         #region Commitment
 
         [Header("Boost Commitment")]
-        [Tooltip("Shortest normal commitment time for an aggressive AI.")]
         [Min(0f)][SerializeField] private float aggressiveStraightCommitTime = 0.2f;
-
-        [Tooltip("Longest normal commitment time for a conservative AI.")]
         [Min(0f)][SerializeField] private float conservativeStraightCommitTime = 0.7f;
-
-        [Tooltip("Delay after stopping boost before normal activation may occur again.")]
         [Min(0f)][SerializeField] private float boostCooldown = 0.35f;
 
-        [Tooltip("Normal commitment time multiplier while hunting.")]
         [Range(0.05f, 1f)][SerializeField] private float huntingCommitTimeMultiplier = 0.45f;
-
-        [Tooltip("Normal commitment time multiplier during an active pass.")]
         [Range(0.05f, 1f)][SerializeField] private float passingCommitTimeMultiplier = 0.2f;
 
         #endregion
 
-        #region Runtime Debug
+        #region Debug
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
@@ -126,7 +95,6 @@ namespace RaceFatal.Presentation.Vehicles
         private RaceEquipmentSystem equipment;
         private AIOvertakePlanner overtakePlanner;
 
-        private float runtimeAggression;
         private float runtimeEnergyReserve;
         private float runtimeRestartThreshold;
         private float runtimeStartCornerSeverity;
@@ -139,50 +107,24 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
-        #region Public
-
         public bool IsInitialized => initialized;
-        public bool IsBoosting => equipment != null && equipment.IsBoosterActive;
-        public float Aggression => runtimeAggression;
 
-        #endregion
-
-        #region Unity
-
-        private void Awake()
-        {
-            overtakePlanner = GetComponent<AIOvertakePlanner>();
-        }
-
-        private void OnDisable()
-        {
-            if (initialized)
-                StopBoost();
-        }
-
-        #endregion
-
-        #region Initialization
+        public bool IsBoosting =>
+            equipment != null &&
+            equipment.IsBoosterActive;
 
         public bool Initialize(
             RaceParticipant raceParticipant,
             RaceRuntimeController runtime,
+            AIOvertakePlanner overtake,
             float aggression)
         {
-            if (raceParticipant == null)
+            if (raceParticipant == null ||
+                runtime == null ||
+                overtake == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIBoostPlanner)} requires a RaceParticipant.",
-                    this);
-
-                return false;
-            }
-
-            if (runtime == null)
-            {
-                Debug.LogError(
-                    $"{nameof(AIBoostPlanner)} requires a RaceRuntimeController.",
-                    this);
+                    $"{nameof(AIBoostPlanner)} is missing required runtime state.");
 
                 return false;
             }
@@ -191,17 +133,7 @@ namespace RaceFatal.Presentation.Vehicles
                 raceParticipant.Vehicle.EnergyPool == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIBoostPlanner)} requires a race vehicle with Energy and equipment.",
-                    this);
-
-                return false;
-            }
-
-            if (overtakePlanner == null)
-            {
-                Debug.LogError(
-                    $"{nameof(AIBoostPlanner)} requires an {nameof(AIOvertakePlanner)}.",
-                    this);
+                    $"{nameof(AIBoostPlanner)} requires a race vehicle with Energy and equipment.");
 
                 return false;
             }
@@ -209,8 +141,11 @@ namespace RaceFatal.Presentation.Vehicles
             participant = raceParticipant;
             raceRuntime = runtime;
             equipment = participant.Vehicle.EquipmentSystem;
+            overtakePlanner = overtake;
 
-            runtimeAggression = Mathf.Clamp01(aggression);
+            float runtimeAggression =
+                Mathf.Clamp01(
+                    aggression);
 
             runtimeEnergyReserve =
                 Mathf.Lerp(
@@ -251,10 +186,6 @@ namespace RaceFatal.Presentation.Vehicles
             return true;
         }
 
-        #endregion
-
-        #region Planning
-
         public bool UpdatePlan(
             float cornerSeverity,
             float brakeInput,
@@ -293,7 +224,8 @@ namespace RaceFatal.Presentation.Vehicles
             debugSeekingEnergy = seekingEnergy;
 
             debugTargetDistance =
-                float.IsPositiveInfinity(targetDistance)
+                float.IsPositiveInfinity(
+                    targetDistance)
                     ? 0f
                     : targetDistance;
 
@@ -358,8 +290,11 @@ namespace RaceFatal.Presentation.Vehicles
                     hunting,
                     passing);
 
-            debugEffectiveEnergyReserve = effectiveReserve;
-            debugEffectiveStartCornerSeverity = effectiveStartCornerSeverity;
+            debugEffectiveEnergyReserve =
+                effectiveReserve;
+
+            debugEffectiveStartCornerSeverity =
+                effectiveStartCornerSeverity;
 
             if (equipment.IsBoosterActive)
             {
@@ -385,11 +320,17 @@ namespace RaceFatal.Presentation.Vehicles
                     effectiveStartCornerSeverity);
             }
 
-            debugBoostActive = equipment.IsBoosterActive;
-            debugStraightTimer = straightTimer;
-            debugCooldownTimer = cooldownTimer;
+            debugBoostActive =
+                equipment.IsBoosterActive;
 
-            return wasActive != equipment.IsBoosterActive;
+            debugStraightTimer =
+                straightTimer;
+
+            debugCooldownTimer =
+                cooldownTimer;
+
+            return wasActive !=
+                equipment.IsBoosterActive;
         }
 
         private void UpdateActiveBoost(
@@ -401,7 +342,8 @@ namespace RaceFatal.Presentation.Vehicles
             float effectiveReserve,
             float effectiveStopCornerSeverity)
         {
-            if (debugEnergyPercent <= effectiveReserve)
+            if (debugEnergyPercent <=
+                effectiveReserve)
             {
                 StopBoost(
                     passing
@@ -413,13 +355,15 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (cornerSeverity >= effectiveStopCornerSeverity)
+            if (cornerSeverity >=
+                effectiveStopCornerSeverity)
             {
                 StopBoost("Corner Ahead");
                 return;
             }
 
-            if (brakeInput >= stopBrakeThreshold)
+            if (brakeInput >=
+                stopBrakeThreshold)
             {
                 StopBoost("Braking");
                 return;
@@ -429,16 +373,18 @@ namespace RaceFatal.Presentation.Vehicles
                 !hunting &&
                 !passing)
             {
-                StopBoost("Blocked By Traffic");
+                StopBoost(
+                    "Blocked By Traffic");
+
                 return;
             }
 
-            if (passing)
-                debugDecision = "Boosting / Pass Attack";
-            else if (hunting)
-                debugDecision = "Boosting / Hunting";
-            else
-                debugDecision = "Boosting";
+            debugDecision =
+                passing
+                    ? "Boosting / Pass Attack"
+                    : hunting
+                        ? "Boosting / Hunting"
+                        : "Boosting";
         }
 
         private void UpdateInactiveBoost(
@@ -458,7 +404,8 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (debugEnergyPercent < effectiveRestartThreshold)
+            if (debugEnergyPercent <
+                effectiveRestartThreshold)
             {
                 straightTimer = 0f;
 
@@ -509,44 +456,53 @@ namespace RaceFatal.Presentation.Vehicles
                 runtimeStraightCommitTime;
 
             if (passing)
-                requiredCommitTime *= passingCommitTimeMultiplier;
+            {
+                requiredCommitTime *=
+                    passingCommitTimeMultiplier;
+            }
             else if (hunting)
-                requiredCommitTime *= huntingCommitTimeMultiplier;
+            {
+                requiredCommitTime *=
+                    huntingCommitTimeMultiplier;
+            }
 
-            straightTimer += Time.fixedDeltaTime;
+            straightTimer +=
+                Time.fixedDeltaTime;
 
-            if (passing)
-                debugDecision = "Preparing Pass Boost";
-            else if (hunting)
-                debugDecision = "Preparing Hunt Boost";
-            else
-                debugDecision = "Straight Confirmed";
+            debugDecision =
+                passing
+                    ? "Preparing Pass Boost"
+                    : hunting
+                        ? "Preparing Hunt Boost"
+                        : "Straight Confirmed";
 
-            if (straightTimer < requiredCommitTime)
+            if (straightTimer <
+                requiredCommitTime)
+            {
                 return;
+            }
 
             bool activated =
-                equipment.SetBoostActive(true);
+                equipment.SetBoostActive(
+                    true);
 
             straightTimer = 0f;
 
             if (!activated)
             {
-                debugDecision = "Boost Activation Failed";
+                debugDecision =
+                    "Boost Activation Failed";
+
                 return;
             }
 
-            if (passing)
-                debugDecision = "Boost Started / Passing";
-            else if (hunting)
-                debugDecision = "Boost Started / Hunting";
-            else
-                debugDecision = "Boost Started";
+            debugDecision =
+                passing
+                    ? "Boost Started / Passing"
+                    : hunting
+                        ? "Boost Started / Hunting"
+                        : "Boost Started";
         }
-
-        #endregion
-
-        #region Runtime Strategy
 
         private float GetEffectiveEnergyReserve(
             bool hunting,
@@ -615,17 +571,17 @@ namespace RaceFatal.Presentation.Vehicles
             return stopCornerSeverity;
         }
 
-        #endregion
-
-        #region Boost State
-
-        private void StopBoost(string reason)
+        private void StopBoost(
+            string reason)
         {
             if (equipment != null &&
                 equipment.IsBoosterActive)
             {
-                equipment.SetBoostActive(false);
-                cooldownTimer = boostCooldown;
+                equipment.SetBoostActive(
+                    false);
+
+                cooldownTimer =
+                    boostCooldown;
             }
 
             straightTimer = 0f;
@@ -638,10 +594,6 @@ namespace RaceFatal.Presentation.Vehicles
             StopBoost("Stopped");
         }
 
-        #endregion
-
-        #region Helpers
-
         private bool RaceIsActive()
         {
             if (raceRuntime == null ||
@@ -653,9 +605,10 @@ namespace RaceFatal.Presentation.Vehicles
             if (raceRuntime.Director?.State == null)
                 return false;
 
-            return !raceRuntime.Director.State.IsFinished;
+            return !raceRuntime
+                .Director
+                .State
+                .IsFinished;
         }
-
-        #endregion
     }
 }

@@ -164,7 +164,7 @@ namespace RaceFatal.Presentation.Combat
 
             if (!racer.TryGetEquipmentMount(
                     fireEvent.EquipmentId,
-                    out BikeEquipmentMountView mount))
+                    out BikeEquipmentMountBinding mount))
             {
                 Debug.LogWarning(
                     $"Racer '{fireEvent.RacerId}' has no physical mount bound " +
@@ -274,6 +274,7 @@ namespace RaceFatal.Presentation.Combat
 
             return null;
         }
+
         public bool TryGetPresentationProfile(
             string definitionId,
             out WeaponPresentationProfile profile)
@@ -296,7 +297,7 @@ namespace RaceFatal.Presentation.Combat
         #region Feedback
 
         private void PlayFireFeedback(
-            BikeEquipmentMountView mount,
+            BikeEquipmentMountBinding mount,
             Transform origin,
             WeaponPresentationProfile profile)
         {
@@ -333,7 +334,8 @@ namespace RaceFatal.Presentation.Combat
                 return transform.forward;
 
             PlayerWeaponAim playerAim =
-                racer.GetComponent<PlayerWeaponAim>();
+                racer.GetComponentInChildren<
+                    PlayerWeaponAim>(true);
 
             if (playerAim != null &&
                 playerAim.TryGetAimDirection(
@@ -427,6 +429,7 @@ namespace RaceFatal.Presentation.Combat
                 return false;
 
             bool found = false;
+
             float nearestDistance =
                 float.PositiveInfinity;
 
@@ -597,7 +600,8 @@ namespace RaceFatal.Presentation.Combat
                 return false;
             }
 
-            prefab = profile.ProjectilePrefab;
+            prefab =
+                profile.ProjectilePrefab;
 
             if (prefab != null)
                 return true;
@@ -630,15 +634,26 @@ namespace RaceFatal.Presentation.Combat
             Transform origin,
             Vector3 direction)
         {
-            if (direction.sqrMagnitude < 0.001f)
+            if (direction.sqrMagnitude <
+                0.001f)
+            {
                 return origin.rotation;
+            }
 
             direction.Normalize();
 
-            Vector3 up = origin.up;
+            Vector3 up =
+                origin.up;
 
-            if (Mathf.Abs(Vector3.Dot(direction, up)) > 0.98f)
-                up = origin.right;
+            if (Mathf.Abs(
+                    Vector3.Dot(
+                        direction,
+                        up)) >
+                0.98f)
+            {
+                up =
+                    origin.right;
+            }
 
             return Quaternion.LookRotation(
                 direction,
@@ -664,17 +679,24 @@ namespace RaceFatal.Presentation.Combat
                 return null;
             }
 
-            if (fireDirection.sqrMagnitude < 0.001f)
-                fireDirection = origin.forward;
+            if (fireDirection.sqrMagnitude <
+                0.001f)
+            {
+                fireDirection =
+                    origin.forward;
+            }
 
             fireDirection.Normalize();
 
             RaceParticipant shooterParticipant =
                 shooter.Participant;
 
-            RacerViewController bestTarget = null;
+            RacerViewController bestTarget =
+                null;
 
-            float bestScore = float.PositiveInfinity;
+            float bestScore =
+                float.PositiveInfinity;
+
             float bestDistance = 0f;
             float bestAngle = 0f;
 
@@ -736,8 +758,11 @@ namespace RaceFatal.Presentation.Combat
                     continue;
                 }
 
-                if (toTarget.sqrMagnitude < 0.001f)
+                if (toTarget.sqrMagnitude <
+                    0.001f)
+                {
                     continue;
+                }
 
                 float angle =
                     Vector3.Angle(
@@ -771,8 +796,11 @@ namespace RaceFatal.Presentation.Combat
                     angleScore * 0.8f +
                     distanceScore * 0.2f;
 
-                if (score >= bestScore)
+                if (score >=
+                    bestScore)
+                {
                     continue;
+                }
 
                 bestScore = score;
                 bestTarget = candidateView;

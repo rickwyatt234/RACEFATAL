@@ -1,11 +1,13 @@
+using System;
 using RaceFatal.Combat;
-using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
+using RaceFatal.Presentation.Racing;
 using UnityEngine;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    public class AIDefensiveDrivingPlanner : MonoBehaviour
+    [Serializable]
+    public class AIDefensiveDrivingPlanner
     {
         #region Reaction
 
@@ -123,7 +125,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
-        #region Public State
+        #region Public
 
         public bool IsUnderFire =>
             initialized &&
@@ -218,6 +220,7 @@ namespace RaceFatal.Presentation.Vehicles
             currentOffset = 0f;
 
             hitStreak = 0;
+
             dodgeSide =
                 GetStableStartingSide(
                     participant.RacerId);
@@ -251,7 +254,8 @@ namespace RaceFatal.Presentation.Vehicles
             float deltaTime =
                 Time.fixedDeltaTime;
 
-            UpdateTimers(deltaTime);
+            UpdateTimers(
+                deltaTime);
 
             float targetOffset = 0f;
 
@@ -417,13 +421,6 @@ namespace RaceFatal.Presentation.Vehicles
         private void SetInitialDodgeSide(
             DamageImpactSide impactSide)
         {
-            /*
-             * If the left side is being hit, favor moving right.
-             * If the right side is being hit, favor moving left.
-             *
-             * Front/rear fire does not provide a useful lateral
-             * preference, so preserve the existing dodge side.
-             */
             switch (impactSide)
             {
                 case DamageImpactSide.Left:
@@ -515,8 +512,11 @@ namespace RaceFatal.Presentation.Vehicles
         private int GetStableStartingSide(
             string racerId)
         {
-            if (string.IsNullOrEmpty(racerId))
+            if (string.IsNullOrEmpty(
+                    racerId))
+            {
                 return 1;
+            }
 
             unchecked
             {
@@ -572,9 +572,15 @@ namespace RaceFatal.Presentation.Vehicles
             }
         }
 
-        private void OnDestroy()
+        public void Dispose()
         {
             Unsubscribe();
+
+            participant = null;
+            raceRuntime = null;
+            initialized = false;
+
+            debugInitialized = false;
         }
 
         #endregion

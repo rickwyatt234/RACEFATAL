@@ -6,47 +6,54 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    [RequireComponent(typeof(BikeMotor))]
-    [RequireComponent(typeof(RacerViewController))]
     public class BikeController : MonoBehaviour
     {
         private BikeMotor motor;
         private RacerViewController racerView;
         private IRaceInputService input;
 
+        public bool IsReady =>
+            motor != null &&
+            racerView != null;
+
         private void Awake()
         {
             motor =
-                GetComponent<BikeMotor>();
+                GetComponentInParent<BikeMotor>();
 
             racerView =
-                GetComponent<RacerViewController>();
+                GetComponentInParent<RacerViewController>();
         }
 
         private void Start()
         {
-            if (BootstrapController.Context != null)
-            {
-                input =
-                    BootstrapController
-                        .Context
-                        .Input;
-            }
+            ResolveInput();
         }
 
         private void Update()
         {
             if (input == null)
-                return;
+            {
+                ResolveInput();
 
-            if (!racerView.IsInitialized)
+                if (input == null)
+                    return;
+            }
+
+            if (motor == null ||
+                racerView == null ||
+                !racerView.IsInitialized)
+            {
                 return;
+            }
 
             RaceParticipant participant =
                 racerView.Participant;
 
-            if (participant.Role !=
-                RaceParticipantRole.Player)
+            if (participant == null ||
+                participant.Role !=
+                    RaceParticipantRole.Player ||
+                participant.Vehicle == null)
             {
                 return;
             }
@@ -55,14 +62,42 @@ namespace RaceFatal.Presentation.Vehicles
                 participant.Vehicle.Performance);
 
             motor.SetRuntimeModifiers(
-                participant.Vehicle.EquipmentSystem.SpeedMultiplier,
-                participant.Vehicle.EquipmentSystem.AccelerationMultiplier,
-                participant.Vehicle.EquipmentSystem.HandlingMultiplier);
+                participant.Vehicle
+                    .EquipmentSystem
+                    .SpeedMultiplier,
+                participant.Vehicle
+                    .EquipmentSystem
+                    .AccelerationMultiplier,
+                participant.Vehicle
+                    .EquipmentSystem
+                    .HandlingMultiplier);
 
             motor.SetControls(
                 input.Throttle,
                 input.Brake,
                 input.Steering);
+        }
+
+        private void OnDisable()
+        {
+            if (motor == null)
+                return;
+
+            motor.SetControls(
+                0f,
+                0f,
+                0f);
+        }
+
+        private void ResolveInput()
+        {
+            if (BootstrapController.Context == null)
+                return;
+
+            input =
+                BootstrapController
+                    .Context
+                    .Input;
         }
     }
 }

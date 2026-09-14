@@ -1,186 +1,472 @@
 using System.Collections.Generic;
-using RaceFatal.Shared;
 using RaceFatal.Equipment;
+using RaceFatal.Shared;
 
 namespace RaceFatal.Vehicles
 {
     public class GarageState
     {
-        private readonly List<BikeState> bikes = new List<BikeState>();
-        private readonly List<EngineState> engines = new List<EngineState>();
-        private readonly List<ChassisState> chassis = new List<ChassisState>();
-        private readonly List<EquipmentState> equipment = new List<EquipmentState>();
+        private readonly List<BikeState> bikes =
+            new List<BikeState>();
+
+        private readonly List<EngineState> engines =
+            new List<EngineState>();
+
+        private readonly List<ChassisState> chassis =
+            new List<ChassisState>();
+
+        private readonly List<EquipmentState> equipment =
+            new List<EquipmentState>();
+
         public IReadOnlyList<BikeState> Bikes => bikes;
         public IReadOnlyList<EngineState> Engines => engines;
         public IReadOnlyList<ChassisState> Chassis => chassis;
         public IReadOnlyList<EquipmentState> Equipment => equipment;
 
-#region Add Items to Garage
-        public Result<BikeState> AddBike(BikeState bike)
+        #region Add Ownership
+
+        public Result<BikeState> AddBike(
+            BikeState bike)
         {
-            if (bikes.Exists(b => b.BikeId == bike.BikeId))
-            {
-                return Result<BikeState>.Failure($"Bike with ID {bike.BikeId} already exists in the garage.");
-            }
-
-            bikes.Add(bike);
-            return Result<BikeState>.Success(bike);
-        }
-
-        public Result<EngineState> AddEngine(EngineState engine)
-        {
-            if (engines.Exists(e => e.EngineId == engine.EngineId))
-            {
-                return Result<EngineState>.Failure($"Engine with ID {engine.EngineId} already exists in the garage.");
-            }
-
-            engines.Add(engine);
-            return Result<EngineState>.Success(engine);
-        }
-
-        public Result<ChassisState> AddChassis(ChassisState chassis)
-        {
-            if (this.chassis.Exists(c => c.ChassisId == chassis.ChassisId))
-            {
-                return Result<ChassisState>.Failure($"Chassis with ID {chassis.ChassisId} already exists in the garage.");
-            }
-
-            this.chassis.Add(chassis);
-            return Result<ChassisState>.Success(chassis);
-        }
-
-        public Result<EquipmentState> AddEquipment(EquipmentState equipment)
-        {
-            if (this.equipment.Exists(e => e.EquipmentId == equipment.EquipmentId))
-            {
-                return Result<EquipmentState>.Failure($"Equipment with ID {equipment.EquipmentId} already exists in the garage.");
-            }
-
-            this.equipment.Add(equipment);
-            return Result<EquipmentState>.Success(equipment);
-        }
-#endregion
-
-#region Engine Installation and Removal
-        public Result InstallEngine(string bikeId, string engineId)
-        {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
             if (bike == null)
             {
-                return Result.Failure($"Bike with ID {bikeId} not found.");
+                return Result<BikeState>.Failure(
+                    "Bike is required.");
             }
 
-            var engine = engines.Find(e => e.EngineId == engineId);
+            if (bikes.Exists(
+                    candidate =>
+                        candidate.BikeId ==
+                        bike.BikeId))
+            {
+                return Result<BikeState>.Failure(
+                    $"Bike with ID '{bike.BikeId}' " +
+                    "already exists in the garage.");
+            }
+
+            bikes.Add(
+                bike);
+
+            return Result<BikeState>.Success(
+                bike);
+        }
+
+        public Result<BikeState> AddBike(
+            string bikeId,
+            BikeDefinition definition,
+            string primaryColor,
+            string secondaryColor)
+        {
+            if (definition == null)
+            {
+                return Result<BikeState>.Failure(
+                    "Bike definition is required.");
+            }
+
+            BikeState bike =
+                definition.CreateBikeState(
+                    bikeId,
+                    primaryColor,
+                    secondaryColor);
+
+            return AddBike(
+                bike);
+        }
+
+        public Result<EngineState> AddEngine(
+            EngineState engine)
+        {
             if (engine == null)
             {
-                return Result.Failure($"Engine with ID {engineId} not found.");
+                return Result<EngineState>.Failure(
+                    "Engine is required.");
             }
 
-            return bike.Loadout.InstallEngine(engine);
+            if (engines.Exists(
+                    candidate =>
+                        candidate.EngineId ==
+                        engine.EngineId))
+            {
+                return Result<EngineState>.Failure(
+                    $"Engine with ID '{engine.EngineId}' " +
+                    "already exists in the garage.");
+            }
+
+            engines.Add(
+                engine);
+
+            return Result<EngineState>.Success(
+                engine);
         }
-        public Result<EngineState> RemoveEngine(string bikeId)
+
+        public Result<ChassisState> AddChassis(
+            ChassisState chassisState)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            if (chassisState == null)
+            {
+                return Result<ChassisState>.Failure(
+                    "Chassis is required.");
+            }
+
+            if (chassis.Exists(
+                    candidate =>
+                        candidate.ChassisId ==
+                        chassisState.ChassisId))
+            {
+                return Result<ChassisState>.Failure(
+                    $"Chassis with ID '{chassisState.ChassisId}' " +
+                    "already exists in the garage.");
+            }
+
+            chassis.Add(
+                chassisState);
+
+            return Result<ChassisState>.Success(
+                chassisState);
+        }
+
+        public Result<EquipmentState> AddEquipment(
+            EquipmentState equipmentState)
+        {
+            if (equipmentState == null)
+            {
+                return Result<EquipmentState>.Failure(
+                    "Equipment is required.");
+            }
+
+            if (equipment.Exists(
+                    candidate =>
+                        candidate.EquipmentId ==
+                        equipmentState.EquipmentId))
+            {
+                return Result<EquipmentState>.Failure(
+                    $"Equipment with ID " +
+                    $"'{equipmentState.EquipmentId}' " +
+                    "already exists in the garage.");
+            }
+
+            equipment.Add(
+                equipmentState);
+
+            return Result<EquipmentState>.Success(
+                equipmentState);
+        }
+
+        #endregion
+
+        #region Engine Installation
+
+        public Result InstallEngine(
+            string bikeId,
+            string engineId)
+        {
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return Result<EngineState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
+            }
+
+            EngineState engine =
+                engines.Find(
+                    candidate =>
+                        candidate.EngineId ==
+                        engineId);
+
+            if (engine == null)
+            {
+                return Result.Failure(
+                    $"Engine with ID '{engineId}' not found.");
+            }
+
+            BikeState installedBike =
+                FindBikeUsingEngine(
+                    engineId);
+
+            if (installedBike != null)
+            {
+                return Result.Failure(
+                    $"Engine '{engineId}' is already installed " +
+                    $"on bike '{installedBike.BikeId}'.");
+            }
+
+            return bike.Loadout.InstallEngine(
+                engine);
+        }
+
+        public Result<EngineState> RemoveEngine(
+            string bikeId)
+        {
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
+            if (bike == null)
+            {
+                return Result<EngineState>.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
             return bike.Loadout.RemoveEngine();
         }
-#endregion
 
-#region Chassis Installation and Removal
-        public Result InstallChassis(string bikeId, string chassisId)
+        #endregion
+
+        #region Chassis Installation
+
+        public Result InstallChassis(
+            string bikeId,
+            string chassisId)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return Result.Failure($"Bike with ID {bikeId} not found.");
+                return Result.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
-            var chassis = this.chassis.Find(c => c.ChassisId == chassisId);
-            if (chassis == null)
+            ChassisState chassisState =
+                chassis.Find(
+                    candidate =>
+                        candidate.ChassisId ==
+                        chassisId);
+
+            if (chassisState == null)
             {
-                return Result.Failure($"Chassis with ID {chassisId} not found.");
+                return Result.Failure(
+                    $"Chassis with ID '{chassisId}' not found.");
             }
 
-            return bike.Loadout.InstallChassis(chassis);
+            BikeState installedBike =
+                FindBikeUsingChassis(
+                    chassisId);
+
+            if (installedBike != null)
+            {
+                return Result.Failure(
+                    $"Chassis '{chassisId}' is already installed " +
+                    $"on bike '{installedBike.BikeId}'.");
+            }
+
+            return bike.Loadout.InstallChassis(
+                chassisState);
         }
-        public Result<ChassisState> RemoveChassis(string bikeId)
+
+        public Result<ChassisState> RemoveChassis(
+            string bikeId)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return Result<ChassisState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result<ChassisState>.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
             return bike.Loadout.RemoveChassis();
         }
-#endregion
 
-#region Equipment Installation and Removal
-        public Result<EquipmentState> InstallEquipment(string bikeId, string equipmentId, NodeSize nodeSize, int index)
+        #endregion
+
+        #region Equipment Installation
+
+        public Result<EquipmentState> InstallEquipment(
+            string bikeId,
+            string equipmentId,
+            NodeSize nodeSize,
+            int index)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return Result<EquipmentState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result<EquipmentState>.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
-            var equipment = this.equipment.Find(e => e.EquipmentId == equipmentId);
-            if (equipment == null)
+            EquipmentState equipmentState =
+                equipment.Find(
+                    candidate =>
+                        candidate.EquipmentId ==
+                        equipmentId);
+
+            if (equipmentState == null)
             {
-                return Result<EquipmentState>.Failure($"Equipment with ID {equipmentId} not found.");
+                return Result<EquipmentState>.Failure(
+                    $"Equipment with ID '{equipmentId}' not found.");
             }
 
-            return bike.Loadout.InstallEquipment(equipment, nodeSize, index);
+            BikeState installedBike =
+                FindBikeUsingEquipment(
+                    equipmentId);
+
+            if (installedBike != null)
+            {
+                return Result<EquipmentState>.Failure(
+                    $"Equipment '{equipmentId}' is already installed " +
+                    $"on bike '{installedBike.BikeId}'.");
+            }
+
+            return bike.Loadout.InstallEquipment(
+                equipmentState,
+                nodeSize,
+                index);
         }
-        public Result<EquipmentState> RemoveEquipment(string bikeId, NodeSize nodeSize, int index)
+
+        public Result<EquipmentState> RemoveEquipment(
+            string bikeId,
+            NodeSize nodeSize,
+            int index)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return Result<EquipmentState>.Failure($"Bike with ID {bikeId} not found.");
+                return Result<EquipmentState>.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
-            return bike.Loadout.RemoveEquipment(nodeSize, index);
+            return bike.Loadout.RemoveEquipment(
+                nodeSize,
+                index);
         }
-#endregion 
-    
-public Result<BikeState> DestroyBike(string bikeId)
+
+        #endregion
+
+        #region Queries
+
+        public BikeState FindBike(
+            string bikeId)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
-            if (bike == null)
+            return bikes.Find(
+                bike =>
+                    bike.BikeId ==
+                    bikeId);
+        }
+
+        public BikeState FindBikeUsingEquipment(
+            string equipmentId)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    equipmentId))
             {
-                return Result<BikeState>.Failure($"Bike with ID {bikeId} not found.");
+                return null;
             }
 
-            bike.Destroy();
-            return Result<BikeState>.Success(bike);
+            foreach (BikeState bike in bikes)
+            {
+                if (bike.Loadout.HasEquipment(
+                        equipmentId))
+                {
+                    return bike;
+                }
+            }
+
+            return null;
         }
 
-public bool HasRaceReadyBikeFor(EngineClass engineClass)
+        public BikeState FindBikeUsingEngine(
+            string engineId)
         {
-            foreach (var bike in bikes)
+            if (string.IsNullOrWhiteSpace(
+                    engineId))
             {
-                if (!bike.IsDestroyed && bike.EngineClass == engineClass && bike.IsRaceReady)
+                return null;
+            }
+
+            foreach (BikeState bike in bikes)
+            {
+                if (bike.Loadout.Engine != null &&
+                    bike.Loadout.Engine.EngineId ==
+                    engineId)
+                {
+                    return bike;
+                }
+            }
+
+            return null;
+        }
+
+        public BikeState FindBikeUsingChassis(
+            string chassisId)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    chassisId))
+            {
+                return null;
+            }
+
+            foreach (BikeState bike in bikes)
+            {
+                if (bike.Loadout.Chassis != null &&
+                    bike.Loadout.Chassis.ChassisId ==
+                    chassisId)
+                {
+                    return bike;
+                }
+            }
+
+            return null;
+        }
+
+        public bool IsEquipmentInstalled(
+            string equipmentId)
+        {
+            return FindBikeUsingEquipment(
+                equipmentId) != null;
+        }
+
+        public bool IsEngineInstalled(
+            string engineId)
+        {
+            return FindBikeUsingEngine(
+                engineId) != null;
+        }
+
+        public bool IsChassisInstalled(
+            string chassisId)
+        {
+            return FindBikeUsingChassis(
+                chassisId) != null;
+        }
+
+        public bool HasRaceReadyBikeFor(
+            EngineClass engineClass)
+        {
+            foreach (BikeState bike in bikes)
+            {
+                if (!bike.IsDestroyed &&
+                    bike.EngineClass ==
+                        engineClass &&
+                    bike.IsRaceReady)
                 {
                     return true;
                 }
             }
+
             return false;
         }
 
-public IReadOnlyList<BikeState>
+        public IReadOnlyList<BikeState>
             GetRaceReadyBikesFor(
                 EngineClass engineClass)
         {
-            var result =
+            List<BikeState> result =
                 new List<BikeState>();
 
-            foreach (BikeState bike
-                    in bikes)
+            foreach (BikeState bike in bikes)
             {
                 if (bike.IsDestroyed)
                     continue;
@@ -197,27 +483,32 @@ public IReadOnlyList<BikeState>
                     continue;
                 }
 
-                result.Add(bike);
+                result.Add(
+                    bike);
             }
 
             return result;
         }
 
-public BikeState FindBike(string bikeId)
-        {
-            return bikes.Find(b => b.BikeId == bikeId);
-        }
+        #endregion
 
-
-private bool IsEquipmentInstalled(string bikeId, string equipmentId)
+        public Result<BikeState> DestroyBike(
+            string bikeId)
         {
-            var bike = bikes.Find(b => b.BikeId == bikeId);
+            BikeState bike =
+                FindBike(
+                    bikeId);
+
             if (bike == null)
             {
-                return false;
+                return Result<BikeState>.Failure(
+                    $"Bike with ID '{bikeId}' not found.");
             }
 
-            return bike.Loadout.HasEquipment(equipmentId);
+            bike.Destroy();
+
+            return Result<BikeState>.Success(
+                bike);
         }
     }
 }
