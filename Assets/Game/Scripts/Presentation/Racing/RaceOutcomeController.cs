@@ -1,6 +1,7 @@
 using RaceFatal.Career;
 using RaceFatal.Infrastructure;
 using RaceFatal.Presentation.Bootstrap;
+using RaceFatal.Presentation.Vehicles;
 using RaceFatal.Racing;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -34,12 +35,6 @@ namespace RaceFatal.Presentation.Racing
         [Tooltip("Scene loaded after leaving the final results screen.")]
         [SerializeField] private string postRaceSceneName;
 
-        [Tooltip("Normal cockpit HUD hidden once the player's race ends.")]
-        [SerializeField] private GameObject normalHudRoot;
-
-        [Tooltip("Reticle hidden once the player's race ends.")]
-        [SerializeField] private GameObject reticleRoot;
-
         [Header("Vehicle")]
         [Range(0f, 1f)][SerializeField] private float finishBrakeInput = 0.35f;
 
@@ -49,6 +44,7 @@ namespace RaceFatal.Presentation.Racing
         [Header("Runtime Debug")]
         [SerializeField] private bool debugBound;
         [SerializeField] private bool debugPlayerResolved;
+        [SerializeField] private bool debugPlayerPresentationResolved;
         [SerializeField] private bool debugWaitingForContinue;
         [SerializeField] private bool debugFinalResults;
         [SerializeField] private bool debugRaceCompleted;
@@ -59,6 +55,9 @@ namespace RaceFatal.Presentation.Racing
 
         private RaceDirector director;
         private PostRaceResult cachedPostRaceResult;
+
+        private PlayerCockpitHUD playerHud;
+        private PlayerCockpitView playerCockpitView;
 
         private bool playerResolved;
         private bool waitingForContinue;
@@ -105,12 +104,15 @@ namespace RaceFatal.Presentation.Racing
             Unbind();
         }
 
+        #region Binding
+
         private void TryBind()
         {
             if (raceRuntime == null)
             {
                 raceRuntime =
-                    FindFirstObjectByType<RaceRuntimeController>();
+                    FindFirstObjectByType<
+                        RaceRuntimeController>();
             }
 
             if (raceRuntime == null ||
@@ -141,6 +143,8 @@ namespace RaceFatal.Presentation.Racing
                     raceRuntime);
             }
 
+            ResolvePlayerPresentation();
+
             bound = true;
             debugBound = true;
         }
@@ -166,7 +170,68 @@ namespace RaceFatal.Presentation.Racing
                 OnRaceCompleted;
 
             bound = false;
+            debugBound = false;
         }
+
+        private void ResolvePlayerPresentation()
+        {
+            if (raceRuntime == null ||
+                director?.State == null)
+            {
+                return;
+            }
+
+            RaceParticipant player =
+                FindPlayerParticipant();
+
+            if (player == null)
+                return;
+
+            if (!raceRuntime.TryGetRacerView(
+                    player.RacerId,
+                    out RacerViewController playerView))
+            {
+                return;
+            }
+
+            if (playerView == null)
+                return;
+
+            playerHud =
+                playerView.GetComponentInChildren<
+                    PlayerCockpitHUD>(true);
+
+            playerCockpitView =
+                playerView.GetComponentInChildren<
+                    PlayerCockpitView>(true);
+
+            debugPlayerPresentationResolved =
+                playerHud != null ||
+                playerCockpitView != null;
+        }
+
+        private RaceParticipant FindPlayerParticipant()
+        {
+            if (director?.State == null)
+                return null;
+
+            foreach (RaceParticipant participant
+                     in director.State.Participants)
+            {
+                if (participant != null &&
+                    participant.Role ==
+                        RaceParticipantRole.Player)
+                {
+                    return participant;
+                }
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        #region Race Events
 
         private void OnRacerFinished(
             RaceParticipant participant)
@@ -242,7 +307,8 @@ namespace RaceFatal.Presentation.Racing
         private void OnRaceCompleted(
             RaceResult result)
         {
-            debugRaceCompleted = true;
+            debugRaceCompleted =
+                true;
 
             ShowFinalResults(
                 result);
@@ -253,13 +319,19 @@ namespace RaceFatal.Presentation.Racing
         {
             return participant != null &&
                    participant.Role ==
-                   RaceParticipantRole.Player;
+                       RaceParticipantRole.Player;
         }
+
+        #endregion
+
+        #region Outcome
 
         private void ShowLiveOutcome(
             string title,
             string subtitle)
         {
+            ResolvePlayerPresentation();
+
             if (outcomePanel != null)
                 outcomePanel.SetActive(true);
 
@@ -272,23 +344,31 @@ namespace RaceFatal.Presentation.Racing
             if (payoutPanel != null)
                 payoutPanel.SetActive(false);
 
-            if (normalHudRoot != null)
-                normalHudRoot.SetActive(false);
+            playerHud?.SetHudVisible(
+                false);
 
-            if (reticleRoot != null)
-                reticleRoot.SetActive(false);
+            playerCockpitView?.SetReticleVisible(
+                false);
 
             if (standingsView != null)
+            {
                 standingsView.ShowLive();
+            }
 
             if (continueButton != null)
             {
-                continueButton.gameObject.SetActive(true);
-                continueButton.interactable = true;
+                continueButton.gameObject.SetActive(
+                    true);
+
+                continueButton.interactable =
+                    true;
             }
 
             if (continueButtonText != null)
-                continueButtonText.text = "CONTINUE";
+            {
+                continueButtonText.text =
+                    "CONTINUE";
+            }
 
             if (releaseCursorOnOutcome)
                 ReleaseCursor();
@@ -324,10 +404,16 @@ namespace RaceFatal.Presentation.Racing
             debugWaitingForContinue = false;
 
             if (continueButton != null)
-                continueButton.interactable = false;
+            {
+                continueButton.interactable =
+                    false;
+            }
 
             if (continueButtonText != null)
-                continueButtonText.text = "RESOLVING...";
+            {
+                continueButtonText.text =
+                    "RESOLVING...";
+            }
 
             RaceResult result =
                 director.ResolveRemainingRace();
@@ -358,7 +444,10 @@ namespace RaceFatal.Presentation.Racing
                 outcomeTitle.text = "RACE COMPLETE";
 
             if (outcomeSubtitle != null)
-                outcomeSubtitle.text = "FINAL CLASSIFICATION";
+            {
+                outcomeSubtitle.text =
+                    "FINAL CLASSIFICATION";
+            }
 
             if (standingsView != null)
             {
@@ -367,28 +456,34 @@ namespace RaceFatal.Presentation.Racing
             }
 
             PostRaceResult payout =
-                cachedPostRaceResult
-                ?? director?.PostRaceResult;
+                cachedPostRaceResult ??
+                director?.PostRaceResult;
 
             RenderPayout(
                 payout);
 
-            /*
-             * Unlike the previous version, this button remains
-             * active. Its next click leaves the race scene.
-             */
             if (continueButton != null)
             {
-                continueButton.gameObject.SetActive(true);
-                continueButton.interactable = true;
+                continueButton.gameObject.SetActive(
+                    true);
+
+                continueButton.interactable =
+                    true;
             }
 
             if (continueButtonText != null)
-                continueButtonText.text = "RETURN TO GARAGE";
+            {
+                continueButtonText.text =
+                    "RETURN TO GARAGE";
+            }
 
             if (releaseCursorOnOutcome)
                 ReleaseCursor();
         }
+
+        #endregion
+
+        #region Payout
 
         private void RenderPayout(
             PostRaceResult result)
@@ -442,6 +537,10 @@ namespace RaceFatal.Presentation.Racing
             }
         }
 
+        #endregion
+
+        #region Scene Transition
+
         private void ReturnFromRace()
         {
             if (leavingRace)
@@ -482,24 +581,30 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
-            /*
-             * RaceLaunchContext should not retain anything from
-             * the completed race.
-             */
             context.RaceLaunch.Clear();
 
             leavingRace = true;
             debugLeavingRace = true;
 
             if (continueButton != null)
-                continueButton.interactable = false;
+            {
+                continueButton.interactable =
+                    false;
+            }
 
             if (continueButtonText != null)
-                continueButtonText.text = "LOADING...";
+            {
+                continueButtonText.text =
+                    "LOADING...";
+            }
 
             SceneManager.LoadScene(
                 postRaceSceneName);
         }
+
+        #endregion
+
+        #region Cursor
 
         private void ReleaseCursor()
         {
@@ -509,6 +614,10 @@ namespace RaceFatal.Presentation.Racing
             Cursor.visible =
                 true;
         }
+
+        #endregion
+
+        #region Formatting
 
         private string FormatOrdinal(
             int position)
@@ -540,5 +649,7 @@ namespace RaceFatal.Presentation.Racing
                     return $"{position}TH";
             }
         }
+
+        #endregion
     }
 }

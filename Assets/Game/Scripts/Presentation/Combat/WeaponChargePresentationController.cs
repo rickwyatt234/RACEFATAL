@@ -1,8 +1,8 @@
 using RaceFatal.Equipment;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
-using UnityEngine;
 using RaceFatal.Shared;
+using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
@@ -28,12 +28,15 @@ namespace RaceFatal.Presentation.Combat
 
         private void Awake()
         {
-            racerView = GetComponent<RacerViewController>();
+            racerView =
+                GetComponent<RacerViewController>();
         }
 
-        public void Initialize(RaceWeaponPresenter presenter)
+        public void Initialize(
+            RaceWeaponPresenter presenter)
         {
-            weaponPresenter = presenter;
+            weaponPresenter =
+                presenter;
 
             debugInitialized =
                 weaponPresenter != null;
@@ -54,16 +57,21 @@ namespace RaceFatal.Presentation.Combat
 
             if (weaponPresenter == null)
             {
-                debugFailure = "No RaceWeaponPresenter";
+                debugFailure =
+                    "No RaceWeaponPresenter";
+
                 CancelPresentation();
                 return;
             }
 
-            if (racerView.Participant.Status != RaceParticipantStatus.Racing ||
+            if (racerView.Participant.Status !=
+                    RaceParticipantStatus.Racing ||
                 racerView.Participant.Vehicle == null ||
                 racerView.Participant.Vehicle.IsDestroyed)
             {
-                debugFailure = "Racer Inactive";
+                debugFailure =
+                    "Racer Inactive";
+
                 CancelPresentation();
                 return;
             }
@@ -72,10 +80,13 @@ namespace RaceFatal.Presentation.Combat
                 equipment.SelectedWeaponDefinition;
 
             if (weapon == null ||
-                weapon.ActivationMode != EquipmentActivationMode.ChargeRelease ||
+                weapon.ActivationMode !=
+                    EquipmentActivationMode.ChargeRelease ||
                 !equipment.SelectedWeaponIsCharging)
             {
-                debugFailure = "None";
+                debugFailure =
+                    "None";
+
                 CancelPresentation();
                 return;
             }
@@ -83,18 +94,23 @@ namespace RaceFatal.Presentation.Combat
             string equipmentId =
                 equipment.SelectedEquipmentId;
 
-            if (string.IsNullOrWhiteSpace(equipmentId))
+            if (string.IsNullOrWhiteSpace(
+                    equipmentId))
             {
-                debugFailure = "No Equipment ID";
+                debugFailure =
+                    "No Equipment ID";
+
                 CancelPresentation();
                 return;
             }
 
             if (!racerView.TryGetEquipmentMount(
                     equipmentId,
-                    out BikeEquipmentMountView mount))
+                    out BikeEquipmentMountBinding mount))
             {
-                debugFailure = "No Physical Mount";
+                debugFailure =
+                    "No Physical Mount";
+
                 CancelPresentation();
                 return;
             }
@@ -116,7 +132,9 @@ namespace RaceFatal.Presentation.Combat
 
             if (feedback == null)
             {
-                debugFailure = "No Mount Feedback";
+                debugFailure =
+                    "No Mount Feedback";
+
                 CancelPresentation();
                 return;
             }
@@ -124,20 +142,35 @@ namespace RaceFatal.Presentation.Combat
             Transform origin =
                 mount.EquipmentOrigin != null
                     ? mount.EquipmentOrigin
-                    : mount.transform;
+                    : mount.MountRoot;
+
+            if (origin == null)
+            {
+                debugFailure =
+                    "No Mount Origin";
+
+                CancelPresentation();
+                return;
+            }
 
             bool presentationChanged =
                 activeFeedback != feedback ||
                 activeProfile != profile ||
-                activeEquipmentId != equipmentId;
+                activeEquipmentId !=
+                    equipmentId;
 
             if (presentationChanged)
             {
                 CancelPresentation();
 
-                activeFeedback = feedback;
-                activeProfile = profile;
-                activeEquipmentId = equipmentId;
+                activeFeedback =
+                    feedback;
+
+                activeProfile =
+                    profile;
+
+                activeEquipmentId =
+                    equipmentId;
 
                 activeFeedback.BeginCharge(
                     activeProfile,
@@ -145,7 +178,8 @@ namespace RaceFatal.Presentation.Combat
             }
 
             float chargeRatio =
-                equipment.SelectedWeaponChargeRatio;
+                equipment
+                    .SelectedWeaponChargeRatio;
 
             activeFeedback.UpdateCharge(
                 activeProfile,
@@ -162,7 +196,10 @@ namespace RaceFatal.Presentation.Combat
         private bool TryResolveRuntime()
         {
             if (racerView == null)
-                racerView = GetComponent<RacerViewController>();
+            {
+                racerView =
+                    GetComponent<RacerViewController>();
+            }
 
             if (racerView == null ||
                 !racerView.IsInitialized ||
@@ -170,17 +207,23 @@ namespace RaceFatal.Presentation.Combat
                 racerView.Participant.Vehicle == null)
             {
                 debugResolved = false;
-                debugFailure = "Racer Not Initialized";
+                debugFailure =
+                    "Racer Not Initialized";
+
                 return false;
             }
 
             equipment =
-                racerView.Participant.Vehicle.EquipmentSystem;
+                racerView.Participant
+                    .Vehicle
+                    .EquipmentSystem;
 
             if (equipment == null)
             {
                 debugResolved = false;
-                debugFailure = "No Equipment System";
+                debugFailure =
+                    "No Equipment System";
+
                 return false;
             }
 
@@ -191,7 +234,9 @@ namespace RaceFatal.Presentation.Combat
         private void CancelPresentation()
         {
             if (activeFeedback != null)
+            {
                 activeFeedback.CancelCharge();
+            }
 
             activeFeedback = null;
             activeProfile = null;

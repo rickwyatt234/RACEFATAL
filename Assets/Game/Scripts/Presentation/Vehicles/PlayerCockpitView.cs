@@ -5,7 +5,6 @@ using UnityEngine;
 namespace RaceFatal.Presentation.Vehicles
 {
     [DefaultExecutionOrder(1000)]
-    [RequireComponent(typeof(RacerViewController))]
     public class PlayerCockpitView : MonoBehaviour
     {
         [Header("References")]
@@ -98,7 +97,9 @@ namespace RaceFatal.Presentation.Vehicles
         {
             debugAwakeCalled = true;
 
-            racerView = GetComponent<RacerViewController>();
+            racerView =
+                GetComponentInParent<
+                    RacerViewController>();
             debugHasRacerView = racerView != null;
 
             if (cockpitCamera == null)
@@ -428,7 +429,9 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (cameraRigRoot.IsChildOf(transform))
+            if (racerView != null &&
+                    cameraRigRoot.IsChildOf(
+                        racerView.transform))
             {
                 cameraRigRoot.SetParent(
                     null,
@@ -470,8 +473,8 @@ namespace RaceFatal.Presentation.Vehicles
             if (audioListener != null)
                 audioListener.enabled = true;
 
-            if (reticleCanvas != null)
-                reticleCanvas.enabled = false;
+            SetReticleVisible(
+                false);
 
             debugBoosting = false;
 
@@ -539,6 +542,18 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (reticleCanvas != null)
                 reticleCanvas.enabled = active;
+        }
+
+        public void SetReticleVisible(
+            bool visible)
+        {
+            if (reticleCanvas == null)
+                return;
+
+            reticleCanvas.enabled =
+                visible &&
+                activePlayerView &&
+                !deathViewActive;
         }
 
         #endregion

@@ -8,7 +8,6 @@ using TMPro;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    [RequireComponent(typeof(RacerViewController))]
     [RequireComponent(typeof(PlayerCockpitView))]
     public class PlayerCockpitHUD : MonoBehaviour
     {
@@ -38,6 +37,10 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("Damage Feedback")]
         [Tooltip("Optional full-screen image flashed when the player takes shield or bike damage.")]
         [SerializeField] private Image damageFlash;
+
+        [Header("Root")]
+        [Tooltip("Root GameObject containing the normal player cockpit HUD.")]
+        [SerializeField] private GameObject hudRoot;
 
         #endregion
 
@@ -90,8 +93,14 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void Awake()
         {
-            racerView = GetComponent<RacerViewController>();
-            cockpitView = GetComponent<PlayerCockpitView>();
+            racerView =
+                GetComponentInParent<
+                    RacerViewController>();
+
+            cockpitView =
+                GetComponent<
+                    PlayerCockpitView>();
+
             SetDamageFlashAlpha(0f);
         }
 
@@ -319,6 +328,22 @@ namespace RaceFatal.Presentation.Vehicles
                 lapText.text = $"LAP  {currentLap}/{totalLaps}";
 
             debugCurrentLap = currentLap;
+        }
+
+        public void SetHudVisible(
+            bool visible)
+        {
+            if (hudRoot == null)
+            {
+                Debug.LogWarning(
+                    $"{nameof(PlayerCockpitHUD)} has no HUD Root assigned.",
+                    this);
+
+                return;
+            }
+
+            hudRoot.SetActive(
+                visible);
         }
 
         #endregion

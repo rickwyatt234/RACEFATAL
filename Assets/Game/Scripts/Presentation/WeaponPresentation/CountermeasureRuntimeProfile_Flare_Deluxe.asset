@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ec4a56b1e919ba44a19974db834df19, type: 3}
+  m_Name: CountermeasureRuntimeProfile_Flare_Deluxe
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.CountermeasureRuntimeProfileSO
+  definitionId: countermeasure_flare_deluxe
+  flarePrefab: {fileID: 2521211044671056872, guid: d8df2a9fcd92cdd40a4e00d643a15951, type: 3}
+  flareCount: 2
+  flareEjectionSpeed: 30
+  horizontalSpread: 15
+  upwardAngle: 8
+  flareLifetime: 1.5

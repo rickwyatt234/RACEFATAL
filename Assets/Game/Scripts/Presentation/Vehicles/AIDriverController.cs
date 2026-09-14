@@ -5,13 +5,6 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Vehicles
 {
-    [RequireComponent(typeof(BikeMotor))]
-    [RequireComponent(typeof(TrackSurfaceProbe))]
-    [RequireComponent(typeof(AIRacerSensor))]
-    [RequireComponent(typeof(AIOvertakePlanner))]
-    [RequireComponent(typeof(AIBoostPlanner))]
-    [RequireComponent(typeof(AIEnergyStripPlanner))]
-    [RequireComponent(typeof(AIDefensiveDrivingPlanner))]
     public class AIDriverController : MonoBehaviour
     {
         #region Path Following
@@ -60,33 +53,30 @@ namespace RaceFatal.Presentation.Vehicles
         #region Defensive Driving
 
         [Header("Defensive Driving")]
-        [Tooltip("Multiplier applied to the defensive planner's lateral dodge request.")]
         [Range(1f, 2f)][SerializeField] private float defensiveOffsetMultiplier = 1.35f;
-
-        [Tooltip("Normal pursuit lookahead is multiplied by this while evasive driving is active.")]
         [Range(0.1f, 1f)][SerializeField] private float defensiveLookAheadMultiplier = 0.45f;
-
-        [Tooltip("Minimum pursuit lookahead retained during evasive driving.")]
         [Min(1f)][SerializeField] private float minimumDefensiveLookAheadDistance = 8f;
-
-        [Tooltip("Multiplier applied to steering demand while evasive driving is active.")]
         [Range(1f, 3f)][SerializeField] private float defensiveSteeringGain = 1.65f;
-
-        [Tooltip("Multiplier applied to steering smoothing time while evasive driving is active. Lower values react faster.")]
         [Range(0.1f, 1f)][SerializeField] private float defensiveSteeringSmoothTimeMultiplier = 0.55f;
-
-        [Tooltip("Multiplier applied to maximum steering change speed while evasive driving is active.")]
         [Range(1f, 3f)][SerializeField] private float defensiveSteeringChangeMultiplier = 1.6f;
+
+        #endregion
+
+        #region AI Modules
+
+        [Header("AI Modules")]
+        [SerializeField] private AIOvertakePlanner overtakePlanner = new AIOvertakePlanner();
+        [SerializeField] private AIBoostPlanner boostPlanner = new AIBoostPlanner();
+        [SerializeField] private AIEnergyStripPlanner energyStripPlanner = new AIEnergyStripPlanner();
+        [SerializeField] private AIDefensiveDrivingPlanner defensivePlanner = new AIDefensiveDrivingPlanner();
+        [SerializeField] private AICombatPlanner combatPlanner = new AICombatPlanner();
 
         #endregion
 
         #region Pace
 
         [Header("Pace Mapping")]
-        [Tooltip("Performance multiplier used by a racer with Pace = 0.")]
         [Range(0.8f, 1f)][SerializeField] private float minimumPaceMultiplier = 0.90f;
-
-        [Tooltip("Performance multiplier used by a racer with Pace = 1.")]
         [Range(0.8f, 1f)][SerializeField] private float maximumPaceMultiplier = 1f;
 
         #endregion
@@ -165,6 +155,7 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugAggression;
         [SerializeField] private float debugOvertakingSkill;
         [SerializeField] private float debugDefensiveSkill;
+        [SerializeField] private float debugWeaponAggression;
 
         [SerializeField] private bool debugUnderFire;
         [SerializeField] private bool debugDefensiveControlActive;
@@ -185,22 +176,13 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
-        #region Debug Drawing
-
         [Header("Debug Drawing")]
         [SerializeField] private bool drawDebugTarget = true;
-
-        #endregion
-
-        #region Runtime
 
         private BikeMotor motor;
         private TrackSurfaceProbe surfaceProbe;
         private AIRacerSensor racerSensor;
-        private AIOvertakePlanner overtakePlanner;
-        private AIBoostPlanner boostPlanner;
-        private AIEnergyStripPlanner energyStripPlanner;
-        private AIDefensiveDrivingPlanner defensivePlanner;
+        private RacerViewController racerView;
 
         private RaceParticipant participant;
         private RaceRuntimeController raceRuntime;
@@ -221,10 +203,6 @@ namespace RaceFatal.Presentation.Vehicles
         private bool defensiveControlActive;
         private bool initialized;
 
-        #endregion
-
-        #region Public
-
         public bool IsInitialized => initialized;
         public float CurrentProgress => currentProgress;
         public float CurrentThrottle => currentThrottle;
@@ -236,26 +214,44 @@ namespace RaceFatal.Presentation.Vehicles
 
         public bool IsOvertaking =>
             overtakePlanner != null &&
-            (overtakePlanner.CurrentState == AIOvertakePlanner.OvertakeState.PassingLeft ||
-             overtakePlanner.CurrentState == AIOvertakePlanner.OvertakeState.PassingRight);
+            overtakePlanner.IsPassing;
 
         public bool IsUnderFire =>
             defensivePlanner != null &&
             defensivePlanner.IsUnderFire;
 
-        #endregion
-
-        #region Unity
-
         private void Awake()
         {
-            motor = GetComponent<BikeMotor>();
-            surfaceProbe = GetComponent<TrackSurfaceProbe>();
-            racerSensor = GetComponent<AIRacerSensor>();
-            overtakePlanner = GetComponent<AIOvertakePlanner>();
-            boostPlanner = GetComponent<AIBoostPlanner>();
-            energyStripPlanner = GetComponent<AIEnergyStripPlanner>();
-            defensivePlanner = GetComponent<AIDefensiveDrivingPlanner>();
+            motor =
+                GetComponentInParent<
+                    BikeMotor>();
+
+            surfaceProbe =
+                GetComponentInParent<
+                    TrackSurfaceProbe>();
+
+            racerSensor =
+                GetComponentInParent<
+                    AIRacerSensor>();
+
+            racerView =
+                GetComponentInParent<
+                    RacerViewController>();
+
+            overtakePlanner ??=
+                new AIOvertakePlanner();
+
+            boostPlanner ??=
+                new AIBoostPlanner();
+
+            energyStripPlanner ??=
+                new AIEnergyStripPlanner();
+
+            defensivePlanner ??=
+                new AIDefensiveDrivingPlanner();
+
+            combatPlanner ??=
+                new AICombatPlanner();
         }
 
         private void FixedUpdate()
@@ -267,6 +263,8 @@ namespace RaceFatal.Presentation.Vehicles
                 !raceRuntime.HasStarted)
             {
                 boostPlanner.StopBoost();
+                combatPlanner.Stop();
+
                 ApplyEquipmentModifiers();
                 motor.SetControls(0f, 0f, 0f);
                 return;
@@ -276,6 +274,8 @@ namespace RaceFatal.Presentation.Vehicles
                 progressPath.TotalLength <= 0f)
             {
                 boostPlanner.StopBoost();
+                combatPlanner.Stop();
+
                 ApplyEquipmentModifiers();
                 motor.SetControls(0f, 1f, 0f);
                 return;
@@ -290,7 +290,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             bool trafficLimited =
                 !float.IsPositiveInfinity(
-                    overtakePlanner.TrafficSpeedLimitMetersPerSecond);
+                    overtakePlanner
+                        .TrafficSpeedLimitMetersPerSecond);
 
             bool boostChanged =
                 boostPlanner.UpdatePlan(
@@ -306,15 +307,33 @@ namespace RaceFatal.Presentation.Vehicles
             if (boostChanged)
                 CalculateSpeedControl();
 
+            combatPlanner.Tick(
+                debugCornerSeverity,
+                boostPlanner.IsBoosting);
+
             motor.SetControls(
                 currentThrottle,
                 currentBrake,
                 currentSteering);
         }
 
-        #endregion
+        private void OnDisable()
+        {
+            boostPlanner?.StopBoost();
+            combatPlanner?.Stop();
+            energyStripPlanner?.ResetPlanning();
+            overtakePlanner?.Reset();
 
-        #region Initialization
+            if (motor != null)
+                motor.SetControls(0f, 0f, 0f);
+        }
+
+        private void OnDestroy()
+        {
+            boostPlanner?.StopBoost();
+            combatPlanner?.Dispose();
+            defensivePlanner?.Dispose();
+        }
 
         public bool Initialize(
             RaceParticipant raceParticipant,
@@ -323,30 +342,15 @@ namespace RaceFatal.Presentation.Vehicles
             float pace,
             float aggression,
             float overtakingSkill,
-            float defensiveSkill)
+            float defensiveSkill,
+            float weaponAggression)
         {
-            if (raceParticipant == null)
+            if (raceParticipant == null ||
+                runtime == null ||
+                path == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIDriverController)} requires a RaceParticipant.",
-                    this);
-
-                return false;
-            }
-
-            if (runtime == null)
-            {
-                Debug.LogError(
-                    $"{nameof(AIDriverController)} requires a RaceRuntimeController.",
-                    this);
-
-                return false;
-            }
-
-            if (path == null)
-            {
-                Debug.LogError(
-                    $"{nameof(AIDriverController)} requires a TrackProgressPath.",
+                    $"{nameof(AIDriverController)} is missing required race state.",
                     this);
 
                 return false;
@@ -355,13 +359,15 @@ namespace RaceFatal.Presentation.Vehicles
             if (motor == null ||
                 surfaceProbe == null ||
                 racerSensor == null ||
+                racerView == null ||
                 overtakePlanner == null ||
                 boostPlanner == null ||
                 energyStripPlanner == null ||
-                defensivePlanner == null)
+                defensivePlanner == null ||
+                combatPlanner == null)
             {
                 Debug.LogError(
-                    $"{nameof(AIDriverController)} is missing required bike components.",
+                    $"{nameof(AIDriverController)} is missing required bike systems.",
                     this);
 
                 return false;
@@ -379,7 +385,6 @@ namespace RaceFatal.Presentation.Vehicles
 
             smoothedUpcomingAngle = 0f;
             smoothedActiveAngle = 0f;
-
             steeringSmoothVelocity = 0f;
 
             laneInitialized = false;
@@ -410,6 +415,9 @@ namespace RaceFatal.Presentation.Vehicles
             float runtimeDefensiveSkill =
                 Mathf.Clamp01(defensiveSkill);
 
+            float runtimeWeaponAggression =
+                Mathf.Clamp01(weaponAggression);
+
             paceMultiplier =
                 Mathf.Lerp(
                     Mathf.Min(
@@ -425,30 +433,27 @@ namespace RaceFatal.Presentation.Vehicles
             debugAggression = runtimeAggression;
             debugOvertakingSkill = runtimeOvertakingSkill;
             debugDefensiveSkill = runtimeDefensiveSkill;
+            debugWeaponAggression = runtimeWeaponAggression;
 
             motor.SetPerformance(
                 participant.Vehicle.Performance);
 
             if (!overtakePlanner.Initialize(
+                    racerSensor,
                     runtimeOvertakingSkill))
             {
-                Debug.LogError(
-                    $"Overtake planner initialization failed for AI racer '{participant.RacerId}'.",
-                    this);
-
-                return false;
+                return FailPlanner(
+                    "Overtake");
             }
 
             if (!boostPlanner.Initialize(
                     participant,
                     raceRuntime,
+                    overtakePlanner,
                     runtimeAggression))
             {
-                Debug.LogError(
-                    $"Boost planner initialization failed for AI racer '{participant.RacerId}'.",
-                    this);
-
-                return false;
+                return FailPlanner(
+                    "Boost");
             }
 
             if (!energyStripPlanner.Initialize(
@@ -456,11 +461,8 @@ namespace RaceFatal.Presentation.Vehicles
                     raceRuntime,
                     progressPath))
             {
-                Debug.LogError(
-                    $"Energy Strip planner initialization failed for AI racer '{participant.RacerId}'.",
-                    this);
-
-                return false;
+                return FailPlanner(
+                    "Energy Strip");
             }
 
             if (!defensivePlanner.Initialize(
@@ -468,27 +470,37 @@ namespace RaceFatal.Presentation.Vehicles
                     raceRuntime,
                     runtimeDefensiveSkill))
             {
-                Debug.LogError(
-                    $"Defensive driving planner initialization failed for AI racer '{participant.RacerId}'.",
-                    this);
+                return FailPlanner(
+                    "Defensive Driving");
+            }
 
-                return false;
+            if (!combatPlanner.Initialize(
+                    participant,
+                    racerSensor,
+                    racerView,
+                    runtimeWeaponAggression))
+            {
+                return FailPlanner(
+                    "Combat");
             }
 
             ApplyEquipmentModifiers();
-
-            motor.SetControls(
-                0f,
-                0f,
-                0f);
+            motor.SetControls(0f, 0f, 0f);
 
             initialized = true;
             return true;
         }
 
-        #endregion
+        private bool FailPlanner(
+            string plannerName)
+        {
+            Debug.LogError(
+                $"{plannerName} planner initialization failed for AI racer " +
+                $"'{participant?.RacerId}'.",
+                this);
 
-        #region Path State
+            return false;
+        }
 
         private void UpdatePathState()
         {
@@ -553,20 +565,13 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             debugLookAheadDistance =
-                baseLookAheadDistance +
-                motor.SpeedMetersPerSecond *
-                speedLookAheadMultiplier;
-
-            debugLookAheadDistance =
                 Mathf.Clamp(
-                    debugLookAheadDistance,
+                    baseLookAheadDistance +
+                    motor.SpeedMetersPerSecond *
+                    speedLookAheadMultiplier,
                     baseLookAheadDistance,
                     maximumLookAheadDistance);
         }
-
-        #endregion
-
-        #region Racing Line
 
         private void UpdateRacingLine()
         {
@@ -749,10 +754,6 @@ namespace RaceFatal.Presentation.Vehicles
                 Mathf.Abs(angle));
         }
 
-        #endregion
-
-        #region Tactical Racing
-
         private void UpdateTacticalLine()
         {
             float availableHalfWidth =
@@ -791,12 +792,6 @@ namespace RaceFatal.Presentation.Vehicles
                     availableHalfWidth,
                     debugCornerSeverity);
 
-            /*
-             * The defensive planner decides direction and basic
-             * amplitude. The driver gives that request extra
-             * authority so evasion reads as a real maneuver
-             * instead of a gentle racing-line adjustment.
-             */
             defensiveOffset *=
                 defensiveOffsetMultiplier;
 
@@ -808,7 +803,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             defensiveControlActive =
                 defensivePlanner.IsUnderFire ||
-                Mathf.Abs(defensiveOffset) >
+                Mathf.Abs(
+                    defensiveOffset) >
                 0.01f;
 
             float tacticalOffset;
@@ -881,10 +877,6 @@ namespace RaceFatal.Presentation.Vehicles
                       3.6f;
         }
 
-        #endregion
-
-        #region Pursuit Target
-
         private void UpdatePursuitTarget()
         {
             Vector3 surfaceNormal =
@@ -945,10 +937,6 @@ namespace RaceFatal.Presentation.Vehicles
                 targetRight *
                 finalLateralOffset;
         }
-
-        #endregion
-
-        #region Steering
 
         private void CalculateSteering()
         {
@@ -1033,10 +1021,6 @@ namespace RaceFatal.Presentation.Vehicles
                     Time.fixedDeltaTime);
         }
 
-        #endregion
-
-        #region Speed Control
-
         private void CalculateSpeedControl()
         {
             float physicalMaximumSpeed =
@@ -1073,7 +1057,8 @@ namespace RaceFatal.Presentation.Vehicles
             targetSpeed =
                 Mathf.Clamp(
                     targetSpeed,
-                    minimumCornerSpeedKph / 3.6f,
+                    minimumCornerSpeedKph /
+                    3.6f,
                     desiredMaximumSpeed);
 
             debugTargetSpeedKph =
@@ -1142,9 +1127,12 @@ namespace RaceFatal.Presentation.Vehicles
             float previousDistance =
                 0f;
 
-            for (float distance = cornerSampleSpacing;
-                 distance <= cornerScanDistance;
-                 distance += cornerSampleSpacing)
+            for (float distance =
+                     cornerSampleSpacing;
+                 distance <=
+                     cornerScanDistance;
+                 distance +=
+                     cornerSampleSpacing)
             {
                 float sampleProgress =
                     progressPath.AdvanceProgressByDistance(
@@ -1253,10 +1241,6 @@ namespace RaceFatal.Presentation.Vehicles
                 maximumSpeed);
         }
 
-        #endregion
-
-        #region Equipment
-
         private void ApplyEquipmentModifiers()
         {
             if (participant?.Vehicle?.EquipmentSystem == null)
@@ -1293,10 +1277,6 @@ namespace RaceFatal.Presentation.Vehicles
             debugAccelerationMultiplier =
                 accelerationMultiplier;
         }
-
-        #endregion
-
-        #region Direction Helpers
 
         private float GetLateralTurnAngle(
             Vector3 from,
@@ -1376,10 +1356,6 @@ namespace RaceFatal.Presentation.Vehicles
             return normal.normalized;
         }
 
-        #endregion
-
-        #region Debug
-
         private void OnDrawGizmosSelected()
         {
             if (!drawDebugTarget ||
@@ -1404,7 +1380,5 @@ namespace RaceFatal.Presentation.Vehicles
                 pursuitTarget,
                 0.8f);
         }
-
-        #endregion
     }
 }

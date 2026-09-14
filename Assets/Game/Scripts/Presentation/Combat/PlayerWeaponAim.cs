@@ -1,11 +1,10 @@
 using RaceFatal.Presentation.Racing;
-using RaceFatal.Presentation.Vehicles;
 using RaceFatal.Racing;
+using RaceFatal.Presentation.Vehicles;
 using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
-    [RequireComponent(typeof(RacerViewController))]
     [RequireComponent(typeof(PlayerCockpitView))]
     public class PlayerWeaponAim : MonoBehaviour
     {
@@ -29,7 +28,8 @@ namespace RaceFatal.Presentation.Combat
             racerView != null &&
             racerView.IsInitialized &&
             racerView.Participant != null &&
-            racerView.Participant.Role == RaceParticipantRole.Player &&
+            racerView.Participant.Role ==
+                RaceParticipantRole.Player &&
             cockpitView != null &&
             cockpitView.IsActivePlayerView &&
             cockpitView.CockpitCamera != null &&
@@ -37,8 +37,13 @@ namespace RaceFatal.Presentation.Combat
 
         private void Awake()
         {
-            racerView = GetComponent<RacerViewController>();
-            cockpitView = GetComponent<PlayerCockpitView>();
+            racerView =
+                GetComponentInParent<
+                    RacerViewController>();
+
+            cockpitView =
+                GetComponent<
+                    PlayerCockpitView>();
 
             raycastBuffer =
                 new RaycastHit[
@@ -49,7 +54,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void Update()
         {
-            debugActive = IsActive;
+            debugActive =
+                IsActive;
         }
 
         public bool TryGetAimDirection(
@@ -61,7 +67,9 @@ namespace RaceFatal.Presentation.Combat
             fireDirection =
                 muzzle != null
                     ? muzzle.forward
-                    : transform.forward;
+                    : racerView != null
+                        ? racerView.transform.forward
+                        : transform.forward;
 
             if (!IsActive ||
                 muzzle == null ||
@@ -86,7 +94,9 @@ namespace RaceFatal.Presentation.Combat
                 range;
 
             bool foundHit = false;
-            float nearestDistance = float.PositiveInfinity;
+
+            float nearestDistance =
+                float.PositiveInfinity;
 
             int hitCount =
                 Physics.RaycastNonAlloc(
@@ -96,7 +106,9 @@ namespace RaceFatal.Presentation.Combat
                     hitMask,
                     QueryTriggerInteraction.Ignore);
 
-            for (int i = 0; i < hitCount; i++)
+            for (int i = 0;
+                 i < hitCount;
+                 i++)
             {
                 RaycastHit hit =
                     raycastBuffer[i];
@@ -112,12 +124,20 @@ namespace RaceFatal.Presentation.Combat
                 if (hitRacer == racerView)
                     continue;
 
-                if (hit.distance >= nearestDistance)
+                if (hit.distance >=
+                    nearestDistance)
+                {
                     continue;
+                }
 
-                nearestDistance = hit.distance;
-                aimPoint = hit.point;
-                foundHit = true;
+                nearestDistance =
+                    hit.distance;
+
+                aimPoint =
+                    hit.point;
+
+                foundHit =
+                    true;
             }
 
             Vector3 muzzleToAim =
@@ -133,7 +153,9 @@ namespace RaceFatal.Presentation.Combat
             fireDirection =
                 muzzleToAim.normalized;
 
-            debugCameraHit = foundHit;
+            debugCameraHit =
+                foundHit;
+
             debugAimTarget =
                 foundHit
                     ? "Hit"

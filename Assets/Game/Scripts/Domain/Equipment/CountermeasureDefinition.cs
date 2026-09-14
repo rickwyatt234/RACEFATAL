@@ -1,3 +1,4 @@
+using System;
 using RaceFatal.Shared;
 
 namespace RaceFatal.Equipment
@@ -9,7 +10,21 @@ namespace RaceFatal.Equipment
             get;
         }
 
-        public float Cooldown { get; }
+        public float Cooldown {
+            get;
+        }
+
+        public int UsesPerRace {
+            get;
+        }
+
+        public float TriggerDistance {
+            get;
+        }
+
+        public float DefeatRadius {
+            get;
+        }
 
         public CountermeasureDefinition(
             string id,
@@ -17,6 +32,9 @@ namespace RaceFatal.Equipment
             NodeSize requiredNodeSize,
             CountermeasureType countermeasureType,
             float cooldown,
+            int usesPerRace,
+            float triggerDistance,
+            float defeatRadius,
             int creditCost,
             string requiredTechnologyId)
             : base(
@@ -31,7 +49,25 @@ namespace RaceFatal.Equipment
             CountermeasureType =
                 countermeasureType;
 
-            Cooldown = cooldown;
+            Cooldown =
+                Math.Max(
+                    0f,
+                    cooldown);
+
+            UsesPerRace =
+                Math.Max(
+                    1,
+                    usesPerRace);
+
+            TriggerDistance =
+                Math.Max(
+                    0f,
+                    triggerDistance);
+
+            DefeatRadius =
+                Math.Max(
+                    0f,
+                    defeatRadius);
         }
     }
 }

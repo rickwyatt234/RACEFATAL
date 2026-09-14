@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1262d3343da0aa2469d770576eec6199, type: 3}
+  m_Name: CountermeasureRuntimeCatalog
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.CountermeasureRuntimeCatalogSO
+  profiles:
+  - {fileID: 11400000, guid: 1a7e8bd2bdcfefa4b93477a03ca59f4f, type: 2}
+  - {fileID: 11400000, guid: 8b6461a661ba0794f8914bb4d7f8206d, type: 2}
+  - {fileID: 11400000, guid: 8596636c046162442a9b514f32e1fdf3, type: 2}

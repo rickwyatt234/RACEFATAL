@@ -238,7 +238,8 @@ namespace RaceFatal.Presentation.Racing
             if (raceStartSequence == null)
             {
                 RaceStartupTrace.Warning(
-                    "No RaceStartSequenceController is assigned. Starting race immediately.",
+                    "No RaceStartSequenceController is assigned. " +
+                    "Starting race immediately.",
                     this);
 
                 raceRuntime.StartRace();
@@ -268,7 +269,8 @@ namespace RaceFatal.Presentation.Racing
                 if (bikeContent == null)
                 {
                     RaceStartupTrace.Fail(
-                        $"Bike content '{participant.Bike.BikeDefinitionId}' was not found.",
+                        $"Bike content '{participant.Bike.BikeDefinitionId}' " +
+                        "was not found.",
                         this);
 
                     return false;
@@ -296,72 +298,45 @@ namespace RaceFatal.Presentation.Racing
                 bikeObject.name =
                     $"Racer_{participant.RacerId}";
 
-                RacerViewController view =
+                BikeRuntimeController bikeRuntime =
                     bikeObject.GetComponent<
-                        RacerViewController>();
+                        BikeRuntimeController>();
+
+                if (bikeRuntime == null)
+                {
+                    RaceStartupTrace.Fail(
+                        $"Bike prefab '{bikeContent.name}' requires a " +
+                        $"{nameof(BikeRuntimeController)}.",
+                        bikeObject);
+
+                    Destroy(bikeObject);
+                    return false;
+                }
+
+                bool participantInitialized =
+                    bikeRuntime.InitializeParticipant(
+                        participant,
+                        weaponPresenter);
+
+                if (!participantInitialized)
+                {
+                    RaceStartupTrace.Fail(
+                        $"Bike runtime initialization failed for racer " +
+                        $"'{participant.RacerId}'.",
+                        bikeObject);
+
+                    Destroy(bikeObject);
+                    return false;
+                }
+
+                RacerViewController view =
+                    bikeRuntime.RacerView;
 
                 if (view == null)
                 {
                     RaceStartupTrace.Fail(
-                        $"Bike prefab '{bikeContent.name}' requires a " +
-                        $"{nameof(RacerViewController)}.",
-                        bikeObject);
-
-                    Destroy(bikeObject);
-                    return false;
-                }
-
-                view.Initialize(
-                    participant);
-                    
-                WeaponChargePresentationController chargePresentation =
-                    bikeObject.GetComponentInChildren<
-                        WeaponChargePresentationController>(true);
-
-                if (chargePresentation != null)
-                {
-                    chargePresentation.Initialize(
-                        weaponPresenter);
-                }
-                BikeController playerController =
-                    bikeObject.GetComponent<
-                        BikeController>();
-
-                AIDriverController aiDriver =
-                    bikeObject.GetComponent<
-                        AIDriverController>();
-
-                AICombatPlanner aiCombat =
-                    bikeObject.GetComponent<
-                        AICombatPlanner>();
-
-                if (playerController == null)
-                {
-                    RaceStartupTrace.Fail(
-                        $"Bike prefab '{bikeContent.name}' requires a " +
-                        $"{nameof(BikeController)}.",
-                        bikeObject);
-
-                    Destroy(bikeObject);
-                    return false;
-                }
-
-                if (aiDriver == null)
-                {
-                    RaceStartupTrace.Fail(
-                        $"Bike prefab '{bikeContent.name}' requires an " +
-                        $"{nameof(AIDriverController)}.",
-                        bikeObject);
-
-                    Destroy(bikeObject);
-                    return false;
-                }
-
-                if (aiCombat == null)
-                {
-                    RaceStartupTrace.Fail(
-                        $"Bike prefab '{bikeContent.name}' requires an " +
-                        $"{nameof(AICombatPlanner)}.",
+                        $"Bike runtime for racer '{participant.RacerId}' " +
+                        "did not provide a RacerViewController.",
                         bikeObject);
 
                     Destroy(bikeObject);
@@ -387,74 +362,53 @@ namespace RaceFatal.Presentation.Racing
                     return false;
                 }
 
-                if (participant.Role ==
+                RacerDefinitionSO racerContent = null;
+
+                if (participant.Role !=
                     RaceParticipantRole.Player)
                 {
-                    playerController.enabled = true;
-                    aiDriver.enabled = false;
-                    aiCombat.enabled = false;
-
-                    RaceStartupTrace.Mark(
-                        $"Racer '{participant.RacerId}' assigned PLAYER control.",
-                        bikeObject);
-                }
-                else
-                {
-                    playerController.enabled = false;
-                    aiDriver.enabled = true;
-                    aiCombat.enabled = true;
-
-                    RacerDefinitionSO racerContent =
+                    racerContent =
                         catalog.FindRacerContent(
                             participant.RacerId);
 
                     if (racerContent == null)
                     {
                         RaceStartupTrace.Fail(
-                            $"AI racer content '{participant.RacerId}' was not found.",
+                            $"AI racer content '{participant.RacerId}' " +
+                            "was not found.",
                             bikeObject);
 
                         Destroy(bikeObject);
                         return false;
                     }
+                }
 
-                    bool aiInitialized =
-                        aiDriver.Initialize(
-                            participant,
-                            raceRuntime,
-                            trackRuntime.ProgressPath,
-                            racerContent.Pace,
-                            racerContent.Aggression,
-                            racerContent.OvertakingSkill,
-                            racerContent.DefensiveSkill);
+                bool driverConfigured =
+                    bikeRuntime.ConfigureDriver(
+                        raceRuntime,
+                        trackRuntime,
+                        racerContent);
 
-                    if (!aiInitialized)
-                    {
-                        RaceStartupTrace.Fail(
-                            $"AI initialization failed for racer " +
-                            $"'{participant.RacerId}'.",
-                            bikeObject);
+                if (!driverConfigured)
+                {
+                    RaceStartupTrace.Fail(
+                        $"Driver configuration failed for racer " +
+                        $"'{participant.RacerId}'.",
+                        bikeObject);
 
-                        Destroy(bikeObject);
-                        return false;
-                    }
+                    Destroy(bikeObject);
+                    return false;
+                }
 
-                    bool combatInitialized =
-                        aiCombat.Initialize(
-                            participant,
-                            racerContent.WeaponAggression);
-
-                    if (!combatInitialized)
-                    {
-                        RaceStartupTrace.Fail(
-                            $"AI combat initialization failed for racer " +
-                            $"'{participant.RacerId}'.",
-                            bikeObject);
-
-                        Destroy(bikeObject);
-                        return false;
-                    }
-
+                if (participant.Role ==
+                    RaceParticipantRole.Player)
+                {
+                    RaceStartupTrace.Mark(
+                        $"Racer '{participant.RacerId}' assigned PLAYER control.",
+                        bikeObject);
+                }
+                else
+                {
                     RaceStartupTrace.Mark(
                         $"Racer '{participant.RacerId}' assigned AI control. " +
                         $"Pace={racerContent.Pace:F2}, " +
