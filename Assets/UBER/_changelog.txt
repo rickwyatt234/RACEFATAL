@@ -1,0 +1,87 @@
+1.2h
+
+- U2019 adjusted (fixed local keywords issues)
+- fixed broken shadow casters that uses ZWRITE variant (parallax with "Write into depth")
+
+1.2g
+
+- Fixed heightblending for 2layer shader variants (look for #define FIX_2LAYERS_INVERTION in UBER_StandardConfig.cginc to use old inverted logic)
+- U2018 adjusted (Substance handling temporarily disabled)
+
+1.2f
+
+- fixed point light shadow casters error for DX11 in Unity2017.3 (using raw depth cube maps)
+
+1.2e
+
+- we can now select Albedo texture alpha channel as smoothness source
+- added shader switch to invert diffuse scattering - works for core shader variants. Look for #define FAKE_RETROREFLECTION in core shaders. This feature can be useful to approximate road sign materials
+- fixed compilation error (1.2d regression) for ForwardAdd variants
+- fixed geom blend shaders compilation errors (1.2d regression)
+
+1.2d
+
+- fixed Unity 2017 shadowmask lightmap mode
+- fixed depth pass missing in refraction/triplanar shader variant
+- fixed snow/wetness applied on cutout materials where we've got clipped parts
+- added queue and instancing controls to material inspector
+
+1.2c
+
+- fixed leaking glossiness from constant wetness
+- Unity 5.6.1f1 (and up) fixed lightmapping
+
+1.2b
+
+- U5.6_beta10 tested
+- fixed deferred translucency for VR
+- fixed shadow bias for point lights when writing into depth
+
+1.2 (U5.5 compatibility package)
+
+- U5.5 (U5.5.0b6 submitted) compatibility
+- 2x slimmed down shader count (no separate shader files for snow) from 152 to 76
+
+1.1c
+
+- LOD Group implementation. UBER shaders will now react to LOD fading
+- cleanup/fixed instancing (prepared for usage, but turned off by default - uncomment #pragma multi_compile_instancing in choosen shaders to turn it on)
+
+1.1b
+
+- fixed directional specular lightmap decoding
+
+1.1
+
+- Unity 5.3 compatibility
+- Translucency in deferred rebuilt for 4 independent setups
+- glcore compatibility solved (tessellation on Macs)
+- match Relief Terrain Pack (work flawless together)
+
+1.04
+
+- Unity 5.2 deferred reflections compatibility
+- Translucency in deferred works in scene view
+- new variants - 2 sided / 2 layers with layer selected by side
+- albedo tinting by vertex RGB color can be optionally masked by albedo texture (A) channel
+
+1.03
+
+- fixed empty references to default textures for water&snow
+- fixed issue  for additional light with water in forward
+- fixed dynamic snow not working in DX9
+- reduced wobbling issue in tessellation
+- introduced optional tessellation displacement strength from vertex color
+- new 2 sided variants
+- improved translucency model
+- fallback set to to Unity Standard Shader
+- GGX specularity switch described
+
+
+1.02
+- openGL compatibility issues
+- RAM consumption reduced (24x times...)
+- compatible with Alloy
+- dynamic weather features with controller
+- new dissolve (cutoff) emission
+- fixed a lot of bugs

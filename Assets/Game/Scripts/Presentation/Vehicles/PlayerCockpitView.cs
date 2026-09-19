@@ -22,6 +22,10 @@ namespace RaceFatal.Presentation.Vehicles
 
         [Tooltip("Optional player-only reticle canvas.")]
         [SerializeField] private Canvas reticleCanvas;
+        
+        [Tooltip("Player-only diegetic windshield HUD.")]
+        [SerializeField]
+        private Canvas windshieldHudCanvas;
 
         [Header("View")]
         [Min(1f)][SerializeField] private float normalFieldOfView = 75f;

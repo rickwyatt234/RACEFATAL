@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0e8336d1d51b5f14585fd035aeedf27a
+timeCreated: 1437070685
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39959
+  packageName: UBER - Standard Shader Ultra
+  packageVersion: 1.2h
+  assetPath: Assets/UBER/Documentation.txt
+  uploadId: 308148

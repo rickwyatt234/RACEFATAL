@@ -26,6 +26,9 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private Image shieldFill;
         [SerializeField] private TextMeshProUGUI shieldText;
 
+        [Header("Speed")]
+        [SerializeField] private TextMeshProUGUI speedText;
+
         [Header("Weapon")]
         [SerializeField] private TextMeshProUGUI weaponText;
         [SerializeField] private TextMeshProUGUI ammoText;
@@ -79,6 +82,7 @@ namespace RaceFatal.Presentation.Vehicles
         private PlayerCockpitView cockpitView;
         private RaceRuntimeController raceRuntime;
         private RaceParticipant participant;
+        private BikeMotor motor;
 
         private float previousDamage;
         private float previousShield;
@@ -102,6 +106,8 @@ namespace RaceFatal.Presentation.Vehicles
                     PlayerCockpitView>();
 
             SetDamageFlashAlpha(0f);
+            motor =
+            GetComponentInParent<BikeMotor>();
         }
 
         private void Update()
@@ -159,12 +165,27 @@ namespace RaceFatal.Presentation.Vehicles
         {
             RaceVehicleState vehicle = participant.Vehicle;
 
+            UpdateSpeed();
             UpdateEnergy(vehicle);
             UpdateDamage(vehicle);
             UpdateShield(vehicle);
             UpdateWeapon(vehicle);
         }
+        private void UpdateSpeed()
+        {
+            if (motor == null ||
+                speedText == null)
+            {
+                return;
+            }
 
+            int speedKph =
+                Mathf.RoundToInt(
+                    motor.SpeedMetersPerSecond * 3.6f);
+
+            speedText.text =
+                speedKph.ToString("000");
+        }
         private void UpdateEnergy(RaceVehicleState vehicle)
         {
             float maximum = vehicle.EnergyPool.MaxEnergy;
@@ -177,7 +198,7 @@ namespace RaceFatal.Presentation.Vehicles
                 energyFill.fillAmount = normalized;
 
             if (energyText != null)
-                energyText.text = $"ENERGY  {normalized * 100f:0}%";
+                energyText.text = $"{normalized * 100f:0}%";
 
             debugEnergyPercent = normalized * 100f;
         }
@@ -192,7 +213,7 @@ namespace RaceFatal.Presentation.Vehicles
                 damageFill.fillAmount = normalized;
 
             if (damageText != null)
-                damageText.text = $"DAMAGE  {damage:0}%";
+                damageText.text = $"{damage:0}%";
 
             debugDamagePercent = damage;
         }
@@ -232,7 +253,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (shieldText != null)
             {
                 shieldText.text =
-                    $"SHIELD  {shield.Current:0} / {shield.Maximum:0}";
+                    $"{shield.Current:0}";
             }
 
             debugShieldCurrent = shield.Current;
@@ -307,8 +328,8 @@ namespace RaceFatal.Presentation.Vehicles
             if (positionText != null)
             {
                 positionText.text = position > 0
-                    ? $"POS  {position}/{order.Count}"
-                    : $"POS  --/{order.Count}";
+                    ? $"{position}"
+                    : "--";
             }
 
             debugPosition = position;
