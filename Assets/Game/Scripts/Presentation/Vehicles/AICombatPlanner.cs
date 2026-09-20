@@ -116,6 +116,12 @@ namespace RaceFatal.Presentation.Vehicles
 
         [SerializeField] private bool avoidFiringWhileBoosting = true;
 
+        [Header("Race Pressure")]
+        [Range(0f, 0.4f)][SerializeField] private float fullPressureAttackThresholdReduction = 0.12f;
+        [Range(0f, 0.5f)][SerializeField] private float fullPressurePreferredTargetBonus = 0.22f;
+        [Range(0f, 0.5f)][SerializeField] private float fullPressureTargetRangeBonus = 0.12f;
+        [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerToleranceBonus = 0.06f;
+
         #endregion
 
         #region Hold Weapons
@@ -167,6 +173,8 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugRuntimeBurstCooldown;
         [SerializeField] private float debugRuntimePressCooldown;
         [SerializeField] private float debugMinimumAttackScore;
+        [SerializeField] private float debugRacePressure;
+        [SerializeField] private string debugPreferredTarget = "None";
 
         [SerializeField] private string debugSelectedWeapon = "None";
         [SerializeField] private string debugActivationMode = "None";
@@ -227,6 +235,9 @@ namespace RaceFatal.Presentation.Vehicles
         private float runtimeBurstCooldown;
         private float runtimePressWeaponCooldown;
         private float runtimeMinimumAttackScore;
+
+        private float currentRacePressure;
+        private string preferredTargetRacerId;
 
         #endregion
 
@@ -405,10 +416,28 @@ namespace RaceFatal.Presentation.Vehicles
 
         public void Tick(
             float cornerSeverity,
-            bool boosting)
+            bool boosting,
+            float racePressure,
+            string preferredTargetId)
         {
             if (!initialized)
                 return;
+
+            currentRacePressure =
+                Mathf.Clamp01(
+                    racePressure);
+
+            preferredTargetRacerId =
+                preferredTargetId;
+
+            debugRacePressure =
+                currentRacePressure;
+
+            debugPreferredTarget =
+                string.IsNullOrWhiteSpace(
+                    preferredTargetRacerId)
+                    ? "None"
+                    : preferredTargetRacerId;
 
             TickTimers();
 
@@ -419,8 +448,14 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            float effectiveCornerLimit =
+                Mathf.Clamp01(
+                    runtimeMaximumCornerSeverity +
+                    fullPressureCornerToleranceBonus *
+                    currentRacePressure);
+
             if (cornerSeverity >
-                runtimeMaximumCornerSeverity)
+                effectiveCornerLimit)
             {
                 debugDecision =
                     "Corner / Hold Fire";
@@ -430,7 +465,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             if (avoidFiringWhileBoosting &&
-                boosting)
+                boosting &&
+                currentRacePressure < 0.65f)
             {
                 debugDecision =
                     "Boosting / Hold Fire";
@@ -521,8 +557,15 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            float effectiveAttackScore =
+                Mathf.Max(
+                    0f,
+                    runtimeMinimumAttackScore -
+                    fullPressureAttackThresholdReduction *
+                    currentRacePressure);
+
             if (opportunity.Score <
-                runtimeMinimumAttackScore)
+                effectiveAttackScore)
             {
                 ApplyDebugOpportunity(
                     opportunity);
@@ -912,9 +955,15 @@ namespace RaceFatal.Presentation.Vehicles
             float distance =
                 toTarget.magnitude;
 
+            float pressureRange =
+                runtimeTargetDistance *
+                (1f +
+                 fullPressureTargetRangeBonus *
+                 currentRacePressure);
+
             float searchRange =
                 Mathf.Min(
-                    runtimeTargetDistance,
+                    pressureRange,
                     definition.Range);
 
             if (distance <
@@ -1033,6 +1082,19 @@ namespace RaceFatal.Presentation.Vehicles
                 ammoFactor *
                 travelFactor *
                 chargeFactor;
+
+            if (!string.IsNullOrWhiteSpace(
+                    preferredTargetRacerId) &&
+                target.Participant != null &&
+                string.Equals(
+                    target.Participant.RacerId,
+                    preferredTargetRacerId,
+                    StringComparison.Ordinal))
+            {
+                score +=
+                    fullPressurePreferredTargetBonus *
+                    currentRacePressure;
+            }
 
             opportunity.Valid =
                 true;

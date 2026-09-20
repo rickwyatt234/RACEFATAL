@@ -70,6 +70,26 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private AIEnergyStripPlanner energyStripPlanner = new AIEnergyStripPlanner();
         [SerializeField] private AIDefensiveDrivingPlanner defensivePlanner = new AIDefensiveDrivingPlanner();
         [SerializeField] private AICombatPlanner combatPlanner = new AICombatPlanner();
+        [SerializeField] private AIRacePressurePlanner racePressurePlanner = new AIRacePressurePlanner();
+
+        #endregion
+
+        #region Drafting
+
+        [Header("Drafting")]
+        [Tooltip("Distance where an AI begins receiving a useful slipstream from the racer directly ahead.")]
+        [Min(1f)][SerializeField] private float draftingRange = 32f;
+
+        [Tooltip("Too close to the bike ahead produces little useful clean-air drafting.")]
+        [Min(0f)][SerializeField] private float minimumDraftingDistance = 4f;
+
+        [Range(1f, 1.1f)][SerializeField] private float maximumDraftSpeedMultiplier = 1.025f;
+        [Range(1f, 1.15f)][SerializeField] private float maximumDraftAccelerationMultiplier = 1.06f;
+
+        [Tooltip("Drafting fades through severe corners.")]
+        [Range(0f, 1f)][SerializeField] private float draftingCornerFadeStart = 0.25f;
+
+        [Range(0f, 1f)][SerializeField] private float draftingCornerFadeEnd = 0.65f;
 
         #endregion
 
@@ -168,6 +188,13 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugSpeedMultiplier;
         [SerializeField] private float debugAccelerationMultiplier;
 
+        [SerializeField] private AIRacePressureRole debugPressureRole;
+        [SerializeField] private float debugPressure;
+        [SerializeField] private float debugGapToPlayerMeters;
+        [SerializeField] private float debugDraftStrength;
+        [SerializeField] private float debugDraftSpeedMultiplier = 1f;
+        [SerializeField] private float debugDraftAccelerationMultiplier = 1f;
+
         [SerializeField] private float debugTargetSpeedKph;
         [SerializeField] private float debugLimitingCurveSpeedKph;
         [SerializeField] private float debugLimitingCurveDistance;
@@ -198,6 +225,9 @@ namespace RaceFatal.Presentation.Vehicles
         private float smoothedActiveAngle;
         private float steeringSmoothVelocity;
         private float paceMultiplier = 1f;
+        private float draftStrength;
+        private float draftSpeedMultiplier = 1f;
+        private float draftAccelerationMultiplier = 1f;
 
         private bool laneInitialized;
         private bool defensiveControlActive;
@@ -252,6 +282,9 @@ namespace RaceFatal.Presentation.Vehicles
 
             combatPlanner ??=
                 new AICombatPlanner();
+
+            racePressurePlanner ??=
+                new AIRacePressurePlanner();
         }
 
         private void FixedUpdate()
@@ -282,8 +315,10 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             UpdatePathState();
+            racePressurePlanner.UpdatePlan();
             UpdateRacingLine();
             UpdateTacticalLine();
+            UpdateDrafting();
             UpdatePursuitTarget();
             CalculateSteering();
             CalculateSpeedControl();
@@ -300,7 +335,9 @@ namespace RaceFatal.Presentation.Vehicles
                     motor.SpeedMetersPerSecond,
                     trafficLimited,
                     IsOvertaking,
-                    energyStripPlanner.IsTargetingStrip);
+                    energyStripPlanner.IsTargetingStrip,
+                    racePressurePlanner.Pressure,
+                    racePressurePlanner.Role);
 
             ApplyEquipmentModifiers();
 
@@ -309,7 +346,11 @@ namespace RaceFatal.Presentation.Vehicles
 
             combatPlanner.Tick(
                 debugCornerSeverity,
-                boostPlanner.IsBoosting);
+                boostPlanner.IsBoosting,
+                racePressurePlanner.Pressure,
+                racePressurePlanner.IsPriorityPursuit
+                    ? raceRuntime.PlayerRacerId
+                    : null);
 
             motor.SetControls(
                 currentThrottle,
@@ -364,7 +405,8 @@ namespace RaceFatal.Presentation.Vehicles
                 boostPlanner == null ||
                 energyStripPlanner == null ||
                 defensivePlanner == null ||
-                combatPlanner == null)
+                combatPlanner == null ||
+                racePressurePlanner == null)
             {
                 Debug.LogError(
                     $"{nameof(AIDriverController)} is missing required bike systems.",
@@ -482,6 +524,15 @@ namespace RaceFatal.Presentation.Vehicles
             {
                 return FailPlanner(
                     "Combat");
+            }
+
+            if (!racePressurePlanner.Initialize(
+                    participant,
+                    raceRuntime,
+                    progressPath))
+            {
+                return FailPlanner(
+                    "Race Pressure");
             }
 
             ApplyEquipmentModifiers();
@@ -877,6 +928,90 @@ namespace RaceFatal.Presentation.Vehicles
                       3.6f;
         }
 
+        private void UpdateDrafting()
+        {
+            draftStrength = 0f;
+            draftSpeedMultiplier = 1f;
+            draftAccelerationMultiplier = 1f;
+
+            if (racerSensor == null ||
+                racerSensor.AheadRacer == null ||
+                float.IsPositiveInfinity(
+                    racerSensor.AheadDistance))
+            {
+                UpdateDraftDebug();
+                return;
+            }
+
+            float distance =
+                racerSensor.AheadDistance;
+
+            if (distance < minimumDraftingDistance ||
+                distance > draftingRange)
+            {
+                UpdateDraftDebug();
+                return;
+            }
+
+            float distanceStrength =
+                1f -
+                Mathf.InverseLerp(
+                    minimumDraftingDistance,
+                    Mathf.Max(
+                        minimumDraftingDistance + 0.1f,
+                        draftingRange),
+                    distance);
+
+            float cornerScale =
+                1f -
+                Mathf.InverseLerp(
+                    draftingCornerFadeStart,
+                    Mathf.Max(
+                        draftingCornerFadeStart + 0.01f,
+                        draftingCornerFadeEnd),
+                    debugCornerSeverity);
+
+            draftStrength =
+                Mathf.Clamp01(
+                    distanceStrength *
+                    cornerScale);
+
+            draftSpeedMultiplier =
+                Mathf.Lerp(
+                    1f,
+                    maximumDraftSpeedMultiplier,
+                    draftStrength);
+
+            draftAccelerationMultiplier =
+                Mathf.Lerp(
+                    1f,
+                    maximumDraftAccelerationMultiplier,
+                    draftStrength);
+
+            UpdateDraftDebug();
+        }
+
+        private void UpdateDraftDebug()
+        {
+            debugDraftStrength =
+                draftStrength;
+
+            debugDraftSpeedMultiplier =
+                draftSpeedMultiplier;
+
+            debugDraftAccelerationMultiplier =
+                draftAccelerationMultiplier;
+
+            debugPressureRole =
+                racePressurePlanner.Role;
+
+            debugPressure =
+                racePressurePlanner.Pressure;
+
+            debugGapToPlayerMeters =
+                racePressurePlanner.GapToPlayerMeters;
+        }
+
         private void UpdatePursuitTarget()
         {
             Vector3 surfaceNormal =
@@ -1036,7 +1171,9 @@ namespace RaceFatal.Presentation.Vehicles
             float desiredMaximumSpeed =
                 physicalMaximumSpeed *
                 paceMultiplier *
-                equipmentSpeedMultiplier;
+                equipmentSpeedMultiplier *
+                racePressurePlanner.SpeedMultiplier *
+                draftSpeedMultiplier;
 
             float targetSpeed =
                 CalculateAllowedSpeedNow(
@@ -1260,6 +1397,14 @@ namespace RaceFatal.Presentation.Vehicles
                 participant.Vehicle
                     .EquipmentSystem
                     .HandlingMultiplier;
+
+            speedMultiplier *=
+                racePressurePlanner.SpeedMultiplier *
+                draftSpeedMultiplier;
+
+            accelerationMultiplier *=
+                racePressurePlanner.AccelerationMultiplier *
+                draftAccelerationMultiplier;
 
             motor.SetRuntimeModifiers(
                 speedMultiplier,
