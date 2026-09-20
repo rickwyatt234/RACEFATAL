@@ -20,6 +20,7 @@ namespace RaceFatal.Equipment
 
         // Seconds required to fully charge a ChargeRelease weapon.
         public float ChargeDuration { get; }
+        public float TargetLockDuration { get; }
 
         public WeaponDefinition(
             string id,
@@ -34,6 +35,7 @@ namespace RaceFatal.Equipment
             int startingAmmo,
             float fireInterval,
             float chargeDuration,
+            float targetLockDuration,
             int creditCost,
             string requiredTechnologyId)
             : base(
@@ -71,6 +73,7 @@ namespace RaceFatal.Equipment
 
             FireInterval = fireInterval;
             ChargeDuration = chargeDuration;
+            TargetLockDuration = Math.Max(0f, targetLockDuration);
         }
     }
 }

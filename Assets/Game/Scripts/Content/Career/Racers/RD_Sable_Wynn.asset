@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_sable_wynn
   displayName: Sable Wynn
-  pace: 0.69
+  pace: 1
   aggression: 0.63
   overtakingSkill: 0.75
   defensiveSkill: 0.6

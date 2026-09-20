@@ -552,12 +552,28 @@ namespace RaceFatal.Presentation.Combat
             }
 
             RacerViewController target =
-                FindGuidedTarget(
-                    shooter,
-                    origin,
-                    direction,
-                    fireEvent.Range,
-                    guidedPrefab);
+                null;
+
+            GuidedTargetLockState lockState =
+                shooter.GetComponent<
+                    GuidedTargetLockState>();
+
+            if (lockState != null)
+            {
+                lockState.TryGetLockedTarget(
+                    out target);
+            }
+
+            if (target == null)
+            {
+                target =
+                    FindGuidedTarget(
+                        shooter,
+                        origin,
+                        direction,
+                        fireEvent.Range,
+                        guidedPrefab);
+            }
 
             GuidedProjectileView projectile =
                 Instantiate(

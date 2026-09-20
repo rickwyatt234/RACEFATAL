@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_silas_rook
   displayName: Silas Rook
-  pace: 0.92
+  pace: 1
   aggression: 0.32
   overtakingSkill: 0.53
   defensiveSkill: 0.8

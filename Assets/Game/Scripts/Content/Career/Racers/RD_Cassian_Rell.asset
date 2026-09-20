@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_cassian_rell
   displayName: Cassian_Rell
-  pace: 0.74
+  pace: 1
   aggression: 0.74
   overtakingSkill: 0.79
   defensiveSkill: 0.6

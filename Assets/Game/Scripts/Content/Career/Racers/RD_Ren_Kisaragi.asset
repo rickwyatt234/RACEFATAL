@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_ren_kisaragi
   displayName: Ren Kisaragi
-  pace: 0.94
+  pace: 1
   aggression: 0.34
   overtakingSkill: 0.63
   defensiveSkill: 0.32

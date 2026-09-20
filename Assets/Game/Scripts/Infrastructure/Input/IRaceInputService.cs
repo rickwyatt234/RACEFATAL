@@ -11,6 +11,8 @@ namespace RaceFatal.Infrastructure.Input
 
         bool NextEquipmentPressed { get; }
         bool PreviousEquipmentPressed { get; }
+        bool NextTargetPressed { get; }
+        bool FocusHeld { get; }
 
         bool BoostHeld { get; }
     }

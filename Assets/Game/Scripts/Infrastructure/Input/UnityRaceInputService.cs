@@ -14,6 +14,8 @@ namespace RaceFatal.Infrastructure.Input
 
         [SerializeField] private KeyCode nextEquipment = KeyCode.E;
         [SerializeField] private KeyCode previousEquipment = KeyCode.Q;
+        [SerializeField] private KeyCode nextTarget = KeyCode.Tab;
+        [SerializeField] private KeyCode focusKey = KeyCode.LeftControl;
         [SerializeField] private int activationMouseButton = 0;
 
         [SerializeField] private KeyCode boostKey = KeyCode.LeftShift;
@@ -30,6 +32,9 @@ namespace RaceFatal.Infrastructure.Input
         public bool PreviousEquipmentPressed =>
             UnityEngine.Input.GetKeyDown(previousEquipment);
 
+        public bool FocusHeld =>
+            UnityEngine.Input.GetKey(focusKey);
+
         public bool BoostHeld =>
             UnityEngine.Input.GetKey(boostKey);
 
@@ -38,7 +43,9 @@ namespace RaceFatal.Infrastructure.Input
 
         public float Brake =>
             UnityEngine.Input.GetKey(brakeKey) ? 1f : 0f;
-
+        public bool NextTargetPressed =>
+            UnityEngine.Input.GetKeyDown(
+                nextTarget);
         public float Steering
         {
             get

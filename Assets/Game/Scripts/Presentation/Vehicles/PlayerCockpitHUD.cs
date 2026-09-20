@@ -76,6 +76,61 @@ namespace RaceFatal.Presentation.Vehicles
 
         #endregion
 
+        #region Lap and Weapon Panel Views
+        [System.Serializable]
+        private class LapBoxView
+        {
+            public GameObject root;
+            public Image centerImage;
+        }
+
+        [System.Serializable]
+        private class WeaponPanelSlotView
+        {
+            public TextMeshProUGUI weaponName;
+            public TextMeshProUGUI ammoText;
+        }
+
+        [Header("Lap Boxes")]
+        [SerializeField]
+        private List<LapBoxView> lapBoxes =
+            new List<LapBoxView>();
+
+        [SerializeField]
+        private Color incompleteLapColor =
+            Color.black;
+
+        [SerializeField]
+        private Color completeLapColor =
+            Color.white;
+
+        [Header("Weapon Panel")]
+        [SerializeField]
+        private List<WeaponPanelSlotView> weaponPanelSlots =
+            new List<WeaponPanelSlotView>();
+
+        [SerializeField]
+        private Color selectedWeaponColor =
+            Color.white;
+
+        [SerializeField]
+        private Color unselectedWeaponColor =
+            new Color(
+                0.4f,
+                0.4f,
+                0.4f,
+                1f);
+
+        [SerializeField]
+        private float selectedWeaponFontSize =
+            30f;
+
+        [SerializeField]
+        private float unselectedWeaponFontSize =
+            21f;
+
+        #endregion
+        
         #region Runtime
 
         private RacerViewController racerView;
@@ -264,6 +319,7 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdateWeapon(RaceVehicleState vehicle)
         {
             RaceEquipmentSystem equipment = vehicle.EquipmentSystem;
+            UpdateWeaponPanel(equipment);
             WeaponDefinition weapon = equipment.SelectedWeaponDefinition;
 
             if (weapon == null)
@@ -295,7 +351,67 @@ namespace RaceFatal.Presentation.Vehicles
             debugWeaponMaximumAmmo = maximumAmmo;
             debugWeaponEmpty = equipment.SelectedWeaponIsEmpty;
         }
+        private void UpdateWeaponPanel(
+            RaceEquipmentSystem equipment)
+        {
+            for (int i = 0;
+                i < weaponPanelSlots.Count;
+                i++)
+            {
+                WeaponPanelSlotView slot =
+                    weaponPanelSlots[i];
 
+                if (slot == null)
+                    continue;
+
+                if (i >= 4 ||
+                    !equipment.TryGetWeaponSnapshot(
+                        i,
+                        out RaceWeaponSnapshot snapshot))
+                {
+                    if (slot.weaponName != null)
+                        slot.weaponName.text = string.Empty;
+
+                    if (slot.ammoText != null)
+                        slot.ammoText.text = string.Empty;
+
+                    continue;
+                }
+
+                bool selected =
+                    snapshot.IsSelected;
+
+                Color color =
+                    selected
+                        ? selectedWeaponColor
+                        : unselectedWeaponColor;
+
+                if (slot.weaponName != null)
+                {
+                    slot.weaponName.text =
+                        snapshot.Definition
+                            .DisplayName
+                            .ToUpperInvariant();
+
+                    slot.weaponName.color =
+                        color;
+
+                    slot.weaponName.fontSize =
+                        selected
+                            ? selectedWeaponFontSize
+                            : unselectedWeaponFontSize;
+                }
+
+                if (slot.ammoText != null)
+                {
+                    slot.ammoText.text =
+                        $"{snapshot.CurrentAmmo}";
+
+                    slot.ammoText.color =
+                        color;
+                }
+            }
+        }
         #endregion
 
         #region Race HUD
@@ -338,17 +454,66 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdateLap()
         {
             int totalLaps =
-                raceRuntime.Director.State.RaceDefinition.LapCount;
+                raceRuntime.Director.State
+                    .RaceDefinition.LapCount;
 
-            int currentLap = Mathf.Clamp(
-                participant.CompletedLaps + 1,
-                1,
-                Mathf.Max(1, totalLaps));
+            int currentLap =
+                Mathf.Clamp(
+                    participant.CompletedLaps + 1,
+                    1,
+                    Mathf.Max(
+                        1,
+                        totalLaps));
 
             if (lapText != null)
-                lapText.text = $"LAP  {currentLap}/{totalLaps}";
+            {
+                lapText.text =
+                    $"LAP  {currentLap}/{totalLaps}";
+            }
 
-            debugCurrentLap = currentLap;
+            UpdateLapBoxes(
+                totalLaps);
+
+            debugCurrentLap =
+                currentLap;
+        }
+
+        private void UpdateLapBoxes(
+            int totalLaps)
+        {
+            for (int i = 0;
+                i < lapBoxes.Count;
+                i++)
+            {
+                LapBoxView box =
+                    lapBoxes[i];
+
+                if (box == null)
+                    continue;
+
+                bool used =
+                    i < totalLaps;
+
+                if (box.root != null)
+                {
+                    box.root.SetActive(
+                        used);
+                }
+
+                if (!used ||
+                    box.centerImage == null)
+                {
+                    continue;
+                }
+
+                bool completed =
+                    participant.CompletedLaps > i;
+
+                box.centerImage.color =
+                    completed
+                        ? completeLapColor
+                        : incompleteLapColor;
+            }
         }
 
         public void SetHudVisible(

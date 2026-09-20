@@ -4,6 +4,7 @@ using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using RaceFatal.Shared;
 using UnityEngine;
+using RaceFatal.Presentation.Combat;
 
 namespace RaceFatal.Presentation.Vehicles
 {
@@ -196,6 +197,8 @@ namespace RaceFatal.Presentation.Vehicles
         #endregion
 
         #region Runtime
+        
+        private GuidedTargetLockState guidedLockState;
 
         private AIRacerSensor sensor;
         private RacerViewController racerView;
@@ -303,6 +306,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             racerView =
                 view;
+            
+            guidedLockState = racerView.GetComponent<GuidedTargetLockState>();
 
             equipment =
                 participant.Vehicle.EquipmentSystem;
@@ -790,6 +795,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             debugCurrentScore =
                 0f;
+            
+            guidedLockState?.ClearTarget();
         }
 
         private void ForceDecisionRefresh()
@@ -1525,6 +1532,36 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            if (weapon.DeliveryMode ==
+                WeaponDeliveryMode.GuidedProjectile)
+            {
+                if (guidedLockState == null ||
+                    currentTarget == null)
+                {
+                    debugDecision =
+                        "No Guided Target";
+
+                    return;
+                }
+
+                guidedLockState.TrackCandidate(
+                    currentTarget,
+                    Time.fixedDeltaTime,
+                    weapon.TargetLockDuration);
+
+                if (!guidedLockState.IsLocked)
+                {
+                    debugDecision =
+                        "Acquiring Guided Lock";
+
+                    return;
+                }
+            }
+            else
+            {
+                guidedLockState?.ClearTarget();
+            }
+
             switch (weapon.ActivationMode)
             {
                 case EquipmentActivationMode.Press:
@@ -1817,6 +1854,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void CancelWeapon()
         {
+            guidedLockState?.ClearTarget();
+
             if (!weaponActive ||
                 equipment == null)
             {
@@ -1850,6 +1889,7 @@ namespace RaceFatal.Presentation.Vehicles
         public void Dispose()
         {
             CancelWeapon();
+            guidedLockState?.ClearTarget();
 
             participant =
                 null;

@@ -14,3 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_partner
   displayName: RD_PrototypePartner
+  pace: 1
+  aggression: 0.5
+  overtakingSkill: 0.5
+  defensiveSkill: 0.5
+  weaponAggression: 0.5

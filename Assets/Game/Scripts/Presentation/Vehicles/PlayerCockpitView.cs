@@ -22,7 +22,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         [Tooltip("Optional player-only reticle canvas.")]
         [SerializeField] private Canvas reticleCanvas;
-        
+
         [Tooltip("Player-only diegetic windshield HUD.")]
         [SerializeField]
         private Canvas windshieldHudCanvas;
@@ -546,6 +546,9 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (reticleCanvas != null)
                 reticleCanvas.enabled = active;
+
+            if (windshieldHudCanvas != null)
+                windshieldHudCanvas.enabled = active;
         }
 
         public void SetReticleVisible(

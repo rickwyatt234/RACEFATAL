@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_iris_kross
   displayName: Iris Kross
-  pace: 0.63
+  pace: 1
   aggression: 0.16
   overtakingSkill: 0.42
   defensiveSkill: 0.75

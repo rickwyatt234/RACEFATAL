@@ -136,22 +136,36 @@ AudioMixerController:
   m_ExposedParameters:
   - guid: 295e09d746c5e4540950a2bbbf576846
     name: AmbienceVolume
+  - guid: a9cfcea4befeb1e469dc082be2f6d46d
+    name: AmbiencePitch
+  - guid: 7e9838748dbb8ca46ae92fdcb8c33ad8
+    name: ExplosionPitch
   - guid: bdbf096de7f595e47b9289b695f46d0f
     name: ExplosionVolume
   - guid: f5d03068ece4f7946a7d72391af25a54
     name: ImpactVolume
+  - guid: 30adfe8be86e42d42b32184877b46920
+    name: ImpactPitch
   - guid: 7b7d2f792d3933a4db5cc9feedf216a9
     name: MasterVolume
   - guid: df6b981b0f998034aabcd848322286a9
     name: MusicVolume
   - guid: ed013708e12794b419ec339364fb8ef9
     name: OpponentVehicleVolume
+  - guid: 9b323424fdd959a4f80289f59fb637c4
+    name: OpponentVehiclePitch
   - guid: b52d158f73561c047ba4490051cbdc2c
     name: OpponentWeaponVolume
+  - guid: ab37759d9c038c44da32c0f3efda9f4c
+    name: OpponentWeaponPitch
   - guid: 9d55a613e546a9444b3145e20877e18b
     name: PlayerVehicleVolume
+  - guid: 1f6b28d1b31881e43ab3c61f64775412
+    name: PlayerVehiclePitch
   - guid: 8be15eab8459e604bb3945366365c0b2
     name: PlayerWeaponVolume
+  - guid: 9ecfc0b3b40d4524f90cbc04e4b639d3
+    name: PlayerWeaponsPitch
   - guid: f84557119b58eb2449668817dbd0a2da
     name: UIVolume
   m_AudioMixerGroupViews:

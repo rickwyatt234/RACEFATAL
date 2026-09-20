@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_orion_chase
   displayName: Orion Chase
-  pace: 0.72
+  pace: 1
   aggression: 0.27
   overtakingSkill: 0.37
   defensiveSkill: 0.9

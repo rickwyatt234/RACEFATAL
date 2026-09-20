@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_lexa_quinn
   displayName: Lexa Quinn
-  pace: 0.36
+  pace: 1
   aggression: 0.15
   overtakingSkill: 0.54
   defensiveSkill: 0.15

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_eve_marrow
   displayName: Eve Marrow
-  pace: 0.07
+  pace: 1
   aggression: 0.83
   overtakingSkill: 0.17
   defensiveSkill: 0.07

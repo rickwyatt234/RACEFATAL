@@ -7,6 +7,9 @@ using RaceFatal.Presentation.Tracks;
 using RaceFatal.Presentation.Vehicles;
 using RaceFatal.Racing;
 using UnityEngine;
+using RaceFatal.Equipment;
+using RaceFatal.Presentation.Combat;
+using RaceFatal.Shared;
 
 namespace RaceFatal.Presentation.Racing
 {
@@ -261,8 +264,38 @@ namespace RaceFatal.Presentation.Racing
 
             if (input.EquipmentPressed)
             {
-                raceDirector.BeginEquipmentActivation(
-                    playerRacerId);
+                RaceEquipmentSystem equipment =
+                    participant.Vehicle
+                        .EquipmentSystem;
+
+                WeaponDefinition weapon =
+                    equipment
+                        .SelectedWeaponDefinition;
+
+                bool canActivate =
+                    true;
+
+                if (weapon != null &&
+                    weapon.AimMode ==
+                        WeaponAimMode.Targeted &&
+                    weapon.DeliveryMode ==
+                        WeaponDeliveryMode.GuidedProjectile)
+                {
+                    GuidedTargetLockState lockState =
+                        playerView.GetComponent<
+                            GuidedTargetLockState>();
+
+                    canActivate =
+                        lockState != null &&
+                        lockState.IsLocked;
+                }
+
+                if (canActivate)
+                {
+                    raceDirector
+                        .BeginEquipmentActivation(
+                            playerRacerId);
+                }
             }
 
             if (input.EquipmentReleased)

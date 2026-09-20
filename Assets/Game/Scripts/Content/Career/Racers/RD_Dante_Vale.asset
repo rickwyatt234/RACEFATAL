@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_dante_vale
   displayName: Dante Vale
-  pace: 0.76
+  pace: 1
   aggression: 0.53
   overtakingSkill: 0.69
   defensiveSkill: 0.71

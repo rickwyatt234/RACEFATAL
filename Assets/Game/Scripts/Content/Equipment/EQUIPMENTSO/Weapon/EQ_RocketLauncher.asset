@@ -26,3 +26,4 @@ MonoBehaviour:
   startingAmmo: 6
   fireInterval: 0
   chargeDuration: 0
+  targetLockDuration: 3

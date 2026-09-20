@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_dario_krell
   displayName: Dario Krell
-  pace: 0.87
+  pace: 1
   aggression: 0.84
   overtakingSkill: 0.41
   defensiveSkill: 0.89

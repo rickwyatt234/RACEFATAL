@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_dorian_slate
   displayName: Dorian Slate
-  pace: 0.8
+  pace: 1
   aggression: 0.26
   overtakingSkill: 0.16
   defensiveSkill: 0.66

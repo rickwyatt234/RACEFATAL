@@ -29,6 +29,10 @@ namespace RaceFatal.Content.Equipment
         [Min(0f)][SerializeField] private float fireInterval;
         [Min(0f)][SerializeField] private float chargeDuration;
 
+        [Header("Target Lock")]
+        [Tooltip("Seconds a targeted guided weapon must maintain a valid target before achieving lock.")]
+        [Min(0f)][SerializeField] private float targetLockDuration;
+
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
             return new WeaponDefinition(
@@ -44,6 +48,7 @@ namespace RaceFatal.Content.Equipment
                 startingAmmo,
                 fireInterval,
                 chargeDuration,
+                targetLockDuration,
                 creditCost,
                 requiredTechnologyId);
         }
