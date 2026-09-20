@@ -465,7 +465,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             if (avoidFiringWhileBoosting &&
-                boosting)
+                boosting &&
+                currentRacePressure < 0.65f)
             {
                 debugDecision =
                     "Boosting / Hold Fire";
