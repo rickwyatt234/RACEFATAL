@@ -1,4 +1,5 @@
 using RaceFatal.Career;
+using RaceFatal.Content.Career;
 using RaceFatal.Infrastructure;
 using RaceFatal.Infrastructure.Saving;
 using RaceFatal.Presentation.Bootstrap;
@@ -41,6 +42,23 @@ namespace RaceFatal.Presentation.FrontEnd
         private CampaignSelectController
             campaignSelectController;
 
+        [SerializeField]
+        private TeamCreationController
+            teamCreationController;
+
+        [SerializeField]
+        private RacerCreationController
+            racerCreationController;
+
+        [SerializeField]
+        private CampaignReviewController
+            campaignReviewController;
+
+        [Header("New Campaign")]
+        [SerializeField]
+        private NewCampaignDefaultsSO
+            newCampaignDefaults;
+
         [Header("Feedback")]
         [SerializeField]
         private TMP_Text errorText;
@@ -54,6 +72,7 @@ namespace RaceFatal.Presentation.FrontEnd
             "01_Career";
 
         private CampaignSaveService saves;
+        private NewCampaignDraft pendingCampaign;
         private float bootElapsed;
 
         public FrontEndScreen CurrentScreen {
@@ -65,6 +84,9 @@ namespace RaceFatal.Presentation.FrontEnd
             get;
             private set;
         }
+
+        public NewCampaignDraft PendingCampaign =>
+            pendingCampaign;
 
         private void Awake()
         {
@@ -87,14 +109,21 @@ namespace RaceFatal.Presentation.FrontEnd
             saves =
                 context.Saves;
 
-            if (campaignSelectController != null)
-            {
-                campaignSelectController.Initialize(
-                    this,
-                    saves);
-            }
+            campaignSelectController?.Initialize(
+                this,
+                saves);
+
+            teamCreationController?.Initialize(
+                this);
+
+            racerCreationController?.Initialize(
+                this);
+
+            campaignReviewController?.Initialize(
+                this);
 
             bootElapsed = 0f;
+
             ShowScreen(
                 bootRoot != null
                     ? FrontEndScreen.Boot
@@ -137,8 +166,7 @@ namespace RaceFatal.Presentation.FrontEnd
 
         public void OpenCampaignSelect()
         {
-            PendingCampaignSlotIndex =
-                null;
+            ClearPendingCampaign();
 
             ShowScreen(
                 FrontEndScreen.CampaignSelect);
@@ -158,8 +186,7 @@ namespace RaceFatal.Presentation.FrontEnd
 
         public void BackToMainMenu()
         {
-            PendingCampaignSlotIndex =
-                null;
+            ClearPendingCampaign();
 
             ShowScreen(
                 FrontEndScreen.MainMenu);
@@ -167,11 +194,157 @@ namespace RaceFatal.Presentation.FrontEnd
 
         public void CancelNewCampaign()
         {
-            PendingCampaignSlotIndex =
-                null;
+            ClearPendingCampaign();
 
             ShowScreen(
                 FrontEndScreen.CampaignSelect);
+        }
+
+        public void AcceptTeamCreation(
+            string teamName,
+            string primaryColor,
+            string secondaryColor)
+        {
+            if (!TryGetPendingCampaign(
+                    out NewCampaignDraft draft))
+            {
+                return;
+            }
+
+            draft.SetTeam(
+                teamName,
+                primaryColor,
+                secondaryColor);
+
+            ShowScreen(
+                FrontEndScreen.RacerCreation);
+        }
+
+        public void BackToTeamCreation()
+        {
+            if (!TryGetPendingCampaign(
+                    out _))
+            {
+                return;
+            }
+
+            ShowScreen(
+                FrontEndScreen.TeamCreation);
+        }
+
+        public void AcceptRacerCreation(
+            string racerName)
+        {
+            if (!TryGetPendingCampaign(
+                    out NewCampaignDraft draft))
+            {
+                return;
+            }
+
+            draft.SetPlayer(
+                racerName);
+
+            ShowScreen(
+                FrontEndScreen.CampaignReview);
+        }
+
+        public void BackToRacerCreation()
+        {
+            if (!TryGetPendingCampaign(
+                    out _))
+            {
+                return;
+            }
+
+            ShowScreen(
+                FrontEndScreen.RacerCreation);
+        }
+
+        public void ConfirmNewCampaign()
+        {
+            if (!TryGetPendingCampaign(
+                    out NewCampaignDraft draft))
+            {
+                return;
+            }
+
+            if (!draft.IsComplete)
+            {
+                ShowCampaignReviewError(
+                    "Campaign creation data is incomplete.");
+
+                return;
+            }
+
+            if (saves == null)
+            {
+                ShowCampaignReviewError(
+                    "Save service is unavailable.");
+
+                return;
+            }
+
+            if (newCampaignDefaults == null)
+            {
+                ShowCampaignReviewError(
+                    "New campaign defaults are not assigned.");
+
+                return;
+            }
+
+            if (!newCampaignDefaults.TryGetDefinitionIds(
+                    out string partnerDefinitionId,
+                    out string playerStarterBuildId,
+                    out string partnerStarterBuildId,
+                    out string defaultsError))
+            {
+                ShowCampaignReviewError(
+                    defaultsError);
+
+                return;
+            }
+
+            if (!CanLoadCareerScene())
+            {
+                return;
+            }
+
+            var request =
+                new NewGameRequest(
+                    draft.TeamName,
+                    draft.PrimaryColor,
+                    draft.SecondaryColor,
+                    draft.PlayerName,
+                    partnerDefinitionId,
+                    playerStarterBuildId,
+                    partnerStarterBuildId);
+
+            campaignReviewController?.SetBusy(
+                true);
+
+            campaignReviewController?.SetStatus(
+                "CREATING CAMPAIGN...");
+
+            Result<GameSessionState> result =
+                saves.CreateCampaign(
+                    draft.SlotIndex,
+                    request);
+
+            if (!result.IsSuccess)
+            {
+                campaignReviewController?.SetBusy(
+                    false);
+
+                ShowCampaignReviewError(
+                    result.ErrorMessage);
+
+                return;
+            }
+
+            ClearPendingCampaign();
+
+            SceneManager.LoadScene(
+                careerSceneName);
         }
 
         public void SelectCampaignSlot(
@@ -202,6 +375,10 @@ namespace RaceFatal.Presentation.FrontEnd
 
             if (!summary.Exists)
             {
+                pendingCampaign =
+                    new NewCampaignDraft(
+                        slotIndex);
+
                 PendingCampaignSlotIndex =
                     slotIndex;
 
@@ -211,14 +388,8 @@ namespace RaceFatal.Presentation.FrontEnd
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(
-                    careerSceneName) ||
-                !Application.CanStreamedLevelBeLoaded(
-                    careerSceneName))
+            if (!CanLoadCareerScene())
             {
-                ShowError(
-                    $"Career scene '{careerSceneName}' cannot be loaded.");
-
                 return;
             }
 
@@ -302,10 +473,26 @@ namespace RaceFatal.Presentation.FrontEnd
 
             ClearError();
 
-            if (screen ==
-                FrontEndScreen.CampaignSelect)
+            switch (screen)
             {
-                campaignSelectController?.Refresh();
+                case FrontEndScreen.CampaignSelect:
+                    campaignSelectController?.Refresh();
+                    break;
+
+                case FrontEndScreen.TeamCreation:
+                    teamCreationController?.Present(
+                        pendingCampaign);
+                    break;
+
+                case FrontEndScreen.RacerCreation:
+                    racerCreationController?.Present(
+                        pendingCampaign);
+                    break;
+
+                case FrontEndScreen.CampaignReview:
+                    campaignReviewController?.Present(
+                        pendingCampaign);
+                    break;
             }
         }
 
@@ -321,6 +508,61 @@ namespace RaceFatal.Presentation.FrontEnd
             Debug.LogError(
                 $"[FrontEnd] {message}",
                 this);
+        }
+
+        private bool TryGetPendingCampaign(
+            out NewCampaignDraft draft)
+        {
+            draft =
+                pendingCampaign;
+
+            if (draft != null)
+            {
+                return true;
+            }
+
+            ShowError(
+                "There is no pending new campaign.");
+
+            ShowScreen(
+                FrontEndScreen.CampaignSelect);
+
+            return false;
+        }
+
+        private bool CanLoadCareerScene()
+        {
+            if (!string.IsNullOrWhiteSpace(
+                    careerSceneName) &&
+                Application.CanStreamedLevelBeLoaded(
+                    careerSceneName))
+            {
+                return true;
+            }
+
+            ShowError(
+                $"Career scene '{careerSceneName}' cannot be loaded.");
+
+            return false;
+        }
+
+        private void ShowCampaignReviewError(
+            string message)
+        {
+            campaignReviewController?.SetStatus(
+                message);
+
+            ShowError(
+                message);
+        }
+
+        private void ClearPendingCampaign()
+        {
+            pendingCampaign =
+                null;
+
+            PendingCampaignSlotIndex =
+                null;
         }
 
         private void ClearError()
@@ -365,9 +607,12 @@ namespace RaceFatal.Presentation.FrontEnd
                 campaignBackButton,
                 BackToMainMenu);
 
-            Bind(
-                teamCreationBackButton,
-                CancelNewCampaign);
+            if (teamCreationController == null)
+            {
+                Bind(
+                    teamCreationBackButton,
+                    CancelNewCampaign);
+            }
 
             Bind(
                 optionsBackButton,
