@@ -63,15 +63,15 @@ namespace RaceFatal.Presentation.Career
 
             SetText(
                 creditsText,
-                $"CREDITS  {team?.Credits ?? 0:N0}");
+                $"CREDITS  {(team?.Credits ?? 0):N0}");
 
             SetText(
                 fameText,
-                $"TEAM FAME  {team?.Fame ?? 0:N0}");
+                $"TEAM FAME  {(team?.Fame ?? 0):N0}");
 
             SetText(
                 researchPointsText,
-                $"RESEARCH POINTS  {team?.ResearchPoints ?? 0:N0}");
+                $"RESEARCH POINTS  {(team?.ResearchPoints ?? 0):N0}");
 
             SetText(
                 currentBikeText,
