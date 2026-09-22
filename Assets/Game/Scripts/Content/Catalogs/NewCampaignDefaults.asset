@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad5d71e52a9f4f2b827e4f75b0f886da, type: 3}
+  m_Name: NewCampaignDefaults
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.NewCampaignDefaultsSO
+  partner: {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
+  playerStarterBuild: {fileID: 11400000, guid: b7e0e396491470246be4dc428bda3aeb, type: 2}
+  partnerStarterBuild: {fileID: 11400000, guid: 5ad21c28002990a49b41afc15d5e69b8, type: 2}
