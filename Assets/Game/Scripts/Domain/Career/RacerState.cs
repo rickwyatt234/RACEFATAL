@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using RaceFatal.Shared;
 
 namespace RaceFatal.Career
@@ -74,6 +75,92 @@ namespace RaceFatal.Career
 
             Progression =
                 new CharacterProgression();
+        }
+
+        public static Result<RacerState> Restore(
+            string racerId,
+            string name,
+            string teamId,
+            bool isPlayerCharacter,
+            RacerCareerStatus status,
+            int racesEntered,
+            int racesWon,
+            int podiums,
+            int racersDestroyed,
+            int progressionFame,
+            IEnumerable<string> purchasedPerkIds)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    racerId))
+            {
+                return Result<RacerState>.Failure(
+                    "Racer ID is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    name))
+            {
+                return Result<RacerState>.Failure(
+                    "Racer name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    teamId))
+            {
+                return Result<RacerState>.Failure(
+                    "Racer team ID is required.");
+            }
+
+            if (racesEntered < 0 ||
+                racesWon < 0 ||
+                podiums < 0 ||
+                racersDestroyed < 0 ||
+                progressionFame < 0)
+            {
+                return Result<RacerState>.Failure(
+                    "Racer career values cannot be negative.");
+            }
+
+            if (racesWon > racesEntered)
+            {
+                return Result<RacerState>.Failure(
+                    "Races won cannot exceed races entered.");
+            }
+
+            if (podiums > racesEntered)
+            {
+                return Result<RacerState>.Failure(
+                    "Podiums cannot exceed races entered.");
+            }
+
+            var racer =
+                new RacerState(
+                    racerId,
+                    name,
+                    teamId,
+                    isPlayerCharacter);
+
+            racer.Status =
+                status;
+
+            racer.RacesEntered =
+                racesEntered;
+
+            racer.RacesWon =
+                racesWon;
+
+            racer.Podiums =
+                podiums;
+
+            racer.RacersDestroyed =
+                racersDestroyed;
+
+            racer.Progression.RestoreState(
+                progressionFame,
+                purchasedPerkIds);
+
+            return Result<RacerState>.Success(
+                racer);
         }
 
         public void RecordRaceEntered()
