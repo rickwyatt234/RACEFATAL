@@ -1,3 +1,4 @@
+using System.IO;
 using RaceFatal.Career;
 using RaceFatal.Content;
 using RaceFatal.Data;
@@ -5,6 +6,7 @@ using RaceFatal.Equipment;
 using RaceFatal.Infrastructure;
 using RaceFatal.Infrastructure.Input;
 using RaceFatal.Infrastructure.Racing;
+using RaceFatal.Infrastructure.Saving;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
@@ -191,6 +193,32 @@ namespace RaceFatal.Presentation.Bootstrap
                         worldFactory,
                         bikeBuildFactory);
 
+            // -------------------------------------------------
+            // SAVING
+            // -------------------------------------------------
+
+            string saveRoot =
+                Path.Combine(
+                    Application.persistentDataPath,
+                    "RACEFATAL",
+                    "Saves");
+
+            ICampaignSaveRepository
+                saveRepository =
+                    new JsonCampaignSaveRepository(
+                        saveRoot,
+                        3);
+
+            CampaignSaveMapper saveMapper =
+                new CampaignSaveMapper(
+                    database);
+
+            CampaignSaveService saveService =
+                new CampaignSaveService(
+                    sessionManager,
+                    saveMapper,
+                    saveRepository);
+
             RacePreparationService
                 racePreparation =
                     new RacePreparationService(
@@ -233,6 +261,7 @@ namespace RaceFatal.Presentation.Bootstrap
                 bikeBuildFactory,
                 worldFactory,
                 sessionManager,
+                saveService,
                 performanceCalculator,
                 participantFactory,
                 raceFactory,
