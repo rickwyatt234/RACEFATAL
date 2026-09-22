@@ -32,6 +32,11 @@ namespace RaceFatal.Presentation.Vehicles
         [Range(0f, 1f)][SerializeField] private float huntStopCornerSeverity = 0.34f;
         [Range(0f, 1f)][SerializeField] private float passingStopCornerSeverity = 0.42f;
 
+        [Header("Race Pressure")]
+        [Range(0.25f, 1f)][SerializeField] private float fullPressureEnergyReserveMultiplier = 0.6f;
+        [Range(0.1f, 1f)][SerializeField] private float fullPressureCommitTimeMultiplier = 0.45f;
+        [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerBonus = 0.08f;
+
         #endregion
 
         #region Driving Conditions
@@ -73,6 +78,8 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private bool debugSeekingEnergy;
 
         [SerializeField] private float debugTargetDistance;
+        [SerializeField] private float debugPressure;
+        [SerializeField] private AIRacePressureRole debugPressureRole;
         [SerializeField] private float debugEnergyPercent;
         [SerializeField] private float debugRuntimeAggression;
         [SerializeField] private float debugRuntimeEnergyReserve;
@@ -192,7 +199,9 @@ namespace RaceFatal.Presentation.Vehicles
             float speedMetersPerSecond,
             bool trafficLimited,
             bool passing,
-            bool seekingEnergy)
+            bool seekingEnergy,
+            float racePressure,
+            AIRacePressureRole pressureRole)
         {
             if (!initialized)
                 return false;
@@ -209,11 +218,18 @@ namespace RaceFatal.Presentation.Vehicles
                     ? overtakePlanner.HuntTargetDistance
                     : float.PositiveInfinity;
 
+            racePressure =
+                Mathf.Clamp01(
+                    racePressure);
+
             bool attackPriority =
                 passing ||
                 (hunting &&
                  targetDistance <=
-                 attackPriorityDistance);
+                 attackPriorityDistance) ||
+                (racePressure >= 0.5f &&
+                 pressureRole !=
+                    AIRacePressureRole.Normal);
 
             debugHasBooster = equipment.HasBooster;
             debugBoostActive = equipment.IsBoosterActive;
@@ -228,6 +244,9 @@ namespace RaceFatal.Presentation.Vehicles
                     targetDistance)
                     ? 0f
                     : targetDistance;
+
+            debugPressure = racePressure;
+            debugPressureRole = pressureRole;
 
             debugEnergyPercent =
                 participant.Vehicle.EnergyPool.MaxEnergy > 0f
@@ -274,6 +293,12 @@ namespace RaceFatal.Presentation.Vehicles
                     hunting,
                     passing);
 
+            effectiveReserve *=
+                Mathf.Lerp(
+                    1f,
+                    fullPressureEnergyReserveMultiplier,
+                    racePressure);
+
             float effectiveRestartThreshold =
                 GetEffectiveRestartThreshold(
                     effectiveReserve,
@@ -284,6 +309,12 @@ namespace RaceFatal.Presentation.Vehicles
                 GetEffectiveStartCornerSeverity(
                     hunting,
                     passing);
+
+            effectiveStartCornerSeverity =
+                Mathf.Clamp01(
+                    effectiveStartCornerSeverity +
+                    fullPressureCornerBonus *
+                    racePressure);
 
             float effectiveStopCornerSeverity =
                 GetEffectiveStopCornerSeverity(
@@ -316,6 +347,7 @@ namespace RaceFatal.Presentation.Vehicles
                     trafficLimited,
                     hunting,
                     passing,
+                    racePressure,
                     effectiveRestartThreshold,
                     effectiveStartCornerSeverity);
             }
@@ -394,6 +426,7 @@ namespace RaceFatal.Presentation.Vehicles
             bool trafficLimited,
             bool hunting,
             bool passing,
+            float racePressure,
             float effectiveRestartThreshold,
             float effectiveStartCornerSeverity)
         {
@@ -453,7 +486,11 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             float requiredCommitTime =
-                runtimeStraightCommitTime;
+                runtimeStraightCommitTime *
+                Mathf.Lerp(
+                    1f,
+                    fullPressureCommitTimeMultiplier,
+                    racePressure);
 
             if (passing)
             {

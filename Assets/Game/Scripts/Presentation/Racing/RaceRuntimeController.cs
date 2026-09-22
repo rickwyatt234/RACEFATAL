@@ -15,6 +15,16 @@ namespace RaceFatal.Presentation.Racing
 {
     public class RaceRuntimeController : MonoBehaviour
     {
+
+        [Header("Combat Balance")]
+        [Tooltip(
+            "Damage dealt when one non-player racer damages another. " +
+            "Player damage dealt and received is unaffected.")]
+        [Range(0f, 1f)]
+        [SerializeField]
+        private float aiVsAIDamageMultiplier = 0.45f;
+
+
         private TrackRuntimeController trackRuntime;
 
         private readonly Dictionary<string, RacerViewController> racerViews =
@@ -44,6 +54,10 @@ namespace RaceFatal.Presentation.Racing
         {
             raceDirector = director
                 ?? throw new ArgumentNullException(nameof(director));
+
+            raceDirector.AIVsAIDamageMultiplier =
+                Mathf.Clamp01(
+                    aiVsAIDamageMultiplier);
 
             trackRuntime = track
                 ?? throw new ArgumentNullException(nameof(track));

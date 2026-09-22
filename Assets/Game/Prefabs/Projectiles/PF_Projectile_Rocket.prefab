@@ -14760,7 +14760,7 @@ MonoBehaviour:
   loftAngle: 14
   guidanceDelay: 0.12
   cruiseHeight: 6
-  terminalDiveStartDistance: 16
+  terminalDiveStartDistance: 25
   impactDiveDistance: 4
   minimumTerminalHeight: 0.5
   targetLocalOffset: {x: 0, y: 0.9, z: 0}

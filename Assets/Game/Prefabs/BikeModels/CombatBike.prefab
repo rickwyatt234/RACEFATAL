@@ -49826,23 +49826,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b2e319767e7ecf42b4f5f6c775400a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Vehicles.AIDriverController
-  baseLookAheadDistance: 20
-  speedLookAheadMultiplier: 0.4
-  maximumLookAheadDistance: 55
-  pathSearchRadius: 20
-  usableTrackHalfWidth: 14
-  wallSafetyMargin: 0.4
-  boundaryRecoveryMargin: 0.5
-  boundaryRecoveryTargetAmount: 0.4
-  boundaryRecoveryShiftSpeed: 4
-  cornerPreviewDistance: 100
-  activeCornerProbeDistance: 45
-  cornerStartAngle: 4
-  fullCornerAngle: 32
-  outsideEntryAmount: 0.9
-  insideApexAmount: 0.82
-  maximumLateralShiftSpeed: 8
-  cornerSignalResponse: 5
+  baseLookAheadDistance: 25
+  speedLookAheadMultiplier: 0.55
+  maximumLookAheadDistance: 70
+  pathSearchRadius: 25
+  usableTrackHalfWidth: 15
+  wallSafetyMargin: 0.3
+  boundaryRecoveryMargin: 0.25
+  boundaryRecoveryTargetAmount: 0.2
+  boundaryRecoveryShiftSpeed: 10
+  cornerPreviewDistance: 90
+  activeCornerProbeDistance: 30
+  cornerStartAngle: 6
+  fullCornerAngle: 28
+  outsideEntryAmount: 1
+  insideApexAmount: 0.95
+  maximumLateralShiftSpeed: 12
+  cornerSignalResponse: 8
   straightCenteringSpeed: 0
   maximumCornerSeverityForNewPass: 1
   defensiveOffsetMultiplier: 1.35
@@ -49852,31 +49852,31 @@ MonoBehaviour:
   defensiveSteeringSmoothTimeMultiplier: 0.55
   defensiveSteeringChangeMultiplier: 1.6
   overtakePlanner:
-    huntDistance: 90
-    passPreparationDistance: 55
-    maximumPassSpeedDeficit: 4
-    minimumPassSpeed: 15
-    forcedPassDistance: 16
-    passOffset: 3
-    minimumCommitTime: 1.25
-    maximumPassTime: 10
-    completionLeadDistance: 4
-    passCooldown: 0.75
-    failedPassRetryDelay: 0.35
-    tacticalOffsetShiftSpeed: 5.5
-    followingDistance: 16
-    emergencyFollowingDistance: 6
-    followingSpeedBuffer: 4.5
-    emergencyFollowingSpeedBuffer: 1.5
-    establishedPassLaneThreshold: 0.35
-    lowSkillHuntMultiplier: 0.8
-    highSkillHuntMultiplier: 1.1
-    lowSkillPreparationMultiplier: 0.8
-    highSkillPreparationMultiplier: 1.1
-    lowSkillShiftMultiplier: 0.7
-    highSkillShiftMultiplier: 1.2
-    lowSkillCooldownMultiplier: 1.4
-    highSkillCooldownMultiplier: 0.7
+    huntDistance: 250
+    passPreparationDistance: 170
+    maximumPassSpeedDeficit: 15
+    minimumPassSpeed: 5
+    forcedPassDistance: 80
+    passOffset: 4
+    minimumCommitTime: 0.5
+    maximumPassTime: 7
+    completionLeadDistance: 3
+    passCooldown: 0.2
+    failedPassRetryDelay: 0.1
+    tacticalOffsetShiftSpeed: 10
+    followingDistance: 9
+    emergencyFollowingDistance: 3.5
+    followingSpeedBuffer: 8
+    emergencyFollowingSpeedBuffer: 3
+    establishedPassLaneThreshold: 0.2
+    lowSkillHuntMultiplier: 1
+    highSkillHuntMultiplier: 1.25
+    lowSkillPreparationMultiplier: 1
+    highSkillPreparationMultiplier: 1.25
+    lowSkillShiftMultiplier: 1
+    highSkillShiftMultiplier: 1.4
+    lowSkillCooldownMultiplier: 1
+    highSkillCooldownMultiplier: 0.4
     debugInitialized: 0
     currentState: 0
     debugOvertakingSkill: 0
@@ -49893,27 +49893,30 @@ MonoBehaviour:
     debugRightClear: 0
     debugDecision: Not Initialized
   boostPlanner:
-    aggressiveEnergyReserve: 0.12
-    conservativeEnergyReserve: 0.22
-    restartEnergyMargin: 0.08
-    huntEnergyReserveMultiplier: 0.75
-    passingEnergyReserveMultiplier: 0.5
-    attackPriorityDistance: 55
-    huntStartCornerBonus: 0.08
-    passingStartCornerBonus: 0.16
-    huntStopCornerSeverity: 0.34
-    passingStopCornerSeverity: 0.42
-    minimumBoostSpeedKph: 70
-    conservativeStartCornerSeverity: 0.1
-    aggressiveStartCornerSeverity: 0.2
-    stopCornerSeverity: 0.28
-    maximumBrakeToStart: 0.05
-    stopBrakeThreshold: 0.15
-    aggressiveStraightCommitTime: 0.2
-    conservativeStraightCommitTime: 0.7
-    boostCooldown: 0.35
-    huntingCommitTimeMultiplier: 0.45
-    passingCommitTimeMultiplier: 0.2
+    aggressiveEnergyReserve: 0.02
+    conservativeEnergyReserve: 0.06
+    restartEnergyMargin: 0.025
+    huntEnergyReserveMultiplier: 0.3
+    passingEnergyReserveMultiplier: 0.15
+    attackPriorityDistance: 150
+    huntStartCornerBonus: 0.2
+    passingStartCornerBonus: 0.3
+    huntStopCornerSeverity: 0.65
+    passingStopCornerSeverity: 0.8
+    fullPressureEnergyReserveMultiplier: 0.25
+    fullPressureCommitTimeMultiplier: 0.15
+    fullPressureCornerBonus: 0.2
+    minimumBoostSpeedKph: 30
+    conservativeStartCornerSeverity: 0.35
+    aggressiveStartCornerSeverity: 0.55
+    stopCornerSeverity: 0.7
+    maximumBrakeToStart: 0.2
+    stopBrakeThreshold: 0.4
+    aggressiveStraightCommitTime: 0.05
+    conservativeStraightCommitTime: 0.15
+    boostCooldown: 0.1
+    huntingCommitTimeMultiplier: 0.15
+    passingCommitTimeMultiplier: 0.05
     debugInitialized: 0
     debugHasBooster: 0
     debugBoostActive: 0
@@ -49923,6 +49926,8 @@ MonoBehaviour:
     debugTrafficLimited: 0
     debugSeekingEnergy: 0
     debugTargetDistance: 0
+    debugPressure: 0
+    debugPressureRole: 0
     debugEnergyPercent: 0
     debugRuntimeAggression: 0
     debugRuntimeEnergyReserve: 0
@@ -49935,16 +49940,16 @@ MonoBehaviour:
     debugCooldownTimer: 0
     debugDecision: Not Initialized
   energyStripPlanner:
-    beginSeekingEnergyPercent: 0.65
-    urgentEnergyPercent: 0.3
-    normalSearchDistance: 120
-    urgentSearchDistance: 240
-    minimumApproachDistance: 15
-    urgentMinimumApproachDistance: 5
-    maximumCornerSeverityForNewTarget: 0.35
-    lateralShiftSpeed: 2.5
-    completionDistance: 12
-    lateralTravelPenalty: 10
+    beginSeekingEnergyPercent: 0.35
+    urgentEnergyPercent: 0.15
+    normalSearchDistance: 150
+    urgentSearchDistance: 300
+    minimumApproachDistance: 8
+    urgentMinimumApproachDistance: 3
+    maximumCornerSeverityForNewTarget: 0.65
+    lateralShiftSpeed: 7
+    completionDistance: 8
+    lateralTravelPenalty: 20
     debugInitialized: 0
     debugTargetingStrip: 0
     debugTargetName: 
@@ -49956,22 +49961,22 @@ MonoBehaviour:
     debugTargetLateralOffset: 0
     debugTacticalOffset: 0
   defensivePlanner:
-    lowSkillReactionDelay: 0.55
-    highSkillReactionDelay: 0.08
-    lowSkillThreatMemory: 0.55
-    highSkillThreatMemory: 1.25
-    sustainedFireGap: 0.22
-    lowSkillDodgeDistance: 0.7
-    highSkillDodgeDistance: 2.8
-    lowSkillShiftSpeed: 1.5
-    highSkillShiftSpeed: 5.5
-    lowSkillJinkInterval: 1.2
-    highSkillJinkInterval: 0.4
-    jinkSkillThreshold: 0.4
+    lowSkillReactionDelay: 0.2
+    highSkillReactionDelay: 0.03
+    lowSkillThreatMemory: 0.8
+    highSkillThreatMemory: 1.5
+    sustainedFireGap: 0.12
+    lowSkillDodgeDistance: 1.2
+    highSkillDodgeDistance: 3.5
+    lowSkillShiftSpeed: 3.5
+    highSkillShiftSpeed: 8
+    lowSkillJinkInterval: 0.8
+    highSkillJinkInterval: 0.25
+    jinkSkillThreshold: 0.2
     hitsRequiredForJinking: 2
-    defenseReductionCornerSeverity: 0.3
-    maximumDefenseCornerSeverity: 0.75
-    minimumCornerDefenseScale: 0.15
+    defenseReductionCornerSeverity: 0.55
+    maximumDefenseCornerSeverity: 0.95
+    minimumCornerDefenseScale: 0.45
     debugInitialized: 0
     debugUnderFire: 0
     debugDefensiveSkill: 0
@@ -49984,44 +49989,48 @@ MonoBehaviour:
     debugLastAttacker: None
     debugLastImpactSide: Unknown
   combatPlanner:
-    maximumTargetDistance: 150
-    lowAggressionTargetDistanceMultiplier: 0.6
-    firingHalfAngle: 6
+    maximumTargetDistance: 220
+    lowAggressionTargetDistanceMultiplier: 0.55
+    firingHalfAngle: 10
     guidedAngleMultiplier: 1.75
-    chargeAngleMultiplier: 0.8
-    minimumTargetDistance: 3
-    decisionInterval: 0.2
-    minimumDecisionCommitTime: 0.6
-    weaponSwitchScoreAdvantage: 0.12
-    targetSwitchScoreAdvantage: 0.08
-    conservativeMinimumAttackScore: 0.48
-    aggressiveMinimumAttackScore: 0.3
+    chargeAngleMultiplier: 1
+    minimumTargetDistance: 2
+    decisionInterval: 0.08
+    minimumDecisionCommitTime: 0.25
+    weaponSwitchScoreAdvantage: 0.03
+    targetSwitchScoreAdvantage: 0.03
+    conservativeMinimumAttackScore: 0.25
+    aggressiveMinimumAttackScore: 0.1
     distanceWeight: 0.34
     alignmentWeight: 0.34
-    vulnerabilityWeight: 0.14
-    finisherWeight: 0.18
+    vulnerabilityWeight: 0.1
+    finisherWeight: 0.08
     damageForFullFinisherValue: 30
     plentifulAmmoReference: 30
-    conservativeScarcityPenalty: 0.45
-    aggressiveScarcityPenalty: 0.08
-    lowAmmoPenalty: 0.25
-    scarceAmmoThreshold: 8
-    conservativeScarceWeaponFactor: 0.48
-    aggressiveScarceWeaponFactor: 0.72
-    vulnerabilityForFullScarceWeaponValue: 0.65
-    projectileTravelTimePenalty: 0.12
-    chargeDurationPenalty: 0.12
-    minimumChargeAlignment: 0.45
-    conservativeCornerSeverity: 0.18
-    maximumCornerSeverity: 0.35
-    avoidFiringWhileBoosting: 1
-    minimumBurstDuration: 0.45
-    maximumBurstDuration: 1
-    minimumBurstCooldown: 0.35
-    maximumBurstCooldown: 0.8
-    pressWeaponCooldown: 1.25
-    lowAggressionPressCooldownMultiplier: 1.5
-    highAggressionPressCooldownMultiplier: 0.65
+    conservativeScarcityPenalty: 0.6
+    aggressiveScarcityPenalty: 0.25
+    lowAmmoPenalty: 0.4
+    scarceAmmoThreshold: 10
+    conservativeScarceWeaponFactor: 0.35
+    aggressiveScarceWeaponFactor: 0.55
+    vulnerabilityForFullScarceWeaponValue: 0.8
+    projectileTravelTimePenalty: 0.03
+    chargeDurationPenalty: 0.03
+    minimumChargeAlignment: 0.2
+    conservativeCornerSeverity: 0.6
+    maximumCornerSeverity: 0.9
+    avoidFiringWhileBoosting: 0
+    fullPressureAttackThresholdReduction: 0.12
+    fullPressurePreferredTargetBonus: 0.22
+    fullPressureTargetRangeBonus: 0.12
+    fullPressureCornerToleranceBonus: 0.06
+    minimumBurstDuration: 0.35
+    maximumBurstDuration: 1.25
+    minimumBurstCooldown: 0.75
+    maximumBurstCooldown: 1.6
+    pressWeaponCooldown: 2
+    lowAggressionPressCooldownMultiplier: 1.8
+    highAggressionPressCooldownMultiplier: 0.85
     holdWeaponPressureBonus: 0.12
     pressWeaponFinisherBonus: 0.12
     debugInitialized: 0
@@ -50033,6 +50042,8 @@ MonoBehaviour:
     debugRuntimeBurstCooldown: 0
     debugRuntimePressCooldown: 0
     debugMinimumAttackScore: 0
+    debugRacePressure: 0
+    debugPreferredTarget: None
     debugSelectedWeapon: 
     debugActivationMode: 
     debugDeliveryMode: None
@@ -50053,23 +50064,55 @@ MonoBehaviour:
     debugBurstTimer: 0
     debugCooldownTimer: 0
     debugChargeTimer: 0
+  racePressurePlanner:
+    pressureStartDistance: 5
+    fullPressureDistance: 30
+    maximumPressureDistance: 180
+    pursuerPressureScale: 1
+    supportPressureScale: 0.85
+    fieldPressureScale: 0.75
+    maximumPursuerSpeedMultiplier: 1.2
+    maximumPursuerAccelerationMultiplier: 1.3
+    maximumPursuerCorneringMultiplier: 1.3
+    maximumPursuerBrakingMultiplier: 1.3
+    maximumSupportSpeedMultiplier: 1.1
+    maximumSupportAccelerationMultiplier: 1.18
+    maximumSupportCorneringMultiplier: 1.2
+    maximumSupportBrakingMultiplier: 1.15
+    leaderRelaxationStartDistance: 70
+    maximumLeaderSpeedReduction: 0.03
+    debugRole: 0
+    debugPlayerPosition: 0
+    debugSelfPosition: 0
+    debugGapToPlayerMeters: 0
+    debugPressure: 0
+    debugSpeedMultiplier: 1
+    debugAccelerationMultiplier: 1
+    debugCorneringMultiplier: 1
+    debugBrakingMultiplier: 1
+  draftingRange: 80
+  minimumDraftingDistance: 3
+  maximumDraftSpeedMultiplier: 1.1
+  maximumDraftAccelerationMultiplier: 1.15
+  draftingCornerFadeStart: 0.5
+  draftingCornerFadeEnd: 0.95
   minimumPaceMultiplier: 1
   maximumPaceMultiplier: 1
-  fullSteeringAngle: 27
-  steeringDeadZone: 0.4
-  steeringSmoothTime: 0.08
-  maximumSteeringChangeSpeed: 10
-  cornerScanDistance: 140
-  cornerSampleSpacing: 8
-  maximumCornerAcceleration: 50
+  fullSteeringAngle: 22
+  steeringDeadZone: 0.1
+  steeringSmoothTime: 0.05
+  maximumSteeringChangeSpeed: 15
+  cornerScanDistance: 90
+  cornerSampleSpacing: 10
+  maximumCornerAcceleration: 110
   cornerSpeedSafetyFactor: 1
-  minimumCurveAngle: 1.5
-  minimumCornerSpeedKph: 100
-  plannedBrakeDeceleration: 30
-  brakingSafetyDistance: 1
-  brakeSpeedTolerance: 3
-  fullThrottleSpeedDifference: 4
-  fullBrakeSpeedDifference: 12
+  minimumCurveAngle: 7
+  minimumCornerSpeedKph: 220
+  plannedBrakeDeceleration: 60
+  brakingSafetyDistance: 0
+  brakeSpeedTolerance: 8
+  fullThrottleSpeedDifference: 2
+  fullBrakeSpeedDifference: 30
   currentProgress: 0
   currentSegment: -1
   currentThrottle: 0
@@ -50106,11 +50149,23 @@ MonoBehaviour:
   debugBoostActive: 0
   debugSpeedMultiplier: 0
   debugAccelerationMultiplier: 0
+  debugPressureRole: 0
+  debugPressure: 0
+  debugGapToPlayerMeters: 0
+  debugPressureSpeedMultiplier: 1
+  debugPressureAccelerationMultiplier: 1
+  debugPressureCorneringMultiplier: 1
+  debugPressureBrakingMultiplier: 1
+  debugDraftStrength: 0
+  debugDraftSpeedMultiplier: 1
+  debugDraftAccelerationMultiplier: 1
   debugTargetSpeedKph: 0
   debugLimitingCurveSpeedKph: 0
   debugLimitingCurveDistance: 0
   debugTightestRadius: 0
   debugMaximumCurveAngle: 0
+  debugEffectiveCornerAcceleration: 0
+  debugEffectiveBrakeDeceleration: 0
   drawDebugTarget: 1
 --- !u!1 &3143383707805387710
 GameObject:

@@ -14,6 +14,7 @@ namespace RaceFatal.Racing
         private readonly CareerManager careerManager;
 
         private int nextFinishPosition = 1;
+        public float AIVsAIDamageMultiplier { get; set; } = 0.45f;
 
         private RaceResult finalRaceResult;
         private PostRaceResult postRaceResult;
@@ -182,6 +183,36 @@ namespace RaceFatal.Racing
                 return Result<DamageEvent>.Failure(
                     "Victim was not found or is no longer racing.");
 
+            float resolvedDamage =
+                amount;
+
+            RaceParticipant attacker =
+                GetRacingParticipant(
+                    attackerRacerId);
+
+            bool attackerIsAI =
+                attacker != null &&
+                attacker.Role !=
+                    RaceParticipantRole.Player;
+
+            bool victimIsAI =
+                victim.Role !=
+                    RaceParticipantRole.Player;
+
+            if (attackerIsAI &&
+                victimIsAI)
+            {
+                float multiplier =
+                    Math.Max(
+                        0f,
+                        Math.Min(
+                            1f,
+                            AIVsAIDamageMultiplier));
+
+                resolvedDamage *=
+                    multiplier;
+            } 
+
             RaceShieldState shield =
                 victim.Vehicle.EquipmentSystem.Shield;
 
@@ -191,7 +222,7 @@ namespace RaceFatal.Racing
                 shield.Current > 0f;
 
             DamageResolution resolution =
-                victim.Vehicle.ApplyDamage(amount);
+                victim.Vehicle.ApplyDamage(resolvedDamage);
 
             bool shieldDepleted =
                 shieldWasActive &&

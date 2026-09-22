@@ -5,12 +5,75 @@ using RaceFatal.Racing;
 using RaceFatal.Shared;
 using UnityEngine;
 using RaceFatal.Presentation.Combat;
+using System.Collections.Generic;
 
 namespace RaceFatal.Presentation.Vehicles
 {
     [Serializable]
     public class AICombatPlanner
     {
+
+        #region Target Saturation
+
+        [Header("Target Saturation")]
+
+        [Tooltip(
+            "Score multiplier when one other AI racer is already committed to this target.")]
+        [Range(0f, 1f)]
+        [SerializeField]
+        private float oneExistingAttackerMultiplier = 0.85f;
+
+        [Tooltip(
+            "Score multiplier when two other AI racers are already committed to this target.")]
+        [Range(0f, 1f)]
+        [SerializeField]
+        private float twoExistingAttackersMultiplier = 0.55f;
+
+        [Tooltip(
+            "Score multiplier when three or more other AI racers are already committed to this target.")]
+        [Range(0f, 1f)]
+        [SerializeField]
+        private float threePlusExistingAttackersMultiplier = 0.25f;
+
+        [Tooltip(
+            "If false, the player is exempt from anti-dogpile scoring. " +
+            "This allows multiple racers to remain threatening to the player.")]
+        [SerializeField]
+        private bool applyTargetSaturationToPlayer = false;
+
+        #endregion
+
+
+        #region Race Position Relevance
+
+        [Header("Race Position Relevance")]
+
+        [Tooltip(
+            "Position gap at which another racer is treated as a distant competitive rival.")]
+        [Min(2)]
+        [SerializeField]
+        private int maximumRelevantPositionGap = 6;
+
+        [Tooltip(
+            "Minimum target score multiplier for racers far away in the standings.")]
+        [Range(0.1f, 1f)]
+        [SerializeField]
+        private float distantRivalScoreMultiplier = 0.35f;
+
+        [Tooltip(
+            "Extra importance given to racers ahead in the standings.")]
+        [Range(1f, 2f)]
+        [SerializeField]
+        private float aheadRivalMultiplier = 1.15f;
+
+        [Tooltip(
+            "Importance of racers behind in the standings.")]
+        [Range(0.1f, 1f)]
+        [SerializeField]
+        private float behindRivalMultiplier = 0.90f;
+
+        #endregion
+
         #region Targeting
 
         [Header("Targeting")]
@@ -81,6 +144,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         [Tooltip("Additional penalty as a scarce weapon approaches empty.")]
         [Range(0f, 1f)][SerializeField] private float lowAmmoPenalty = 0.25f;
+
         [Tooltip("Weapons at or below this starting ammo count are treated as scarce ordnance.")]
         [Min(1)][SerializeField] private int scarceAmmoThreshold = 8;
 
@@ -116,6 +180,12 @@ namespace RaceFatal.Presentation.Vehicles
 
         [SerializeField] private bool avoidFiringWhileBoosting = true;
 
+        [Header("Race Pressure")]
+        [Range(0f, 0.4f)][SerializeField] private float fullPressureAttackThresholdReduction = 0.12f;
+        [Range(0f, 0.5f)][SerializeField] private float fullPressurePreferredTargetBonus = 0.22f;
+        [Range(0f, 0.5f)][SerializeField] private float fullPressureTargetRangeBonus = 0.12f;
+        [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerToleranceBonus = 0.06f;
+
         #endregion
 
         #region Hold Weapons
@@ -142,8 +212,8 @@ namespace RaceFatal.Presentation.Vehicles
         #endregion
 
         #region Weapon Role Bias
-        [Header("Weapon Role Bias")]
 
+        [Header("Weapon Role Bias")]
         [Tooltip("Small bonus for Hold weapons when attacking relatively healthy racers.")]
         [Range(0f, 0.5f)]
         [SerializeField] private float holdWeaponPressureBonus = 0.12f;
@@ -157,6 +227,17 @@ namespace RaceFatal.Presentation.Vehicles
         #region Debug
 
         [Header("Runtime Debug")]
+        [SerializeField]
+        private int debugTargetPositionGap;
+
+        [SerializeField]
+        private float debugRacePositionFactor = 1f;
+
+        [SerializeField]
+        private int debugExistingTargetAttackers;
+
+        [SerializeField]
+        private float debugTargetSaturationFactor = 1f;
         [SerializeField] private bool debugInitialized;
         [SerializeField] private string debugDecision = "Not Initialized";
 
@@ -167,6 +248,8 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugRuntimeBurstCooldown;
         [SerializeField] private float debugRuntimePressCooldown;
         [SerializeField] private float debugMinimumAttackScore;
+        [SerializeField] private float debugRacePressure;
+        [SerializeField] private string debugPreferredTarget = "None";
 
         [SerializeField] private string debugSelectedWeapon = "None";
         [SerializeField] private string debugActivationMode = "None";
@@ -197,7 +280,7 @@ namespace RaceFatal.Presentation.Vehicles
         #endregion
 
         #region Runtime
-        
+
         private GuidedTargetLockState guidedLockState;
 
         private AIRacerSensor sensor;
@@ -228,6 +311,18 @@ namespace RaceFatal.Presentation.Vehicles
         private float runtimePressWeaponCooldown;
         private float runtimeMinimumAttackScore;
 
+        private float currentRacePressure;
+        private string preferredTargetRacerId;
+
+        private RaceRuntimeController raceRuntime;
+
+        private IReadOnlyList<RaceParticipant> cachedRaceOrder;
+        private int cachedSelfPosition;
+
+        private static readonly List<AICombatPlanner>
+            ActiveCombatPlanners =
+                new List<AICombatPlanner>();
+
         #endregion
 
         #region Tactical Opportunity
@@ -242,6 +337,12 @@ namespace RaceFatal.Presentation.Vehicles
             public float Score;
             public float Distance;
             public float Angle;
+
+            public int PositionGap;
+            public float RacePositionFactor;
+
+            public int ExistingAttackers;
+            public float SaturationFactor;
 
             public float DistanceScore;
             public float AlignmentScore;
@@ -263,11 +364,14 @@ namespace RaceFatal.Presentation.Vehicles
             RaceParticipant raceParticipant,
             AIRacerSensor racerSensor,
             RacerViewController view,
+            RaceRuntimeController runtime,
             float aggression)
         {
             if (raceParticipant == null ||
                 racerSensor == null ||
-                view == null)
+                view == null ||
+                runtime == null ||
+                runtime.Director?.State == null)
             {
                 Debug.LogError(
                     $"{nameof(AICombatPlanner)} is missing required runtime state.");
@@ -306,8 +410,12 @@ namespace RaceFatal.Presentation.Vehicles
 
             racerView =
                 view;
-            
-            guidedLockState = racerView.GetComponent<GuidedTargetLockState>();
+
+            raceRuntime =
+                runtime;
+
+            guidedLockState =
+                racerView.GetComponent<GuidedTargetLockState>();
 
             equipment =
                 participant.Vehicle.EquipmentSystem;
@@ -396,6 +504,15 @@ namespace RaceFatal.Presentation.Vehicles
                         ? "Out Of Ammo"
                         : "No Weapon";
 
+
+            PruneCombatPlannerRegistry();
+
+            if (!ActiveCombatPlanners.Contains(
+                    this))
+            {
+                ActiveCombatPlanners.Add(
+                    this);
+            }
             return true;
         }
 
@@ -405,10 +522,30 @@ namespace RaceFatal.Presentation.Vehicles
 
         public void Tick(
             float cornerSeverity,
-            bool boosting)
+            bool boosting,
+            float racePressure,
+            string preferredTargetId)
         {
             if (!initialized)
                 return;
+
+            RefreshRacePositionCache();
+
+            currentRacePressure =
+                Mathf.Clamp01(
+                    racePressure);
+
+            preferredTargetRacerId =
+                preferredTargetId;
+
+            debugRacePressure =
+                currentRacePressure;
+
+            debugPreferredTarget =
+                string.IsNullOrWhiteSpace(
+                    preferredTargetRacerId)
+                    ? "None"
+                    : preferredTargetRacerId;
 
             TickTimers();
 
@@ -419,8 +556,14 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            float effectiveCornerLimit =
+                Mathf.Clamp01(
+                    runtimeMaximumCornerSeverity +
+                    fullPressureCornerToleranceBonus *
+                    currentRacePressure);
+
             if (cornerSeverity >
-                runtimeMaximumCornerSeverity)
+                effectiveCornerLimit)
             {
                 debugDecision =
                     "Corner / Hold Fire";
@@ -430,7 +573,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             if (avoidFiringWhileBoosting &&
-                boosting)
+                boosting &&
+                currentRacePressure < 0.65f)
             {
                 debugDecision =
                     "Boosting / Hold Fire";
@@ -521,8 +665,15 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            float effectiveAttackScore =
+                Mathf.Max(
+                    0f,
+                    runtimeMinimumAttackScore -
+                    fullPressureAttackThresholdReduction *
+                    currentRacePressure);
+
             if (opportunity.Score <
-                runtimeMinimumAttackScore)
+                effectiveAttackScore)
             {
                 ApplyDebugOpportunity(
                     opportunity);
@@ -795,7 +946,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             debugCurrentScore =
                 0f;
-            
+
             guidedLockState?.ClearTarget();
         }
 
@@ -912,9 +1063,15 @@ namespace RaceFatal.Presentation.Vehicles
             float distance =
                 toTarget.magnitude;
 
+            float pressureRange =
+                runtimeTargetDistance *
+                (1f +
+                 fullPressureTargetRangeBonus *
+                 currentRacePressure);
+
             float searchRange =
                 Mathf.Min(
-                    runtimeTargetDistance,
+                    pressureRange,
                     definition.Range);
 
             if (distance <
@@ -1007,8 +1164,8 @@ namespace RaceFatal.Presentation.Vehicles
                     vulnerabilityWeight +
                 finisherScore *
                     finisherWeight;
-            
-            float roleBonus = 
+
+            float roleBonus =
                 CalculateWeaponRoleBonus(
                     definition,
                     vulnerability);
@@ -1028,11 +1185,42 @@ namespace RaceFatal.Presentation.Vehicles
                     definition,
                     cornerSeverity);
 
+            int positionGap;
+
+            float racePositionFactor =
+                CalculateRacePositionFactor(
+                    target,
+                    out positionGap);
+
+            int existingAttackers =
+                CountOtherAttackersTargeting(
+                    target);
+
+            float saturationFactor =
+                CalculateTargetSaturationFactor(
+                    target,
+                    existingAttackers);
+
             float score =
                 baseScore *
                 ammoFactor *
                 travelFactor *
-                chargeFactor;
+                chargeFactor *
+                racePositionFactor *
+                saturationFactor;
+
+            if (!string.IsNullOrWhiteSpace(
+                    preferredTargetRacerId) &&
+                target.Participant != null &&
+                string.Equals(
+                    target.Participant.RacerId,
+                    preferredTargetRacerId,
+                    StringComparison.Ordinal))
+            {
+                score +=
+                    fullPressurePreferredTargetBonus *
+                    currentRacePressure;
+            }
 
             opportunity.Valid =
                 true;
@@ -1065,6 +1253,17 @@ namespace RaceFatal.Presentation.Vehicles
             opportunity.AmmoFactor =
                 ammoFactor;
 
+            opportunity.PositionGap =
+                positionGap;
+
+            opportunity.RacePositionFactor =
+                racePositionFactor;
+
+            opportunity.ExistingAttackers =
+                existingAttackers;
+
+            opportunity.SaturationFactor =
+                saturationFactor;
             return true;
         }
 
@@ -1197,13 +1396,13 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             /*
-            * Hull damage is the main indicator that a racer
-            * is vulnerable.
-            *
-            * Shield weakness is only a secondary opportunity
-            * signal. Having no shield does not automatically
-            * mean the racer is nearly dead.
-            */
+             * Hull damage is the main indicator that a racer
+             * is vulnerable.
+             *
+             * Shield weakness is only a secondary opportunity
+             * signal. Having no shield does not automatically
+             * mean the racer is nearly dead.
+             */
             float vulnerability =
                 damageRatio *
                     0.85f +
@@ -1226,9 +1425,9 @@ namespace RaceFatal.Presentation.Vehicles
                     weapon.AmmoRatio);
 
             /*
-            * High-capacity weapons such as machine guns are
-            * naturally expendable.
-            */
+             * High-capacity weapons such as machine guns are
+             * naturally expendable.
+             */
             float capacityFactor =
                 Mathf.Clamp01(
                     weapon.MaximumAmmo /
@@ -1252,14 +1451,14 @@ namespace RaceFatal.Presentation.Vehicles
                     1f - ammoRatio);
 
             /*
-            * Very low-capacity weapons receive a separate
-            * ordnance-conservation rule.
-            *
-            * Against a healthy target, rockets / other scarce
-            * weapons are deliberately unattractive. Their value
-            * rises as the target becomes a legitimate finishing
-            * opportunity.
-            */
+             * Very low-capacity weapons receive a separate
+             * ordnance-conservation rule.
+             *
+             * Against a healthy target, rockets / other scarce
+             * weapons are deliberately unattractive. Their value
+             * rises as the target becomes a legitimate finishing
+             * opportunity.
+             */
             if (weapon.MaximumAmmo <=
                 scarceAmmoThreshold)
             {
@@ -1284,9 +1483,9 @@ namespace RaceFatal.Presentation.Vehicles
                         vulnerabilityFactor);
 
                 /*
-                * Become even more conservative as the remaining
-                * stock falls.
-                */
+                 * Become even more conservative as the remaining
+                 * stock falls.
+                 */
                 float remainingFactor =
                     Mathf.Lerp(
                         0.7f,
@@ -1517,6 +1716,18 @@ namespace RaceFatal.Presentation.Vehicles
 
             debugAmmoFactor =
                 opportunity.AmmoFactor;
+
+                debugTargetPositionGap =
+                opportunity.PositionGap;
+
+            debugRacePositionFactor =
+                opportunity.RacePositionFactor;
+
+            debugExistingTargetAttackers =
+                opportunity.ExistingAttackers;
+
+            debugTargetSaturationFactor =
+                opportunity.SaturationFactor;
         }
 
         #endregion
@@ -1849,6 +2060,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         public void Stop()
         {
+            ClearDecision();
             CancelWeapon();
         }
 
@@ -1888,6 +2100,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         public void Dispose()
         {
+            ActiveCombatPlanners.Remove(
+                this);
             CancelWeapon();
             guidedLockState?.ClearTarget();
 
@@ -1914,6 +2128,219 @@ namespace RaceFatal.Presentation.Vehicles
 
             debugInitialized =
                 false;
+
+            raceRuntime =
+                null;
+
+            cachedRaceOrder =
+                null;
+
+            cachedSelfPosition =
+                0;
+        }
+
+        #endregion
+
+        #region Race Position Scoring
+
+        private void RefreshRacePositionCache()
+        {
+            cachedRaceOrder =
+                raceRuntime?
+                    .Director?
+                    .State?
+                    .GetCurrentOrder();
+
+            cachedSelfPosition =
+                GetCachedRacePosition(
+                    participant?.RacerId);
+        }
+
+        private int GetCachedRacePosition(
+            string racerId)
+        {
+            if (cachedRaceOrder == null ||
+                string.IsNullOrWhiteSpace(
+                    racerId))
+            {
+                return 0;
+            }
+
+            for (int i = 0;
+                i < cachedRaceOrder.Count;
+                i++)
+            {
+                RaceParticipant racer =
+                    cachedRaceOrder[i];
+
+                if (racer != null &&
+                    string.Equals(
+                        racer.RacerId,
+                        racerId,
+                        StringComparison.Ordinal))
+                {
+                    return i + 1;
+                }
+            }
+
+            return 0;
+        }
+
+        private float CalculateRacePositionFactor(
+            RacerViewController target,
+            out int positionGap)
+        {
+            positionGap =
+                0;
+
+            if (target?.Participant == null ||
+                cachedSelfPosition <= 0)
+            {
+                return 1f;
+            }
+
+            int targetPosition =
+                GetCachedRacePosition(
+                    target.Participant.RacerId);
+
+            if (targetPosition <= 0)
+                return 1f;
+
+            positionGap =
+                Mathf.Abs(
+                    targetPosition -
+                    cachedSelfPosition);
+
+            if (positionGap <= 0)
+                return 1f;
+
+            float proximity =
+                1f -
+                Mathf.InverseLerp(
+                    1f,
+                    Mathf.Max(
+                        2,
+                        maximumRelevantPositionGap),
+                    positionGap);
+
+            float factor =
+                Mathf.Lerp(
+                    distantRivalScoreMultiplier,
+                    1f,
+                    proximity);
+
+            /*
+            * Racers ahead matter more because attacking them can
+            * directly improve our race position.
+            */
+            if (targetPosition <
+                cachedSelfPosition)
+            {
+                factor *=
+                    aheadRivalMultiplier;
+            }
+            else
+            {
+                factor *=
+                    behindRivalMultiplier;
+            }
+
+            return Mathf.Clamp(
+                factor,
+                0.1f,
+                2f);
+        }
+
+        #endregion
+
+        #region Target Saturation
+
+        private void PruneCombatPlannerRegistry()
+        {
+            for (int i =
+                    ActiveCombatPlanners.Count - 1;
+                i >= 0;
+                i--)
+            {
+                AICombatPlanner planner =
+                    ActiveCombatPlanners[i];
+
+                if (planner == null ||
+                    !planner.initialized ||
+                    planner.participant == null)
+                {
+                    ActiveCombatPlanners.RemoveAt(
+                        i);
+                }
+            }
+        }
+
+        private int CountOtherAttackersTargeting(
+            RacerViewController target)
+        {
+            if (target == null)
+                return 0;
+
+            PruneCombatPlannerRegistry();
+
+            int count =
+                0;
+
+            for (int i = 0;
+                i < ActiveCombatPlanners.Count;
+                i++)
+            {
+                AICombatPlanner planner =
+                    ActiveCombatPlanners[i];
+
+                if (planner == null ||
+                    planner == this ||
+                    !planner.initialized ||
+                    planner.participant == null ||
+                    planner.participant.Status !=
+                        RaceParticipantStatus.Racing)
+                {
+                    continue;
+                }
+
+                if (planner.currentTarget ==
+                    target)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private float CalculateTargetSaturationFactor(
+            RacerViewController target,
+            int existingAttackers)
+        {
+            if (target?.Participant == null)
+                return 1f;
+
+            if (!applyTargetSaturationToPlayer &&
+                target.Participant.Role ==
+                    RaceParticipantRole.Player)
+            {
+                return 1f;
+            }
+
+            if (existingAttackers <= 0)
+                return 1f;
+
+            if (existingAttackers == 1)
+            {
+                return oneExistingAttackerMultiplier;
+            }
+
+            if (existingAttackers == 2)
+            {
+                return twoExistingAttackersMultiplier;
+            }
+
+            return threePlusExistingAttackersMultiplier;
         }
 
         #endregion
