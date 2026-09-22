@@ -11,6 +11,9 @@ namespace RaceFatal.Career
             private set;
         }
 
+        public bool HasCareerRun =>
+            CareerRun != null;
+
         public WorldState World { get; }
 
         public string DefaultPartnerRacerId { get; }
@@ -33,9 +36,7 @@ namespace RaceFatal.Career
                     nameof(playerTeam));
 
             CareerRun =
-                careerRun
-                ?? throw new ArgumentNullException(
-                    nameof(careerRun));
+                careerRun;
 
             World =
                 world
