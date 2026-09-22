@@ -188,7 +188,7 @@ namespace RaceFatal.Presentation.FrontEnd
             if (!DateTimeOffset.TryParse(
                     lastSavedUtc,
                     CultureInfo.InvariantCulture,
-                    DateTimeStyles.RoundtripKind,
+                    DateTimeStyles.None,
                     out DateTimeOffset savedAt))
             {
                 return lastSavedUtc;
