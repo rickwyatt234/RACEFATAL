@@ -75,6 +75,15 @@ namespace RaceFatal.Presentation.Bootstrap
                 return;
             }
 
+            PrototypeRaceLauncher prototypeLauncher =
+                GetComponent<PrototypeRaceLauncher>();
+
+            if (prototypeLauncher != null)
+            {
+                prototypeLauncher.enabled =
+                    false;
+            }
+
             DontDestroyOnLoad(
                 gameObject);
 
