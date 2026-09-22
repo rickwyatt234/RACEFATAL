@@ -11,6 +11,7 @@ using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RaceFatal.Presentation.Bootstrap
 {
@@ -22,6 +23,16 @@ namespace RaceFatal.Presentation.Bootstrap
         [SerializeField]
         private GameContentCatalogSO
             contentCatalog;
+
+        [Header("Startup")]
+
+        [SerializeField]
+        private BootstrapStartupMode startupMode =
+            BootstrapStartupMode.FrontEnd;
+
+        [SerializeField]
+        private string frontEndSceneName =
+            "03_MainMenu";
 
         public static GameContext Context {
             get;
@@ -89,6 +100,79 @@ namespace RaceFatal.Presentation.Bootstrap
             RaceStartupTrace.Mark(
                 "GameContext successfully created.",
                 this);
+        }
+
+        private void Start()
+        {
+            if (Context == null)
+                return;
+
+            switch (startupMode)
+            {
+                case BootstrapStartupMode.FrontEnd:
+                    LaunchFrontEnd();
+                    break;
+
+                case BootstrapStartupMode.PrototypeRace:
+                    LaunchPrototypeRace();
+                    break;
+
+                case BootstrapStartupMode.StayInBootstrap:
+                    RaceStartupTrace.Mark(
+                        "Bootstrap startup mode is StayInBootstrap.",
+                        this);
+                    break;
+            }
+        }
+
+        private void LaunchFrontEnd()
+        {
+            if (string.IsNullOrWhiteSpace(
+                    frontEndSceneName))
+            {
+                RaceStartupTrace.Fail(
+                    "Front-end scene name is empty.",
+                    this);
+
+                return;
+            }
+
+            if (!Application.CanStreamedLevelBeLoaded(
+                    frontEndSceneName))
+            {
+                RaceStartupTrace.Fail(
+                    $"Front-end scene '{frontEndSceneName}' " +
+                    "cannot be loaded. Verify that it is included " +
+                    "in Build Profiles / Build Settings.",
+                    this);
+
+                return;
+            }
+
+            RaceStartupTrace.Mark(
+                $"Loading front-end scene '{frontEndSceneName}'.",
+                this);
+
+            SceneManager.LoadScene(
+                frontEndSceneName);
+        }
+
+        private void LaunchPrototypeRace()
+        {
+            PrototypeRaceLauncher launcher =
+                GetComponent<PrototypeRaceLauncher>();
+
+            if (launcher == null)
+            {
+                RaceStartupTrace.Fail(
+                    "Bootstrap startup mode is PrototypeRace, " +
+                    "but no PrototypeRaceLauncher is attached.",
+                    this);
+
+                return;
+            }
+
+            launcher.Launch();
         }
 
         private GameContext
