@@ -147,11 +147,42 @@ namespace RaceFatal.Career
                     nameof(run));
             }
 
+            RestoreState(
+                team,
+                run);
+        }
+
+        public void RestoreState(
+            TeamState team,
+            CareerRun run)
+        {
+            if (team == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(team));
+            }
+
+            if (run != null &&
+                run.Team.TeamId != team.TeamId)
+            {
+                throw new InvalidOperationException(
+                    "Career run does not belong to the supplied team.");
+            }
+
             Team = team;
             CurrentRun = run;
 
             CurrentRunChanged?.Invoke(
                 CurrentRun);
+        }
+
+        public void Clear()
+        {
+            Team = null;
+            CurrentRun = null;
+
+            CurrentRunChanged?.Invoke(
+                null);
         }
     }
 }
