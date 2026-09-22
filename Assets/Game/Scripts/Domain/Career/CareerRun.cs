@@ -9,12 +9,23 @@ namespace RaceFatal.Career
 {
     public class CareerRun
     {
-        private readonly Dictionary<EngineClass, List<string>> rivalsByEngineClass = new Dictionary<EngineClass, List<string>>();
+        private readonly Dictionary<EngineClass, List<string>>
+            rivalsByEngineClass =
+                new Dictionary<EngineClass, List<string>>();
+
         public string RunId { get; }
         public TeamState Team { get; }
         public RacerState Player { get; }
-        public bool IsActive { get; private set; } = true;
-        public string ActiveChampionshipId { get; private set; }
+
+        public bool IsActive {
+            get;
+            private set;
+        } = true;
+
+        public string ActiveChampionshipId {
+            get;
+            private set;
+        }
 
         public CareerRun(
             string runId,
@@ -26,50 +37,143 @@ namespace RaceFatal.Career
             Player = player;
         }
 
-        public IReadOnlyCollection<string> GetRivalsForEngineClass(EngineClass engineClass)
+        public static Result<CareerRun> Restore(
+            string runId,
+            TeamState team,
+            RacerState player,
+            bool isActive,
+            string activeChampionshipId)
         {
-            if (!rivalsByEngineClass.TryGetValue(engineClass, out List<string> rivals))
+            if (string.IsNullOrWhiteSpace(
+                    runId))
+            {
+                return Result<CareerRun>.Failure(
+                    "Career run ID is required.");
+            }
+
+            if (team == null)
+            {
+                return Result<CareerRun>.Failure(
+                    "Career team is required.");
+            }
+
+            if (player == null)
+            {
+                return Result<CareerRun>.Failure(
+                    "Career player is required.");
+            }
+
+            if (player.TeamId != team.TeamId)
+            {
+                return Result<CareerRun>.Failure(
+                    "Career player does not belong to the career team.");
+            }
+
+            if (!player.IsPlayerCharacter)
+            {
+                return Result<CareerRun>.Failure(
+                    "Career player must be a player character.");
+            }
+
+            if (isActive && !player.CanRace)
+            {
+                return Result<CareerRun>.Failure(
+                    "An active career run requires an active player racer.");
+            }
+
+            var run =
+                new CareerRun(
+                    runId,
+                    team,
+                    player);
+
+            run.IsActive =
+                isActive;
+
+            run.ActiveChampionshipId =
+                string.IsNullOrWhiteSpace(
+                    activeChampionshipId)
+                    ? null
+                    : activeChampionshipId;
+
+            return Result<CareerRun>.Success(
+                run);
+        }
+
+        public IReadOnlyCollection<string>
+            GetRivalsForEngineClass(
+                EngineClass engineClass)
+        {
+            if (!rivalsByEngineClass.TryGetValue(
+                    engineClass,
+                    out List<string> rivals))
             {
                 return Array.Empty<string>();
             }
+
             return rivals;
         }
 
-        public bool AddRivalForEngineClass(EngineClass engineClass, string rivalId)
+        public bool AddRivalForEngineClass(
+            EngineClass engineClass,
+            string rivalId)
         {
-            if (!rivalsByEngineClass.TryGetValue(engineClass, out List<string> rivals))
-            {
-                rivals = new List<string>();
-                rivalsByEngineClass[engineClass] = rivals;
-            }
-            if (rivals.Contains(rivalId))
+            if (string.IsNullOrWhiteSpace(
+                    rivalId))
             {
                 return false;
             }
+
+            if (!rivalsByEngineClass.TryGetValue(
+                    engineClass,
+                    out List<string> rivals))
+            {
+                rivals =
+                    new List<string>();
+
+                rivalsByEngineClass[
+                    engineClass] = rivals;
+            }
+
+            if (rivals.Contains(
+                    rivalId))
+            {
+                return false;
+            }
+
             if (rivals.Count >= 2)
             {
                 return false;
             }
 
-            rivals.Add(rivalId);
+            rivals.Add(
+                rivalId);
+
             return true;
         }
 
-        public void EnterChampionship(string championshipId)
+        public void EnterChampionship(
+            string championshipId)
         {
-            ActiveChampionshipId = championshipId;
+            ActiveChampionshipId =
+                championshipId;
         }
+
         public void ExitChampionship()
         {
-            ActiveChampionshipId = null;
+            ActiveChampionshipId =
+                null;
         }
 
         public void Kill()
         {
             Player.Kill();
-            Team.PermanentlyEliminateRacer(Player.RacerId);
+            Team.PermanentlyEliminateRacer(
+                Player.RacerId);
+
             IsActive = false;
         }
+
         public void Retire()
         {
             //Player.Retire();
@@ -77,4 +181,3 @@ namespace RaceFatal.Career
         }
     }
 }
-
