@@ -3,6 +3,7 @@ using RaceFatal.Data;
 using RaceFatal.Equipment;
 using RaceFatal.Infrastructure.Input;
 using RaceFatal.Infrastructure.Racing;
+using RaceFatal.Infrastructure.Saving;
 using RaceFatal.Racing;
 using RaceFatal.Vehicles;
 
@@ -23,6 +24,8 @@ namespace RaceFatal.Infrastructure
         public WorldFactory Worlds { get; }
 
         public GameSessionManager Sessions { get; }
+
+        public CampaignSaveService Saves { get; }
 
         public BikePerformanceCalculator
             Performance { get; }
@@ -51,6 +54,7 @@ namespace RaceFatal.Infrastructure
             BikeBuildFactory bikeBuilds,
             WorldFactory worlds,
             GameSessionManager sessions,
+            CampaignSaveService saves,
             BikePerformanceCalculator performance,
             RaceParticipantFactory participants,
             RaceFactory races,
@@ -68,6 +72,7 @@ namespace RaceFatal.Infrastructure
 
             Worlds = worlds;
             Sessions = sessions;
+            Saves = saves;
 
             Performance = performance;
             Participants = participants;
