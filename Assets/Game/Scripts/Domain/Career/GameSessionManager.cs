@@ -248,6 +248,50 @@ namespace RaceFatal.Career
                 Current);
         }
 
+        public Result RestoreSession(
+            GameSessionState session)
+        {
+            if (session == null)
+            {
+                return Result.Failure(
+                    "Game session is required.");
+            }
+
+            if (HasSession)
+            {
+                return Result.Failure(
+                    "A game session is already active.");
+            }
+
+            try
+            {
+                careerManager.RestoreState(
+                    session.PlayerTeam,
+                    session.CareerRun);
+
+                Current =
+                    session;
+
+                return Result.Success();
+            }
+            catch (Exception exception)
+            {
+                careerManager.Clear();
+                Current = null;
+
+                return Result.Failure(
+                    "Failed to restore game session: " +
+                    exception.Message);
+            }
+        }
+
+        public void ClearSession()
+        {
+            Current = null;
+
+            careerManager.Clear();
+        }
+
         private void OnCurrentRunChanged(
             CareerRun run)
         {
