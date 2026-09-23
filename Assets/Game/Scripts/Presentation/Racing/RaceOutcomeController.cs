@@ -23,6 +23,7 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private RaceStandingsView standingsView;
         [SerializeField] private Button continueButton;
         [SerializeField] private TextMeshProUGUI continueButtonText;
+        [SerializeField] private CanvasGroup outcomeCanvasGroup;
 
         [Header("Payout")]
         [SerializeField] private GameObject payoutPanel;
@@ -313,6 +314,9 @@ namespace RaceFatal.Presentation.Racing
 
             ShowFinalResults(
                 result);
+
+            if (outcomeCanvasGroup != null)
+                outcomeCanvasGroup.alpha = 1f;
         }
 
         private bool IsPlayer(
@@ -335,6 +339,13 @@ namespace RaceFatal.Presentation.Racing
 
             if (outcomePanel != null)
                 outcomePanel.SetActive(true);
+
+            if (outcomeCanvasGroup != null)
+                {
+                    outcomeCanvasGroup.alpha = 1f;
+                    outcomeCanvasGroup.interactable = true;
+                    outcomeCanvasGroup.blocksRaycasts = true;
+                }
 
             if (outcomeTitle != null)
                 outcomeTitle.text = title;
@@ -439,7 +450,13 @@ namespace RaceFatal.Presentation.Racing
             debugFinalResults = true;
 
             if (outcomePanel != null)
-                outcomePanel.SetActive(true);
+                outcomePanel.SetActive(false);
+            if (outcomeCanvasGroup != null)
+                {
+                    outcomeCanvasGroup.alpha = 1f;
+                    outcomeCanvasGroup.interactable = true;
+                    outcomeCanvasGroup.blocksRaycasts = true;
+                }
 
             if (outcomeTitle != null)
                 outcomeTitle.text = "RACE COMPLETE";
