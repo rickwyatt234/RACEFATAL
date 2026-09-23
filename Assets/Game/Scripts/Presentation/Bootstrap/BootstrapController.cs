@@ -223,6 +223,13 @@ namespace RaceFatal.Presentation.Bootstrap
                 equipmentFactory =
                     new EquipmentFactory();
 
+            CareerShopService
+                shopService =
+                    new CareerShopService(
+                        database,
+                        vehicleFactory,
+                        equipmentFactory);
+
             BikeBuildFactory
                 bikeBuildFactory =
                     new BikeBuildFactory(
@@ -348,6 +355,7 @@ namespace RaceFatal.Presentation.Bootstrap
 
             return new GameContext(
                 careerManager,
+                shopService,
                 database,
                 vehicleFactory,
                 equipmentFactory,
