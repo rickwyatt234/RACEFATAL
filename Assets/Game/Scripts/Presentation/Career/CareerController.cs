@@ -1,6 +1,7 @@
 using RaceFatal.Infrastructure;
 using RaceFatal.Presentation.Bootstrap;
 using RaceFatal.Shared;
+using RaceFatal.Racing;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,6 +33,7 @@ namespace RaceFatal.Presentation.Career
 
         [Header("Views")]
         [SerializeField] private CareerHomeView homeView;
+        [SerializeField] private CareerRacesView racesView;
 
         [Header("Feedback")]
         [SerializeField] private TMP_Text errorText;
@@ -41,7 +43,11 @@ namespace RaceFatal.Presentation.Career
         private string mainMenuSceneName =
             "03_MainMenu";
 
+        [SerializeField] private string raceSceneName =
+            "02_Race";
+
         private GameContext context;
+        private bool raceLaunchInProgress;
 
         public CareerScreen CurrentScreen {
             get;
@@ -74,6 +80,8 @@ namespace RaceFatal.Presentation.Career
 
                 return;
             }
+
+            racesView?.Initialize(this, context);
 
             ShowScreen(
                 CareerScreen.Home);
@@ -157,10 +165,100 @@ namespace RaceFatal.Presentation.Career
 
             ClearError();
 
-            if (screen ==
-                CareerScreen.Home)
+            if (screen == CareerScreen.Home)
             {
                 RefreshHome();
+            }
+            else if (screen == CareerScreen.Races)
+            {
+                racesView?.Refresh();
+            }
+        }
+
+        public void LaunchRace(string raceId)
+        {
+            if (raceLaunchInProgress)
+                return;
+
+            if (context == null ||
+                context.RacePreparation == null ||
+                context.RaceLaunch == null ||
+                context.Saves == null ||
+                !context.Saves.HasActiveCampaign)
+            {
+                ShowError("A saved campaign is required to launch a race.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(raceId))
+            {
+                ShowError("Select a race before entering.");
+                return;
+            }
+
+            if (context.RaceLaunch.HasPendingRace)
+            {
+                ShowError("Another race is already pending.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(raceSceneName) ||
+                !Application.CanStreamedLevelBeLoaded(raceSceneName))
+            {
+                ShowError(
+                    $"Race scene '{raceSceneName}' is not in Build Settings.");
+                return;
+            }
+
+            Result<RaceDirector> prepared;
+
+            try
+            {
+                prepared = context.RacePreparation.PrepareDefaultRace(
+                    raceId);
+            }
+            catch (System.Exception exception)
+            {
+                ShowError(
+                    "Race preparation failed: " + exception.Message);
+                return;
+            }
+
+            if (!prepared.IsSuccess)
+            {
+                ShowError(prepared.ErrorMessage);
+                return;
+            }
+
+            // Preserve the most recent career state before entering
+            // the race. Post-race changes are saved at the results screen.
+            Result saveResult =
+                context.Saves.SaveCurrentCampaign();
+
+            if (!saveResult.IsSuccess)
+            {
+                ShowError(
+                    "Campaign could not be saved before racing: " +
+                    saveResult.ErrorMessage);
+                return;
+            }
+
+            raceLaunchInProgress = true;
+            racesView?.SetBusy(true);
+
+            context.RaceLaunch.SetPendingRace(prepared.Value);
+
+            try
+            {
+                SceneManager.LoadScene(raceSceneName);
+            }
+            catch (System.Exception exception)
+            {
+                context.RaceLaunch.Clear();
+                raceLaunchInProgress = false;
+                racesView?.SetBusy(false);
+                ShowError("Failed to load race scene: " +
+                    exception.Message);
             }
         }
 
@@ -234,6 +332,9 @@ namespace RaceFatal.Presentation.Career
                 errorText.text =
                     message ?? string.Empty;
             }
+
+            if (CurrentScreen == CareerScreen.Races)
+                racesView?.SetFeedback(message);
 
             Debug.LogError(
                 $"[Career] {message}",
