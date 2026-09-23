@@ -495,13 +495,11 @@ namespace RaceFatal.Presentation.Career
 
             if (assignPlayerButton != null)
                 assignPlayerButton.interactable = editable &&
-                    bike.BikeId != Session.SelectedPlayerBikeId &&
-                    bike.BikeId != Session.SelectedPartnerBikeId;
+                    bike.BikeId != Session.SelectedPlayerBikeId;
 
             if (assignPartnerButton != null)
                 assignPartnerButton.interactable = editable &&
-                    bike.BikeId != Session.SelectedPartnerBikeId &&
-                    bike.BikeId != Session.SelectedPlayerBikeId;
+                    bike.BikeId != Session.SelectedPartnerBikeId;
 
             bool occupied = false;
             if (bike != null)

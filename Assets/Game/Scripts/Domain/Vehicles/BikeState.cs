@@ -18,7 +18,9 @@ namespace RaceFatal.Vehicles
         public bool IsRaceReady =>
             !IsDestroyed &&
             Loadout.Engine != null &&
-            Loadout.Chassis != null;
+            !Loadout.Engine.IsDestroyed &&
+            Loadout.Chassis != null &&
+            !Loadout.Chassis.IsDestroyed;
 
         public EngineClass? EngineClass
         {

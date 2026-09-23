@@ -71,10 +71,21 @@ namespace RaceFatal.Career
 
         public Result SelectPlayerBike(string bikeId)
         {
-            Result validation = ValidateBikeAssignment(
-                bikeId, SelectedPartnerBikeId);
+            Result validation = ValidateBikeAssignment(bikeId);
             if (!validation.IsSuccess)
                 return validation;
+
+            if (bikeId == SelectedPartnerBikeId)
+            {
+                Result otherValidation =
+                    ValidateBikeAssignment(SelectedPlayerBikeId);
+                if (!otherValidation.IsSuccess)
+                    return Result.Failure(
+                        "Cannot swap assignments: " +
+                        otherValidation.ErrorMessage);
+
+                SelectedPartnerBikeId = SelectedPlayerBikeId;
+            }
 
             SelectedPlayerBikeId = bikeId;
             return Result.Success();
@@ -82,24 +93,30 @@ namespace RaceFatal.Career
 
         public Result SelectPartnerBike(string bikeId)
         {
-            Result validation = ValidateBikeAssignment(
-                bikeId, SelectedPlayerBikeId);
+            Result validation = ValidateBikeAssignment(bikeId);
             if (!validation.IsSuccess)
                 return validation;
+
+            if (bikeId == SelectedPlayerBikeId)
+            {
+                Result otherValidation =
+                    ValidateBikeAssignment(SelectedPartnerBikeId);
+                if (!otherValidation.IsSuccess)
+                    return Result.Failure(
+                        "Cannot swap assignments: " +
+                        otherValidation.ErrorMessage);
+
+                SelectedPlayerBikeId = SelectedPartnerBikeId;
+            }
 
             SelectedPartnerBikeId = bikeId;
             return Result.Success();
         }
 
-        private Result ValidateBikeAssignment(
-            string bikeId, string otherBikeId)
+        private Result ValidateBikeAssignment(string bikeId)
         {
             if (string.IsNullOrWhiteSpace(bikeId))
                 return Result.Failure("Select an owned bike.");
-
-            if (bikeId == otherBikeId)
-                return Result.Failure(
-                    "Player and partner must use different physical bikes.");
 
             var bike = PlayerTeam.Garage.FindBike(bikeId);
             if (bike == null)
