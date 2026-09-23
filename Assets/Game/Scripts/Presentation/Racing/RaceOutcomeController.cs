@@ -3,6 +3,7 @@ using RaceFatal.Infrastructure;
 using RaceFatal.Presentation.Bootstrap;
 using RaceFatal.Presentation.Vehicles;
 using RaceFatal.Racing;
+using RaceFatal.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -474,7 +475,7 @@ namespace RaceFatal.Presentation.Racing
             if (continueButtonText != null)
             {
                 continueButtonText.text =
-                    "RETURN TO GARAGE";
+                    "RETURN TO CAREER";
             }
 
             if (releaseCursorOnOutcome)
@@ -581,6 +582,33 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
+            // A persistent career is saved only after the director
+            // has resolved the final results and applied the reward.
+            // Prototype races deliberately remain transient.
+            if (context.Saves != null &&
+                context.Saves.HasActiveCampaign)
+            {
+                if (!finalResults ||
+                    director == null ||
+                    director.PostRaceResult == null)
+                {
+                    ReportReturnError(
+                        "Final career results have not been resolved.");
+                    return;
+                }
+
+                Result saveResult =
+                    context.Saves.SaveCurrentCampaign();
+
+                if (!saveResult.IsSuccess)
+                {
+                    ReportReturnError(
+                        "Could not save career results: " +
+                        saveResult.ErrorMessage);
+                    return;
+                }
+            }
+
             context.RaceLaunch.Clear();
 
             leavingRace = true;
@@ -600,6 +628,22 @@ namespace RaceFatal.Presentation.Racing
 
             SceneManager.LoadScene(
                 postRaceSceneName);
+        }
+
+        private void ReportReturnError(string message)
+        {
+            Debug.LogError(
+                "[RaceOutcome] " + message,
+                this);
+
+            if (outcomeSubtitle != null)
+                outcomeSubtitle.text = message;
+
+            if (continueButtonText != null)
+                continueButtonText.text = "RETRY RETURN";
+
+            if (continueButton != null)
+                continueButton.interactable = true;
         }
 
         #endregion
