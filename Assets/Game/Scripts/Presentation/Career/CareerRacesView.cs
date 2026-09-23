@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using RaceFatal.Data;
 using RaceFatal.Infrastructure;
+using RaceFatal.Presentation.Bootstrap;
 using RaceFatal.Racing;
 using RaceFatal.Shared;
 using RaceFatal.Tracks;
@@ -157,6 +158,26 @@ namespace RaceFatal.Presentation.Career
             {
                 return Result<RaceDirector>.Failure(
                     "Only a saved career can enter this race.");
+            }
+
+            RaceDefinition definition =
+                context.Database?.GetRaceDefinition(raceId);
+
+            if (definition == null)
+            {
+                return Result<RaceDirector>.Failure(
+                    "Selected race definition does not exist.");
+            }
+
+            var trackContent =
+                BootstrapController.ContentCatalog?.FindTrackContent(
+                    definition.TrackId);
+
+            if (trackContent == null ||
+                trackContent.TrackPrefab == null)
+            {
+                return Result<RaceDirector>.Failure(
+                    "This race has no configured track prefab.");
             }
 
             try
