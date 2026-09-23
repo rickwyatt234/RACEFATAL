@@ -456,7 +456,7 @@ namespace RaceFatal.Presentation.Racing
                 payoutPanel.SetActive(false);
 
             if (outcomePanel != null)
-                outcomePanel.SetActive(false);
+                outcomePanel.SetActive(true);
             if (outcomeCanvasGroup != null)
                 {
                     outcomeCanvasGroup.alpha = 1f;
