@@ -15,7 +15,7 @@ MonoBehaviour:
   id: prototype_booster
   displayName: EQ_Booster_Prototype
   requiredNodeSize: 0
-  creditCost: 0
+  creditCost: 800
   requiredTechnologyId: 
   energyPerSecond: 7
   speedMultiplier: 1.2

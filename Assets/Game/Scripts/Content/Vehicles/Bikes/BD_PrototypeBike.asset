@@ -21,3 +21,5 @@ MonoBehaviour:
   baseMass: 250
   baseHandling: 1
   energyCapacity: 100
+  creditCost: 3200
+  requiredTechnologyId: 

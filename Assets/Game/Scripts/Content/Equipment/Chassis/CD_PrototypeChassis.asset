@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b24d5c0b7106c8849bd87bcecaf298c7, type: 3}
   m_Name: CD_PrototypeChassis
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.ChassisDefinitionSO
-  id: 
+  id: prototype_chassis
   displayName: CD_PrototypeChassis
   massModifier: 0
   handlingModifier: 0
-  creditCost: 0
+  creditCost: 1200
   requiredTechnologyId: 

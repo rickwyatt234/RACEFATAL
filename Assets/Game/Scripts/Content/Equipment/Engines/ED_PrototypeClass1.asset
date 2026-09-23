@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5aa0dd67eef8f64f80b9c421951886b, type: 3}
   m_Name: ED_PrototypeClass1
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.EngineDefinitionSO
-  id: 
+  id: prototype_engine_class1
   displayName: ED_PrototypeClass1
   engineClass: 0
   topSpeed: 200
   acceleration: 15
-  creditCost: 0
+  creditCost: 1500
   requiredTechnologyId: 

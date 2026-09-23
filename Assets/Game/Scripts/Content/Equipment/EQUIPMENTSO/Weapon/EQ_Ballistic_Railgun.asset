@@ -15,7 +15,7 @@ MonoBehaviour:
   id: weapon_ballistic_railgun
   displayName: Ballistic Railgun
   requiredNodeSize: 2
-  creditCost: 0
+  creditCost: 3500
   requiredTechnologyId: 
   activationMode: 3
   aimMode: 0

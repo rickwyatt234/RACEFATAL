@@ -906,9 +906,27 @@ namespace RaceFatal.Infrastructure.Saving
                             $"Engine '{engineData.engineId}' appears more than once.");
                     }
 
-                    EngineDefinition definition =
-                        database.GetEngineDefinition(
+                    // Older prototype campaigns wrote blank definition IDs
+                    // for their single engine. Migrate only when unambiguous.
+                    EngineDefinition definition = null;
+                    if (string.IsNullOrWhiteSpace(
+                            engineData.engineDefinitionId))
+                    {
+                        if (database.EngineDefinitions.Count == 1)
+                        {
+                            foreach (EngineDefinition candidate
+                                     in database.EngineDefinitions.Values)
+                            {
+                                definition = candidate;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        definition = database.GetEngineDefinition(
                             engineData.engineDefinitionId);
+                    }
 
                     if (definition == null)
                     {
@@ -964,9 +982,27 @@ namespace RaceFatal.Infrastructure.Saving
                             $"Chassis '{chassisData.chassisId}' appears more than once.");
                     }
 
-                    ChassisDefinition definition =
-                        database.GetChassisDefinition(
+                    // See legacy prototype migration above. Never guess if
+                    // multiple chassis definitions are now available.
+                    ChassisDefinition definition = null;
+                    if (string.IsNullOrWhiteSpace(
+                            chassisData.chassisDefinitionId))
+                    {
+                        if (database.ChassisDefinitions.Count == 1)
+                        {
+                            foreach (ChassisDefinition candidate
+                                     in database.ChassisDefinitions.Values)
+                            {
+                                definition = candidate;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        definition = database.GetChassisDefinition(
                             chassisData.chassisDefinitionId);
+                    }
 
                     if (definition == null)
                     {

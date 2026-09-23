@@ -15,7 +15,7 @@ MonoBehaviour:
   id: countermeasure_flare_Basic
   displayName: Basic Countermeasure Flare
   requiredNodeSize: 0
-  creditCost: 0
+  creditCost: 350
   requiredTechnologyId: 
   countermeasureType: 1
   cooldown: 0
