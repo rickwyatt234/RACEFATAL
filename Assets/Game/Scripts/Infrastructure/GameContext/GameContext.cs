@@ -13,6 +13,8 @@ namespace RaceFatal.Infrastructure
     {
         public CareerManager Career { get; }
 
+        public CareerShopService Shop { get; }
+
         public GameDatabase Database { get; }
 
         public VehicleFactory Vehicles { get; }
@@ -48,6 +50,7 @@ namespace RaceFatal.Infrastructure
 
         public GameContext(
             CareerManager career,
+            CareerShopService shop,
             GameDatabase database,
             VehicleFactory vehicles,
             EquipmentFactory equipment,
@@ -64,6 +67,7 @@ namespace RaceFatal.Infrastructure
             IRaceInputService input)
         {
             Career = career;
+            Shop = shop;
             Database = database;
 
             Vehicles = vehicles;

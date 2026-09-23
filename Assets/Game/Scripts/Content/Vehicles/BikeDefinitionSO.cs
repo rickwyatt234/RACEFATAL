@@ -27,6 +27,12 @@ namespace RaceFatal.Content.Vehicles
         [Header("Energy")]
         [Min(1f)][SerializeField] private float energyCapacity = 100f;
 
+        [Header("Shop")]
+        [Min(0)][SerializeField] private int creditCost;
+
+        [SerializeField]
+        private string requiredTechnologyId;
+
         public string Id => id;
         public string DisplayName => displayName;
         public GameObject BikePrefab => bikePrefab;
@@ -41,7 +47,9 @@ namespace RaceFatal.Content.Vehicles
                 largeNodeCount,
                 baseMass,
                 baseHandling,
-                energyCapacity);
+                energyCapacity,
+                creditCost,
+                requiredTechnologyId);
         }
 
         private void OnValidate()
@@ -53,6 +61,7 @@ namespace RaceFatal.Content.Vehicles
             baseMass = Mathf.Max(0f, baseMass);
             baseHandling = Mathf.Max(0f, baseHandling);
             energyCapacity = Mathf.Max(1f, energyCapacity);
+            creditCost = Mathf.Max(0, creditCost);
         }
     }
 }
