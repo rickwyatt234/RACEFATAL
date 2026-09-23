@@ -136,14 +136,14 @@ namespace RaceFatal.Presentation.Career
         {
             if (session?.PlayerTeam?.Garage == null ||
                 string.IsNullOrWhiteSpace(
-                    session.DefaultPlayerBikeId))
+                    session.SelectedPlayerBikeId))
             {
                 return "NONE";
             }
 
             BikeState bike =
                 session.PlayerTeam.Garage.FindBike(
-                    session.DefaultPlayerBikeId);
+                    session.SelectedPlayerBikeId);
 
             if (bike == null)
             {

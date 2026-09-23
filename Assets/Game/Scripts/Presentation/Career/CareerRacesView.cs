@@ -182,7 +182,7 @@ namespace RaceFatal.Presentation.Career
 
             try
             {
-                return context.RacePreparation.PrepareDefaultRace(
+                return context.RacePreparation.PrepareSelectedRace(
                     raceId);
             }
             catch (Exception exception)
