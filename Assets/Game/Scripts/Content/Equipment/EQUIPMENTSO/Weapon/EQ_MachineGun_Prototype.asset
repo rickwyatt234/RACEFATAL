@@ -15,7 +15,7 @@ MonoBehaviour:
   id: weapon_machine_gun
   displayName: Machine Gun
   requiredNodeSize: 1
-  creditCost: 0
+  creditCost: 450
   requiredTechnologyId: 
   activationMode: 2
   aimMode: 0

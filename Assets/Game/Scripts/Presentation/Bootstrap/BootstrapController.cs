@@ -312,6 +312,12 @@ namespace RaceFatal.Presentation.Bootstrap
                     saveMapper,
                     saveRepository);
 
+            ShopService shopService =
+                new ShopService(
+                    database,
+                    vehicleFactory,
+                    equipmentFactory);
+
             RacePreparationService
                 racePreparation =
                     new RacePreparationService(
@@ -355,6 +361,7 @@ namespace RaceFatal.Presentation.Bootstrap
                 worldFactory,
                 sessionManager,
                 saveService,
+                shopService,
                 performanceCalculator,
                 participantFactory,
                 raceFactory,

@@ -14,6 +14,8 @@ namespace RaceFatal.Vehicles
         public float BaseWeight { get; }
         public float BaseHandling { get; }
         public float EnergyCapacity { get; }
+        public int CreditCost { get; }
+        public string RequiredTechnologyId { get; }
 
         public BikeDefinition(
             string id,
@@ -23,7 +25,9 @@ namespace RaceFatal.Vehicles
             int largeNodeCount,
             float baseWeight,
             float baseHandling,
-            float energyCapacity)
+            float energyCapacity,
+            int creditCost = 0,
+            string requiredTechnologyId = null)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentException("Bike definition ID is required.", nameof(id));
@@ -47,6 +51,8 @@ namespace RaceFatal.Vehicles
             BaseWeight = Math.Max(0f, baseWeight);
             BaseHandling = Math.Max(0f, baseHandling);
             EnergyCapacity = Math.Max(1f, energyCapacity);
+            CreditCost = Math.Max(0, creditCost);
+            RequiredTechnologyId = requiredTechnologyId;
         }
 
         public BikeState CreateBikeState(

@@ -27,6 +27,8 @@ namespace RaceFatal.Infrastructure
 
         public CampaignSaveService Saves { get; }
 
+        public ShopService Shop { get; }
+
         public BikePerformanceCalculator
             Performance { get; }
 
@@ -55,6 +57,7 @@ namespace RaceFatal.Infrastructure
             WorldFactory worlds,
             GameSessionManager sessions,
             CampaignSaveService saves,
+            ShopService shop,
             BikePerformanceCalculator performance,
             RaceParticipantFactory participants,
             RaceFactory races,
@@ -73,6 +76,7 @@ namespace RaceFatal.Infrastructure
             Worlds = worlds;
             Sessions = sessions;
             Saves = saves;
+            Shop = shop;
 
             Performance = performance;
             Participants = participants;

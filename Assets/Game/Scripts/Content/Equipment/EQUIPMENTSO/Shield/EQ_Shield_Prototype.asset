@@ -15,7 +15,7 @@ MonoBehaviour:
   id: prototype_shield
   displayName: EQ_Shield_Prototype
   requiredNodeSize: 1
-  creditCost: 0
+  creditCost: 950
   requiredTechnologyId: 
   capacity: 100
   rechargePerSecond: 10

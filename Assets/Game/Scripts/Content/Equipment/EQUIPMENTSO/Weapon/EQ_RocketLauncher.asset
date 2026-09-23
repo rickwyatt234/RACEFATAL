@@ -15,7 +15,7 @@ MonoBehaviour:
   id: weapon_rocket_launcher
   displayName: Rocket Launcher
   requiredNodeSize: 2
-  creditCost: 0
+  creditCost: 2100
   requiredTechnologyId: 
   activationMode: 1
   aimMode: 2
