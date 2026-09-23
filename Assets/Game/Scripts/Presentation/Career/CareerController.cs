@@ -202,6 +202,22 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
+            RaceDefinition selectedRace =
+                context.Database?.GetRaceDefinition(raceId);
+
+            var trackContent =
+                selectedRace != null
+                    ? BootstrapController.ContentCatalog?.FindTrackContent(
+                        selectedRace.TrackId)
+                    : null;
+
+            if (trackContent == null ||
+                trackContent.TrackPrefab == null)
+            {
+                ShowError("The selected race has no configured track prefab.");
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(raceSceneName) ||
                 !Application.CanStreamedLevelBeLoaded(raceSceneName))
             {
