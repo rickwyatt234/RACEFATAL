@@ -58,6 +58,22 @@ namespace RaceFatal.Racing
                 session.DefaultPartnerBikeId);
         }
 
+        // Career entries use the player-configured bike assignments.
+        // Prototype launch continues to use PrepareDefaultRace.
+        public Result<RaceDirector> PrepareSelectedRace(string raceId)
+        {
+            if (!sessionManager.HasSession)
+                return Result<RaceDirector>.Failure(
+                    "No active game session exists.");
+
+            GameSessionState session = sessionManager.Current;
+            return PrepareRace(
+                raceId,
+                session.SelectedPlayerBikeId,
+                session.DefaultPartnerRacerId,
+                session.SelectedPartnerBikeId);
+        }
+
         public Result<RaceDirector>
             PrepareRace(
                 string raceId,

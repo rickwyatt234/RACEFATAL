@@ -34,6 +34,7 @@ namespace RaceFatal.Presentation.Career
         [Header("Views")]
         [SerializeField] private CareerHomeView homeView;
         [SerializeField] private CareerRacesView racesView;
+        [SerializeField] private CareerGarageView garageView;
 
         [Header("Feedback")]
         [SerializeField] private TMP_Text errorText;
@@ -82,6 +83,7 @@ namespace RaceFatal.Presentation.Career
             }
 
             racesView?.Initialize(this, context);
+            garageView?.Initialize(context);
 
             ShowScreen(
                 CareerScreen.Home);
@@ -173,6 +175,10 @@ namespace RaceFatal.Presentation.Career
             {
                 racesView?.Refresh();
             }
+            else if (screen == CareerScreen.Garage)
+            {
+                garageView?.Refresh();
+            }
         }
 
         public void LaunchRace(string raceId)
@@ -230,7 +236,7 @@ namespace RaceFatal.Presentation.Career
 
             try
             {
-                prepared = context.RacePreparation.PrepareDefaultRace(
+                prepared = context.RacePreparation.PrepareSelectedRace(
                     raceId);
             }
             catch (System.Exception exception)
