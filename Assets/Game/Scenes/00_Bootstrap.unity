@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 1077839325}
   - component: {fileID: 1077839327}
   - component: {fileID: 1077839328}
-  - component: {fileID: 1077839329}
   m_Layer: 0
   m_Name: BootstrapController
   m_TagString: Untagged
@@ -152,6 +151,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Bootstrap.BootstrapController
   contentCatalog: {fileID: 11400000, guid: 918b4b43a805dd44587e8bf1b2582efe, type: 2}
+  startupMode: 0
+  frontEndSceneName: 03_MainMenu
 --- !u!4 &1077839326
 Transform:
   m_ObjectHideFlags: 0
@@ -185,6 +186,8 @@ MonoBehaviour:
   steeringRightKey: 100
   nextEquipment: 101
   previousEquipment: 113
+  nextTarget: 9
+  focusKey: 306
   activationMouseButton: 0
   boostKey: 304
 --- !u!114 &1077839328
@@ -209,37 +212,6 @@ MonoBehaviour:
   race: {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}
   raceSceneName: 02_Race
   launchOnStart: 1
---- !u!114 &1077839329
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1077839324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 554d35fd28e95e84aaa5f6fbccad01c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Audio.AudioSettingsController
-  audioMixer: {fileID: 24100000, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
-  masterParameter: MasterVolume
-  musicParameter: MusicVolume
-  uiParameter: UIVolume
-  playerVehicleParameter: PlayerVehicleVolume
-  opponentVehicleParameter: OpponentVehicleVolume
-  playerWeaponParameter: PlayerWeaponVolume
-  opponentWeaponParameter: OpponentWeaponVolume
-  impactParameter: ImpactVolume
-  explosionParameter: ExplosionVolume
-  ambienceParameter: AmbienceVolume
-  minimumDecibels: -80
-  loadOnAwake: 1
-  playerPrefsPrefix: RaceFatal.Audio.
-  debugInitialized: 0
-  debugLastChangedBus: None
-  debugLastNormalizedVolume: 0
-  debugLastDecibels: 0
-  debugLastMuted: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
