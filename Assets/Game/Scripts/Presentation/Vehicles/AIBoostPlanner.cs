@@ -1,34 +1,25 @@
 using System;
 using RaceFatal.Equipment;
+using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using UnityEngine;
-using RaceFatal.Presentation.Racing;
 
 namespace RaceFatal.Presentation.Vehicles
 {
     [Serializable]
     public class AIBoostPlanner
     {
-        #region Energy Strategy
-
         [Header("Energy Strategy")]
         [Range(0f, 1f)][SerializeField] private float aggressiveEnergyReserve = 0.12f;
         [Range(0f, 1f)][SerializeField] private float conservativeEnergyReserve = 0.22f;
         [Range(0f, 0.5f)][SerializeField] private float restartEnergyMargin = 0.08f;
-
         [Range(0f, 1f)][SerializeField] private float huntEnergyReserveMultiplier = 0.75f;
         [Range(0f, 1f)][SerializeField] private float passingEnergyReserveMultiplier = 0.5f;
 
-        #endregion
-
-        #region Racing Pressure
-
         [Header("Racing Pressure")]
         [Min(1f)][SerializeField] private float attackPriorityDistance = 55f;
-
         [Range(0f, 0.5f)][SerializeField] private float huntStartCornerBonus = 0.08f;
         [Range(0f, 0.5f)][SerializeField] private float passingStartCornerBonus = 0.16f;
-
         [Range(0f, 1f)][SerializeField] private float huntStopCornerSeverity = 0.34f;
         [Range(0f, 1f)][SerializeField] private float passingStopCornerSeverity = 0.42f;
 
@@ -37,35 +28,20 @@ namespace RaceFatal.Presentation.Vehicles
         [Range(0.1f, 1f)][SerializeField] private float fullPressureCommitTimeMultiplier = 0.45f;
         [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerBonus = 0.08f;
 
-        #endregion
-
-        #region Driving Conditions
-
         [Header("Driving Conditions")]
         [Min(0f)][SerializeField] private float minimumBoostSpeedKph = 70f;
-
         [Range(0f, 1f)][SerializeField] private float conservativeStartCornerSeverity = 0.10f;
         [Range(0f, 1f)][SerializeField] private float aggressiveStartCornerSeverity = 0.20f;
         [Range(0f, 1f)][SerializeField] private float stopCornerSeverity = 0.28f;
-
         [Range(0f, 1f)][SerializeField] private float maximumBrakeToStart = 0.05f;
         [Range(0f, 1f)][SerializeField] private float stopBrakeThreshold = 0.15f;
-
-        #endregion
-
-        #region Commitment
 
         [Header("Boost Commitment")]
         [Min(0f)][SerializeField] private float aggressiveStraightCommitTime = 0.2f;
         [Min(0f)][SerializeField] private float conservativeStraightCommitTime = 0.7f;
         [Min(0f)][SerializeField] private float boostCooldown = 0.35f;
-
         [Range(0.05f, 1f)][SerializeField] private float huntingCommitTimeMultiplier = 0.45f;
         [Range(0.05f, 1f)][SerializeField] private float passingCommitTimeMultiplier = 0.2f;
-
-        #endregion
-
-        #region Debug
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
@@ -76,6 +52,7 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private bool debugAttackPriority;
         [SerializeField] private bool debugTrafficLimited;
         [SerializeField] private bool debugSeekingEnergy;
+        [SerializeField] private bool debugPlayerPursuitPriority;
 
         [SerializeField] private float debugTargetDistance;
         [SerializeField] private float debugPressure;
@@ -88,14 +65,12 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugRuntimeStartCornerSeverity;
         [SerializeField] private float debugEffectiveStartCornerSeverity;
         [SerializeField] private float debugRuntimeStraightCommitTime;
+        [SerializeField] private float debugPlayerStrategicReserve;
+        [SerializeField] private float debugPlayerCommitMultiplier;
 
         [SerializeField] private float debugStraightTimer;
         [SerializeField] private float debugCooldownTimer;
         [SerializeField] private string debugDecision = "Not Initialized";
-
-        #endregion
-
-        #region Runtime
 
         private RaceParticipant participant;
         private RaceRuntimeController raceRuntime;
@@ -112,9 +87,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private bool initialized;
 
-        #endregion
-
-        public bool IsInitialized => initialized;
+        public bool IsInitialized =>
+            initialized;
 
         public bool IsBoosting =>
             equipment != null &&
@@ -180,13 +154,24 @@ namespace RaceFatal.Presentation.Vehicles
             straightTimer = 0f;
             cooldownTimer = 0f;
 
-            debugRuntimeAggression = runtimeAggression;
-            debugRuntimeEnergyReserve = runtimeEnergyReserve;
-            debugRuntimeRestartThreshold = runtimeRestartThreshold;
-            debugRuntimeStartCornerSeverity = runtimeStartCornerSeverity;
-            debugRuntimeStraightCommitTime = runtimeStraightCommitTime;
+            debugRuntimeAggression =
+                runtimeAggression;
 
-            debugHasBooster = equipment.HasBooster;
+            debugRuntimeEnergyReserve =
+                runtimeEnergyReserve;
+
+            debugRuntimeRestartThreshold =
+                runtimeRestartThreshold;
+
+            debugRuntimeStartCornerSeverity =
+                runtimeStartCornerSeverity;
+
+            debugRuntimeStraightCommitTime =
+                runtimeStraightCommitTime;
+
+            debugHasBooster =
+                equipment.HasBooster;
+
             debugInitialized = true;
             initialized = true;
 
@@ -201,7 +186,8 @@ namespace RaceFatal.Presentation.Vehicles
             bool passing,
             bool seekingEnergy,
             float racePressure,
-            AIRacePressureRole pressureRole)
+            AIRacePressureRole pressureRole,
+            AIPlayerResponsePlanner playerResponse)
         {
             if (!initialized)
                 return false;
@@ -222,22 +208,56 @@ namespace RaceFatal.Presentation.Vehicles
                 Mathf.Clamp01(
                     racePressure);
 
+            if (playerResponse != null &&
+                !playerResponse.AllowBoost)
+            {
+                StopBoost(
+                    "Player Strategy / Recover");
+
+                return wasActive !=
+                    equipment.IsBoosterActive;
+            }
+
+            bool playerPursuitPriority =
+                playerResponse != null &&
+                playerResponse.Mode ==
+                    AIPlayerResponseMode.PursuePlayer &&
+                playerResponse.PursuitUrgency >=
+                    0.20f;
+
             bool attackPriority =
                 passing ||
+                playerPursuitPriority ||
                 (hunting &&
                  targetDistance <=
-                 attackPriorityDistance) ||
+                    attackPriorityDistance) ||
                 (racePressure >= 0.5f &&
                  pressureRole !=
                     AIRacePressureRole.Normal);
 
-            debugHasBooster = equipment.HasBooster;
-            debugBoostActive = equipment.IsBoosterActive;
-            debugHunting = hunting;
-            debugPassing = passing;
-            debugAttackPriority = attackPriority;
-            debugTrafficLimited = trafficLimited;
-            debugSeekingEnergy = seekingEnergy;
+            debugHasBooster =
+                equipment.HasBooster;
+
+            debugBoostActive =
+                equipment.IsBoosterActive;
+
+            debugHunting =
+                hunting;
+
+            debugPassing =
+                passing;
+
+            debugAttackPriority =
+                attackPriority;
+
+            debugPlayerPursuitPriority =
+                playerPursuitPriority;
+
+            debugTrafficLimited =
+                trafficLimited;
+
+            debugSeekingEnergy =
+                seekingEnergy;
 
             debugTargetDistance =
                 float.IsPositiveInfinity(
@@ -245,38 +265,65 @@ namespace RaceFatal.Presentation.Vehicles
                     ? 0f
                     : targetDistance;
 
-            debugPressure = racePressure;
-            debugPressureRole = pressureRole;
+            debugPressure =
+                racePressure;
+
+            debugPressureRole =
+                pressureRole;
+
+            debugPlayerStrategicReserve =
+                playerResponse != null
+                    ? playerResponse.StrategicEnergyReserve
+                    : 0f;
+
+            debugPlayerCommitMultiplier =
+                playerResponse != null
+                    ? playerResponse.BoostCommitTimeMultiplier
+                    : 1f;
 
             debugEnergyPercent =
-                participant.Vehicle.EnergyPool.MaxEnergy > 0f
-                    ? participant.Vehicle.EnergyPool.CurrentEnergy /
-                      participant.Vehicle.EnergyPool.MaxEnergy
+                participant.Vehicle
+                    .EnergyPool
+                    .MaxEnergy > 0f
+                    ? participant.Vehicle
+                        .EnergyPool
+                        .CurrentEnergy /
+                      participant.Vehicle
+                        .EnergyPool
+                        .MaxEnergy
                     : 0f;
 
             if (!equipment.HasBooster)
             {
                 StopBoost("No Booster");
-                return wasActive != equipment.IsBoosterActive;
+
+                return wasActive !=
+                    equipment.IsBoosterActive;
             }
 
             if (!RaceIsActive())
             {
                 StopBoost("Race Inactive");
-                return wasActive != equipment.IsBoosterActive;
+
+                return wasActive !=
+                    equipment.IsBoosterActive;
             }
 
             if (participant.Vehicle.IsDestroyed)
             {
                 StopBoost("Vehicle Destroyed");
-                return wasActive != equipment.IsBoosterActive;
+
+                return wasActive !=
+                    equipment.IsBoosterActive;
             }
 
             if (seekingEnergy &&
                 !attackPriority)
             {
                 StopBoost("Seeking Energy");
-                return wasActive != equipment.IsBoosterActive;
+
+                return wasActive !=
+                    equipment.IsBoosterActive;
             }
 
             if (cooldownTimer > 0f)
@@ -299,6 +346,21 @@ namespace RaceFatal.Presentation.Vehicles
                     fullPressureEnergyReserveMultiplier,
                     racePressure);
 
+            /*
+             * The strategic reserve is deliberately a floor.
+             * Because Energy also determines maximum shield
+             * capacity, ordinary boost aggression may never
+             * spend below the strategic survival budget.
+             */
+            if (playerResponse != null)
+            {
+                effectiveReserve =
+                    Mathf.Max(
+                        effectiveReserve,
+                        playerResponse
+                            .StrategicEnergyReserve);
+            }
+
             float effectiveRestartThreshold =
                 GetEffectiveRestartThreshold(
                     effectiveReserve,
@@ -315,6 +377,18 @@ namespace RaceFatal.Presentation.Vehicles
                     effectiveStartCornerSeverity +
                     fullPressureCornerBonus *
                     racePressure);
+
+            if (playerResponse != null &&
+                playerResponse.Mode ==
+                    AIPlayerResponseMode.PursuePlayer)
+            {
+                effectiveStartCornerSeverity =
+                    Mathf.Clamp01(
+                        effectiveStartCornerSeverity +
+                        0.12f *
+                        playerResponse
+                            .PursuitUrgency);
+            }
 
             float effectiveStopCornerSeverity =
                 GetEffectiveStopCornerSeverity(
@@ -335,6 +409,7 @@ namespace RaceFatal.Presentation.Vehicles
                     trafficLimited,
                     hunting,
                     passing,
+                    playerPursuitPriority,
                     effectiveReserve,
                     effectiveStopCornerSeverity);
             }
@@ -347,9 +422,11 @@ namespace RaceFatal.Presentation.Vehicles
                     trafficLimited,
                     hunting,
                     passing,
+                    playerPursuitPriority,
                     racePressure,
                     effectiveRestartThreshold,
-                    effectiveStartCornerSeverity);
+                    effectiveStartCornerSeverity,
+                    playerResponse);
             }
 
             debugBoostActive =
@@ -371,6 +448,7 @@ namespace RaceFatal.Presentation.Vehicles
             bool trafficLimited,
             bool hunting,
             bool passing,
+            bool playerPursuitPriority,
             float effectiveReserve,
             float effectiveStopCornerSeverity)
         {
@@ -378,11 +456,13 @@ namespace RaceFatal.Presentation.Vehicles
                 effectiveReserve)
             {
                 StopBoost(
-                    passing
-                        ? "Pass Energy Reserve"
-                        : hunting
-                            ? "Hunt Energy Reserve"
-                            : "Energy Reserve");
+                    playerPursuitPriority
+                        ? "Player Pursuit Energy Reserve"
+                        : passing
+                            ? "Pass Energy Reserve"
+                            : hunting
+                                ? "Hunt Energy Reserve"
+                                : "Energy Reserve");
 
                 return;
             }
@@ -403,7 +483,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (trafficLimited &&
                 !hunting &&
-                !passing)
+                !passing &&
+                !playerPursuitPriority)
             {
                 StopBoost(
                     "Blocked By Traffic");
@@ -412,11 +493,13 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             debugDecision =
-                passing
-                    ? "Boosting / Pass Attack"
-                    : hunting
-                        ? "Boosting / Hunting"
-                        : "Boosting";
+                playerPursuitPriority
+                    ? "Boosting / Player Pursuit"
+                    : passing
+                        ? "Boosting / Pass Attack"
+                        : hunting
+                            ? "Boosting / Hunting"
+                            : "Boosting";
         }
 
         private void UpdateInactiveBoost(
@@ -426,9 +509,11 @@ namespace RaceFatal.Presentation.Vehicles
             bool trafficLimited,
             bool hunting,
             bool passing,
+            bool playerPursuitPriority,
             float racePressure,
             float effectiveRestartThreshold,
-            float effectiveStartCornerSeverity)
+            float effectiveStartCornerSeverity,
+            AIPlayerResponsePlanner playerResponse)
         {
             if (cooldownTimer > 0f)
             {
@@ -443,11 +528,13 @@ namespace RaceFatal.Presentation.Vehicles
                 straightTimer = 0f;
 
                 debugDecision =
-                    passing
-                        ? "Pass / Conserving Energy"
-                        : hunting
-                            ? "Hunt / Conserving Energy"
-                            : "Conserving Energy";
+                    playerPursuitPriority
+                        ? "Player Pursuit / Conserving Energy"
+                        : passing
+                            ? "Pass / Conserving Energy"
+                            : hunting
+                                ? "Hunt / Conserving Energy"
+                                : "Conserving Energy";
 
                 return;
             }
@@ -478,7 +565,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (trafficLimited &&
                 !hunting &&
-                !passing)
+                !passing &&
+                !playerPursuitPriority)
             {
                 straightTimer = 0f;
                 debugDecision = "Blocked By Traffic";
@@ -503,15 +591,26 @@ namespace RaceFatal.Presentation.Vehicles
                     huntingCommitTimeMultiplier;
             }
 
+            if (playerResponse != null)
+            {
+                requiredCommitTime *=
+                    Mathf.Max(
+                        0.05f,
+                        playerResponse
+                            .BoostCommitTimeMultiplier);
+            }
+
             straightTimer +=
                 Time.fixedDeltaTime;
 
             debugDecision =
-                passing
-                    ? "Preparing Pass Boost"
-                    : hunting
-                        ? "Preparing Hunt Boost"
-                        : "Straight Confirmed";
+                playerPursuitPriority
+                    ? "Preparing Player Pursuit Boost"
+                    : passing
+                        ? "Preparing Pass Boost"
+                        : hunting
+                            ? "Preparing Hunt Boost"
+                            : "Straight Confirmed";
 
             if (straightTimer <
                 requiredCommitTime)
@@ -534,11 +633,13 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             debugDecision =
-                passing
-                    ? "Boost Started / Passing"
-                    : hunting
-                        ? "Boost Started / Hunting"
-                        : "Boost Started";
+                playerPursuitPriority
+                    ? "Boost Started / Player Pursuit"
+                    : passing
+                        ? "Boost Started / Passing"
+                        : hunting
+                            ? "Boost Started / Hunting"
+                            : "Boost Started";
         }
 
         private float GetEffectiveEnergyReserve(
@@ -592,7 +693,8 @@ namespace RaceFatal.Presentation.Vehicles
             else if (hunting)
                 value += huntStartCornerBonus;
 
-            return Mathf.Clamp01(value);
+            return Mathf.Clamp01(
+                value);
         }
 
         private float GetEffectiveStopCornerSeverity(

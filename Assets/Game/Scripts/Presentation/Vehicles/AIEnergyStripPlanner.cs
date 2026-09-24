@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using RaceFatal.Presentation.Tracks;
 using RaceFatal.Presentation.Racing;
+using RaceFatal.Presentation.Tracks;
 using RaceFatal.Racing;
 using UnityEngine;
 
@@ -10,69 +10,36 @@ namespace RaceFatal.Presentation.Vehicles
     [Serializable]
     public class AIEnergyStripPlanner
     {
-        #region Energy Strategy
-
         [Header("Energy Strategy")]
-        [Tooltip("AI begins considering Energy Strips below this Energy percentage.")]
         [Range(0f, 1f)][SerializeField] private float beginSeekingEnergyPercent = 0.65f;
-
-        [Tooltip("Energy level considered urgent.")]
         [Range(0f, 1f)][SerializeField] private float urgentEnergyPercent = 0.30f;
 
-        #endregion
-
-        #region Search
-
         [Header("Strip Search")]
-        [Tooltip("Maximum strip search distance when Energy has only recently become low.")]
         [Min(1f)][SerializeField] private float normalSearchDistance = 120f;
-
-        [Tooltip("Maximum strip search distance when Energy is critically low.")]
         [Min(1f)][SerializeField] private float urgentSearchDistance = 240f;
-
-        [Tooltip("A strip closer than this is normally considered too late to deliberately move toward.")]
         [Min(0f)][SerializeField] private float minimumApproachDistance = 15f;
-
-        [Tooltip("At urgent Energy levels the AI may attempt strips this close.")]
         [Min(0f)][SerializeField] private float urgentMinimumApproachDistance = 5f;
-
-        [Tooltip("New strip targets are not chosen during corners more severe than this.")]
         [Range(0f, 1f)][SerializeField] private float maximumCornerSeverityForNewTarget = 0.35f;
 
-        #endregion
-
-        #region Lateral Movement
-
         [Header("Lateral Movement")]
-        [Tooltip("How quickly the tactical Energy Strip offset may change.")]
         [Min(0.1f)][SerializeField] private float lateralShiftSpeed = 2.5f;
-
-        [Tooltip("Distance beyond the strip center before the target is considered completed.")]
         [Min(0f)][SerializeField] private float completionDistance = 12f;
-
-        [Tooltip("Penalty applied to strips that require a large lateral movement.")]
         [Min(0f)][SerializeField] private float lateralTravelPenalty = 10f;
-
-        #endregion
-
-        #region Runtime Debug
 
         [Header("Runtime Debug")]
         [SerializeField] private bool debugInitialized;
         [SerializeField] private bool debugTargetingStrip;
         [SerializeField] private string debugTargetName;
         [SerializeField] private string debugDecision = "Not Initialized";
-
         [SerializeField] private float debugEnergyPercent;
         [SerializeField] private float debugUrgency;
         [SerializeField] private float debugSearchDistance;
         [SerializeField] private float debugTargetDistance;
         [SerializeField] private float debugTargetLateralOffset;
         [SerializeField] private float debugTacticalOffset;
-
-        #endregion
-
-        #region Runtime
+        [SerializeField] private float debugEffectiveSeekThreshold;
+        [SerializeField] private bool debugRecoveryPriority;
+        [SerializeField] private bool debugSuppressOptionalRecovery;
 
         private RaceParticipant participant;
         private RaceRuntimeController raceRuntime;
@@ -86,17 +53,9 @@ namespace RaceFatal.Presentation.Vehicles
 
         private bool initialized;
 
-        #endregion
-
-        #region Public
-
         public bool IsInitialized => initialized;
         public bool IsTargetingStrip => targetStrip != null;
         public float TacticalOffset => currentTacticalOffset;
-
-        #endregion
-
-        #region Initialization
 
         public bool Initialize(
             RaceParticipant raceParticipant,
@@ -150,26 +109,52 @@ namespace RaceFatal.Presentation.Vehicles
             return true;
         }
 
-        #endregion
-
-        #region Planning
-
         public float UpdatePlan(
             float currentProgress,
             float baseLateralOffset,
             float availableHalfWidth,
             float cornerSeverity,
-            bool passing)
+            bool passing,
+            AIPlayerResponsePlanner playerResponse)
         {
             if (!initialized)
                 return 0f;
 
             UpdateEnergyDebug();
 
+            float effectiveSeekThreshold =
+                playerResponse != null
+                    ? playerResponse.EnergySeekThreshold
+                    : beginSeekingEnergyPercent;
+
+            effectiveSeekThreshold =
+                Mathf.Clamp01(
+                    effectiveSeekThreshold);
+
+            bool recoveryPriority =
+                playerResponse != null &&
+                playerResponse.Mode ==
+                    AIPlayerResponseMode.Recover;
+
+            bool suppressOptionalRecovery =
+                playerResponse != null &&
+                playerResponse
+                    .SuppressOptionalEnergyRecovery;
+
+            debugEffectiveSeekThreshold =
+                effectiveSeekThreshold;
+
+            debugRecoveryPriority =
+                recoveryPriority;
+
+            debugSuppressOptionalRecovery =
+                suppressOptionalRecovery;
+
             if (!RaceIsActive() ||
                 participant.Vehicle.IsDestroyed)
             {
                 ClearTarget("Race Inactive");
+
                 return ReturnOffsetToZero();
             }
 
@@ -182,6 +167,7 @@ namespace RaceFatal.Presentation.Vehicles
                         out targetLateralOffset))
                 {
                     ClearTarget("Target Lost");
+
                     return ReturnOffsetToZero();
                 }
 
@@ -197,12 +183,37 @@ namespace RaceFatal.Presentation.Vehicles
                     -completionDistance)
                 {
                     ClearTarget("Strip Passed");
+
                     return ReturnOffsetToZero();
                 }
 
-                if (passing)
+                if (suppressOptionalRecovery &&
+                    debugEnergyPercent >
+                        effectiveSeekThreshold)
                 {
-                    ClearTarget("Overtake Priority");
+                    ClearTarget(
+                        "Player Pursuit Priority");
+
+                    return ReturnOffsetToZero();
+                }
+
+                if (!recoveryPriority &&
+                    debugEnergyPercent >
+                        effectiveSeekThreshold +
+                        0.05f)
+                {
+                    ClearTarget(
+                        "Energy Recovered");
+
+                    return ReturnOffsetToZero();
+                }
+
+                if (passing &&
+                    !recoveryPriority)
+                {
+                    ClearTarget(
+                        "Overtake Priority");
+
                     return ReturnOffsetToZero();
                 }
 
@@ -211,37 +222,69 @@ namespace RaceFatal.Presentation.Vehicles
                     availableHalfWidth);
             }
 
-            if (passing)
+            if (passing &&
+                !recoveryPriority)
             {
-                debugDecision = "Passing";
+                debugDecision =
+                    "Passing";
+
                 return ReturnOffsetToZero();
             }
 
             if (debugEnergyPercent >
-                beginSeekingEnergyPercent)
+                effectiveSeekThreshold)
             {
-                debugDecision = "Energy Sufficient";
+                debugDecision =
+                    "Energy Sufficient";
+
                 return ReturnOffsetToZero();
             }
 
+            /*
+             * During emergency recovery we allow the AI to begin
+             * considering strips even on relatively severe corners.
+             */
+            float effectiveCornerLimit =
+                recoveryPriority
+                    ? Mathf.Max(
+                        maximumCornerSeverityForNewTarget,
+                        0.70f)
+                    : maximumCornerSeverityForNewTarget;
+
             if (cornerSeverity >
-                maximumCornerSeverityForNewTarget)
+                effectiveCornerLimit)
             {
-                debugDecision = "Corner / Wait";
+                debugDecision =
+                    "Corner / Wait";
+
                 return ReturnOffsetToZero();
             }
+
+            float effectiveUrgentPercent =
+                Mathf.Min(
+                    urgentEnergyPercent,
+                    effectiveSeekThreshold *
+                    0.60f);
 
             float energyRange =
                 Mathf.Max(
                     0.001f,
-                    beginSeekingEnergyPercent -
-                    urgentEnergyPercent);
+                    effectiveSeekThreshold -
+                    effectiveUrgentPercent);
 
             debugUrgency =
                 Mathf.Clamp01(
-                    (beginSeekingEnergyPercent -
+                    (effectiveSeekThreshold -
                      debugEnergyPercent) /
                     energyRange);
+
+            if (recoveryPriority)
+            {
+                debugUrgency =
+                    Mathf.Max(
+                        debugUrgency,
+                        0.75f);
+            }
 
             debugSearchDistance =
                 Mathf.Lerp(
@@ -264,12 +307,18 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (targetStrip == null)
             {
-                debugDecision = "No Strip Ahead";
+                debugDecision =
+                    recoveryPriority
+                        ? "Recover / No Strip Ahead"
+                        : "No Strip Ahead";
+
                 return ReturnOffsetToZero();
             }
 
             debugDecision =
-                "Strip Target Acquired";
+                recoveryPriority
+                    ? "Recover / Strip Target Acquired"
+                    : "Strip Target Acquired";
 
             return UpdateTargetOffset(
                 baseLateralOffset,
@@ -283,16 +332,20 @@ namespace RaceFatal.Presentation.Vehicles
             float minimumDistance,
             float maximumDistance)
         {
-            EnergyStripAIAnchor bestStrip = null;
+            EnergyStripAIAnchor bestStrip =
+                null;
 
             float bestProgress = 0f;
             float bestLateralOffset = 0f;
-            float bestScore = float.PositiveInfinity;
+            float bestScore =
+                float.PositiveInfinity;
 
             IReadOnlyList<EnergyStripAIAnchor> strips =
                 EnergyStripAIAnchor.ActiveAnchors;
 
-            for (int i = 0; i < strips.Count; i++)
+            for (int i = 0;
+                 i < strips.Count;
+                 i++)
             {
                 EnergyStripAIAnchor strip =
                     strips[i];
@@ -316,8 +369,10 @@ namespace RaceFatal.Presentation.Vehicles
                         currentProgress,
                         stripProgress);
 
-                if (forwardDistance < minimumDistance ||
-                    forwardDistance > maximumDistance)
+                if (forwardDistance <
+                        minimumDistance ||
+                    forwardDistance >
+                        maximumDistance)
                 {
                     continue;
                 }
@@ -338,8 +393,11 @@ namespace RaceFatal.Presentation.Vehicles
                     lateralTravel *
                     lateralTravelPenalty;
 
-                if (score >= bestScore)
+                if (score >=
+                    bestScore)
+                {
                     continue;
+                }
 
                 bestScore = score;
 
@@ -351,12 +409,20 @@ namespace RaceFatal.Presentation.Vehicles
             if (bestStrip == null)
                 return;
 
-            targetStrip = bestStrip;
-            targetProgress = bestProgress;
-            targetLateralOffset = bestLateralOffset;
+            targetStrip =
+                bestStrip;
 
-            debugTargetingStrip = true;
-            debugTargetName = bestStrip.name;
+            targetProgress =
+                bestProgress;
+
+            targetLateralOffset =
+                bestLateralOffset;
+
+            debugTargetingStrip =
+                true;
+
+            debugTargetName =
+                bestStrip.name;
         }
 
         private float UpdateTargetOffset(
@@ -380,7 +446,8 @@ namespace RaceFatal.Presentation.Vehicles
                     lateralShiftSpeed *
                     Time.fixedDeltaTime);
 
-            debugTargetingStrip = true;
+            debugTargetingStrip =
+                true;
 
             debugTargetName =
                 targetStrip != null
@@ -394,7 +461,9 @@ namespace RaceFatal.Presentation.Vehicles
                 currentTacticalOffset;
 
             debugDecision =
-                "Seeking Strip";
+                debugRecoveryPriority
+                    ? "Recover / Seeking Strip"
+                    : "Seeking Strip";
 
             return currentTacticalOffset;
         }
@@ -417,7 +486,9 @@ namespace RaceFatal.Presentation.Vehicles
         public void ResetPlanning()
         {
             ClearTarget("Reset");
-            currentTacticalOffset = 0f;
+
+            currentTacticalOffset =
+                0f;
         }
 
         private void ClearTarget(
@@ -434,10 +505,6 @@ namespace RaceFatal.Presentation.Vehicles
             debugDecision = reason;
         }
 
-        #endregion
-
-        #region Distance
-
         private float GetForwardDistance(
             float fromProgress,
             float toProgress)
@@ -450,7 +517,7 @@ namespace RaceFatal.Presentation.Vehicles
                 delta += 1f;
 
             return delta *
-                progressPath.TotalLength;
+                   progressPath.TotalLength;
         }
 
         private float GetSignedDistance(
@@ -467,12 +534,8 @@ namespace RaceFatal.Presentation.Vehicles
                 delta += 1f;
 
             return delta *
-                progressPath.TotalLength;
+                   progressPath.TotalLength;
         }
-
-        #endregion
-
-        #region Helpers
 
         private void UpdateEnergyDebug()
         {
@@ -506,7 +569,5 @@ namespace RaceFatal.Presentation.Vehicles
                 .State
                 .IsFinished;
         }
-
-        #endregion
     }
 }

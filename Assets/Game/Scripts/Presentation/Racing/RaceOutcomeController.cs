@@ -49,7 +49,6 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private bool debugPlayerPresentationResolved;
         [SerializeField] private bool debugWaitingForContinue;
         [SerializeField] private bool debugFinalResults;
-        [SerializeField] private bool debugPayoutVisible;
         [SerializeField] private bool debugRaceCompleted;
         [SerializeField] private bool debugPostRaceResolved;
         [SerializeField] private bool debugLeavingRace;
@@ -65,7 +64,6 @@ namespace RaceFatal.Presentation.Racing
         private bool playerResolved;
         private bool waitingForContinue;
         private bool finalResults;
-        private bool payoutVisible;
         private bool outcomeActive;
         private bool leavingRace;
         private bool bound;
@@ -301,9 +299,10 @@ namespace RaceFatal.Presentation.Racing
             debugPostRaceResolved =
                 result != null;
 
-            if (payoutVisible)
+            if (finalResults)
             {
-                RenderPayout(result);
+                RenderPayout(
+                    result);
             }
         }
 
@@ -392,16 +391,14 @@ namespace RaceFatal.Presentation.Racing
             if (leavingRace)
                 return;
 
-            // Live outcome -> final classification -> payout -> career.
-            if (payoutVisible)
-            {
-                ReturnFromRace();
-                return;
-            }
-
+            /*
+             * SECOND CONTINUE:
+             * final classification has already been resolved,
+             * so leave the race scene.
+             */
             if (finalResults)
             {
-                ShowPayout();
+                ReturnFromRace();
                 return;
             }
 
@@ -452,9 +449,6 @@ namespace RaceFatal.Presentation.Racing
 
             debugFinalResults = true;
 
-            if (payoutPanel != null)
-                payoutPanel.SetActive(false);
-
             if (outcomePanel != null)
                 outcomePanel.SetActive(true);
             if (outcomeCanvasGroup != null)
@@ -479,6 +473,13 @@ namespace RaceFatal.Presentation.Racing
                     result);
             }
 
+            PostRaceResult payout =
+                cachedPostRaceResult ??
+                director?.PostRaceResult;
+
+            RenderPayout(
+                payout);
+
             if (continueButton != null)
             {
                 continueButton.gameObject.SetActive(
@@ -491,7 +492,7 @@ namespace RaceFatal.Presentation.Racing
             if (continueButtonText != null)
             {
                 continueButtonText.text =
-                    "VIEW PAYOUT";
+                    "RETURN TO CAREER";
             }
 
             if (releaseCursorOnOutcome)
@@ -501,63 +502,6 @@ namespace RaceFatal.Presentation.Racing
         #endregion
 
         #region Payout
-
-        private void ShowPayout()
-        {
-            if (payoutPanel == null)
-            {
-                Debug.LogWarning(
-                    "No Payout Panel assigned; returning after standings.", this);
-                ReturnFromRace();
-                return;
-            }
-
-            PostRaceResult payout =
-                cachedPostRaceResult ?? director?.PostRaceResult;
-
-            if (payout == null)
-            {
-                ReportReturnError("Payout has not been resolved yet.");
-                return;
-            }
-
-            payoutVisible = true;
-            debugPayoutVisible = true;
-            RenderPayout(payout);
-            payoutPanel.SetActive(true);
-
-            // The existing scene's Continue button is a child of
-            // OutcomePanel. Move it into the sibling payout panel
-            // before hiding the entire standings screen.
-            if (continueButton != null)
-            {
-                RectTransform rect =
-                    continueButton.transform as RectTransform;
-                if (rect != null &&
-                    outcomePanel != null &&
-                    rect.IsChildOf(outcomePanel.transform))
-                {
-                    rect.SetParent(payoutPanel.transform, false);
-                    rect.anchorMin = new Vector2(0.5f, 0.5f);
-                    rect.anchorMax = new Vector2(0.5f, 0.5f);
-                    rect.pivot = new Vector2(0.5f, 0.5f);
-                    rect.anchoredPosition = new Vector2(0f, -220f);
-                    rect.SetAsLastSibling();
-                }
-
-                continueButton.gameObject.SetActive(true);
-                continueButton.interactable = true;
-            }
-
-            if (continueButtonText != null)
-                continueButtonText.text = "RETURN TO CAREER";
-
-            if (outcomePanel != null)
-                outcomePanel.SetActive(false);
-
-            if (releaseCursorOnOutcome)
-                ReleaseCursor();
-        }
 
         private void RenderPayout(
             PostRaceResult result)
@@ -570,7 +514,7 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
-            if (payoutPanel != null && payoutVisible)
+            if (payoutPanel != null)
                 payoutPanel.SetActive(true);
 
             RaceReward reward =
@@ -709,9 +653,7 @@ namespace RaceFatal.Presentation.Racing
                 "[RaceOutcome] " + message,
                 this);
 
-            if (payoutVisible && careerStatusText != null)
-                careerStatusText.text = message;
-            else if (outcomeSubtitle != null)
+            if (outcomeSubtitle != null)
                 outcomeSubtitle.text = message;
 
             if (continueButtonText != null)

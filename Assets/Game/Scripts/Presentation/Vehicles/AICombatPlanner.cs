@@ -1,183 +1,70 @@
 using System;
+using System.Collections.Generic;
 using RaceFatal.Equipment;
+using RaceFatal.Presentation.Combat;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Racing;
 using RaceFatal.Shared;
 using UnityEngine;
-using RaceFatal.Presentation.Combat;
-using System.Collections.Generic;
 
 namespace RaceFatal.Presentation.Vehicles
 {
     [Serializable]
     public class AICombatPlanner
     {
-
-        #region Target Saturation
-
         [Header("Target Saturation")]
-
-        [Tooltip(
-            "Score multiplier when one other AI racer is already committed to this target.")]
-        [Range(0f, 1f)]
-        [SerializeField]
-        private float oneExistingAttackerMultiplier = 0.85f;
-
-        [Tooltip(
-            "Score multiplier when two other AI racers are already committed to this target.")]
-        [Range(0f, 1f)]
-        [SerializeField]
-        private float twoExistingAttackersMultiplier = 0.55f;
-
-        [Tooltip(
-            "Score multiplier when three or more other AI racers are already committed to this target.")]
-        [Range(0f, 1f)]
-        [SerializeField]
-        private float threePlusExistingAttackersMultiplier = 0.25f;
-
-        [Tooltip(
-            "If false, the player is exempt from anti-dogpile scoring. " +
-            "This allows multiple racers to remain threatening to the player.")]
-        [SerializeField]
-        private bool applyTargetSaturationToPlayer = false;
-
-        #endregion
-
-
-        #region Race Position Relevance
+        [Range(0f, 1f)][SerializeField] private float oneExistingAttackerMultiplier = 0.85f;
+        [Range(0f, 1f)][SerializeField] private float twoExistingAttackersMultiplier = 0.55f;
+        [Range(0f, 1f)][SerializeField] private float threePlusExistingAttackersMultiplier = 0.25f;
+        [SerializeField] private bool applyTargetSaturationToPlayer = false;
 
         [Header("Race Position Relevance")]
-
-        [Tooltip(
-            "Position gap at which another racer is treated as a distant competitive rival.")]
-        [Min(2)]
-        [SerializeField]
-        private int maximumRelevantPositionGap = 6;
-
-        [Tooltip(
-            "Minimum target score multiplier for racers far away in the standings.")]
-        [Range(0.1f, 1f)]
-        [SerializeField]
-        private float distantRivalScoreMultiplier = 0.35f;
-
-        [Tooltip(
-            "Extra importance given to racers ahead in the standings.")]
-        [Range(1f, 2f)]
-        [SerializeField]
-        private float aheadRivalMultiplier = 1.15f;
-
-        [Tooltip(
-            "Importance of racers behind in the standings.")]
-        [Range(0.1f, 1f)]
-        [SerializeField]
-        private float behindRivalMultiplier = 0.90f;
-
-        #endregion
-
-        #region Targeting
+        [Min(2)][SerializeField] private int maximumRelevantPositionGap = 6;
+        [Range(0.1f, 1f)][SerializeField] private float distantRivalScoreMultiplier = 0.35f;
+        [Range(1f, 2f)][SerializeField] private float aheadRivalMultiplier = 1.15f;
+        [Range(0.1f, 1f)][SerializeField] private float behindRivalMultiplier = 0.90f;
 
         [Header("Targeting")]
         [Min(1f)][SerializeField] private float maximumTargetDistance = 150f;
-
-        [Tooltip("Low-aggression racers use this fraction of Maximum Target Distance.")]
         [Range(0.1f, 1f)][SerializeField] private float lowAggressionTargetDistanceMultiplier = 0.6f;
-
-        [Tooltip("Base firing cone used by ordinary forward weapons.")]
         [Range(0.1f, 45f)][SerializeField] private float firingHalfAngle = 6f;
-
-        [Tooltip("Guided weapons are allowed a somewhat wider acquisition angle.")]
         [Range(1f, 4f)][SerializeField] private float guidedAngleMultiplier = 1.75f;
-
-        [Tooltip("Charge weapons demand better alignment before the AI commits.")]
         [Range(0.1f, 1f)][SerializeField] private float chargeAngleMultiplier = 0.8f;
-
         [Min(0f)][SerializeField] private float minimumTargetDistance = 3f;
 
-        #endregion
-
-        #region Tactical Decisions
-
         [Header("Tactical Decisions")]
-        [Tooltip("How often a racer reconsider its current weapon/target pairing.")]
         [Min(0.05f)][SerializeField] private float decisionInterval = 0.2f;
-
-        [Tooltip("Minimum time the AI normally commits to a newly selected tactical decision.")]
         [Min(0f)][SerializeField] private float minimumDecisionCommitTime = 0.6f;
-
-        [Tooltip("How much better another weapon must score before replacing the current weapon.")]
         [Range(0f, 1f)][SerializeField] private float weaponSwitchScoreAdvantage = 0.12f;
-
-        [Tooltip("How much better another target must score before replacing the current target.")]
         [Range(0f, 1f)][SerializeField] private float targetSwitchScoreAdvantage = 0.08f;
-
-        [Tooltip("Minimum tactical score required before the AI attacks.")]
         [Range(0f, 1f)][SerializeField] private float conservativeMinimumAttackScore = 0.48f;
-
         [Range(0f, 1f)][SerializeField] private float aggressiveMinimumAttackScore = 0.3f;
-
-        #endregion
-
-        #region Tactical Scoring
 
         [Header("Tactical Scoring")]
         [Min(0f)][SerializeField] private float distanceWeight = 0.34f;
         [Min(0f)][SerializeField] private float alignmentWeight = 0.34f;
         [Min(0f)][SerializeField] private float vulnerabilityWeight = 0.14f;
         [Min(0f)][SerializeField] private float finisherWeight = 0.18f;
-
-        [Tooltip("Damage value treated as a very high-value finishing shot.")]
         [Min(1f)][SerializeField] private float damageForFullFinisherValue = 30f;
 
-        #endregion
-
-        #region Ammo Tactics
-
         [Header("Ammo Tactics")]
-        [Tooltip("Weapons with this many rounds or more are treated as plentiful.")]
         [Min(1)][SerializeField] private int plentifulAmmoReference = 30;
-
-        [Tooltip("Maximum scarcity penalty for cautious racers.")]
         [Range(0f, 1f)][SerializeField] private float conservativeScarcityPenalty = 0.45f;
-
-        [Tooltip("Maximum scarcity penalty for highly aggressive racers.")]
         [Range(0f, 1f)][SerializeField] private float aggressiveScarcityPenalty = 0.08f;
-
-        [Tooltip("Additional penalty as a scarce weapon approaches empty.")]
         [Range(0f, 1f)][SerializeField] private float lowAmmoPenalty = 0.25f;
-
-        [Tooltip("Weapons at or below this starting ammo count are treated as scarce ordnance.")]
         [Min(1)][SerializeField] private int scarceAmmoThreshold = 8;
-
-        [Tooltip("Base score multiplier applied to scarce ordnance against a healthy target.")]
         [Range(0.1f, 1f)][SerializeField] private float conservativeScarceWeaponFactor = 0.48f;
-
         [Range(0.1f, 1f)][SerializeField] private float aggressiveScarceWeaponFactor = 0.72f;
-
-        [Tooltip("As a target becomes vulnerable, scarce weapons recover their full tactical value.")]
         [Range(0f, 1f)][SerializeField] private float vulnerabilityForFullScarceWeaponValue = 0.65f;
 
-        #endregion
-
-        #region Projectile Tactics
-
         [Header("Projectile Tactics")]
-        [Tooltip("Penalty applied to long projectile travel times. Guided weapons receive a reduced version.")]
         [Min(0f)][SerializeField] private float projectileTravelTimePenalty = 0.12f;
-
-        [Tooltip("How strongly long charge times reduce willingness to begin a charge attack.")]
         [Min(0f)][SerializeField] private float chargeDurationPenalty = 0.12f;
-
-        [Tooltip("Minimum alignment score required before beginning a charge weapon.")]
         [Range(0f, 1f)][SerializeField] private float minimumChargeAlignment = 0.45f;
-
-        #endregion
-
-        #region Racing Conditions
 
         [Header("Racing Conditions")]
         [Range(0f, 1f)][SerializeField] private float conservativeCornerSeverity = 0.18f;
         [Range(0f, 1f)][SerializeField] private float maximumCornerSeverity = 0.35f;
-
         [SerializeField] private bool avoidFiringWhileBoosting = true;
 
         [Header("Race Pressure")]
@@ -186,58 +73,40 @@ namespace RaceFatal.Presentation.Vehicles
         [Range(0f, 0.5f)][SerializeField] private float fullPressureTargetRangeBonus = 0.12f;
         [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerToleranceBonus = 0.06f;
 
-        #endregion
+        [Header("Player Response")]
+        [Range(0f, 0.3f)]
+        [SerializeField]
+        private float playerResponseAttackThresholdReduction = 0.12f;
 
-        #region Hold Weapons
+        [Range(1f, 3f)]
+        [SerializeField]
+        private float playerGuidedAngleMultiplier = 1.75f;
+
+        [Range(1f, 4f)]
+        [SerializeField]
+        private float playerTargetCommitMultiplier = 2f;
 
         [Header("Hold Weapons")]
         [Min(0.05f)][SerializeField] private float minimumBurstDuration = 0.45f;
         [Min(0.05f)][SerializeField] private float maximumBurstDuration = 1f;
-
         [Min(0f)][SerializeField] private float minimumBurstCooldown = 0.35f;
         [Min(0f)][SerializeField] private float maximumBurstCooldown = 0.8f;
 
-        #endregion
-
-        #region Press Weapons
-
         [Header("Press Weapons")]
         [Min(0.05f)][SerializeField] private float pressWeaponCooldown = 1.25f;
-
         [Min(1f)][SerializeField] private float lowAggressionPressCooldownMultiplier = 1.5f;
-
-        [Range(0.1f, 1f)]
-        [SerializeField] private float highAggressionPressCooldownMultiplier = 0.65f;
-
-        #endregion
-
-        #region Weapon Role Bias
+        [Range(0.1f, 1f)][SerializeField] private float highAggressionPressCooldownMultiplier = 0.65f;
 
         [Header("Weapon Role Bias")]
-        [Tooltip("Small bonus for Hold weapons when attacking relatively healthy racers.")]
-        [Range(0f, 0.5f)]
-        [SerializeField] private float holdWeaponPressureBonus = 0.12f;
-
-        [Tooltip("Press weapons become increasingly attractive as the target becomes vulnerable.")]
-        [Range(0f, 0.5f)]
-        [SerializeField] private float pressWeaponFinisherBonus = 0.12f;
-
-        #endregion
-
-        #region Debug
+        [Range(0f, 0.5f)][SerializeField] private float holdWeaponPressureBonus = 0.12f;
+        [Range(0f, 0.5f)][SerializeField] private float pressWeaponFinisherBonus = 0.12f;
 
         [Header("Runtime Debug")]
-        [SerializeField]
-        private int debugTargetPositionGap;
+        [SerializeField] private int debugTargetPositionGap;
+        [SerializeField] private float debugRacePositionFactor = 1f;
+        [SerializeField] private int debugExistingTargetAttackers;
+        [SerializeField] private float debugTargetSaturationFactor = 1f;
 
-        [SerializeField]
-        private float debugRacePositionFactor = 1f;
-
-        [SerializeField]
-        private int debugExistingTargetAttackers;
-
-        [SerializeField]
-        private float debugTargetSaturationFactor = 1f;
         [SerializeField] private bool debugInitialized;
         [SerializeField] private string debugDecision = "Not Initialized";
 
@@ -248,8 +117,11 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugRuntimeBurstCooldown;
         [SerializeField] private float debugRuntimePressCooldown;
         [SerializeField] private float debugMinimumAttackScore;
+
         [SerializeField] private float debugRacePressure;
         [SerializeField] private string debugPreferredTarget = "None";
+        [SerializeField] private float debugPlayerTargetBonus;
+        [SerializeField] private float debugPlayerCombatUrgency;
 
         [SerializeField] private string debugSelectedWeapon = "None";
         [SerializeField] private string debugActivationMode = "None";
@@ -276,10 +148,6 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugBurstTimer;
         [SerializeField] private float debugCooldownTimer;
         [SerializeField] private float debugChargeTimer;
-
-        #endregion
-
-        #region Runtime
 
         private GuidedTargetLockState guidedLockState;
 
@@ -314,6 +182,9 @@ namespace RaceFatal.Presentation.Vehicles
         private float currentRacePressure;
         private string preferredTargetRacerId;
 
+        private float currentPlayerTargetBonus;
+        private float currentPlayerCombatUrgency;
+
         private RaceRuntimeController raceRuntime;
 
         private IReadOnlyList<RaceParticipant> cachedRaceOrder;
@@ -322,10 +193,6 @@ namespace RaceFatal.Presentation.Vehicles
         private static readonly List<AICombatPlanner>
             ActiveCombatPlanners =
                 new List<AICombatPlanner>();
-
-        #endregion
-
-        #region Tactical Opportunity
 
         private struct TacticalOpportunity
         {
@@ -350,15 +217,11 @@ namespace RaceFatal.Presentation.Vehicles
             public float AmmoFactor;
         }
 
-        #endregion
-
         public bool IsInitialized =>
             initialized;
 
         public float WeaponAggression =>
             weaponAggression;
-
-        #region Initialization
 
         public bool Initialize(
             RaceParticipant raceParticipant,
@@ -402,23 +265,18 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            participant =
-                raceParticipant;
-
-            sensor =
-                racerSensor;
-
-            racerView =
-                view;
-
-            raceRuntime =
-                runtime;
+            participant = raceParticipant;
+            sensor = racerSensor;
+            racerView = view;
+            raceRuntime = runtime;
 
             guidedLockState =
-                racerView.GetComponent<GuidedTargetLockState>();
+                racerView.GetComponent<
+                    GuidedTargetLockState>();
 
             equipment =
-                participant.Vehicle.EquipmentSystem;
+                participant.Vehicle
+                    .EquipmentSystem;
 
             weaponAggression =
                 Mathf.Clamp01(
@@ -465,13 +323,16 @@ namespace RaceFatal.Presentation.Vehicles
             burstTimer = 0f;
             cooldownTimer = 0f;
             chargeTimer = 0f;
-
             decisionTimer = 0f;
             commitTimer = 0f;
 
             weaponActive = false;
             currentTarget = null;
             currentEquipmentId = null;
+
+            currentRacePressure = 0f;
+            currentPlayerTargetBonus = 0f;
+            currentPlayerCombatUrgency = 0f;
 
             debugWeaponAggression =
                 weaponAggression;
@@ -504,7 +365,6 @@ namespace RaceFatal.Presentation.Vehicles
                         ? "Out Of Ammo"
                         : "No Weapon";
 
-
             PruneCombatPlannerRegistry();
 
             if (!ActiveCombatPlanners.Contains(
@@ -513,18 +373,17 @@ namespace RaceFatal.Presentation.Vehicles
                 ActiveCombatPlanners.Add(
                     this);
             }
+
             return true;
         }
-
-        #endregion
-
-        #region Tick
 
         public void Tick(
             float cornerSeverity,
             bool boosting,
             float racePressure,
-            string preferredTargetId)
+            string preferredTargetId,
+            float playerTargetBonus,
+            float playerCombatUrgency)
         {
             if (!initialized)
                 return;
@@ -538,6 +397,14 @@ namespace RaceFatal.Presentation.Vehicles
             preferredTargetRacerId =
                 preferredTargetId;
 
+            currentPlayerTargetBonus =
+                Mathf.Clamp01(
+                    playerTargetBonus);
+
+            currentPlayerCombatUrgency =
+                Mathf.Clamp01(
+                    playerCombatUrgency);
+
             debugRacePressure =
                 currentRacePressure;
 
@@ -546,6 +413,12 @@ namespace RaceFatal.Presentation.Vehicles
                     preferredTargetRacerId)
                     ? "None"
                     : preferredTargetRacerId;
+
+            debugPlayerTargetBonus =
+                currentPlayerTargetBonus;
+
+            debugPlayerCombatUrgency =
+                currentPlayerCombatUrgency;
 
             TickTimers();
 
@@ -572,9 +445,15 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
+            /*
+             * Strong player pursuit may continue attacking while
+             * boosting. Ordinary racing still respects the old
+             * boost hold-fire rule.
+             */
             if (avoidFiringWhileBoosting &&
                 boosting &&
-                currentRacePressure < 0.65f)
+                currentRacePressure < 0.65f &&
+                currentPlayerCombatUrgency < 0.65f)
             {
                 debugDecision =
                     "Boosting / Hold Fire";
@@ -589,11 +468,6 @@ namespace RaceFatal.Presentation.Vehicles
                 CancelWeapon();
             }
 
-            /*
-             * While actively firing a burst or charging, don't
-             * casually switch weapon/target. Validate the current
-             * attack first and let it continue if still viable.
-             */
             if (weaponActive)
             {
                 if (!TryGetCurrentOpportunity(
@@ -613,7 +487,9 @@ namespace RaceFatal.Presentation.Vehicles
                     activeOpportunity);
 
                 UpdateWeapon(
-                    activeOpportunity.Weapon.Definition);
+                    activeOpportunity
+                        .Weapon
+                        .Definition);
 
                 return;
             }
@@ -647,20 +523,11 @@ namespace RaceFatal.Presentation.Vehicles
                     cornerSeverity,
                     out TacticalOpportunity opportunity))
             {
-                debugTargetRacer =
-                    "None";
-
-                debugTargetDistance =
-                    0f;
-
-                debugTargetAngle =
-                    0f;
-
-                debugCurrentScore =
-                    0f;
-
-                debugDecision =
-                    "No Tactical Opportunity";
+                debugTargetRacer = "None";
+                debugTargetDistance = 0f;
+                debugTargetAngle = 0f;
+                debugCurrentScore = 0f;
+                debugDecision = "No Tactical Opportunity";
 
                 return;
             }
@@ -671,6 +538,20 @@ namespace RaceFatal.Presentation.Vehicles
                     runtimeMinimumAttackScore -
                     fullPressureAttackThresholdReduction *
                     currentRacePressure);
+
+            bool opportunityTargetsPlayer =
+                IsPlayerTarget(
+                    opportunity.Target);
+
+            if (opportunityTargetsPlayer)
+            {
+                effectiveAttackScore =
+                    Mathf.Max(
+                        0f,
+                        effectiveAttackScore -
+                        playerResponseAttackThresholdReduction *
+                        currentPlayerCombatUrgency);
+            }
 
             if (opportunity.Score <
                 effectiveAttackScore)
@@ -688,7 +569,9 @@ namespace RaceFatal.Presentation.Vehicles
                 opportunity);
 
             UpdateWeapon(
-                opportunity.Weapon.Definition);
+                opportunity
+                    .Weapon
+                    .Definition);
         }
 
         private void TickTimers()
@@ -730,10 +613,6 @@ namespace RaceFatal.Presentation.Vehicles
                 commitTimer;
         }
 
-        #endregion
-
-        #region Tactical Selection
-
         private TacticalOpportunity FindBestOpportunity(
             float cornerSeverity)
         {
@@ -744,7 +623,8 @@ namespace RaceFatal.Presentation.Vehicles
                 float.NegativeInfinity;
 
             for (int weaponIndex = 0;
-                 weaponIndex < equipment.WeaponCount;
+                 weaponIndex <
+                    equipment.WeaponCount;
                  weaponIndex++)
             {
                 if (!equipment.TryGetWeaponSnapshot(
@@ -779,7 +659,8 @@ namespace RaceFatal.Presentation.Vehicles
                     AIRacerSensor.ActiveSensors;
 
                 for (int racerIndex = 0;
-                     racerIndex < racers.Count;
+                     racerIndex <
+                        racers.Count;
                      racerIndex++)
                 {
                     AIRacerSensor candidateSensor =
@@ -839,9 +720,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (!currentValid)
             {
-                ApplyDecision(
-                    best);
-
+                ApplyDecision(best);
                 return;
             }
 
@@ -861,16 +740,10 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            /*
-             * During the initial commitment window we keep the
-             * existing valid tactical plan. Invalid plans are
-             * already discarded before reaching here.
-             */
             if (commitTimer > 0f)
                 return;
 
-            float requiredAdvantage =
-                0f;
+            float requiredAdvantage = 0f;
 
             if (!sameWeapon)
             {
@@ -895,8 +768,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            ApplyDecision(
-                best);
+            ApplyDecision(best);
         }
 
         private void ApplyDecision(
@@ -906,7 +778,9 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
 
             if (!equipment.SelectWeapon(
-                    opportunity.Weapon.EquipmentId))
+                    opportunity
+                        .Weapon
+                        .EquipmentId))
             {
                 debugDecision =
                     "Weapon Selection Failed";
@@ -915,13 +789,25 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             currentEquipmentId =
-                opportunity.Weapon.EquipmentId;
+                opportunity
+                    .Weapon
+                    .EquipmentId;
 
             currentTarget =
                 opportunity.Target;
 
             commitTimer =
                 minimumDecisionCommitTime;
+
+            if (IsPlayerTarget(
+                    opportunity.Target))
+            {
+                commitTimer *=
+                    Mathf.Lerp(
+                        1f,
+                        playerTargetCommitMultiplier,
+                        currentPlayerCombatUrgency);
+            }
 
             ApplyDebugOpportunity(
                 opportunity);
@@ -932,36 +818,21 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void ClearDecision()
         {
-            currentTarget =
-                null;
+            currentTarget = null;
+            currentEquipmentId = null;
+            commitTimer = 0f;
 
-            currentEquipmentId =
-                null;
-
-            commitTimer =
-                0f;
-
-            debugTargetRacer =
-                "None";
-
-            debugCurrentScore =
-                0f;
+            debugTargetRacer = "None";
+            debugCurrentScore = 0f;
 
             guidedLockState?.ClearTarget();
         }
 
         private void ForceDecisionRefresh()
         {
-            decisionTimer =
-                0f;
-
-            commitTimer =
-                0f;
+            decisionTimer = 0f;
+            commitTimer = 0f;
         }
-
-        #endregion
-
-        #region Opportunity Scoring
 
         private bool TryGetCurrentOpportunity(
             float cornerSeverity,
@@ -1039,16 +910,15 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            /*
-             * Dropped weapons require a different tactical model
-             * because this planner currently evaluates forward
-             * firing opportunities.
-             */
             if (definition.DeliveryMode ==
                 WeaponDeliveryMode.Dropped)
             {
                 return false;
             }
+
+            bool targetIsPlayer =
+                IsPlayerTarget(
+                    target);
 
             Vector3 toTarget =
                 target.transform.position -
@@ -1068,6 +938,19 @@ namespace RaceFatal.Presentation.Vehicles
                 (1f +
                  fullPressureTargetRangeBonus *
                  currentRacePressure);
+
+            /*
+             * Strong player pursuit gets a modest additional
+             * target-range extension.
+             */
+            if (targetIsPlayer)
+            {
+                pressureRange *=
+                    Mathf.Lerp(
+                        1f,
+                        1.25f,
+                        currentPlayerCombatUrgency);
+            }
 
             float searchRange =
                 Mathf.Min(
@@ -1100,7 +983,8 @@ namespace RaceFatal.Presentation.Vehicles
 
             float allowedAngle =
                 GetAllowedFiringAngle(
-                    definition);
+                    definition,
+                    target);
 
             if (angle >
                 allowedAngle)
@@ -1128,7 +1012,8 @@ namespace RaceFatal.Presentation.Vehicles
                 Mathf.Clamp01(
                     distance /
                     Mathf.Max(
-                        minimumTargetDistance + 0.01f,
+                        minimumTargetDistance +
+                        0.01f,
                         searchRange));
 
             float idealRange =
@@ -1165,6 +1050,9 @@ namespace RaceFatal.Presentation.Vehicles
                 finisherScore *
                     finisherWeight;
 
+            /*
+             * Preserve the existing weapon-role behavior.
+             */
             float roleBonus =
                 CalculateWeaponRoleBonus(
                     definition,
@@ -1202,7 +1090,10 @@ namespace RaceFatal.Presentation.Vehicles
                     existingAttackers);
 
             float score =
-                baseScore *
+                (
+                    baseScore +
+                    roleBonus
+                ) *
                 ammoFactor *
                 travelFactor *
                 chargeFactor *
@@ -1222,62 +1113,58 @@ namespace RaceFatal.Presentation.Vehicles
                     currentRacePressure;
             }
 
-            opportunity.Valid =
-                true;
+            if (targetIsPlayer)
+            {
+                score +=
+                    currentPlayerTargetBonus;
+            }
 
-            opportunity.Weapon =
-                weapon;
-
-            opportunity.Target =
-                target;
+            opportunity.Valid = true;
+            opportunity.Weapon = weapon;
+            opportunity.Target = target;
 
             opportunity.Score =
                 Mathf.Clamp01(
                     score);
 
-            opportunity.Distance =
-                distance;
+            opportunity.Distance = distance;
+            opportunity.Angle = angle;
+            opportunity.DistanceScore = distanceScore;
+            opportunity.AlignmentScore = alignmentScore;
+            opportunity.VulnerabilityScore = vulnerability;
+            opportunity.AmmoFactor = ammoFactor;
+            opportunity.PositionGap = positionGap;
+            opportunity.RacePositionFactor = racePositionFactor;
+            opportunity.ExistingAttackers = existingAttackers;
+            opportunity.SaturationFactor = saturationFactor;
 
-            opportunity.Angle =
-                angle;
-
-            opportunity.DistanceScore =
-                distanceScore;
-
-            opportunity.AlignmentScore =
-                alignmentScore;
-
-            opportunity.VulnerabilityScore =
-                vulnerability;
-
-            opportunity.AmmoFactor =
-                ammoFactor;
-
-            opportunity.PositionGap =
-                positionGap;
-
-            opportunity.RacePositionFactor =
-                racePositionFactor;
-
-            opportunity.ExistingAttackers =
-                existingAttackers;
-
-            opportunity.SaturationFactor =
-                saturationFactor;
             return true;
         }
 
         private float GetAllowedFiringAngle(
-            WeaponDefinition weapon)
+            WeaponDefinition weapon,
+            RacerViewController target)
         {
-            float multiplier =
-                1f;
+            float multiplier = 1f;
+
+            bool targetIsPlayer =
+                IsPlayerTarget(
+                    target);
 
             if (weapon.DeliveryMode ==
                 WeaponDeliveryMode.GuidedProjectile)
             {
                 multiplier *=
                     guidedAngleMultiplier;
+
+                if (targetIsPlayer)
+                {
+                    multiplier *=
+                        Mathf.Lerp(
+                            1f,
+                            playerGuidedAngleMultiplier,
+                            currentPlayerCombatUrgency);
+                }
             }
 
             if (weapon.ActivationMode ==
@@ -1291,7 +1178,7 @@ namespace RaceFatal.Presentation.Vehicles
                 firingHalfAngle *
                 multiplier,
                 0.1f,
-                45f);
+                75f);
         }
 
         private float GetIdealRange(
@@ -1342,7 +1229,8 @@ namespace RaceFatal.Presentation.Vehicles
             float maximumDifference =
                 Mathf.Max(
                     idealRange,
-                    1f - idealRange);
+                    1f -
+                    idealRange);
 
             float fit =
                 1f -
@@ -1350,11 +1238,6 @@ namespace RaceFatal.Presentation.Vehicles
                     difference /
                     maximumDifference);
 
-            /*
-             * Any target inside the valid range retains some
-             * usefulness. Ideal-range positioning raises it
-             * toward one.
-             */
             return Mathf.Lerp(
                 0.35f,
                 1f,
@@ -1379,8 +1262,7 @@ namespace RaceFatal.Presentation.Vehicles
                 vehicle.EquipmentSystem?
                     .Shield;
 
-            float shieldWeakness =
-                0f;
+            float shieldWeakness = 0f;
 
             if (shield != null &&
                 shield.BaseMaximum > 0f)
@@ -1395,14 +1277,6 @@ namespace RaceFatal.Presentation.Vehicles
                     shieldRatio;
             }
 
-            /*
-             * Hull damage is the main indicator that a racer
-             * is vulnerable.
-             *
-             * Shield weakness is only a secondary opportunity
-             * signal. Having no shield does not automatically
-             * mean the racer is nearly dead.
-             */
             float vulnerability =
                 damageRatio *
                     0.85f +
@@ -1424,10 +1298,6 @@ namespace RaceFatal.Presentation.Vehicles
                 Mathf.Clamp01(
                     weapon.AmmoRatio);
 
-            /*
-             * High-capacity weapons such as machine guns are
-             * naturally expendable.
-             */
             float capacityFactor =
                 Mathf.Clamp01(
                     weapon.MaximumAmmo /
@@ -1450,15 +1320,14 @@ namespace RaceFatal.Presentation.Vehicles
                     1f,
                     1f - ammoRatio);
 
-            /*
-             * Very low-capacity weapons receive a separate
-             * ordnance-conservation rule.
-             *
-             * Against a healthy target, rockets / other scarce
-             * weapons are deliberately unattractive. Their value
-             * rises as the target becomes a legitimate finishing
-             * opportunity.
-             */
+            normalFactor *=
+                1f -
+                lowAmmoPenalty *
+                Mathf.Lerp(
+                    0f,
+                    1f,
+                    1f - ammoRatio);
+
             if (weapon.MaximumAmmo <=
                 scarceAmmoThreshold)
             {
@@ -1482,10 +1351,6 @@ namespace RaceFatal.Presentation.Vehicles
                         1f,
                         vulnerabilityFactor);
 
-                /*
-                 * Become even more conservative as the remaining
-                 * stock falls.
-                 */
                 float remainingFactor =
                     Mathf.Lerp(
                         0.7f,
@@ -1513,7 +1378,8 @@ namespace RaceFatal.Presentation.Vehicles
                 case EquipmentActivationMode.Hold:
                     return
                         holdWeaponPressureBonus *
-                        (1f - targetVulnerability);
+                        (1f -
+                         targetVulnerability);
 
                 case EquipmentActivationMode.Press:
                     return
@@ -1531,7 +1397,8 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (weapon.DeliveryMode ==
                     WeaponDeliveryMode.Hitscan ||
-                weapon.ProjectileSpeed <= 0.01f)
+                weapon.ProjectileSpeed <=
+                    0.01f)
             {
                 return 1f;
             }
@@ -1583,30 +1450,22 @@ namespace RaceFatal.Presentation.Vehicles
                         0.01f,
                         runtimeMaximumCornerSeverity));
 
-            /*
-             * Don't completely eliminate a charge opportunity
-             * simply because the road has some curvature.
-             */
             cornerFactor =
                 Mathf.Lerp(
                     0.55f,
                     1f,
                     cornerFactor);
 
-            return durationFactor *
-                   cornerFactor;
+            return
+                durationFactor *
+                cornerFactor;
         }
-
-        #endregion
-
-        #region Enemy Validation
 
         private bool TryGetValidEnemy(
             AIRacerSensor candidateSensor,
             out RacerViewController candidateView)
         {
-            candidateView =
-                null;
+            candidateView = null;
 
             if (candidateSensor == null ||
                 candidateSensor == sensor ||
@@ -1661,9 +1520,15 @@ namespace RaceFatal.Presentation.Vehicles
             return true;
         }
 
-        #endregion
-
-        #region Debug Opportunity
+        private bool IsPlayerTarget(
+            RacerViewController target)
+        {
+            return
+                target != null &&
+                target.Participant != null &&
+                target.Participant.Role ==
+                    RaceParticipantRole.Player;
+        }
 
         private void ApplyDebugOpportunity(
             TacticalOpportunity opportunity)
@@ -1672,16 +1537,22 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
 
             debugSelectedWeapon =
-                opportunity.Weapon.Definition
+                opportunity
+                    .Weapon
+                    .Definition
                     .DisplayName;
 
             debugActivationMode =
-                opportunity.Weapon.Definition
+                opportunity
+                    .Weapon
+                    .Definition
                     .ActivationMode
                     .ToString();
 
             debugDeliveryMode =
-                opportunity.Weapon.Definition
+                opportunity
+                    .Weapon
+                    .Definition
                     .DeliveryMode
                     .ToString();
 
@@ -1717,7 +1588,7 @@ namespace RaceFatal.Presentation.Vehicles
             debugAmmoFactor =
                 opportunity.AmmoFactor;
 
-                debugTargetPositionGap =
+            debugTargetPositionGap =
                 opportunity.PositionGap;
 
             debugRacePositionFactor =
@@ -1729,10 +1600,6 @@ namespace RaceFatal.Presentation.Vehicles
             debugTargetSaturationFactor =
                 opportunity.SaturationFactor;
         }
-
-        #endregion
-
-        #region Weapon Execution
 
         private void UpdateWeapon(
             WeaponDefinition weapon)
@@ -1763,7 +1630,10 @@ namespace RaceFatal.Presentation.Vehicles
                 if (!guidedLockState.IsLocked)
                 {
                     debugDecision =
-                        "Acquiring Guided Lock";
+                        IsPlayerTarget(
+                            currentTarget)
+                            ? "Acquiring Player Guided Lock"
+                            : "Acquiring Guided Lock";
 
                     return;
                 }
@@ -1849,14 +1719,12 @@ namespace RaceFatal.Presentation.Vehicles
                     return;
                 }
 
-                weaponActive =
-                    true;
+                weaponActive = true;
 
                 burstTimer =
                     runtimeBurstDuration;
 
-                debugWeaponActive =
-                    true;
+                debugWeaponActive = true;
 
                 debugDecision =
                     "Burst Started";
@@ -1875,17 +1743,11 @@ namespace RaceFatal.Presentation.Vehicles
             {
                 equipment.EndSelectedActivation();
 
-                weaponActive =
-                    false;
+                weaponActive = false;
+                burstTimer = 0f;
 
-                burstTimer =
-                    0f;
-
-                debugWeaponActive =
-                    false;
-
-                debugBurstTimer =
-                    0f;
+                debugWeaponActive = false;
+                debugBurstTimer = 0f;
 
                 debugDecision =
                     "Weapon Empty";
@@ -1905,17 +1767,13 @@ namespace RaceFatal.Presentation.Vehicles
 
             equipment.EndSelectedActivation();
 
-            weaponActive =
-                false;
+            weaponActive = false;
 
             cooldownTimer =
                 runtimeBurstCooldown;
 
-            debugWeaponActive =
-                false;
-
-            debugBurstTimer =
-                0f;
+            debugWeaponActive = false;
+            debugBurstTimer = 0f;
 
             debugDecision =
                 "Burst Complete";
@@ -1947,14 +1805,10 @@ namespace RaceFatal.Presentation.Vehicles
                     return;
                 }
 
-                weaponActive =
-                    true;
+                weaponActive = true;
+                chargeTimer = 0f;
 
-                chargeTimer =
-                    0f;
-
-                debugWeaponActive =
-                    true;
+                debugWeaponActive = true;
 
                 debugDecision =
                     "Charging";
@@ -1980,20 +1834,14 @@ namespace RaceFatal.Presentation.Vehicles
             bool fired =
                 equipment.EndSelectedActivation();
 
-            weaponActive =
-                false;
-
-            chargeTimer =
-                0f;
+            weaponActive = false;
+            chargeTimer = 0f;
 
             cooldownTimer =
                 runtimePressWeaponCooldown;
 
-            debugWeaponActive =
-                false;
-
-            debugChargeTimer =
-                0f;
+            debugWeaponActive = false;
+            debugChargeTimer = 0f;
 
             debugAmmo =
                 equipment.SelectedWeaponAmmo;
@@ -2004,12 +1852,10 @@ namespace RaceFatal.Presentation.Vehicles
                     : "Charged Shot Failed";
 
             if (equipment.SelectedWeaponIsEmpty)
+            {
                 ForceDecisionRefresh();
+            }
         }
-
-        #endregion
-
-        #region Combat State
 
         private bool CanConsiderCombat()
         {
@@ -2071,77 +1917,46 @@ namespace RaceFatal.Presentation.Vehicles
             if (!weaponActive ||
                 equipment == null)
             {
-                debugWeaponActive =
-                    false;
-
+                debugWeaponActive = false;
                 return;
             }
 
             equipment.EndSelectedActivation();
 
-            weaponActive =
-                false;
+            weaponActive = false;
+            burstTimer = 0f;
+            chargeTimer = 0f;
 
-            burstTimer =
-                0f;
-
-            chargeTimer =
-                0f;
-
-            debugWeaponActive =
-                false;
-
-            debugBurstTimer =
-                0f;
-
-            debugChargeTimer =
-                0f;
+            debugWeaponActive = false;
+            debugBurstTimer = 0f;
+            debugChargeTimer = 0f;
         }
 
         public void Dispose()
         {
             ActiveCombatPlanners.Remove(
                 this);
+
             CancelWeapon();
+
             guidedLockState?.ClearTarget();
 
-            participant =
-                null;
+            participant = null;
+            equipment = null;
+            sensor = null;
+            racerView = null;
 
-            equipment =
-                null;
+            currentTarget = null;
+            currentEquipmentId = null;
 
-            sensor =
-                null;
+            initialized = false;
+            debugInitialized = false;
 
-            racerView =
-                null;
+            raceRuntime = null;
 
-            currentTarget =
-                null;
-
-            currentEquipmentId =
-                null;
-
-            initialized =
-                false;
-
-            debugInitialized =
-                false;
-
-            raceRuntime =
-                null;
-
-            cachedRaceOrder =
-                null;
-
-            cachedSelfPosition =
-                0;
+            cachedRaceOrder = null;
+            cachedSelfPosition = 0;
         }
-
-        #endregion
-
-        #region Race Position Scoring
 
         private void RefreshRacePositionCache()
         {
@@ -2167,8 +1982,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             for (int i = 0;
-                i < cachedRaceOrder.Count;
-                i++)
+                 i < cachedRaceOrder.Count;
+                 i++)
             {
                 RaceParticipant racer =
                     cachedRaceOrder[i];
@@ -2190,8 +2005,7 @@ namespace RaceFatal.Presentation.Vehicles
             RacerViewController target,
             out int positionGap)
         {
-            positionGap =
-                0;
+            positionGap = 0;
 
             if (target?.Participant == null ||
                 cachedSelfPosition <= 0)
@@ -2229,10 +2043,6 @@ namespace RaceFatal.Presentation.Vehicles
                     1f,
                     proximity);
 
-            /*
-            * Racers ahead matter more because attacking them can
-            * directly improve our race position.
-            */
             if (targetPosition <
                 cachedSelfPosition)
             {
@@ -2251,16 +2061,12 @@ namespace RaceFatal.Presentation.Vehicles
                 2f);
         }
 
-        #endregion
-
-        #region Target Saturation
-
         private void PruneCombatPlannerRegistry()
         {
             for (int i =
-                    ActiveCombatPlanners.Count - 1;
-                i >= 0;
-                i--)
+                     ActiveCombatPlanners.Count - 1;
+                 i >= 0;
+                 i--)
             {
                 AICombatPlanner planner =
                     ActiveCombatPlanners[i];
@@ -2283,12 +2089,12 @@ namespace RaceFatal.Presentation.Vehicles
 
             PruneCombatPlannerRegistry();
 
-            int count =
-                0;
+            int count = 0;
 
             for (int i = 0;
-                i < ActiveCombatPlanners.Count;
-                i++)
+                 i <
+                    ActiveCombatPlanners.Count;
+                 i++)
             {
                 AICombatPlanner planner =
                     ActiveCombatPlanners[i];
@@ -2332,17 +2138,18 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (existingAttackers == 1)
             {
-                return oneExistingAttackerMultiplier;
+                return
+                    oneExistingAttackerMultiplier;
             }
 
             if (existingAttackers == 2)
             {
-                return twoExistingAttackersMultiplier;
+                return
+                    twoExistingAttackersMultiplier;
             }
 
-            return threePlusExistingAttackersMultiplier;
+            return
+                threePlusExistingAttackersMultiplier;
         }
-
-        #endregion
     }
 }
