@@ -22,6 +22,10 @@ namespace RaceFatal.Content
         [Header("Equipment")]
         [SerializeField] private List<EquipmentDefinitionSO> equipmentDefinitions = new List<EquipmentDefinitionSO>();
 
+        [Header("Research")]
+        [SerializeField] private List<TechnologyDefinitionSO> technologyDefinitions = new List<TechnologyDefinitionSO>();
+        public IReadOnlyList<TechnologyDefinitionSO> TechnologyDefinitions => technologyDefinitions;
+
         [Header("Career")]
         [SerializeField] private List<RacerDefinitionSO> racerDefinitions = new List<RacerDefinitionSO>();
         [SerializeField] private List<OpponentTeamDefinitionSO> opponentTeamDefinitions = new List<OpponentTeamDefinitionSO>();

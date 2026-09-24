@@ -36,6 +36,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private CareerRacesView racesView;
         [SerializeField] private CareerGarageView garageView;
         [SerializeField] private CareerShopView shopView;
+        [SerializeField] private CareerResearchView researchView;
 
         [Header("Feedback")]
         [SerializeField] private TMP_Text errorText;
@@ -86,6 +87,7 @@ namespace RaceFatal.Presentation.Career
             racesView?.Initialize(this, context);
             garageView?.Initialize(context);
             shopView?.Initialize(this, context);
+            researchView?.Initialize(this, context);
 
             ShowScreen(
                 CareerScreen.Home);
@@ -180,6 +182,10 @@ namespace RaceFatal.Presentation.Career
             else if (screen == CareerScreen.Garage)
             {
                 garageView?.Refresh();
+            }
+            else if (screen == CareerScreen.Research)
+            {
+                researchView?.Refresh();
             }
             else if (screen == CareerScreen.Shop)
             {

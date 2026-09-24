@@ -19,6 +19,12 @@ namespace RaceFatal.Data
         private readonly Dictionary<string, TrackDefinition> trackDefinitions = new Dictionary<string, TrackDefinition>();
         private readonly Dictionary<string, RaceDefinition> raceDefinitions = new Dictionary<string, RaceDefinition>();
 
+        private readonly Dictionary<string, TechnologyDefinition> technologyDefinitions = new Dictionary<string, TechnologyDefinition>();
+        public IReadOnlyDictionary<string, TechnologyDefinition> TechnologyDefinitions => technologyDefinitions;
+        public void AddTechnologyDefinition(TechnologyDefinition definition) => technologyDefinitions.Add(definition.Id, definition);
+        public TechnologyDefinition GetTechnologyDefinition(string id) =>
+            !string.IsNullOrWhiteSpace(id) && technologyDefinitions.TryGetValue(id, out var value) ? value : null;
+
         private readonly List<OpponentTeamDefinition> opponentTeamDefinitionList = new();
 
         public IReadOnlyDictionary<string, BikeDefinition> BikeDefinitions => bikeDefinitions;

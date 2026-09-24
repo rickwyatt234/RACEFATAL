@@ -49,6 +49,11 @@ namespace RaceFatal.Content
                 database.AddOpponentTeamDefinition(definition);
             }
 
+            foreach (var technology in catalog.TechnologyDefinitions)
+            {
+                if (technology != null) database.AddTechnologyDefinition(technology.CreateDefinition());
+            }
+
             return database;
         }
     }
