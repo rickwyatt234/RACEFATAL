@@ -48,7 +48,7 @@ namespace RaceFatal.Presentation.Career
             Vector2 center = (min + max) / 2;
             foreach (string id in positions.Keys.ToArray()) positions[id] -= center;
             content.sizeDelta = new Vector2(Mathf.Max(1500, max.x - min.x + 700), Mathf.Max(1200, max.y - min.y + 500));
-            var linesObject = new GameObject("Connections", typeof(RectTransform), typeof(ResearchTreeConnections));
+            var linesObject = new GameObject("Connections", typeof(RectTransform), typeof(CanvasRenderer), typeof(ResearchTreeConnections));
             linesObject.transform.SetParent(content, false); generated.Add(linesObject);
             var lines = linesObject.GetComponent<ResearchTreeConnections>(); lines.raycastTarget = false;
             var rect = (RectTransform)lines.transform; rect.sizeDelta = content.sizeDelta;

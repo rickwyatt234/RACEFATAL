@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 namespace RaceFatal.Presentation.Career
 {
+    [RequireComponent(typeof(CanvasRenderer))]
     public class ResearchTreeConnections : MaskableGraphic
     {
         public struct Edge { public Vector2 from, to; public Color tint; }
