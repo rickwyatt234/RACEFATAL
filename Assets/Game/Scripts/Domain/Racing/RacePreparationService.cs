@@ -70,7 +70,7 @@ namespace RaceFatal.Racing
             return PrepareRace(
                 raceId,
                 session.SelectedPlayerBikeId,
-                session.DefaultPartnerRacerId,
+                session.SelectedPartnerRacerId,
                 session.SelectedPartnerBikeId);
         }
 

@@ -47,7 +47,7 @@ namespace RaceFatal.Presentation.Career
 
             RacerState partner =
                 team?.Roster?.FindRacer(
-                    session.DefaultPartnerRacerId);
+                    session.SelectedPartnerRacerId);
 
             SetText(
                 teamNameText,

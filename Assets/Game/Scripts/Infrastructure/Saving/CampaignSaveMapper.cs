@@ -65,7 +65,9 @@ namespace RaceFatal.Infrastructure.Saving
                         session.SelectedPlayerBikeId,
 
                     selectedPartnerBikeId =
-                        session.SelectedPartnerBikeId
+                        session.SelectedPartnerBikeId,
+                    selectedPartnerRacerId =
+                        session.SelectedPartnerRacerId
                 };
 
             return Result<CampaignSaveData>.Success(
@@ -147,6 +149,9 @@ namespace RaceFatal.Infrastructure.Saving
                     ? data.defaultPartnerBikeId
                     : data.selectedPartnerBikeId;
 
+            string selectedPartnerRacerId = string.IsNullOrWhiteSpace(data.selectedPartnerRacerId)
+                ? data.defaultPartnerRacerId : data.selectedPartnerRacerId;
+
             Result referenceResult =
                 ValidateSessionReferences(
                     playerTeam,
@@ -154,7 +159,8 @@ namespace RaceFatal.Infrastructure.Saving
                     data.defaultPlayerBikeId,
                     data.defaultPartnerBikeId,
                     selectedPlayerBikeId,
-                    selectedPartnerBikeId);
+                    selectedPartnerBikeId,
+                    selectedPartnerRacerId);
 
             if (!referenceResult.IsSuccess)
             {
@@ -171,7 +177,8 @@ namespace RaceFatal.Infrastructure.Saving
                     data.defaultPlayerBikeId,
                     data.defaultPartnerBikeId,
                     selectedPlayerBikeId,
-                    selectedPartnerBikeId);
+                    selectedPartnerBikeId,
+                    selectedPartnerRacerId);
 
             return Result<GameSessionState>.Success(
                 session);
@@ -1248,7 +1255,8 @@ namespace RaceFatal.Infrastructure.Saving
             string playerBikeId,
             string partnerBikeId,
             string selectedPlayerBikeId,
-            string selectedPartnerBikeId)
+            string selectedPartnerBikeId,
+            string selectedPartnerRacerId)
         {
             if (!string.IsNullOrWhiteSpace(
                     partnerRacerId) &&
@@ -1290,6 +1298,12 @@ namespace RaceFatal.Infrastructure.Saving
                 return Result.Failure(
                     "Selected partner bike is missing from the saved garage.");
 
+            if (!string.IsNullOrWhiteSpace(selectedPartnerRacerId))
+            {
+                RacerState selectedPartner = team.Roster.FindRacer(selectedPartnerRacerId);
+                if (selectedPartner == null || selectedPartner.IsPlayerCharacter || selectedPartner.TeamId != team.TeamId)
+                    return Result.Failure("Selected partner racer is not a teammate.");
+            }
             if (!string.IsNullOrWhiteSpace(selectedPlayerBikeId) &&
                 selectedPlayerBikeId == selectedPartnerBikeId)
                 return Result.Failure(

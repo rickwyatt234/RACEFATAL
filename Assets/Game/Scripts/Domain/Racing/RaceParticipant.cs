@@ -7,6 +7,7 @@ namespace RaceFatal.Racing
     public class RaceParticipant
     {
         public RacerState Racer { get; }
+        public RacerPerkBonuses Perks { get; }
         public RaceVehicleState Vehicle { get; }
         public BikeState Bike => Vehicle.Bike;
 
@@ -46,7 +47,8 @@ namespace RaceFatal.Racing
             RacerState racer,
             RaceVehicleState vehicle,
             RaceParticipantRole role,
-            string teamName = null)
+            string teamName = null,
+            RacerPerkBonuses perks = null)
         {
             Racer = racer
                 ?? throw new ArgumentNullException(nameof(racer));
@@ -55,6 +57,7 @@ namespace RaceFatal.Racing
                 ?? throw new ArgumentNullException(nameof(vehicle));
 
             Role = role;
+            Perks = perks ?? new RacerPerkBonuses();
 
             TeamName =
                 string.IsNullOrWhiteSpace(teamName)

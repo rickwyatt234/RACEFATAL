@@ -14,6 +14,12 @@ namespace RaceFatal.Data
         private readonly Dictionary<string, ChassisDefinition> chassisDefinitions = new Dictionary<string, ChassisDefinition>();
         private readonly Dictionary<string, EquipmentDefinition> equipmentDefinitions = new Dictionary<string, EquipmentDefinition>();
         private readonly Dictionary<string, BikeBuildDefinition> bikeBuildDefinitions = new Dictionary<string, BikeBuildDefinition>();
+        private readonly Dictionary<string, RacerPerkDefinition> racerPerkDefinitions = new Dictionary<string, RacerPerkDefinition>();
+        public IReadOnlyDictionary<string, RacerPerkDefinition> RacerPerkDefinitions => racerPerkDefinitions;
+        public void AddRacerPerkDefinition(RacerPerkDefinition definition) => racerPerkDefinitions.Add(definition.Id, definition);
+        public RacerPerkDefinition GetRacerPerkDefinition(string id) =>
+            !string.IsNullOrWhiteSpace(id) && racerPerkDefinitions.TryGetValue(id, out var value) ? value : null;
+
         private readonly Dictionary<string, RacerDefinition> racerDefinitions = new Dictionary<string, RacerDefinition>();
         private readonly Dictionary<string, OpponentTeamDefinition> opponentTeamDefinitions = new Dictionary<string, OpponentTeamDefinition>();
         private readonly Dictionary<string, TrackDefinition> trackDefinitions = new Dictionary<string, TrackDefinition>();

@@ -62,9 +62,10 @@ namespace RaceFatal.Racing
                         bike);
 
 
+            var perks = RacerPerkBonuses.For(racer, database);
             var energy =
                 new EnergyPool(
-                    bikeDefinition.EnergyCapacity);
+                    bikeDefinition.EnergyCapacity + perks.EnergyCapacity);
 
             Result<RaceEquipmentSystem>
                 equipmentResult =
@@ -85,7 +86,7 @@ namespace RaceFatal.Racing
                 new RaceParticipant(
                     racer,
                     vehicle,
-                    role));
+                    role, perks: perks));
         }
     }
 }

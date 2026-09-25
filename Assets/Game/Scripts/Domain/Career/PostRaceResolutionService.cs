@@ -72,6 +72,20 @@ namespace RaceFatal.Career
             _ = checked(team.Credits + reward.Credits);
             _ = checked(team.Fame + reward.TeamFame);
             _ = checked(player.Progression.Fame + reward.CharacterFame);
+            // Each teammate earns Character Fame for their own finish; team currency is still
+            // awarded once from the player's result. Settlement receipts prevent repeat awards.
+            var teammateRewards = new System.Collections.Generic.List<(RacerState racer, int fame)>();
+            foreach (RaceResultEntry entry in raceResult.Standings)
+            {
+                if (entry.TeamId != team.TeamId || entry.RacerId == player.RacerId) continue;
+                RacerState teammate = team.Roster.FindRacer(entry.RacerId);
+                if (teammate == null || teammate.IsPlayerCharacter) continue;
+                if (entry.Status != RaceParticipantStatus.Finished &&
+                    entry.Status != RaceParticipantStatus.Destroyed && entry.Status != RaceParticipantStatus.Retired) continue;
+                int fame = rewardPolicy.Calculate(entry.Position, entry.Status).CharacterFame;
+                _ = checked(teammate.Progression.Fame + fame);
+                teammateRewards.Add((teammate, fame));
+            }
             team.AdvanceResearchContracts();
 
             team.AddCredits(
@@ -85,6 +99,8 @@ namespace RaceFatal.Career
 
             player.Progression.AddFame(
                 reward.CharacterFame);
+            foreach (var (teammate, fame) in teammateRewards)
+                teammate.Progression.AddFame(fame);
 
             bool playerDied =
                 playerEntry.Status ==

@@ -18,6 +18,19 @@ namespace RaceFatal.Career
         public WorldState World { get; }
 
         public string DefaultPartnerRacerId { get; }
+        public string SelectedPartnerRacerId { get; private set; }
+
+        public Result SelectPartnerRacer(string racerId)
+        {
+            if (string.IsNullOrWhiteSpace(racerId)) return Result.Failure("SELECT A TEAM RACER.");
+            RacerState racer = PlayerTeam.Roster.FindRacer(racerId);
+            if (racer == null || racer.TeamId != PlayerTeam.TeamId) return Result.Failure("RACER IS NOT ON YOUR TEAM.");
+            if (racer.IsPlayerCharacter || (CareerRun?.Player != null && racer.RacerId == CareerRun.Player.RacerId))
+                return Result.Failure("PLAYER CANNOT BE THEIR OWN PARTNER.");
+            if (!racer.CanRace) return Result.Failure("RACER IS NOT ACTIVE.");
+            SelectedPartnerRacerId = racerId;
+            return Result.Success();
+        }
 
         public string DefaultPlayerBikeId { get; }
 
@@ -34,7 +47,8 @@ namespace RaceFatal.Career
             string defaultPlayerBikeId,
             string defaultPartnerBikeId,
             string selectedPlayerBikeId = null,
-            string selectedPartnerBikeId = null)
+            string selectedPartnerBikeId = null,
+            string selectedPartnerRacerId = null)
         {
             PlayerTeam =
                 playerTeam
@@ -51,6 +65,8 @@ namespace RaceFatal.Career
 
             DefaultPartnerRacerId =
                 defaultPartnerRacerId;
+            SelectedPartnerRacerId = string.IsNullOrWhiteSpace(selectedPartnerRacerId)
+                ? defaultPartnerRacerId : selectedPartnerRacerId;
 
             DefaultPlayerBikeId =
                 defaultPlayerBikeId;

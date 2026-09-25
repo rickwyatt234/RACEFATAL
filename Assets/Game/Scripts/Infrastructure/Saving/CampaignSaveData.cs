@@ -20,6 +20,7 @@ namespace RaceFatal.Infrastructure.Saving
         // Optional v1 additions; absent in older saves, so use defaults on load.
         public string selectedPlayerBikeId;
         public string selectedPartnerBikeId;
+        public string selectedPartnerRacerId;
     }
 
     [Serializable]

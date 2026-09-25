@@ -262,11 +262,11 @@ namespace RaceFatal.Presentation.Vehicles
                     Participant,
                     raceRuntime,
                     trackRuntime.ProgressPath,
-                    racerDefinition.Pace,
+                    Mathf.Clamp01(racerDefinition.Pace + Participant.Perks.Pace),
                     racerDefinition.Aggression,
-                    racerDefinition.OvertakingSkill,
-                    racerDefinition.DefensiveSkill,
-                    racerDefinition.WeaponAggression);
+                    Mathf.Clamp01(racerDefinition.OvertakingSkill + Participant.Perks.Overtaking),
+                    Mathf.Clamp01(racerDefinition.DefensiveSkill + Participant.Perks.Defense),
+                    Mathf.Clamp01(racerDefinition.WeaponAggression + Participant.Perks.WeaponAggression));
 
             if (!initialized)
             {

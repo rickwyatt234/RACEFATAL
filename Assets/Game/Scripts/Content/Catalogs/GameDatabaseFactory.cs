@@ -43,6 +43,8 @@ namespace RaceFatal.Content
             {
                 database.AddRacerDefinition(racer.CreateDefinition());
             }
+            foreach (var perk in catalog.RacerPerkDefinitions)
+                if (perk != null) database.AddRacerPerkDefinition(perk.CreateDefinition());
             foreach (var opponentTeam in catalog.OpponentTeamDefinitions)
             {
                 var definition = opponentTeam.CreateDefinition();
