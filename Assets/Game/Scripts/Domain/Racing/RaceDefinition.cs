@@ -12,6 +12,7 @@ namespace RaceFatal.Racing
         public int LapCount { get; }
         public int EntrantCount { get; }
         public int TeamSize { get; }
+        public int ResearchPointBonus { get; }
 
         public RaceDefinition(
             string id, 
@@ -20,7 +21,7 @@ namespace RaceFatal.Racing
             EngineClass engineClass, 
             int lapCount, 
             int entrantCount, 
-            int teamSize)
+            int teamSize, int researchPointBonus = 0)
         {
             if (lapCount <= 0)
             {
@@ -47,6 +48,7 @@ namespace RaceFatal.Racing
             LapCount = lapCount;
             EntrantCount = entrantCount;
             TeamSize = teamSize;
+            ResearchPointBonus = Math.Max(0, researchPointBonus);
         }
     }
 }

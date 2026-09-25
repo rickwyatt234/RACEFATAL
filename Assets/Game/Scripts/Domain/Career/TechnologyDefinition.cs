@@ -13,9 +13,10 @@ namespace RaceFatal.Career
         public int ResearchCost { get; }
         public IReadOnlyList<string> PrerequisiteTechnologyIds { get; }
         public int DisplayOrder { get; }
+        public int Tier { get; }
 
         public TechnologyDefinition(string id, string displayName, string description,
-            ResearchField field, int researchCost, IEnumerable<string> prerequisites = null, int displayOrder = 0)
+            ResearchField field, int researchCost, IEnumerable<string> prerequisites = null, int displayOrder = 0, int tier = 1)
         {
             if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Technology ID is required.", nameof(id));
             Id = id;
@@ -25,6 +26,7 @@ namespace RaceFatal.Career
             ResearchCost = researchCost;
             PrerequisiteTechnologyIds = new List<string>(prerequisites ?? Array.Empty<string>()).AsReadOnly();
             DisplayOrder = displayOrder;
+            Tier = Math.Max(1, tier);
         }
     }
 }

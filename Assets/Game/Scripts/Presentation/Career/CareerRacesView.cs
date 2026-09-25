@@ -225,7 +225,8 @@ namespace RaceFatal.Presentation.Career
                 $"ENGINE CLASS  {race.EngineClass}\n" +
                 $"LAPS  {race.LapCount}\n" +
                 $"ENTRANTS  {race.EntrantCount}\n" +
-                $"TEAM SIZE  {race.TeamSize}");
+                $"TEAM SIZE  {race.TeamSize}\n" +
+                $"EVENT RESEARCH BONUS +{race.ResearchPointBonus} RP");
 
             Result<RaceDirector> preview =
                 PreviewRace(race.Id);

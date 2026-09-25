@@ -35,6 +35,8 @@ namespace RaceFatal.Infrastructure.Saving
         public int fame;
         public int researchPoints;
 
+        public List<ResearchContractSaveData> researchContracts = new List<ResearchContractSaveData>();
+        public List<SettledRaceSaveData> settledRaceResults = new List<SettledRaceSaveData>();
         public List<string> unlockedTechnologyIds =
             new List<string>();
 
@@ -51,6 +53,19 @@ namespace RaceFatal.Infrastructure.Saving
             new GarageSaveData();
     }
 
+    [Serializable]
+    public class ResearchContractSaveData
+    {
+        public string definitionId, displayName;
+        public int pointsPerRace, racesRemaining;
+    }
+    [Serializable]
+    public class SettledRaceSaveData
+    {
+        public string instanceId, raceId, playerRacerId, status;
+        public int position, credits, teamFame, researchPoints, characterFame, eventRP, researcherRP;
+        public bool playerDied, careerEnded;
+    }
     [Serializable]
     public class RacerSaveData
     {

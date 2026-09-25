@@ -14,6 +14,9 @@ namespace RaceFatal.Career
         }
 
         public RaceReward Reward { get; }
+        public int RaceResearchPoints { get; }
+        public int EventResearchPoints { get; }
+        public int ResearcherPoints { get; }
 
         public bool PlayerDied { get; }
         public bool CareerEnded { get; }
@@ -25,7 +28,7 @@ namespace RaceFatal.Career
             RaceParticipantStatus playerRaceStatus,
             RaceReward reward,
             bool playerDied,
-            bool careerEnded)
+            bool careerEnded, int eventResearchPoints = 0, int researcherPoints = 0)
         {
             RaceId = raceId;
             PlayerRacerId = playerRacerId;
@@ -34,6 +37,9 @@ namespace RaceFatal.Career
             PlayerRaceStatus = playerRaceStatus;
 
             Reward = reward;
+            EventResearchPoints = eventResearchPoints;
+            ResearcherPoints = researcherPoints;
+            RaceResearchPoints = reward.ResearchPoints - eventResearchPoints - researcherPoints;
 
             PlayerDied = playerDied;
             CareerEnded = careerEnded;

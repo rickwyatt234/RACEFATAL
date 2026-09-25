@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: EQ_Shield_Prototype
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.ShieldDefinitionSO
   id: prototype_shield
-  displayName: EQ_Shield_Prototype
-  requiredNodeSize: 1
-  creditCost: 0
+  displayName: Prototype Shield
+  requiredNodeSize: 0
+  creditCost: 100
   requiredTechnologyId: 
   capacity: 100
   rechargePerSecond: 10

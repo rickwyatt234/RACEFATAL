@@ -3,6 +3,7 @@ using System.Linq;
 using RaceFatal.Career;
 using RaceFatal.Infrastructure;
 using RaceFatal.Shared;
+using RaceFatal.Presentation.Bootstrap;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,11 @@ namespace RaceFatal.Presentation.Career
 {
     public class CareerResearchView : MonoBehaviour
     {
+        [SerializeField] private CareerResearchTreeView treeView;
+        [SerializeField] private GameObject staffListRoot;
+        private string selectedResearcherId;
+        private ResearcherDefinition pendingResearcher;
+        private ResearcherService researchers;
         [Header("Lists")]
         [SerializeField] private RectTransform categoryList;
         [SerializeField] private RectTransform itemList;
@@ -45,6 +51,7 @@ namespace RaceFatal.Presentation.Career
             owner = controller;
             context = gameContext;
             research = context?.Database != null ? new ResearchService(context.Database) : null;
+            researchers = context?.Database != null ? new ResearcherService(context.Database) : null;
             Bind(researchButton, RequestResearch);
             Bind(saveButton, SaveResearch);
             Bind(shopButton, OpenShop);
@@ -57,7 +64,7 @@ namespace RaceFatal.Presentation.Career
         {
             CancelResearch();
             ClearOptions();
-            SetText(pointsText, Team != null ? $"RESEARCH POINTS  {Team.ResearchPoints:N0}" : "RESEARCH POINTS  --");
+            SetText(pointsText, Team != null ? $"RP {Team.ResearchPoints:N0}  //  STAFF +{Team.ResearchOutputPerRace:N0}/RACE" : "RESEARCH POINTS  --");
             if (saveButton != null) saveButton.interactable = context?.Saves?.HasActiveCampaign == true;
             if (shopButton != null) shopButton.interactable = Team != null;
             if (research == null || Team == null)
@@ -71,22 +78,69 @@ namespace RaceFatal.Presentation.Career
 
             List<TechnologyDefinition> technologies = context.Database.TechnologyDefinitions.Values
                 .OrderBy(t => t.DisplayOrder).ThenBy(t => t.DisplayName).ThenBy(t => t.Id).ToList();
-            var categories = new List<string> { "ALL" };
+            var categories = new List<string> { "ALL", "STAFF" };
             categories.AddRange(technologies.Select(t => t.Field.ToString()).Distinct());
             if (!categories.Contains(category)) category = "ALL";
             foreach (string value in categories)
                 AddOption(categoryList, FieldLabel(value), () => { category = value; selected = null; Refresh(); }, value == category);
+            if (treeView != null) treeView.gameObject.SetActive(category != "STAFF");
+            if (staffListRoot != null) staffListRoot.SetActive(category == "STAFF");
+            var actionLabel = researchButton != null ? researchButton.GetComponentInChildren<TMP_Text>() : null;
+            SetText(actionLabel, category == "STAFF" ? "HIRE RESEARCHER" : "RESEARCH TECHNOLOGY");
+            if (category == "STAFF") { RenderStaff(); return; }
             var visible = technologies.Where(t => category == "ALL" || t.Field.ToString() == category).ToList();
             selected = selected == null ? null : visible.Find(t => t.Id == selected.Id);
             if (selected == null && visible.Count > 0) selected = visible[0];
-            foreach (var technology in visible)
-            {
-                string state = Team.HasTechnology(technology.Id) ? "RESEARCHED"
-                    : research.CanResearch(Team, technology.Id).IsSuccess ? "AVAILABLE" : "LOCKED";
-                AddOption(itemList, $"{technology.DisplayName} [{state}]\n{technology.ResearchCost:N0} RP",
-                    () => { selected = technology; Refresh(); }, technology == selected);
-            }
+            treeView?.Render(context.Database, Team, BootstrapController.ContentCatalog?.ResearchTreeLayout,
+                category, selected?.Id, SelectTreeTechnology);
             RenderDetails();
+        }
+
+        private void SelectTreeTechnology(string id)
+        {
+            var technology = context?.Database?.GetTechnologyDefinition(id);
+            if (technology == null) return;
+            selected = technology;
+            if (category != "ALL") category = technology.Field.ToString();
+            Refresh();
+        }
+
+        public void FocusTechnology(string id)
+        {
+            var technology = context?.Database?.GetTechnologyDefinition(id);
+            if (technology == null) { SetText(feedbackText, "TECHNOLOGY IS NOT REGISTERED: " + id); return; }
+            selected = technology;
+            category = technology.Field.ToString();
+            Refresh();
+            treeView?.Focus(id);
+        }
+
+        private void RenderStaff()
+        {
+            var offers = context.Database.ResearcherDefinitions.Values.OrderBy(o => o.DisplayName).ToList();
+            if (selectedResearcherId == null && offers.Count > 0) selectedResearcherId = offers[0].Id;
+            foreach (var offer in offers)
+                AddOption(itemList, $"{offer.DisplayName}\n{offer.CreditCost:N0} CR • +{offer.PointsPerRace} RP × {offer.Duration} RACES",
+                    () => { selectedResearcherId = offer.Id; Refresh(); }, selectedResearcherId == offer.Id);
+            var chosen = context.Database.GetResearcherDefinition(selectedResearcherId);
+            var text = new System.Text.StringBuilder("RESEARCH STAFF\n\nACTIVE / COMPLETED CONTRACTS\n");
+            foreach (var contract in Team.ResearchContracts)
+                text.AppendLine($"{contract.DisplayName}: +{contract.PointsPerRace} RP / race; {contract.RacesRemaining} races left");
+            if (Team.ResearchContracts.Count == 0) text.AppendLine("No contracts.");
+            if (chosen != null)
+            {
+                text.AppendLine($"\n{chosen.DisplayName}\nPREPAID COST {chosen.CreditCost:N0} CR\n+{chosen.PointsPerRace} RP AFTER EACH RACE\nDURATION {chosen.Duration} RACES");
+                text.AppendLine("\nResolved DNFs count. Abandoned races do not. No automatic renewal. One active contract per researcher.");
+                var allowed = researchers.CanHire(Team, chosen.Id);
+                text.AppendLine(allowed.IsSuccess ? "AVAILABLE TO HIRE" : allowed.ErrorMessage);
+                if (researchButton != null) researchButton.interactable = allowed.IsSuccess && context?.Saves?.HasActiveCampaign == true;
+            }
+            else
+            {
+                text.AppendLine("\nNo researcher offers. Add contracts to the content catalog.");
+                if (researchButton != null) researchButton.interactable = false;
+            }
+            SetText(detailsText, text.ToString());
         }
 
         private void RenderDetails()
@@ -119,10 +173,20 @@ namespace RaceFatal.Presentation.Career
 
         private void RequestResearch()
         {
-            if (selected == null || research == null || confirmationRoot == null) return;
+            if (research == null || confirmationRoot == null || (selected == null && category != "STAFF")) return;
             if (context?.Saves?.HasActiveCampaign != true)
             {
                 SetText(feedbackText, "LOAD A SAVED CAMPAIGN BEFORE RESEARCHING.");
+                return;
+            }
+            if (category == "STAFF")
+            {
+                var allowedHire = researchers.CanHire(Team, selectedResearcherId);
+                if (!allowedHire.IsSuccess) { SetText(feedbackText, allowedHire.ErrorMessage); return; }
+                pendingResearcher = context.Database.GetResearcherDefinition(selectedResearcherId);
+                pendingTeam = Team;
+                SetText(confirmationText, $"HIRE {pendingResearcher.DisplayName}?\n\nPREPAY {pendingResearcher.CreditCost:N0} CR\n+{pendingResearcher.PointsPerRace} RP / RACE FOR {pendingResearcher.Duration} RACES\nREMAINING {Team.Credits - pendingResearcher.CreditCost:N0} CR");
+                ShowConfirmation();
                 return;
             }
             Result allowed = research.CanResearch(Team, selected.Id);
@@ -130,6 +194,11 @@ namespace RaceFatal.Presentation.Career
             pending = selected;
             pendingTeam = Team;
             SetText(confirmationText, $"RESEARCH {pending.DisplayName}?\n\nCOST  {pending.ResearchCost:N0} RP\nREMAINING  {Team.ResearchPoints - pending.ResearchCost:N0} RP\n\nTHIS UNLOCK IS PERMANENT. THE CAMPAIGN WILL BE SAVED.");
+            ShowConfirmation();
+        }
+
+        private void ShowConfirmation()
+        {
             confirmationRoot.SetActive(true);
             // Block keyboard/controller navigation as well as pointer clicks behind the dialog.
             Canvas canvas = GetComponentInParent<Canvas>();
@@ -147,12 +216,27 @@ namespace RaceFatal.Presentation.Career
         {
             // Consume confirmation first so a repeated click cannot spend twice.
             TechnologyDefinition technology = pending;
+            ResearcherDefinition hire = pendingResearcher;
             TeamState team = pendingTeam;
             CancelResearch();
-            if (technology == null || research == null || team == null || team != Team) return;
+            if ((technology == null && hire == null) || research == null || team == null || team != Team) return;
             if (context?.Saves?.HasActiveCampaign != true)
             {
                 SetText(feedbackText, "LOAD A SAVED CAMPAIGN BEFORE RESEARCHING.");
+                return;
+            }
+            if (hire != null)
+            {
+                if (context.Database.GetResearcherDefinition(hire.Id) != hire) { SetText(feedbackText, "CONTRACT CHANGED. REVIEW AGAIN."); return; }
+                var hired = researchers.Hire(team, hire.Id);
+                Refresh();
+                if (hired.IsSuccess)
+                {
+                    var savedHire = context.Saves.SaveCurrentCampaign();
+                    SetText(feedbackText, savedHire.IsSuccess ? "RESEARCHER HIRED. CAMPAIGN SAVED." : "HIRED BUT NOT SAVED: " + savedHire.ErrorMessage + " USE SAVE CAMPAIGN TO RETRY.");
+                    owner?.RefreshHome();
+                }
+                else SetText(feedbackText, hired.ErrorMessage);
                 return;
             }
             var current = context.Database.GetTechnologyDefinition(technology.Id);
@@ -182,6 +266,7 @@ namespace RaceFatal.Presentation.Career
                 if (control != null) control.interactable = true;
             modalBlocked.Clear();
             pending = null;
+            pendingResearcher = null;
             pendingTeam = null;
             if (confirmationRoot != null) confirmationRoot.SetActive(false);
         }

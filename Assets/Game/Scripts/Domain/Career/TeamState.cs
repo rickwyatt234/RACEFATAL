@@ -18,6 +18,42 @@ namespace RaceFatal.Career
             eliminatedRacerIds =
                 new HashSet<string>();
 
+        private readonly List<ResearchContract> researchContracts = new List<ResearchContract>();
+        private readonly Dictionary<string, PostRaceResult> settledRaceResults = new Dictionary<string, PostRaceResult>();
+        public IReadOnlyList<ResearchContract> ResearchContracts => researchContracts.AsReadOnly();
+        public IReadOnlyDictionary<string, PostRaceResult> SettledRaceResults => settledRaceResults;
+        public int ResearchOutputPerRace
+        {
+            get
+            {
+                int total = 0;
+                foreach (var contract in researchContracts)
+                    if (contract.RacesRemaining > 0) total = checked(total + contract.PointsPerRace);
+                return total;
+            }
+        }
+        internal void ReplaceResearchContract(ResearchContract contract)
+        {
+            researchContracts.RemoveAll(c => c.DefinitionId == contract.DefinitionId);
+            researchContracts.Add(contract);
+        }
+        public void RestoreResearchContract(ResearchContract contract)
+        {
+            if (contract == null || researchContracts.Exists(c => c.DefinitionId == contract.DefinitionId))
+                throw new ArgumentException("Duplicate or missing research contract.");
+            researchContracts.Add(contract);
+        }
+        internal int AdvanceResearchContracts()
+        {
+            int total = ResearchOutputPerRace;
+            foreach (var contract in researchContracts) contract.Advance();
+            return total;
+        }
+        public void RestoreSettledRace(string instanceId, PostRaceResult result)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId) || result == null) throw new ArgumentException("Invalid race receipt.");
+            settledRaceResults.Add(instanceId, result);
+        }
         public string TeamId { get; }
 
         public string TeamName {

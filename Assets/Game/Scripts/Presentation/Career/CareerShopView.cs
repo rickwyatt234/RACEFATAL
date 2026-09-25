@@ -29,6 +29,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
 
+        [SerializeField] private Button technologyButton;
         private readonly List<CareerGarageOptionView> spawned = new List<CareerGarageOptionView>();
         private readonly List<Selectable> modalBlocked = new List<Selectable>();
         private GameContext context;
@@ -45,6 +46,8 @@ namespace RaceFatal.Presentation.Career
             owner = controller;
             context = gameContext;
             shop = context?.Database != null ? new ShopService(context.Database) : null;
+            EnsureTechnologyButton();
+            Bind(technologyButton, OpenTechnology);
             Bind(purchaseButton, RequestPurchase);
             Bind(saveButton, SaveShop);
             Bind(garageButton, OpenGarage);
@@ -89,8 +92,34 @@ namespace RaceFatal.Presentation.Career
             RenderDetails();
         }
 
+        private void EnsureTechnologyButton()
+        {
+            if (technologyButton != null || purchaseButton == null) return;
+            technologyButton = Instantiate(purchaseButton, purchaseButton.transform.parent);
+            technologyButton.name = "ViewRequiredTechnology";
+            technologyButton.onClick = new Button.ButtonClickedEvent();
+            var rect = technologyButton.GetComponent<RectTransform>();
+            purchaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(240, rect.sizeDelta.y);
+            rect.sizeDelta = new Vector2(240, rect.sizeDelta.y);
+            rect.anchoredPosition += new Vector2(260, 0);
+            var label = technologyButton.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.text = "VIEW REQUIRED TECHNOLOGY";
+                label.enableAutoSizing = true; label.fontSizeMin = 14; label.fontSizeMax = 20;
+            }
+        }
+        private void OpenTechnology()
+        {
+            if (selected != null && !string.IsNullOrWhiteSpace(selected.RequiredTechnologyId)) owner?.ShowTechnology(selected.RequiredTechnologyId);
+        }
         private void RenderDetails()
         {
+            if (technologyButton != null)
+            {
+                technologyButton.gameObject.SetActive(selected != null && !string.IsNullOrWhiteSpace(selected.RequiredTechnologyId));
+                technologyButton.interactable = selected != null && context?.Database?.GetTechnologyDefinition(selected.RequiredTechnologyId) != null;
+            }
             if (selected == null)
             {
                 SetText(detailsText, "NO ITEMS AVAILABLE IN THIS CATEGORY.");
@@ -213,6 +242,7 @@ namespace RaceFatal.Presentation.Career
 
         private void OnDestroy()
         {
+            if (technologyButton != null) technologyButton.onClick.RemoveListener(OpenTechnology);
             if (purchaseButton != null) purchaseButton.onClick.RemoveListener(RequestPurchase);
             if (saveButton != null) saveButton.onClick.RemoveListener(SaveShop);
             if (garageButton != null) garageButton.onClick.RemoveListener(OpenGarage);

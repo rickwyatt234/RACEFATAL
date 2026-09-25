@@ -51,9 +51,11 @@ namespace RaceFatal.Content
 
             foreach (var technology in catalog.TechnologyDefinitions)
             {
-                if (technology != null) database.AddTechnologyDefinition(technology.CreateDefinition());
+                if (technology != null) database.AddTechnologyDefinition(technology.CreateDefinition(catalog.ResearchProgression));
             }
 
+            foreach (var researcher in catalog.ResearcherDefinitions)
+                if (researcher != null) database.AddResearcherDefinition(researcher.CreateDefinition());
             return database;
         }
     }

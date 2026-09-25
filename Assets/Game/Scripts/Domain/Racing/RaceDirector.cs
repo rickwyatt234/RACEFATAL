@@ -13,6 +13,7 @@ namespace RaceFatal.Racing
         private readonly LapTracker lapTracker;
         private readonly CareerManager careerManager;
 
+        private readonly string raceInstanceId = Guid.NewGuid().ToString("N");
         private int nextFinishPosition = 1;
         public float AIVsAIDamageMultiplier { get; set; } = 0.45f;
 
@@ -382,7 +383,7 @@ namespace RaceFatal.Racing
 
             return new RaceResult(
                 state.RaceDefinition.Id,
-                results);
+                results, raceInstanceId, state.RaceDefinition.ResearchPointBonus, state.IsFinished);
         }
 
         private void PermanentlyDestroy(RaceParticipant participant)

@@ -25,6 +25,12 @@ namespace RaceFatal.Data
         public TechnologyDefinition GetTechnologyDefinition(string id) =>
             !string.IsNullOrWhiteSpace(id) && technologyDefinitions.TryGetValue(id, out var value) ? value : null;
 
+        private readonly Dictionary<string, ResearcherDefinition> researcherDefinitions = new Dictionary<string, ResearcherDefinition>();
+        public IReadOnlyDictionary<string, ResearcherDefinition> ResearcherDefinitions => researcherDefinitions;
+        public void AddResearcherDefinition(ResearcherDefinition definition) => researcherDefinitions.Add(definition.Id, definition);
+        public ResearcherDefinition GetResearcherDefinition(string id) =>
+            !string.IsNullOrWhiteSpace(id) && researcherDefinitions.TryGetValue(id, out var value) ? value : null;
+
         private readonly List<OpponentTeamDefinition> opponentTeamDefinitionList = new();
 
         public IReadOnlyDictionary<string, BikeDefinition> BikeDefinitions => bikeDefinitions;

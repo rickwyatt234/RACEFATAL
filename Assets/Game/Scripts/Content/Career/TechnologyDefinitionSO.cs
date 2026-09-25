@@ -15,12 +15,22 @@ namespace RaceFatal.Content.Career
         [Min(0)] [SerializeField] private int researchCost;
         [SerializeField] private List<string> prerequisiteTechnologyIds = new List<string>();
         [SerializeField] private int displayOrder;
+        [Min(1)] [SerializeField] private int tier = 1;
+        [Tooltip("Legacy assets retain their explicit cost. Turn off to use the catalog tier table.")]
+        [SerializeField] private bool overrideTierCost = true;
         public string Id => id;
+        public string DisplayName => displayName;
+        public ResearchField Field => researchField;
+        public int Tier => tier;
+        public IReadOnlyList<string> Prerequisites => prerequisiteTechnologyIds;
+        public int Cost(ResearchProgressionSO progression) => overrideTierCost ? researchCost
+            : progression != null ? progression.CostForTier(tier)
+            : throw new System.InvalidOperationException("Assign Research Progression to the catalog to use tier costs.");
 
-        public TechnologyDefinition CreateDefinition()
+        public TechnologyDefinition CreateDefinition(ResearchProgressionSO progression = null)
         {
             return new TechnologyDefinition(id, displayName, description, researchField,
-                researchCost, prerequisiteTechnologyIds, displayOrder);
+                Cost(progression), prerequisiteTechnologyIds, displayOrder, tier);
         }
     }
 }

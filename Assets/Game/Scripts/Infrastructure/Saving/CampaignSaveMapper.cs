@@ -209,6 +209,21 @@ namespace RaceFatal.Infrastructure.Saving
                             team.Garage)
                 };
 
+            foreach (var contract in team.ResearchContracts)
+                data.researchContracts.Add(new ResearchContractSaveData {
+                    definitionId = contract.DefinitionId, displayName = contract.DisplayName,
+                    pointsPerRace = contract.PointsPerRace, racesRemaining = contract.RacesRemaining });
+            foreach (var receipt in team.SettledRaceResults)
+            {
+                var result = receipt.Value;
+                data.settledRaceResults.Add(new SettledRaceSaveData {
+                    instanceId = receipt.Key, raceId = result.RaceId, playerRacerId = result.PlayerRacerId,
+                    status = result.PlayerRaceStatus.ToString(), position = result.PlayerPosition,
+                    credits = result.Reward.Credits, teamFame = result.Reward.TeamFame,
+                    researchPoints = result.Reward.ResearchPoints, characterFame = result.Reward.CharacterFame,
+                    eventRP = result.EventResearchPoints, researcherRP = result.ResearcherPoints,
+                    playerDied = result.PlayerDied, careerEnded = result.CareerEnded });
+            }
             foreach (string technologyId
                      in team.UnlockedTechnologyIds)
             {
@@ -522,6 +537,37 @@ namespace RaceFatal.Infrastructure.Saving
             team.AddResearchPoints(
                 data.researchPoints);
 
+            try
+            {
+                if (data.researchContracts != null)
+                    foreach (var contract in data.researchContracts)
+                    {
+                        if (contract == null) return Result<TeamState>.Failure("Null researcher contract.");
+                        team.RestoreResearchContract(new ResearchContract(contract.definitionId, contract.displayName,
+                            contract.pointsPerRace, contract.racesRemaining));
+                    }
+                if (data.settledRaceResults != null)
+                    foreach (var receipt in data.settledRaceResults)
+                    {
+                        if (receipt == null || !Enum.TryParse(receipt.status, out RaceFatal.Racing.RaceParticipantStatus status)
+                            || (status != RaceFatal.Racing.RaceParticipantStatus.Finished
+                                && status != RaceFatal.Racing.RaceParticipantStatus.Destroyed
+                                && status != RaceFatal.Racing.RaceParticipantStatus.Retired)
+                            || string.IsNullOrWhiteSpace(receipt.raceId) || string.IsNullOrWhiteSpace(receipt.playerRacerId)
+                            || receipt.position < 1 || receipt.credits < 0 || receipt.teamFame < 0 || receipt.characterFame < 0
+                            || receipt.researchPoints < 0 || receipt.eventRP < 0 || receipt.researcherRP < 0
+                            || (long)receipt.eventRP + receipt.researcherRP > receipt.researchPoints)
+                            return Result<TeamState>.Failure("Invalid research race receipt.");
+                        team.RestoreSettledRace(receipt.instanceId, new PostRaceResult(receipt.raceId, receipt.playerRacerId,
+                            receipt.position, status, new RaceReward(receipt.credits, receipt.teamFame, receipt.researchPoints,
+                            receipt.characterFame), receipt.playerDied, receipt.careerEnded, receipt.eventRP, receipt.researcherRP));
+                    }
+                _ = team.ResearchOutputPerRace;
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is OverflowException)
+            {
+                return Result<TeamState>.Failure("Invalid research save data: " + exception.Message);
+            }
             if (data.unlockedTechnologyIds != null)
             {
                 foreach (string technologyId

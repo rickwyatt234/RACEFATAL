@@ -38,9 +38,9 @@ public static class CareerResearchScaffoldBuilder
         CareerResearchView view = researchRoot.GetComponent<CareerResearchView>();
         if (view == null) view = researchRoot.gameObject.AddComponent<CareerResearchView>();
         RectTransform ui = CreateRect(researchRoot, "ResearchUI", Vector2.zero, Vector2.zero, true);
-        CreateText(ui, "CategoriesHeading", "RESEARCH FIELDS", 28, new Vector2(410, -160), new Vector2(300, 42));
-        CreateText(ui, "TechnologyHeading", "TECHNOLOGIES", 28, new Vector2(730, -160), new Vector2(520, 42));
-        TMP_Text points = CreateText(ui, "ResearchPoints", "RESEARCH POINTS  --", 28, new Vector2(1290, -160), new Vector2(510, 42));
+        CreateText(ui, "CategoriesHeading", "RESEARCH FIELDS", 28, new Vector2(410, -160), new Vector2(260, 42));
+        CreateText(ui, "TechnologyHeading", "TECHNOLOGIES", 28, new Vector2(710, -160), new Vector2(500, 42));
+        TMP_Text points = CreateText(ui, "ResearchPoints", "RP -- // STAFF --", 22, new Vector2(1290, -160), new Vector2(510, 42));
         RectTransform categories = CreateScroller(ui, "Categories", new Vector2(410, -225), new Vector2(290, 625));
         RectTransform items = CreateScroller(ui, "Technologies", new Vector2(730, -225), new Vector2(530, 625));
         RectTransform detailContent = CreateScroller(ui, "TechnologyDetails", new Vector2(1290, -225), new Vector2(500, 530));
@@ -49,6 +49,25 @@ public static class CareerResearchScaffoldBuilder
         Button research = CreateButton(ui, "Research", "RESEARCH TECHNOLOGY", new Vector2(1290, -785), new Vector2(500, 64));
         Button shop = CreateButton(ui, "OpenShop", "OPEN SHOP", new Vector2(1100, -875), new Vector2(330, 64));
         Button save = CreateButton(ui, "SaveResearch", "SAVE CAMPAIGN", new Vector2(1460, -875), new Vector2(330, 64));
+        RectTransform treeRoot = CreateRect(ui, "TechTree", new Vector2(710, -225), new Vector2(550, 625));
+        treeRoot.gameObject.AddComponent<Image>().color = new Color(.025f, .045f, .06f);
+        treeRoot.gameObject.AddComponent<RectMask2D>();
+        var viewport = treeRoot.gameObject.AddComponent<ResearchTreeViewport>();
+        viewport.horizontal = true; viewport.vertical = true; viewport.movementType = ScrollRect.MovementType.Unrestricted;
+        viewport.inertia = false; viewport.viewport = treeRoot;
+        RectTransform treeContent = CreateRect(treeRoot, "TreeContent", Vector2.zero, new Vector2(1500, 1200));
+        treeContent.anchorMin = treeContent.anchorMax = treeContent.pivot = new Vector2(.5f, .5f);
+        viewport.content = treeContent;
+        var tree = treeRoot.gameObject.AddComponent<CareerResearchTreeView>();
+        var treeSerialized = new SerializedObject(tree);
+        SetReference(treeSerialized, "viewport", viewport); SetReference(treeSerialized, "content", treeContent);
+        treeSerialized.ApplyModifiedPropertiesWithoutUndo();
+        Button recenter = CreateButton(ui, "RecenterTree", "CENTER", new Vector2(710, -865), new Vector2(220, 54));
+        Button zoomIn = CreateButton(ui, "ZoomIn", "+", new Vector2(945, -865), new Vector2(65, 54));
+        Button zoomOut = CreateButton(ui, "ZoomOut", "−", new Vector2(1020, -865), new Vector2(65, 54));
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(recenter.onClick, tree.Recenter);
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(zoomIn.onClick, tree.ZoomIn);
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(zoomOut.onClick, tree.ZoomOut);
         TMP_Text feedback = CreateText(ui, "ResearchFeedback", "EARN RP // RESEARCH TECHNOLOGY // UNLOCK SHOP COMPONENTS", 23,
             new Vector2(410, -977), new Vector2(1380, 70));
         // The inactive template must not live under the list content.
@@ -104,6 +123,8 @@ public static class CareerResearchScaffoldBuilder
         modal.gameObject.SetActive(false);
 
         SerializedObject serialized = new SerializedObject(view);
+        SetReference(serialized, "treeView", tree);
+        SetReference(serialized, "staffListRoot", items.parent.parent.gameObject);
         SetReference(serialized, "categoryList", categories);
         SetReference(serialized, "itemList", items);
         SetReference(serialized, "optionTemplate", option);

@@ -28,6 +28,10 @@ namespace RaceFatal.Content.Racing
         [Min(1)]
         [SerializeField] private int teamSize = 2;
 
+        [Header("Research reward")]
+        [Tooltip("Bonus RP for a finalized race, including a resolved DNF.")]
+        [Min(0)] [SerializeField] private int researchPointBonus;
+
         public RaceDefinition CreateRaceDefinition()
         {
             return new RaceDefinition(
@@ -37,7 +41,7 @@ namespace RaceFatal.Content.Racing
                 engineClass,
                 lapCount,
                 entrantCount,
-                teamSize);
+                teamSize, researchPointBonus);
         }
     }
 }

@@ -117,6 +117,12 @@ namespace RaceFatal.Presentation.Career
                 CareerScreen.Research);
         }
 
+        public void ShowTechnology(string technologyId)
+        {
+            ShowScreen(CareerScreen.Research);
+            researchView?.FocusTechnology(technologyId);
+        }
+
         public void ShowShop()
         {
             ShowScreen(
