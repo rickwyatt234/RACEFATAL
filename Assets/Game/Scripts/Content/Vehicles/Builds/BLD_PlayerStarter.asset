@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: BLD_PlayerStarter
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.BikeBuildDefinitionSO
   id: player_starter
-  displayName: BLD_PlayerStarter
+  displayName: Starter Combat Bike
+  availableInShop: 1
+  creditCost: 12000
+  requiredTechnologyId:
   bike: {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
   engine: {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
   chassis: {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}

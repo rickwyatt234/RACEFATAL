@@ -23,6 +23,19 @@ namespace RaceFatal.Vehicles
         public IReadOnlyList<ChassisState> Chassis => chassis;
         public IReadOnlyList<EquipmentState> Equipment => equipment;
 
+        // Merge a fully constructed kit only after all identity collisions are checked.
+        internal Result ImportKit(GarageState kit)
+        {
+            if (kit == null) return Result.Failure("No built inventory supplied.");
+            foreach (var item in kit.Bikes) if (bikes.Exists(b => b.BikeId == item.BikeId)) return Result.Failure("Duplicate bike identity.");
+            foreach (var item in kit.Engines) if (engines.Exists(e => e.EngineId == item.EngineId)) return Result.Failure("Duplicate engine identity.");
+            foreach (var item in kit.Chassis) if (chassis.Exists(c => c.ChassisId == item.ChassisId)) return Result.Failure("Duplicate chassis identity.");
+            foreach (var item in kit.Equipment) if (equipment.Exists(e => e.EquipmentId == item.EquipmentId)) return Result.Failure("Duplicate equipment identity.");
+            bikes.AddRange(kit.Bikes); engines.AddRange(kit.Engines);
+            chassis.AddRange(kit.Chassis); equipment.AddRange(kit.Equipment);
+            return Result.Success();
+        }
+
         #region Add Ownership
 
         public Result<BikeState> AddBike(

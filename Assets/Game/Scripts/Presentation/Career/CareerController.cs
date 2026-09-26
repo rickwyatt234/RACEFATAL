@@ -98,7 +98,10 @@ namespace RaceFatal.Presentation.Career
             ShowScreen(
                 CareerScreen.Home);
             if (homeRoot != null)
+            {
+                CareerPreparationView.Create(this, context, racesView, homeRoot.transform.parent, racesRoot, rosterRoot, garageRoot);
                 CareerSuccessionView.Create(this, context, homeRoot.transform);
+            }
         }
 
         public void ShowHome()

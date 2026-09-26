@@ -5,6 +5,9 @@ namespace RaceFatal.Vehicles
 {
     public sealed class BikeBuildDefinition
     {
+        public bool AvailableInShop { get; }
+        public int CreditCost { get; }
+        public string RequiredTechnologyId { get; }
         public string Id { get; }
 
         public string DisplayName { get; }
@@ -24,8 +27,14 @@ namespace RaceFatal.Vehicles
             string bikeDefinitionId,
             string engineDefinitionId,
             string chassisDefinitionId,
-            IReadOnlyList<EquipmentMountDefinition> equipment)
+            IReadOnlyList<EquipmentMountDefinition> equipment,
+            bool availableInShop = false,
+            int creditCost = 12000,
+            string requiredTechnologyId = null)
         {
+            AvailableInShop = availableInShop;
+            CreditCost = creditCost;
+            RequiredTechnologyId = requiredTechnologyId;
             Id = id
                 ?? throw new ArgumentNullException(
                     nameof(id));

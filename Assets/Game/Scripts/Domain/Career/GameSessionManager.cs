@@ -289,6 +289,14 @@ namespace RaceFatal.Career
             }
         }
 
+        public Result PurchaseShopItem(ShopItemKind kind, string id)
+        {
+            if (Current == null) return Result.Failure("No campaign loaded.");
+            return new ShopService(database).Purchase(Current.PlayerTeam, kind, id);
+        }
+
+        public Result RecoverTeam(string signature) => new TeamRecoveryService(database).Recover(Current, signature);
+
         public Result StartSuccessor(string name)
         {
             if (Current == null) return Result.Failure("No campaign is loaded.");

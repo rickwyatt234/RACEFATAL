@@ -213,6 +213,7 @@ namespace RaceFatal.Infrastructure.Saving
 
                     researchPoints =
                         team.ResearchPoints,
+                    recoverySupportCheckpoint = team.RecoverySupportCheckpoint,
 
                     garage =
                         CaptureGarage(
@@ -274,6 +275,7 @@ namespace RaceFatal.Infrastructure.Saving
                 {
                     racerId =
                         racer.RacerId,
+                    definitionId = racer.DefinitionId,
 
                     name =
                         racer.Name,
@@ -541,6 +543,7 @@ namespace RaceFatal.Infrastructure.Saving
                     data.primaryColor,
                     data.secondaryColor);
 
+            team.RestoreRecoverySupport(data.recoverySupportCheckpoint);
             team.AddCredits(
                 data.credits);
             var calendarRestore = team.RestoreCalendar(data.calendar);
@@ -725,7 +728,8 @@ namespace RaceFatal.Infrastructure.Saving
                 data.podiums,
                 data.racersDestroyed,
                 progression.fame,
-                progression.purchasedPerkIds);
+                progression.purchasedPerkIds,
+                data.definitionId);
         }
 
         private Result<CareerRun> RestoreCareerRun(

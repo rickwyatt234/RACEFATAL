@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using RaceFatal.Data;
 using RaceFatal.Equipment;
 using RaceFatal.Shared;
@@ -7,7 +9,7 @@ using RaceFatal.Vehicles;
 
 namespace RaceFatal.Career
 {
-    public enum ShopItemKind { Engine, Chassis, Equipment }
+    public enum ShopItemKind { Engine, Chassis, Equipment, Bike }
 
     public sealed class ShopOffer
     {
@@ -67,6 +69,24 @@ namespace RaceFatal.Career
                     d.Category.ToString().ToUpperInvariant(), details,
                     d.CreditCost, d.RequiredTechnologyId));
             }
+            foreach (var build in database.BikeBuildDefinitions.Values.Where(b => b.AvailableInShop))
+            {
+                var bike = database.GetBikeDefinition(build.BikeDefinitionId);
+                var engine = database.GetEngineDefinition(build.EngineDefinitionId);
+                var chassis = database.GetChassisDefinition(build.ChassisDefinitionId);
+                var details = new StringBuilder();
+                details.AppendLine($"COMPLETE BIKE  {bike?.DisplayName ?? "MISSING FRAME"}");
+                details.AppendLine($"ENGINE CLASS  {engine?.EngineClass}\nENGINE  {engine?.DisplayName ?? "MISSING"}\nCHASSIS  {chassis?.DisplayName ?? "MISSING"}");
+                if (bike != null) details.AppendLine($"NODES  {bike.SmallNodeCount} SMALL / {bike.MediumNodeCount} MEDIUM / {bike.LargeNodeCount} LARGE");
+                details.AppendLine("\nINCLUDED EQUIPMENT");
+                foreach (var mount in build.Equipment)
+                    details.AppendLine(mount == null ? "INVALID MOUNT" : $"{mount.NodeSize} {mount.NodeIndex + 1}: {database.GetEquipmentDefinition(mount.EquipmentDefinitionId)?.DisplayName ?? "MISSING"}");
+                if (build.Equipment.Count == 0) details.AppendLine("NONE");
+                var required = RequiredTechnologies(build).ToList();
+                if (required.Count > 0) details.AppendLine("\nREQUIRES  " + string.Join(", ", required));
+                offers.Add(new ShopOffer(ShopItemKind.Bike, build.Id, build.DisplayName,
+                    "COMPLETE BIKES", details.ToString(), build.CreditCost, required.FirstOrDefault()));
+            }
             offers.Sort((a, b) =>
             {
                 int category = string.CompareOrdinal(a.Category, b.Category);
@@ -86,9 +106,13 @@ namespace RaceFatal.Career
             ShopOffer offer = FindOffer(kind, id);
             if (offer == null) return Result.Failure("ITEM IS NO LONGER AVAILABLE.");
             if (offer.CreditCost < 0) return Result.Failure("ITEM HAS AN INVALID PRICE.");
-            if (!string.IsNullOrWhiteSpace(offer.RequiredTechnologyId) &&
-                !team.HasTechnology(offer.RequiredTechnologyId))
-                return Result.Failure("REQUIRES TECHNOLOGY: " + offer.RequiredTechnologyId);
+            string missing = MissingTechnology(team, kind, id);
+            if (missing != null) return Result.Failure("REQUIRES TECHNOLOGY: " + missing);
+            if (kind == ShopItemKind.Bike)
+            {
+                var built = BuildKit(id, out var kit);
+                if (!built.IsSuccess) return built;
+            }
             if (team.Credits < offer.CreditCost)
                 return Result.Failure($"INSUFFICIENT CREDITS. NEED {offer.CreditCost - team.Credits:N0} MORE.");
             return Result.Success();
@@ -104,6 +128,12 @@ namespace RaceFatal.Career
             Func<Result> add;
             switch (kind)
             {
+                case ShopItemKind.Bike:
+                    var built = BuildKit(id, out var kit);
+                    if (!built.IsSuccess) return built;
+                    foreach (var bike in kit.Bikes) bike.Paint(team.PrimaryColor, team.SecondaryColor);
+                    add = () => team.Garage.ImportKit(kit);
+                    break;
                 case ShopItemKind.Engine:
                     var engine = vehicles.CreateEngine(database.GetEngineDefinition(id));
                     add = () => ToResult(team.Garage.AddEngine(engine));
@@ -124,6 +154,50 @@ namespace RaceFatal.Career
             Result result = add();
             if (!result.IsSuccess) team.AddCredits(offer.CreditCost);
             return result;
+        }
+
+        public string MissingTechnology(TeamState team, ShopItemKind kind, string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+            IEnumerable<string> technologies;
+            if (kind == ShopItemKind.Bike)
+            {
+                var build = database.GetBikeBuildDefinition(id);
+                if (build == null) return null;
+                technologies = RequiredTechnologies(build);
+            }
+            else
+            {
+                string required = kind == ShopItemKind.Engine ? database.GetEngineDefinition(id)?.RequiredTechnologyId
+                    : kind == ShopItemKind.Chassis ? database.GetChassisDefinition(id)?.RequiredTechnologyId
+                    : kind == ShopItemKind.Equipment ? database.GetEquipmentDefinition(id)?.RequiredTechnologyId : null;
+                technologies = new[] { required };
+            }
+            return technologies.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t) && (team == null || !team.HasTechnology(t)));
+        }
+
+        private IEnumerable<string> RequiredTechnologies(BikeBuildDefinition build)
+        {
+            var ids = new List<string> { build.RequiredTechnologyId,
+                database.GetEngineDefinition(build.EngineDefinitionId)?.RequiredTechnologyId,
+                database.GetChassisDefinition(build.ChassisDefinitionId)?.RequiredTechnologyId };
+            foreach (var mount in build.Equipment)
+                if (mount != null) ids.Add(database.GetEquipmentDefinition(mount.EquipmentDefinitionId)?.RequiredTechnologyId);
+            return ids.Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().OrderBy(t => t, StringComparer.Ordinal);
+        }
+
+        private Result BuildKit(string id, out GarageState kit)
+        {
+            kit = new GarageState();
+            var build = database.GetBikeBuildDefinition(id);
+            if (build == null || build.Equipment.Any(m => m == null)) return Result.Failure("INVALID BIKE BUILD.");
+            try
+            {
+                var result = new BikeBuildFactory(database, vehicles, equipment).CreateInGarage(build, kit, "#FFFFFF", "#000000");
+                return ToResult(result);
+            }
+            catch (ArgumentException error) { return Result.Failure("INVALID BIKE BUILD: " + error.Message); }
+            catch (InvalidOperationException error) { return Result.Failure("INVALID BIKE BUILD: " + error.Message); }
         }
 
         private static Result ToResult<T>(Result<T> result)

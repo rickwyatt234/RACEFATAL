@@ -7,6 +7,7 @@ namespace RaceFatal.Career
     public class RacerState
     {
         public string RacerId { get; }
+        public string DefinitionId { get; }
 
         public string Name { get; }
 
@@ -53,8 +54,10 @@ namespace RaceFatal.Career
             string racerId,
             string name,
             string teamId,
-            bool isPlayerCharacter)
+            bool isPlayerCharacter,
+            string definitionId = null)
         {
+            DefinitionId = string.IsNullOrWhiteSpace(definitionId) ? racerId : definitionId;
             RacerId = racerId
                 ?? throw new ArgumentNullException(
                     nameof(racerId));
@@ -88,7 +91,8 @@ namespace RaceFatal.Career
             int podiums,
             int racersDestroyed,
             int progressionFame,
-            IEnumerable<string> purchasedPerkIds)
+            IEnumerable<string> purchasedPerkIds,
+            string definitionId = null)
         {
             if (string.IsNullOrWhiteSpace(
                     racerId))
@@ -138,7 +142,7 @@ namespace RaceFatal.Career
                     racerId,
                     name,
                     teamId,
-                    isPlayerCharacter);
+                    isPlayerCharacter, definitionId);
 
             racer.Status =
                 status;

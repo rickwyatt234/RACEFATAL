@@ -3,6 +3,7 @@ using System.Linq;
 using RaceFatal.Career;
 using RaceFatal.Infrastructure;
 using RaceFatal.Shared;
+using RaceFatal.Presentation.Bootstrap;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,6 +36,11 @@ namespace RaceFatal.Presentation.Career
         private GameContext context;
         private CareerController owner;
         private ShopService shop;
+        private RectTransform detailViewport;
+        private ScrollRect detailScroll;
+        private Image bikePreview;
+        private TMP_Text previewPlaceholder;
+        private Vector2 detailSize;
         private ShopOffer selected;
         private ShopOffer pending;
         private TeamState pendingTeam;
@@ -46,6 +52,7 @@ namespace RaceFatal.Presentation.Career
             owner = controller;
             context = gameContext;
             shop = context?.Database != null ? new ShopService(context.Database) : null;
+            EnsureDetailsPanel();
             EnsureTechnologyButton();
             Bind(technologyButton, OpenTechnology);
             Bind(purchaseButton, RequestPurchase);
@@ -84,12 +91,43 @@ namespace RaceFatal.Presentation.Career
             if (selected == null && visible.Count > 0) selected = visible[0];
             foreach (ShopOffer offer in visible)
             {
-                bool locked = !string.IsNullOrWhiteSpace(offer.RequiredTechnologyId) && !Team.HasTechnology(offer.RequiredTechnologyId);
+                bool locked = shop.MissingTechnology(Team, offer.Kind, offer.DefinitionId) != null;
                 string state = offer.CreditCost < 0 ? "  [UNAVAILABLE]" : locked ? "  [LOCKED]" : Team.Credits < offer.CreditCost ? "  [LOW CREDITS]" : "";
                 AddOption(itemList, $"{offer.DisplayName}{state}\n{offer.Category}  //  {offer.CreditCost:N0} CR",
                     () => { selected = offer; Refresh(); }, offer == selected);
             }
             RenderDetails();
+        }
+
+        private void EnsureDetailsPanel()
+        {
+            if (detailsText == null) return;
+            var old = detailsText.rectTransform;
+            detailSize = old.sizeDelta;
+            var root = CareerRuntimeUi.Rect(old.parent, "ShopDetailsPanel", old.anchoredPosition, detailSize);
+            var oldText = detailsText;
+            detailsText = CareerRuntimeUi.Scroll(root, "DetailsScroll", Vector2.zero, detailSize);
+            detailScroll = detailsText.GetComponentInParent<ScrollRect>();
+            detailViewport = (RectTransform)detailScroll.transform;
+            var preview = CareerRuntimeUi.Rect(root, "BikePreview", Vector2.zero, new Vector2(detailSize.x, 165));
+            bikePreview = preview.gameObject.AddComponent<Image>();
+            bikePreview.preserveAspect = true; bikePreview.raycastTarget = false;
+            previewPlaceholder = CareerRuntimeUi.Text(root, "PreviewPlaceholder", "BIKE PREVIEW UNAVAILABLE",
+                Vector2.zero, new Vector2(detailSize.x, 165), 21);
+            previewPlaceholder.alignment = TextAlignmentOptions.Center;
+            oldText.gameObject.SetActive(false);
+        }
+        private void UpdateBikePreview()
+        {
+            if (detailViewport == null) return;
+            bool show = selected?.Kind == ShopItemKind.Bike;
+            var build = show ? context.Database.GetBikeBuildDefinition(selected.DefinitionId) : null;
+            var sprite = build == null ? null : BootstrapController.ContentCatalog?.FindBikeContent(build.BikeDefinitionId)?.ShopPreview;
+            bikePreview.gameObject.SetActive(show && sprite != null);
+            bikePreview.sprite = sprite;
+            previewPlaceholder.gameObject.SetActive(show && sprite == null);
+            detailViewport.anchoredPosition = new Vector2(0, show ? -180 : 0);
+            detailViewport.sizeDelta = new Vector2(detailSize.x, detailSize.y - (show ? 180 : 0));
         }
 
         private void EnsureTechnologyButton()
@@ -111,15 +149,19 @@ namespace RaceFatal.Presentation.Career
         }
         private void OpenTechnology()
         {
-            if (selected != null && !string.IsNullOrWhiteSpace(selected.RequiredTechnologyId)) owner?.ShowTechnology(selected.RequiredTechnologyId);
+            if (selected == null) return;
+            string technology = shop.MissingTechnology(Team, selected.Kind, selected.DefinitionId) ?? selected.RequiredTechnologyId;
+            if (!string.IsNullOrWhiteSpace(technology)) owner?.ShowTechnology(technology);
         }
         private void RenderDetails()
         {
             if (technologyButton != null)
             {
                 technologyButton.gameObject.SetActive(selected != null && !string.IsNullOrWhiteSpace(selected.RequiredTechnologyId));
-                technologyButton.interactable = selected != null && context?.Database?.GetTechnologyDefinition(selected.RequiredTechnologyId) != null;
+                string target = selected == null ? null : shop.MissingTechnology(Team, selected.Kind, selected.DefinitionId) ?? selected.RequiredTechnologyId;
+                technologyButton.interactable = context?.Database?.GetTechnologyDefinition(target) != null;
             }
+            UpdateBikePreview();
             if (selected == null)
             {
                 SetText(detailsText, "NO ITEMS AVAILABLE IN THIS CATEGORY.");
@@ -127,15 +169,24 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
             Result allowed = shop.CanPurchase(Team, selected.Kind, selected.DefinitionId);
-            int owned = selected.Kind == ShopItemKind.Engine
+            var build = selected.Kind == ShopItemKind.Bike ? context.Database.GetBikeBuildDefinition(selected.DefinitionId) : null;
+            int owned = build != null ? Team.Garage.Bikes.Count(b => b.BikeDefinitionId == build.BikeDefinitionId)
+                : selected.Kind == ShopItemKind.Engine
                 ? Team.Garage.Engines.Count(e => e.EngineDefinitionId == selected.DefinitionId)
                 : selected.Kind == ShopItemKind.Chassis
                     ? Team.Garage.Chassis.Count(c => c.ChassisDefinitionId == selected.DefinitionId)
                     : Team.Garage.Equipment.Count(e => e.EquipmentDefinitionId == selected.DefinitionId);
-            SetText(detailsText, $"{selected.DisplayName}\n\n{selected.Details}\n\nPRICE  {selected.CreditCost:N0} CR\nOWNED  {owned}\n\n" +
+            SetText(detailsText, $"{selected.DisplayName}\n\n{selected.Details}\n\nPRICE  {selected.CreditCost:N0} CR\n{(build != null ? "OWNED FRAMES (ALL LOADOUTS)" : "OWNED")}  {owned}\n\n" +
                 (allowed.IsSuccess ? "AVAILABLE // ADDED TO GARAGE INVENTORY" : allowed.ErrorMessage) +
-                "\n\nINSTALL PURCHASED COMPONENTS IN GARAGE.");
-            if (purchaseButton != null) purchaseButton.interactable = allowed.IsSuccess;
+                (build != null ? "\n\nA NEW COMPLETE BIKE WILL BE SAVED TO GARAGE. ASSIGN IT TO PLAYER OR PARTNER THERE."
+                    : "\n\nINSTALL PURCHASED COMPONENTS IN GARAGE."));
+            if (purchaseButton != null)
+            {
+                purchaseButton.interactable = allowed.IsSuccess && context.Saves?.HasActiveCampaign == true;
+                SetText(purchaseButton.GetComponentInChildren<TMP_Text>(), build != null ? "BUY BIKE" : "BUY COMPONENT");
+            }
+            Canvas.ForceUpdateCanvases();
+            if (detailScroll != null) detailScroll.verticalNormalizedPosition = 1;
         }
 
         private void RequestPurchase()
@@ -145,7 +196,7 @@ namespace RaceFatal.Presentation.Career
             if (!allowed.IsSuccess) { SetText(feedbackText, allowed.ErrorMessage); return; }
             pending = selected;
             pendingTeam = Team;
-            SetText(confirmationText, $"BUY {pending.DisplayName}?\n\nCOST  {pending.CreditCost:N0} CR\nREMAINING  {Team.Credits - pending.CreditCost:N0} CR\n\nONE NEW COMPONENT WILL BE ADDED TO YOUR GARAGE.");
+            SetText(confirmationText, $"BUY {pending.DisplayName}?\n\nCOST  {pending.CreditCost:N0} CR\nREMAINING  {Team.Credits - pending.CreditCost:N0} CR\n\n{(pending.Kind == ShopItemKind.Bike ? "ONE COMPLETE BIKE WITH NEW COMPONENTS" : "ONE NEW COMPONENT")} WILL BE ADDED TO YOUR GARAGE AND SAVED.");
             confirmationRoot.SetActive(true);
             // Block keyboard/controller navigation as well as pointer clicks behind the dialog.
             Canvas canvas = GetComponentInParent<Canvas>();
@@ -173,10 +224,10 @@ namespace RaceFatal.Presentation.Career
                 SetText(feedbackText, "OFFER CHANGED. REVIEW THE PRICE AND TRY AGAIN.");
                 return;
             }
-            Result result = shop.Purchase(team, offer.Kind, offer.DefinitionId);
+            Result result = context.Saves.PurchaseShopItem(offer.Kind, offer.DefinitionId);
             Refresh();
             SetText(feedbackText, result.IsSuccess
-                ? $"PURCHASED {offer.DisplayName}. SAVE TO KEEP CHANGES; INSTALL IN GARAGE."
+                ? $"PURCHASED {offer.DisplayName}. CAMPAIGN SAVED. OPEN GARAGE TO CONFIGURE OR ASSIGN."
                 : result.ErrorMessage);
             owner?.RefreshHome();
             if (purchaseButton != null && purchaseButton.interactable) purchaseButton.Select();

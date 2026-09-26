@@ -45,6 +45,7 @@ namespace RaceFatal.Data
 
         private readonly List<OpponentTeamDefinition> opponentTeamDefinitionList = new();
 
+        public IReadOnlyDictionary<string, BikeBuildDefinition> BikeBuildDefinitions => bikeBuildDefinitions;
         public IReadOnlyDictionary<string, BikeDefinition> BikeDefinitions => bikeDefinitions;
         public IReadOnlyDictionary<string, EngineDefinition> EngineDefinitions => engineDefinitions;
         public IReadOnlyDictionary<string, ChassisDefinition> ChassisDefinitions => chassisDefinitions;

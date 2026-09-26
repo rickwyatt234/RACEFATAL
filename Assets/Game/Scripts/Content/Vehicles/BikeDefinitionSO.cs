@@ -15,6 +15,9 @@ namespace RaceFatal.Content.Vehicles
         [Header("Scene Content")]
         [SerializeField] private GameObject bikePrefab;
 
+        [SerializeField] private Sprite shopPreview;
+        public Sprite ShopPreview => shopPreview;
+
         [Header("Equipment Nodes")]
         [Min(0)][SerializeField] private int smallNodeCount;
         [Min(0)][SerializeField] private int mediumNodeCount;

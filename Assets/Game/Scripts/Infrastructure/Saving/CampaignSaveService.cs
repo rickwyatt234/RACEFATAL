@@ -43,6 +43,9 @@ namespace RaceFatal.Infrastructure.Saving
                     nameof(repository));
         }
 
+        public Result PurchaseShopItem(ShopItemKind kind, string id) => SaveCareerTransition(() => sessions.PurchaseShopItem(kind, id));
+        public Result RecoverTeam(string signature) => SaveCareerTransition(() => sessions.RecoverTeam(signature));
+
         public Result StartSuccessor(string name) => SaveCareerTransition(() => sessions.StartSuccessor(name));
         public Result AcknowledgeNewRacer() => SaveCareerTransition(sessions.AcknowledgeNewRacer);
         public Result RetirePlayer() => SaveCareerTransition(sessions.RetirePlayer);
