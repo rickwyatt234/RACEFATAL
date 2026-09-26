@@ -129,6 +129,11 @@ namespace RaceFatal.Career
                 new TeamRosterState();
         }
 
+        internal void Rename(string name)
+        {
+            TeamName = name;
+        }
+
         public void SetColors(
             string primaryColor,
             string secondaryColor)

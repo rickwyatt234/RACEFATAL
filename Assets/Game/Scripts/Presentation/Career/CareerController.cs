@@ -38,6 +38,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private CareerShopView shopView;
         [SerializeField] private CareerResearchView researchView;
         [SerializeField] private CareerRosterView rosterView;
+        [SerializeField] private CareerTeamView teamView;
 
         [Header("Feedback")]
         [SerializeField] private TMP_Text errorText;
@@ -90,6 +91,7 @@ namespace RaceFatal.Presentation.Career
             shopView?.Initialize(this, context);
             researchView?.Initialize(this, context);
             rosterView?.Initialize(this, context);
+            teamView?.Initialize(this, context);
 
             ShowScreen(
                 CareerScreen.Home);
@@ -198,6 +200,10 @@ namespace RaceFatal.Presentation.Career
             else if (screen == CareerScreen.Roster)
             {
                 rosterView?.Refresh();
+            }
+            else if (screen == CareerScreen.Team)
+            {
+                teamView?.Refresh();
             }
             else if (screen == CareerScreen.Shop)
             {
