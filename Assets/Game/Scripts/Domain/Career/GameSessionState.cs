@@ -134,6 +134,18 @@ namespace RaceFatal.Career
             return Result.Success();
         }
 
+        public Result AssignBikePair(string playerBikeId, string partnerBikeId)
+        {
+            if (playerBikeId == partnerBikeId) return Result.Failure("Player and partner need different bikes.");
+            var player = ValidateBikeAssignment(playerBikeId);
+            if (!player.IsSuccess) return player;
+            var partner = ValidateBikeAssignment(partnerBikeId);
+            if (!partner.IsSuccess) return partner;
+            SelectedPlayerBikeId = playerBikeId;
+            SelectedPartnerBikeId = partnerBikeId;
+            return Result.Success();
+        }
+
         private Result ValidateBikeAssignment(string bikeId)
         {
             if (string.IsNullOrWhiteSpace(bikeId))

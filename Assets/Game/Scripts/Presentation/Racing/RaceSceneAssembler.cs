@@ -369,7 +369,7 @@ namespace RaceFatal.Presentation.Racing
                 {
                     racerContent =
                         catalog.FindRacerContent(
-                            participant.RacerId);
+                            participant.Racer.DefinitionId);
 
                     if (racerContent == null)
                     {

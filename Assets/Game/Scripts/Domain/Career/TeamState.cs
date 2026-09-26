@@ -6,6 +6,9 @@ namespace RaceFatal.Career
 {
     public class TeamState
     {
+        public string RecoverySupportCheckpoint { get; private set; }
+        public void RestoreRecoverySupport(string checkpoint) { RecoverySupportCheckpoint = checkpoint; }
+
         private readonly HashSet<string>
             unlockedTechnologyIds =
                 new HashSet<string>();

@@ -37,6 +37,7 @@ namespace RaceFatal.Infrastructure.Saving
         public int credits;
         public int fame;
         public int researchPoints;
+        public string recoverySupportCheckpoint;
 
         public List<ResearchContractSaveData> researchContracts = new List<ResearchContractSaveData>();
         public List<SettledRaceSaveData> settledRaceResults = new List<SettledRaceSaveData>();
@@ -73,6 +74,7 @@ namespace RaceFatal.Infrastructure.Saving
     public class RacerSaveData
     {
         public string racerId;
+        public string definitionId;
         public string name;
         public string teamId;
 

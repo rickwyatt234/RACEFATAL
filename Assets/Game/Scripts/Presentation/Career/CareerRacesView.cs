@@ -46,6 +46,16 @@ namespace RaceFatal.Presentation.Career
         private int mode;
         private GameSessionState Session => context?.Sessions?.Current;
         private TeamState Team => Session?.PlayerTeam;
+        public string SelectedEventId => selectedEventId;
+        public RaceDefinition SelectedRaceDefinition
+        {
+            get
+            {
+                if (Team == null || selectedEventId == null || calendar == null) return null;
+                string id = calendar.NextRaceId(Team, selectedEventId);
+                return string.IsNullOrEmpty(id) ? null : context.Database.GetRaceDefinition(id);
+            }
+        }
 
         public void Initialize(CareerController controller, GameContext gameContext)
         {
@@ -146,6 +156,9 @@ namespace RaceFatal.Presentation.Career
                 text.AppendLine("BOTH RACERS SCORE FOR THE TEAM. DNF SCORES ZERO. TIED POINTS SHARE FINAL RANK AND PRIZE.");
             }
             if (mode == 2 && definition != null) text.AppendLine($"\nFAME MILESTONE  {definition.RequiredFame:N0}\n{Math.Max(0, definition.RequiredFame - Team.Fame):N0} MORE FAME NEEDED. FAME IS NOT SPENT.");
+            text.AppendLine("\nPREPARATION CHECKLIST");
+            foreach (var check in TeamPreparationService.Inspect(Session, race)) text.AppendLine(check.ToString());
+            text.AppendLine("Use PREPARATION / RECOVERY for Garage, Roster and Shop shortcuts.");
             Set(selectedRequirementsText, text.ToString());
             ShowDiagram(race?.TrackId);
             var eligible = Preview(id);
