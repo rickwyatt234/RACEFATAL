@@ -121,7 +121,7 @@ namespace RaceFatal.Infrastructure.Saving
             CareerRun careerRun =
                 null;
 
-            if (data.careerRun != null)
+            if (!CareerRunSaveData.IsAbsent(data.careerRun))
             {
                 Result<CareerRun> runResult =
                     RestoreCareerRun(

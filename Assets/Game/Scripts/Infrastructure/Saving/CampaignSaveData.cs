@@ -101,6 +101,14 @@ namespace RaceFatal.Infrastructure.Saving
     [Serializable]
     public class CareerRunSaveData
     {
+        // JsonUtility can materialize a null inline run as a default object.
+        // A partially populated run remains present and must pass validation.
+        public static bool IsAbsent(CareerRunSaveData data) => data == null || (
+            string.IsNullOrEmpty(data.runId) && string.IsNullOrEmpty(data.playerRacerId) &&
+            !data.isActive && string.IsNullOrEmpty(data.activeChampionshipId) && !data.needsIntroduction &&
+            string.IsNullOrEmpty(data.startingBikeSource) && string.IsNullOrEmpty(data.startingPerkId) &&
+            (data.rivals == null || data.rivals.Count == 0));
+
         public string runId;
         public string playerRacerId;
 
