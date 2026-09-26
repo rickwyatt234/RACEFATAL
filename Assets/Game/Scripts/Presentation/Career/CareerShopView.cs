@@ -101,13 +101,15 @@ namespace RaceFatal.Presentation.Career
 
         private void EnsureDetailsPanel()
         {
-            if (detailsText == null) return;
+            if (detailsText == null || detailViewport != null) return;
             var old = detailsText.rectTransform;
             detailSize = old.sizeDelta;
             var root = CareerRuntimeUi.Rect(old.parent, "ShopDetailsPanel", old.anchoredPosition, detailSize);
             var oldText = detailsText;
             detailsText = CareerRuntimeUi.Scroll(root, "DetailsScroll", Vector2.zero, detailSize);
-            detailScroll = detailsText.GetComponentInParent<ScrollRect>();
+            // Career initializes every tab while most roots are inactive.
+            // Include inactive ancestors when resolving the scroll container.
+            detailScroll = detailsText.GetComponentInParent<ScrollRect>(true);
             detailViewport = (RectTransform)detailScroll.transform;
             var preview = CareerRuntimeUi.Rect(root, "BikePreview", Vector2.zero, new Vector2(detailSize.x, 165));
             bikePreview = preview.gameObject.AddComponent<Image>();
