@@ -32,6 +32,10 @@ namespace RaceFatal.Content
         [SerializeField] private List<TechnologyDefinitionSO> technologyDefinitions = new List<TechnologyDefinitionSO>();
         public IReadOnlyList<TechnologyDefinitionSO> TechnologyDefinitions => technologyDefinitions;
 
+        [Header("Calendar Events")]
+        [SerializeField] private List<CareerEventDefinitionSO> careerEventDefinitions = new List<CareerEventDefinitionSO>();
+        public IReadOnlyList<CareerEventDefinitionSO> CareerEventDefinitions => careerEventDefinitions;
+
         [Header("Roster Perks")]
         [SerializeField] private List<RacerPerkDefinitionSO> racerPerkDefinitions = new List<RacerPerkDefinitionSO>();
         public IReadOnlyList<RacerPerkDefinitionSO> RacerPerkDefinitions => racerPerkDefinitions;

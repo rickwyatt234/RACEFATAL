@@ -26,6 +26,7 @@ namespace RaceFatal.Infrastructure.Saving
     [Serializable]
     public class TeamSaveData
     {
+        public RaceFatal.Career.CareerCalendarData calendar;
         public string teamId;
         public string teamName;
 

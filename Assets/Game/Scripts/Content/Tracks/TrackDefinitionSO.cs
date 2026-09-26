@@ -19,6 +19,9 @@ namespace RaceFatal.Content.Tracks
         [Header("Scene Content")]
         [SerializeField]
         private GameObject trackPrefab;
+        [Header("Calendar preview")]
+        [SerializeField] private Sprite trackDiagram;
+        public Sprite TrackDiagram => trackDiagram;
 
         public string Id =>
             id;

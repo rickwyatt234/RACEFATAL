@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RaceFatal.Career;
 using RaceFatal.Data;
 using RaceFatal.Shared;
@@ -67,11 +68,15 @@ namespace RaceFatal.Racing
                     "No active game session exists.");
 
             GameSessionState session = sessionManager.Current;
+            var active = session.PlayerTeam.Calendar.Active;
+            if (active != null && active.raceIds[active.roundIndex] != raceId)
+                return Result<RaceDirector>.Failure("Finish or withdraw from the active calendar event first.");
             return PrepareRace(
                 raceId,
                 session.SelectedPlayerBikeId,
                 session.SelectedPartnerRacerId,
-                session.SelectedPartnerBikeId);
+                session.SelectedPartnerBikeId,
+                active?.standings.Select(s => s.teamId).Where(id => id != session.PlayerTeam.TeamId).ToList());
         }
 
         public Result<RaceDirector>
@@ -79,7 +84,8 @@ namespace RaceFatal.Racing
                 string raceId,
                 string playerBikeId,
                 string partnerRacerId,
-                string partnerBikeId)
+                string partnerBikeId,
+                IReadOnlyList<string> calendarTeamIds = null)
         {
             if (!sessionManager.HasSession)
             {
@@ -133,6 +139,18 @@ namespace RaceFatal.Racing
                     "was not found.");
             }
 
+            if (calendarTeamIds != null)
+            {
+                // Championship field stays fixed. Teams unable to field two active racers and
+                // compatible bikes miss the round; their accumulated standings remain intact.
+                var eligible = session.World.OpponentTeams.Where(t => calendarTeamIds.Contains(t.TeamId) &&
+                    t.Roster.GetRaceEligibleRacers().Count >= race.TeamSize &&
+                    t.Garage.GetRaceReadyBikesFor(race.EngineClass).Count >= race.TeamSize).ToList();
+                var round = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass,
+                    race.LapCount, (eligible.Count + 1) * race.TeamSize, race.TeamSize, race.ResearchPointBonus);
+                return raceEntryBuilder.Build(round, session.CareerRun, playerBike, partner, partnerBike, eligible);
+            }
+
             Result<List<TeamState>>
                 opponentsResult =
                     SelectOpponentTeams(
@@ -183,6 +201,7 @@ namespace RaceFatal.Racing
             var selected =
                 new List<TeamState>(
                     requiredOpponents);
+            if (requiredOpponents == 0) return Result<List<TeamState>>.Success(selected);
 
             foreach (TeamState team
                      in world.OpponentTeams)

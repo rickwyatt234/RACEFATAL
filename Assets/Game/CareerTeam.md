@@ -9,7 +9,7 @@ Run **RACE//FATAL → Career → Validate Team Management** for domain and JSON 
 - Edit the team name and primary/secondary hex colors with live color swatches. Apply & Save validates the complete edit before changing saved team state. Reset Fields discards unapplied edits. Leaving and reopening the Team tab also discards unapplied edits.
 - Optionally apply colors to all owned bikes. The checkbox is off by default, so customized bike paint is preserved. New purchases use the team's current colors through the existing Shop flow. Visible on-bike colors depend on the existing presentation/material pipeline.
 - Inspect shared credits, Team Fame and Research Points; current player/partner; roster totals and cumulative racer statistics; owned bikes, readiness and component counts. Racer starts/podiums count individual racers, so two team racers in one race count as two starts.
-- Inspect research output per race, active/expired researcher contracts, unlocked technologies and championship IDs. Championship entries display existing unlock data; championship scheduling is a separate milestone.
+- Inspect research output per race, active/expired researcher contracts, unlocked technologies. Race and championship unlocks, weekly events and standings are managed in the Races screen.
 - Open Roster, Garage or Research directly from the Team screen.
 
 Identity, bike colors and progression use the existing campaign save fields. No save version change or development content generation is required. Save Campaign retries saving current team state after a failed write; unapplied input edits require Apply & Save.

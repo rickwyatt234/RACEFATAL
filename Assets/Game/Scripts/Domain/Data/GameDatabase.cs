@@ -9,6 +9,11 @@ namespace RaceFatal.Data
 {
     public class GameDatabase
     {
+        private readonly Dictionary<string, CareerEventDefinition> careerEventDefinitions = new Dictionary<string, CareerEventDefinition>();
+        public IReadOnlyDictionary<string, CareerEventDefinition> CareerEventDefinitions => careerEventDefinitions;
+        public void AddCareerEventDefinition(CareerEventDefinition definition) => careerEventDefinitions.Add(definition.Id, definition);
+        public CareerEventDefinition GetCareerEventDefinition(string id) =>
+            !string.IsNullOrWhiteSpace(id) && careerEventDefinitions.TryGetValue(id, out var value) ? value : null;
         private readonly Dictionary<string, BikeDefinition> bikeDefinitions = new Dictionary<string, BikeDefinition>();
         private readonly Dictionary<string, EngineDefinition> engineDefinitions = new Dictionary<string, EngineDefinition>();
         private readonly Dictionary<string, ChassisDefinition> chassisDefinitions = new Dictionary<string, ChassisDefinition>();

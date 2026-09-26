@@ -211,7 +211,7 @@ namespace RaceFatal.Presentation.Career
             }
         }
 
-        public void LaunchRace(string raceId)
+        public void LaunchCalendarEvent(string eventId)
         {
             if (raceLaunchInProgress)
                 return;
@@ -226,11 +226,17 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(raceId))
+            if (string.IsNullOrWhiteSpace(eventId))
             {
                 ShowError("Select a race before entering.");
                 return;
             }
+
+            var calendar = new RaceFatal.Career.CareerCalendarService(context.Database);
+            var allowed = calendar.CanEnter(context.Sessions.Current.PlayerTeam, eventId);
+            if (!allowed.IsSuccess) { ShowError(allowed.ErrorMessage); return; }
+            string raceId = calendar.NextRaceId(context.Sessions.Current.PlayerTeam, eventId);
+            if (string.IsNullOrEmpty(raceId)) { ShowError("The event has no playable round."); return; }
 
             if (context.RaceLaunch.HasPendingRace)
             {
@@ -282,13 +288,15 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            // Preserve the most recent career state before entering
-            // the race. Post-race changes are saved at the results screen.
+            var registration = calendar.Register(context.Sessions.Current, eventId, prepared.Value);
+            if (!registration.IsSuccess) { ShowError(registration.ErrorMessage); return; }
+            // Persist the paid entry and stable race identity before entering the scene.
             Result saveResult =
                 context.Saves.SaveCurrentCampaign();
 
             if (!saveResult.IsSuccess)
             {
+                registration.Value.Rollback();
                 ShowError(
                     "Campaign could not be saved before racing: " +
                     saveResult.ErrorMessage);
@@ -310,7 +318,7 @@ namespace RaceFatal.Presentation.Career
                 raceLaunchInProgress = false;
                 racesView?.SetBusy(false);
                 ShowError("Failed to load race scene: " +
-                    exception.Message);
+                    exception.Message + " Your paid entry is saved; retry without another fee.");
             }
         }
 

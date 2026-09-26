@@ -108,9 +108,6 @@ namespace RaceFatal.Presentation.Career
             if (team.UnlockedTechnologyIds.Count == 0) progression.AppendLine("No technologies researched yet.");
             foreach (string id in team.UnlockedTechnologyIds.OrderBy(id => id))
                 progression.AppendLine(context.Database.GetTechnologyDefinition(id)?.DisplayName ?? id);
-            progression.AppendLine($"\nCHAMPIONSHIP UNLOCKS  {team.UnlockedChampionshipIds.Count}\n");
-            if (team.UnlockedChampionshipIds.Count == 0) progression.AppendLine("No championships unlocked yet.");
-            foreach (string id in team.UnlockedChampionshipIds.OrderBy(id => id)) progression.AppendLine(id);
             Set(progressionText, progression.ToString());
         }
 

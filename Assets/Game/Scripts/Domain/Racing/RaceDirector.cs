@@ -13,7 +13,13 @@ namespace RaceFatal.Racing
         private readonly LapTracker lapTracker;
         private readonly CareerManager careerManager;
 
-        private readonly string raceInstanceId = Guid.NewGuid().ToString("N");
+        private string raceInstanceId = Guid.NewGuid().ToString("N");
+        public string InstanceId => raceInstanceId;
+        public void UseInstanceId(string id)
+        {
+            if (state.IsStarted || string.IsNullOrWhiteSpace(id)) throw new InvalidOperationException("Cannot change a started race identity.");
+            raceInstanceId = id;
+        }
         private int nextFinishPosition = 1;
         public float AIVsAIDamageMultiplier { get; set; } = 0.45f;
 

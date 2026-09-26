@@ -14,166 +14,71 @@ public static class CareerRacesScaffoldBuilder
     [MenuItem("RACE//FATAL/Career/Build Races Screen")]
     public static void BuildRacesScreen()
     {
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            return;
-
-        Scene scene = EditorSceneManager.OpenScene(
-            ScenePath,
-            OpenSceneMode.Single);
-
-        GameObject systems = GameObject.Find("CareerSystems");
-        GameObject canvas = GameObject.Find("CareerCanvas");
-
-        if (systems == null || canvas == null)
-        {
-            EditorUtility.DisplayDialog(
-                "RACE//FATAL",
-                "Build the Career Hub scaffold before building the Races screen.",
-                "OK");
-            return;
-        }
-
-        CareerController owner =
-            systems.GetComponent<CareerController>();
-
-        Transform racesRoot =
-            canvas.transform.Find("RacesRoot");
-
-        if (owner == null || racesRoot == null)
-        {
-            EditorUtility.DisplayDialog(
-                "RACE//FATAL",
-                "CareerController or RacesRoot is missing.",
-                "OK");
-            return;
-        }
-
-        if (!EditorUtility.DisplayDialog(
-                "Rebuild Races Screen",
-                "Replace the contents of RacesRoot? Other career screens " +
-                "and all other scene objects will be left unchanged.",
-                "Build",
-                "Cancel"))
-        {
-            return;
-        }
-
-        CareerRacesView view =
-            racesRoot.GetComponent<CareerRacesView>();
-
-        if (view == null)
-            view = racesRoot.gameObject.AddComponent<CareerRacesView>();
-
-        ClearChildren(racesRoot);
-
-        CreateText(
-            racesRoot,
-            "Title",
-            "RACES // CHAMPIONSHIPS",
-            40,
-            new Vector2(410, -85),
-            new Vector2(1250, 62));
-
-        TMP_Text help = CreateText(
-            racesRoot,
-            "Instructions",
-            "SELECT AN EVENT // DEFAULT TEAM AND BIKES",
-            23,
-            new Vector2(410, -160),
-            new Vector2(780, 40));
-        help.color = new Color(0.64f, 0.82f, 0.86f, 1f);
-
-        RectTransform listPanel =
-            CreatePanel(
-                racesRoot,
-                "RaceListPanel",
-                new Vector2(405, -220),
-                new Vector2(735, 646));
-
-        RectTransform content = CreateScrollList(listPanel);
-
-        CareerRaceCardView template =
-            CreateCardTemplate(racesRoot);
-
-        RectTransform detailsPanel =
-            CreatePanel(
-                racesRoot,
-                "RaceDetailsPanel",
-                new Vector2(1170, -220),
-                new Vector2(650, 646));
-
-        TMP_Text selectedName = CreateText(
-            detailsPanel,
-            "SelectedRaceName",
-            "SELECT A RACE",
-            36,
-            new Vector2(24, -28),
-            new Vector2(595, 100));
-
-        TMP_Text selectedTrack = CreateText(
-            detailsPanel,
-            "SelectedTrack",
-            "",
-            26,
-            new Vector2(24, -150),
-            new Vector2(580, 50));
-
-        TMP_Text requirements = CreateText(
-            detailsPanel,
-            "SelectedRequirements",
-            "",
-            25,
-            new Vector2(24, -225),
-            new Vector2(570, 205));
-
-        TMP_Text selectedStatus = CreateText(
-            detailsPanel,
-            "SelectedStatus",
-            "",
-            22,
-            new Vector2(24, -445),
-            new Vector2(570, 95));
-
-        Button enterButton = CreateButton(
-            detailsPanel,
-            "EnterRaceButton",
-            "ENTER RACE",
-            new Vector2(24, 28),
-            new Vector2(600, 70));
-
-        // This button anchors to the bottom-left of the details panel.
-        RectTransform buttonRect =
-            enterButton.GetComponent<RectTransform>();
-        buttonRect.anchorMin = Vector2.zero;
-        buttonRect.anchorMax = Vector2.zero;
-        buttonRect.pivot = Vector2.zero;
-
-        TMP_Text feedback = CreateText(
-            racesRoot,
-            "RaceStatus",
-            "",
-            21,
-            new Vector2(410, -914),
-            new Vector2(1330, 75));
-
-        SetReference(view, "cardContainer", content);
-        SetReference(view, "cardTemplate", template);
-        SetReference(view, "selectedRaceNameText", selectedName);
-        SetReference(view, "selectedTrackText", selectedTrack);
-        SetReference(view, "selectedRequirementsText", requirements);
-        SetReference(view, "selectedStatusText", selectedStatus);
-        SetReference(view, "enterRaceButton", enterButton);
-        SetReference(view, "feedbackText", feedback);
+        if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogWarning("Exit Play Mode before building Races UI."); return; }
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        var systems = GameObject.Find("CareerSystems");
+        var canvas = GameObject.Find("CareerCanvas");
+        var owner = systems != null ? systems.GetComponent<CareerController>() : null;
+        var root = canvas != null ? canvas.transform.Find("RacesRoot") : null;
+        if (owner == null || root == null)
+        { EditorUtility.DisplayDialog("RACE//FATAL", "Build the Career Hub scaffold first.", "OK"); return; }
+        var view = root.GetComponent<CareerRacesView>();
+        if (view == null) view = root.gameObject.AddComponent<CareerRacesView>();
+        ClearChildren(root);
+        CreateText(root, "Title", "RACES // CHAMPIONSHIPS", 40, new Vector2(410, -85), new Vector2(1300, 62));
+        var calendar = CreateButton(root, "Calendar", "THIS WEEK", new Vector2(410, -165), new Vector2(300, 52));
+        var unlocked = CreateButton(root, "Unlocked", "UNLOCKED EVENTS", new Vector2(740, -165), new Vector2(340, 52));
+        var fame = CreateButton(root, "Fame", "FAME MILESTONES", new Vector2(1110, -165), new Vector2(340, 52));
+        var standings = CreateButton(root, "Standings", "STANDINGS", new Vector2(1480, -165), new Vector2(340, 52));
+        var week = CreateText(root, "Week", "WEEK --", 24, new Vector2(410, -232), new Vector2(1400, 40));
+        var listPanel = CreatePanel(root, "EventList", new Vector2(410, -280), new Vector2(645, 610));
+        var content = CreateScrollList(listPanel);
+        var template = CreateCardTemplate(root);
+        var details = CreatePanel(root, "EventDetails", new Vector2(1080, -280), new Vector2(740, 610));
+        var selectedName = CreateText(details, "EventName", "SELECT AN EVENT", 30, new Vector2(20, -20), new Vector2(430, 72));
+        var selectedTrack = CreateText(details, "Track", "", 23, new Vector2(20, -100), new Vector2(425, 70));
+        var diagramPanel = CreatePanel(details, "Diagram", new Vector2(475, -20), new Vector2(245, 145));
+        var diagram = CreatePanel(diagramPanel, "TrackDiagram", Vector2.zero, new Vector2(245, 145)).GetComponent<Image>();
+        diagram.preserveAspect = true; diagram.raycastTarget = false; diagram.color = Color.white;
+        var placeholder = CreateText(diagramPanel, "Placeholder", "TRACK DIAGRAM\nNOT AVAILABLE", 20, new Vector2(15, -40), new Vector2(215, 90));
+        var scrollRoot = CreatePanel(details, "DetailScroll", new Vector2(20, -185), new Vector2(700, 305));
+        var viewport = CreatePanel(scrollRoot, "Viewport", Vector2.zero, new Vector2(700, 305));
+        viewport.gameObject.AddComponent<RectMask2D>();
+        var requirements = CreateText(viewport, "Details", "", 21, Vector2.zero, Vector2.zero);
+        var textRect = requirements.rectTransform;
+        textRect.anchorMin = new Vector2(0, 1); textRect.anchorMax = new Vector2(1, 1);
+        textRect.offsetMin = new Vector2(8, 0); textRect.offsetMax = new Vector2(-8, 0);
+        requirements.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        var scroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
+        scroll.viewport = viewport; scroll.content = textRect; scroll.horizontal = false;
+        scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 30;
+        var status = CreateText(details, "Status", "", 21, new Vector2(20, -515), new Vector2(700, 80));
+        var advance = CreateButton(root, "AdvanceWeek", "SKIP WEEK", new Vector2(410, -915), new Vector2(645, 65));
+        var enter = CreateButton(root, "EnterEvent", "ENTER / CONTINUE", new Vector2(1080, -915), new Vector2(740, 65));
+        var feedback = CreateText(root, "Feedback", "", 21, new Vector2(410, -998), new Vector2(1410, 75));
+        var modal = CreatePanel(root, "EventConfirmation", Vector2.zero, Vector2.zero); Stretch(modal, 0);
+        modal.GetComponent<Image>().color = new Color(0, 0, 0, .96f);
+        var confirmation = CreateText(modal, "Message", "", 28, new Vector2(600, -275), new Vector2(990, 360));
+        var confirm = CreateButton(modal, "Confirm", "CONFIRM", new Vector2(620, -700), new Vector2(400, 70));
+        var cancel = CreateButton(modal, "Cancel", "CANCEL", new Vector2(1100, -700), new Vector2(400, 70));
+        modal.gameObject.SetActive(false);
+        SetReference(view, "cardContainer", content); SetReference(view, "cardTemplate", template);
+        SetReference(view, "weekText", week); SetReference(view, "selectedRaceNameText", selectedName);
+        SetReference(view, "selectedTrackText", selectedTrack); SetReference(view, "selectedRequirementsText", requirements);
+        SetReference(view, "selectedStatusText", status); SetReference(view, "feedbackText", feedback);
+        SetReference(view, "trackDiagram", diagram); SetReference(view, "diagramPlaceholder", placeholder);
+        SetReference(view, "enterRaceButton", enter); SetReference(view, "calendarButton", calendar);
+        SetReference(view, "unlockedButton", unlocked); SetReference(view, "fameButton", fame);
+        SetReference(view, "standingsButton", standings); SetReference(view, "advanceButton", advance);
+        SetReference(view, "advanceLabel", advance.GetComponentInChildren<TMP_Text>());
+        SetReference(view, "confirmationRoot", modal.gameObject); SetReference(view, "confirmationText", confirmation);
+        SetReference(view, "confirmButton", confirm); SetReference(view, "cancelButton", cancel);
         SetReference(owner, "racesView", view);
-
         template.gameObject.SetActive(false);
-
-        EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
-        Selection.activeGameObject = racesRoot.gameObject;
-
-        Debug.Log(
-            "RACE//FATAL: Career Races screen added. Other career screens preserved.");
+        EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+        Selection.activeGameObject = root.gameObject;
+        Debug.Log("Races calendar UI built. Start from Bootstrap and load a campaign.");
     }
 
     private static RectTransform CreateScrollList(
@@ -290,7 +195,7 @@ public static class CareerRacesScaffoldBuilder
             "RACE NAME",
             28,
             new Vector2(18, -13),
-            new Vector2(620, 45));
+            new Vector2(550, 45));
 
         TMP_Text track = CreateText(
             root.transform,
@@ -298,7 +203,7 @@ public static class CareerRacesScaffoldBuilder
             "TRACK",
             21,
             new Vector2(18, -62),
-            new Vector2(620, 34));
+            new Vector2(550, 34));
 
         TMP_Text requirements = CreateText(
             root.transform,
@@ -306,7 +211,7 @@ public static class CareerRacesScaffoldBuilder
             "ENGINE // LAPS // RACERS",
             18,
             new Vector2(18, -98),
-            new Vector2(640, 32));
+            new Vector2(550, 32));
 
         TMP_Text availability = CreateText(
             root.transform,
@@ -314,7 +219,7 @@ public static class CareerRacesScaffoldBuilder
             "AVAILABLE",
             17,
             new Vector2(18, -130),
-            new Vector2(600, 28));
+            new Vector2(550, 28));
 
         CareerRaceCardView view =
             root.GetComponent<CareerRaceCardView>();
@@ -387,7 +292,7 @@ public static class CareerRacesScaffoldBuilder
 
         Button button = root.GetComponent<Button>();
         button.targetGraphic = image;
-        button.interactable = false;
+        button.interactable = true;
 
         TMP_Text label = CreateText(
             root.transform,
@@ -433,6 +338,7 @@ public static class CareerRacesScaffoldBuilder
         label.fontSize = fontSize;
         label.alignment = TextAlignmentOptions.TopLeft;
         label.raycastTarget = false;
+        label.richText = false;
 
         return label;
     }

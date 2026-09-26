@@ -192,6 +192,7 @@ namespace RaceFatal.Infrastructure.Saving
                 {
                     teamId =
                         team.TeamId,
+                    calendar = team.Calendar.Export(),
 
                     teamName =
                         team.TeamName,
@@ -537,6 +538,8 @@ namespace RaceFatal.Infrastructure.Saving
 
             team.AddCredits(
                 data.credits);
+            var calendarRestore = team.RestoreCalendar(data.calendar);
+            if (!calendarRestore.IsSuccess) return Result<TeamState>.Failure(calendarRestore.ErrorMessage);
 
             team.AddFame(
                 data.fame);
@@ -675,6 +678,10 @@ namespace RaceFatal.Infrastructure.Saving
                 }
             }
 
+            var activeEvent = team.Calendar.Active;
+            if (activeEvent != null && (!activeEvent.standings.Exists(s => s.teamId == team.TeamId) ||
+                (!string.IsNullOrEmpty(activeEvent.pendingInstanceId) && team.SettledRaceResults.ContainsKey(activeEvent.pendingInstanceId))))
+                return Result<TeamState>.Failure("Active event has an invalid team or an already settled attempt.");
             return Result<TeamState>.Success(
                 team);
         }

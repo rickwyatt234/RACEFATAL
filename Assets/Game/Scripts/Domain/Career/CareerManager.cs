@@ -99,10 +99,12 @@ namespace RaceFatal.Career
                     "Cannot resolve a race without a loaded team.");
             }
 
-            return postRaceResolutionService.Resolve(
+            var result = postRaceResolutionService.Resolve(
                 raceResult,
                 Team,
                 player);
+            if (Team.Calendar.Active == null) CurrentRun?.ExitChampionship();
+            return result;
         }
 
         public void KillCurrentRun()

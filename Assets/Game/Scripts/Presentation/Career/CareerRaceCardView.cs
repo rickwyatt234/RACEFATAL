@@ -28,6 +28,23 @@ namespace RaceFatal.Presentation.Career
 
         public string RaceId => raceId;
 
+        public void BindEvent(string eventId, string name, string type, string requirements, string status, Action<string> selected)
+        {
+            raceId = eventId;
+            onSelected = selected;
+            SetText(raceNameText, name);
+            SetText(trackNameText, type);
+            SetText(requirementsText, requirements);
+            SetText(availabilityText, status);
+            if (selectButton != null)
+            {
+                selectButton.onClick.RemoveListener(Select);
+                selectButton.onClick.AddListener(Select);
+                selectButton.interactable = true;
+            }
+            SetSelected(false);
+        }
+
         public void Bind(
             RaceDefinition race,
             string trackName,

@@ -89,6 +89,14 @@ namespace RaceFatal.Career
         public GarageState Garage { get; }
 
         public TeamRosterState Roster { get; }
+        public CareerCalendarState Calendar { get; private set; } = new CareerCalendarState();
+        public RaceFatal.Shared.Result RestoreCalendar(CareerCalendarData data)
+        {
+            var restored = CareerCalendarState.Restore(data);
+            if (!restored.IsSuccess) return RaceFatal.Shared.Result.Failure(restored.ErrorMessage);
+            Calendar = restored.Value;
+            return RaceFatal.Shared.Result.Success();
+        }
 
         public IReadOnlyCollection<string>
             UnlockedTechnologyIds =>
