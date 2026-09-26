@@ -12,6 +12,8 @@ using UnityEngine;
 
 public static class CareerSuccessionValidation
 {
+    private const int TestSlot = 1;
+
     [MenuItem("RACE//FATAL/Career/Validate Career Succession")]
     public static void Run()
     {
@@ -40,7 +42,7 @@ public static class CareerSuccessionValidation
             partner.RacerId, bike.BikeId, partnerBike.BikeId);
         var repository = new MemoryRepository { Data = mapper.Capture(session).Value };
         var saves = new CampaignSaveService(sessions, mapper, repository);
-        Require(saves.LoadCampaign(0).IsSuccess, "Load fixture");
+        RequireSuccess(saves.LoadCampaign(TestSlot), "Load fixture");
         Require(!saves.StartSuccessor("Early").IsSuccess, "Cannot replace an active racer");
         team = sessions.Current.PlayerTeam; player = sessions.Current.CareerRun.Player;
         bike = team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId);
@@ -63,7 +65,7 @@ public static class CareerSuccessionValidation
             "Fatal results settle before succession and close championship");
         Require(saves.SaveCurrentCampaign().IsSuccess, "Save death");
         Reload(saves);
-        var summary = saves.GetSlotSummary(0).Value;
+        var summary = saves.GetSlotSummary(TestSlot).Value;
         Require(summary.HasCareerRun && !summary.CareerActive && summary.RacerName == "Original", "Ended save summary");
         team = sessions.Current.PlayerTeam;
         string preserved = JsonUtility.ToJson(repository.Data.playerTeam);
@@ -136,7 +138,8 @@ public static class CareerSuccessionValidation
         // Migrate legacy saves that cleared the run pointer at death/retirement.
         var legacy = mapper.Capture(sessions.Current).Value; legacy.careerRun = null; legacy.successorStarterBuildId = null;
         saves.CloseCurrentCampaign(false); repository.Data = legacy;
-        Require(saves.LoadCampaign(0).IsSuccess && saves.StartSuccessor("Legacy successor").IsSuccess, "Legacy null-run campaign continues");
+        RequireSuccess(saves.LoadCampaign(TestSlot), "Load legacy null-run campaign");
+        Require(saves.StartSuccessor("Legacy successor").IsSuccess, "Legacy null-run campaign continues");
         Require(saves.RetirePlayer().IsSuccess, "Retire legacy successor");
         team = sessions.Current.PlayerTeam;
         team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).Destroy();
@@ -149,7 +152,7 @@ public static class CareerSuccessionValidation
         sessions.Current.PlayerTeam.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).Destroy();
         var missing = mapper.Capture(sessions.Current).Value; missing.successorStarterBuildId = "missing-build";
         saves.CloseCurrentCampaign(false); repository.Data = missing;
-        Require(saves.LoadCampaign(0).IsSuccess, "Load missing-content fixture");
+        RequireSuccess(saves.LoadCampaign(TestSlot), "Load missing-content fixture");
         int rosterCount = sessions.Current.PlayerTeam.Roster.Racers.Count;
         Require(!saves.StartSuccessor("Unavailable kit").IsSuccess && sessions.Current.PlayerTeam.Roster.Racers.Count == rosterCount &&
             sessions.Current.PlayerTeam.Garage.Bikes.Count == bikesBefore, "Missing content grants no partial kit or racer");
@@ -168,7 +171,11 @@ public static class CareerSuccessionValidation
     private static void Reload(CampaignSaveService saves)
     {
         Require(saves.CloseCurrentCampaign(false).IsSuccess, "Close campaign");
-        Require(saves.LoadCampaign(0).IsSuccess, "Reload campaign");
+        RequireSuccess(saves.LoadCampaign(TestSlot), "Reload campaign");
+    }
+    private static void RequireSuccess<T>(Result<T> result, string step)
+    {
+        Require(result.IsSuccess, step + ": " + result.ErrorMessage);
     }
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private sealed class MemoryRepository : ICampaignSaveRepository
@@ -176,7 +183,7 @@ public static class CareerSuccessionValidation
         public CampaignSaveData Data;
         public bool Fail, ThrowOnSave;
         public int SlotCount => 3;
-        public bool Exists(int slotIndex) => slotIndex == 0 && Data != null;
+        public bool Exists(int slotIndex) => slotIndex == TestSlot && Data != null;
         public Result Save(int slotIndex, CampaignSaveData data)
         {
             if (ThrowOnSave) throw new InvalidOperationException("Simulated disk exception");
