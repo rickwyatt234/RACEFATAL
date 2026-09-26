@@ -21,6 +21,7 @@ namespace RaceFatal.Data
             !string.IsNullOrWhiteSpace(id) && racerPerkDefinitions.TryGetValue(id, out var value) ? value : null;
 
         private readonly Dictionary<string, RacerDefinition> racerDefinitions = new Dictionary<string, RacerDefinition>();
+        public IReadOnlyDictionary<string, RacerDefinition> RacerDefinitions => racerDefinitions;
         private readonly Dictionary<string, OpponentTeamDefinition> opponentTeamDefinitions = new Dictionary<string, OpponentTeamDefinition>();
         private readonly Dictionary<string, TrackDefinition> trackDefinitions = new Dictionary<string, TrackDefinition>();
         private readonly Dictionary<string, RaceDefinition> raceDefinitions = new Dictionary<string, RaceDefinition>();
