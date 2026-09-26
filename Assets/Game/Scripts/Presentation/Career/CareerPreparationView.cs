@@ -103,7 +103,7 @@ namespace RaceFatal.Presentation.Career
             blocked.Clear(); pending = null; confirming = false; modal.SetActive(false);
             owner.ShowScreen(owner.CurrentScreen);
         }
-        private void ResetScroll() { Canvas.ForceUpdateCanvases(); details.GetComponentInParent<ScrollRect>().verticalNormalizedPosition = 1; }
+        private void ResetScroll() { Canvas.ForceUpdateCanvases(); details.GetComponentInParent<ScrollRect>(true).verticalNormalizedPosition = 1; }
         private void OnDestroy() { if (modal != null) Destroy(modal); }
     }
 }
