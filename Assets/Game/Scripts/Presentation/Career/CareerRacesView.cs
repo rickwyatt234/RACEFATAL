@@ -154,7 +154,7 @@ namespace RaceFatal.Presentation.Career
         }
         private Result<RaceDirector> Preview(string id)
         {
-            if (!calendarSaved || Session?.CareerRun?.IsActive != true) return Result<RaceDirector>.Failure("A SAVED ACTIVE CAREER IS REQUIRED.");
+            if (!calendarSaved || Session?.CareerRun?.IsActive != true) return Result<RaceDirector>.Failure("CREATE A NEW RACER FROM CAREER HOME TO ENTER EVENTS.");
             var allowed = calendar.CanEnter(Team, id);
             if (!allowed.IsSuccess) return Result<RaceDirector>.Failure(allowed.ErrorMessage);
             var raceId = calendar.NextRaceId(Team, id);

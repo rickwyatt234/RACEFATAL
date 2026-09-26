@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using RaceFatal.Data;
 using RaceFatal.Shared;
 using RaceFatal.Vehicles;
@@ -227,6 +228,8 @@ namespace RaceFatal.Career
                     team,
                     player);
 
+            careerRun.PrepareIntroduction("NEW CAMPAIGN STARTER BIKE", GrantStartingPerk(player));
+
             careerManager.InitializeNewGame(
                 team,
                 careerRun);
@@ -242,7 +245,8 @@ namespace RaceFatal.Career
                     worldResult.Value,
                     partner.RacerId,
                     playerBikeResult.Value.BikeId,
-                    partnerBikeResult.Value.BikeId);
+                    partnerBikeResult.Value.BikeId,
+                    successorStarterBuildId: request.PlayerStarterBuildId);
 
             return Result<GameSessionState>.Success(
                 Current);
@@ -283,6 +287,80 @@ namespace RaceFatal.Career
                     "Failed to restore game session: " +
                     exception.Message);
             }
+        }
+
+        public Result StartSuccessor(string name)
+        {
+            if (Current == null) return Result.Failure("No campaign is loaded.");
+            if (careerManager.HasActiveRun) return Result.Failure("Your current racer is still active.");
+            if (Current.PlayerTeam.Calendar.Active != null)
+                return Result.Failure("Resolve or withdraw from the previous event before creating a racer.");
+            if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 40 || name.Any(char.IsControl))
+                return Result.Failure("Enter a racer name of 1–40 characters.");
+            try
+            {
+                string bikeSource = "RETAINED TEAM BIKE";
+                var garage = Current.PlayerTeam.Garage;
+                var bike = garage.FindBike(Current.SelectedPlayerBikeId);
+                if (bike?.IsRaceReady != true)
+                {
+                    bikeSource = "READY SPARE ASSIGNED";
+                    bike = garage.Bikes.FirstOrDefault(b => b.IsRaceReady && b.BikeId != Current.SelectedPartnerBikeId);
+                    if (bike == null)
+                    {
+                        var build = database.GetBikeBuildDefinition(Current.SuccessorStarterBuildId);
+                        if (build == null) return Result.Failure("The campaign's successor starter build is missing from the content catalog.");
+                        // Build in a temporary garage first: invalid authored content cannot
+                        // leave half a recovery kit in the team's persistent inventory.
+                        var kit = new GarageState();
+                        var created = bikeBuildFactory.CreateInGarage(build, kit,
+                            Current.PlayerTeam.PrimaryColor, Current.PlayerTeam.SecondaryColor);
+                        if (!created.IsSuccess) return Result.Failure(created.ErrorMessage);
+                        foreach (var item in kit.Bikes) garage.AddBike(item);
+                        foreach (var item in kit.Engines) garage.AddEngine(item);
+                        foreach (var item in kit.Chassis) garage.AddChassis(item);
+                        foreach (var item in kit.Equipment) garage.AddEquipment(item);
+                        bike = created.Value;
+                        bikeSource = "FRESH STARTER RECOVERY BIKE — NO CREDIT COST";
+                    }
+                    var assigned = Current.SelectPlayerBike(bike.BikeId);
+                    if (!assigned.IsSuccess) return assigned;
+                }
+                var run = careerManager.StartNewRun(name);
+                run.PrepareIntroduction(bikeSource, GrantStartingPerk(run.Player));
+                return Result.Success();
+            }
+            catch (ArgumentException exception) { return Result.Failure(exception.Message); }
+            catch (InvalidOperationException exception) { return Result.Failure(exception.Message); }
+        }
+
+        private string GrantStartingPerk(RacerState player)
+        {
+            // Player-supported effects only; draw from the cheapest authored tier.
+            // Granted once at creation, and saved before showing the introduction.
+            var candidates = database.RacerPerkDefinitions.Values.Where(p =>
+                p.Effect == RacerPerkEffect.EnergyCapacity && p.FameCost >= 0 && p.Strength > 0 &&
+                !float.IsNaN(p.Strength) && !float.IsInfinity(p.Strength)).ToList();
+            if (candidates.Count == 0) return null;
+            int tierCost = candidates.Min(p => p.FameCost);
+            candidates = candidates.Where(p => p.FameCost == tierCost).OrderBy(p => p.Id, StringComparer.Ordinal).ToList();
+            var perk = candidates[new Random().Next(candidates.Count)];
+            player.Progression.TryPurchasePerk(perk.Id, 0);
+            return perk.Id;
+        }
+
+        public Result AcknowledgeNewRacer()
+        {
+            if (Current?.CareerRun?.IsActive != true) return Result.Failure("No active racer.");
+            Current.CareerRun.AcknowledgeIntroduction();
+            return Result.Success();
+        }
+
+        public Result RetirePlayer()
+        {
+            if (Current?.CareerRun?.IsActive != true) return Result.Failure("No active racer to retire.");
+            try { careerManager.RetireCurrentRun(); return Result.Success(); }
+            catch (InvalidOperationException exception) { return Result.Failure(exception.Message); }
         }
 
         public void ClearSession()

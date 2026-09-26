@@ -89,10 +89,10 @@ namespace RaceFatal.Presentation.Career
 
             string careerStatus =
                 run == null
-                    ? "NO ACTIVE CAREER"
+                    ? "ENDED — CREATE A NEW RACER"
                     : run.IsActive
                         ? "ACTIVE"
-                        : "INACTIVE";
+                        : player?.Status.ToString().ToUpperInvariant() + " — CAREER ENDED";
 
             SetText(
                 careerStatusText,

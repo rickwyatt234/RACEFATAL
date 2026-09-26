@@ -54,6 +54,8 @@ namespace RaceFatal.Presentation.Career
         private GameContext context;
         private bool raceLaunchInProgress;
 
+        public string LastError { get; private set; }
+
         public CareerScreen CurrentScreen {
             get;
             private set;
@@ -95,6 +97,8 @@ namespace RaceFatal.Presentation.Career
 
             ShowScreen(
                 CareerScreen.Home);
+            if (homeRoot != null)
+                CareerSuccessionView.Create(this, context, homeRoot.transform);
         }
 
         public void ShowHome()
@@ -387,6 +391,7 @@ namespace RaceFatal.Presentation.Career
         private void ShowError(
             string message)
         {
+            LastError = message;
             if (errorText != null)
             {
                 errorText.text =
@@ -403,6 +408,7 @@ namespace RaceFatal.Presentation.Career
 
         private void ClearError()
         {
+            LastError = null;
             if (errorText != null)
             {
                 errorText.text =

@@ -67,7 +67,8 @@ namespace RaceFatal.Infrastructure.Saving
                     selectedPartnerBikeId =
                         session.SelectedPartnerBikeId,
                     selectedPartnerRacerId =
-                        session.SelectedPartnerRacerId
+                        session.SelectedPartnerRacerId,
+                    successorStarterBuildId = session.SuccessorStarterBuildId
                 };
 
             return Result<CampaignSaveData>.Success(
@@ -178,7 +179,8 @@ namespace RaceFatal.Infrastructure.Saving
                     data.defaultPartnerBikeId,
                     selectedPlayerBikeId,
                     selectedPartnerBikeId,
-                    selectedPartnerRacerId);
+                    selectedPartnerRacerId,
+                    data.successorStarterBuildId);
 
             return Result<GameSessionState>.Success(
                 session);
@@ -331,7 +333,10 @@ namespace RaceFatal.Infrastructure.Saving
                         run.IsActive,
 
                     activeChampionshipId =
-                        run.ActiveChampionshipId
+                        run.ActiveChampionshipId,
+                    needsIntroduction = run.NeedsIntroduction,
+                    startingBikeSource = run.StartingBikeSource,
+                    startingPerkId = run.StartingPerkId
                 };
 
             Array engineClasses =
@@ -757,7 +762,10 @@ namespace RaceFatal.Infrastructure.Saving
                     team,
                     player,
                     data.isActive,
-                    data.activeChampionshipId);
+                    data.activeChampionshipId,
+                    data.needsIntroduction,
+                    data.startingBikeSource,
+                    data.startingPerkId);
 
             if (!runResult.IsSuccess)
             {

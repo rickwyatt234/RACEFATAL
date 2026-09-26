@@ -13,6 +13,19 @@ namespace RaceFatal.Career
             rivalsByEngineClass =
                 new Dictionary<EngineClass, List<string>>();
 
+        public bool NeedsIntroduction { get; private set; }
+        public string StartingBikeSource { get; private set; }
+        public string StartingPerkId { get; private set; }
+
+        internal void PrepareIntroduction(string bikeSource, string perkId)
+        {
+            NeedsIntroduction = true;
+            StartingBikeSource = bikeSource;
+            StartingPerkId = perkId;
+        }
+
+        internal void AcknowledgeIntroduction() { NeedsIntroduction = false; }
+
         public string RunId { get; }
         public TeamState Team { get; }
         public RacerState Player { get; }
@@ -42,7 +55,10 @@ namespace RaceFatal.Career
             TeamState team,
             RacerState player,
             bool isActive,
-            string activeChampionshipId)
+            string activeChampionshipId,
+            bool needsIntroduction = false,
+            string startingBikeSource = null,
+            string startingPerkId = null)
         {
             if (string.IsNullOrWhiteSpace(
                     runId))
@@ -87,6 +103,9 @@ namespace RaceFatal.Career
                     team,
                     player);
 
+            run.NeedsIntroduction = needsIntroduction;
+            run.StartingBikeSource = startingBikeSource;
+            run.StartingPerkId = startingPerkId;
             run.IsActive =
                 isActive;
 
@@ -176,7 +195,7 @@ namespace RaceFatal.Career
 
         public void Retire()
         {
-            //Player.Retire();
+            Player.Retire();
             IsActive = false;
         }
     }

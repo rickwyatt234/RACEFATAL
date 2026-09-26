@@ -21,6 +21,7 @@ namespace RaceFatal.Infrastructure.Saving
         public string selectedPlayerBikeId;
         public string selectedPartnerBikeId;
         public string selectedPartnerRacerId;
+        public string successorStarterBuildId;
     }
 
     [Serializable]
@@ -106,6 +107,8 @@ namespace RaceFatal.Infrastructure.Saving
         public bool isActive;
 
         public string activeChampionshipId;
+        public bool needsIntroduction;
+        public string startingBikeSource, startingPerkId;
 
         public List<EngineClassRivalsSaveData> rivals =
             new List<EngineClassRivalsSaveData>();

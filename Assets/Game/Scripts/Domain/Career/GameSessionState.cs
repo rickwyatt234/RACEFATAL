@@ -33,6 +33,7 @@ namespace RaceFatal.Career
         }
 
         public string DefaultPlayerBikeId { get; }
+        public string SuccessorStarterBuildId { get; }
 
         public string DefaultPartnerBikeId { get; }
 
@@ -48,8 +49,12 @@ namespace RaceFatal.Career
             string defaultPartnerBikeId,
             string selectedPlayerBikeId = null,
             string selectedPartnerBikeId = null,
-            string selectedPartnerRacerId = null)
+            string selectedPartnerRacerId = null,
+            string successorStarterBuildId = null)
         {
+            // Original v1 campaigns used the authored player_starter build.
+            SuccessorStarterBuildId = string.IsNullOrWhiteSpace(successorStarterBuildId)
+                ? "player_starter" : successorStarterBuildId;
             PlayerTeam =
                 playerTeam
                 ?? throw new ArgumentNullException(

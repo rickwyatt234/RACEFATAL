@@ -43,6 +43,34 @@ namespace RaceFatal.Infrastructure.Saving
                     nameof(repository));
         }
 
+        public Result StartSuccessor(string name) => SaveCareerTransition(() => sessions.StartSuccessor(name));
+        public Result AcknowledgeNewRacer() => SaveCareerTransition(sessions.AcknowledgeNewRacer);
+        public Result RetirePlayer() => SaveCareerTransition(sessions.RetirePlayer);
+
+        // Prepare a restorable snapshot before changing racer identity. A failed write
+        // must not leave a successor or permanent retirement only in memory.
+        private Result SaveCareerTransition(Func<Result> transition)
+        {
+            if (!HasActiveCampaign) return Result.Failure("A saved campaign is required.");
+            var captured = mapper.Capture(sessions.Current);
+            if (!captured.IsSuccess) return Result.Failure(captured.ErrorMessage);
+            var before = mapper.Restore(captured.Value);
+            if (!before.IsSuccess) return Result.Failure(before.ErrorMessage);
+            Result result;
+            try
+            {
+                result = transition();
+                if (result.IsSuccess) result = SaveCurrentCampaign();
+            }
+            catch (Exception exception) { result = Result.Failure(exception.Message); }
+            if (result.IsSuccess) return result;
+            sessions.ClearSession();
+            var restored = sessions.RestoreSession(before.Value);
+            return Result.Failure(restored.IsSuccess
+                ? "Change was not saved and has been undone. " + result.ErrorMessage
+                : "Change failed: " + result.ErrorMessage + " Restore failed: " + restored.ErrorMessage);
+        }
+
         public Result<SaveSlotSummary> GetSlotSummary(
             int slotIndex)
         {
