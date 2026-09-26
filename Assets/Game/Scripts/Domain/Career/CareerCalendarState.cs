@@ -64,10 +64,24 @@ namespace RaceFatal.Career
         public static Result<CareerCalendarState> Restore(CareerCalendarData data)
         {
             if (data == null) return Result<CareerCalendarState>.Success(new CareerCalendarState());
-            if (data.week < 1 || data.week == int.MaxValue || (data.drawWeek != 0 && data.drawWeek != data.week) ||
-                !ValidIds(data.draw) || !ValidIds(data.unlocked) || !ValidIds(data.cancelledAttempts) || data.draw.Any(id => !data.unlocked.Contains(id)) ||
-                (data.drawWeek == 0 && data.draw.Count != 0) || !ValidEntry(data.active, false) || !ValidEntry(data.lastEvent, true))
-                return Result<CareerCalendarState>.Failure("Invalid career calendar save data.");
+            // Unity's inline JSON serializer represents null nested classes as
+            // default-valued objects. Normalize only completely empty sentinels.
+            // Use a separate snapshot so loading never changes the caller's data.
+            data = new CareerCalendarData {
+                seed = data.seed, week = data.week, drawWeek = data.drawWeek,
+                draw = data.draw, unlocked = data.unlocked, cancelledAttempts = data.cancelledAttempts,
+                active = IsEmptyEntry(data.active) ? null : data.active,
+                lastEvent = IsEmptyEntry(data.lastEvent) ? null : data.lastEvent };
+            if (data.week < 1 || data.week == int.MaxValue || (data.drawWeek != 0 && data.drawWeek != data.week))
+                return Result<CareerCalendarState>.Failure($"Invalid career calendar week (week={data.week}, drawWeek={data.drawWeek}).");
+            if (!ValidIds(data.draw) || !ValidIds(data.unlocked) || !ValidIds(data.cancelledAttempts))
+                return Result<CareerCalendarState>.Failure("Invalid career calendar ID lists.");
+            if (data.draw.Any(id => !data.unlocked.Contains(id)) || (data.drawWeek == 0 && data.draw.Count != 0))
+                return Result<CareerCalendarState>.Failure("Invalid career calendar draw.");
+            if (!ValidEntry(data.active, false))
+                return Result<CareerCalendarState>.Failure("Invalid active calendar event: " + data.active?.eventId);
+            if (!ValidEntry(data.lastEvent, true))
+                return Result<CareerCalendarState>.Failure("Invalid previous calendar event: " + data.lastEvent?.eventId);
             if (data.active != null && !data.unlocked.Contains(data.active.eventId))
                 return Result<CareerCalendarState>.Failure("Active calendar event is not unlocked.");
             if (data.active != null && data.cancelledAttempts.Contains(data.active.pendingInstanceId))
@@ -76,6 +90,15 @@ namespace RaceFatal.Career
             state.Data = data.Copy();
             return Result<CareerCalendarState>.Success(state);
         }
+        private static bool Empty<T>(List<T> values) => values == null || values.Count == 0;
+        private static bool IsEmptyEntry(CareerEventEntryData entry) => entry == null || (
+            string.IsNullOrEmpty(entry.eventId) && string.IsNullOrEmpty(entry.displayName) &&
+            string.IsNullOrEmpty(entry.description) && entry.kind == default &&
+            entry.entryFee == 0 && entry.roundIndex == 0 && entry.finalRank == 0 && entry.finalPrize == 0 &&
+            !entry.completed && !entry.withdrawn && string.IsNullOrEmpty(entry.pendingInstanceId) &&
+            string.IsNullOrEmpty(entry.pendingRaceId) && Empty(entry.raceIds) && Empty(entry.payouts) &&
+            Empty(entry.prizes) && Empty(entry.points) && Empty(entry.standings));
+
         private static bool ValidIds(List<string> ids) => ids != null &&
             ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct().Count() == ids.Count;
         private static bool ValidEntry(CareerEventEntryData entry, bool history)

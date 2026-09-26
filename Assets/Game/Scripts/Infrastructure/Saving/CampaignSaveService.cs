@@ -117,7 +117,7 @@ namespace RaceFatal.Infrastructure.Saving
                     data);
 
             bool hasCareerRun =
-                data.careerRun != null;
+                !CareerRunSaveData.IsAbsent(data.careerRun);
 
             bool careerActive =
                 hasCareerRun &&

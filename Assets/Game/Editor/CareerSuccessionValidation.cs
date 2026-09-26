@@ -17,6 +17,7 @@ public static class CareerSuccessionValidation
     [MenuItem("RACE//FATAL/Career/Validate Career Succession")]
     public static void Run()
     {
+        ValidateCalendarNullSerialization();
         var db = new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0, 100, 1, 100));
         db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
@@ -40,7 +41,10 @@ public static class CareerSuccessionValidation
         var partnerBike = builds.CreateInGarage(db.GetBikeBuildDefinition("player_starter"), team.Garage, "#ffffff", "#000000").Value;
         var session = new GameSessionState(team, new CareerRun("original-run", team, player), WorldState.Restore(null).Value,
             partner.RacerId, bike.BikeId, partnerBike.BikeId);
-        var repository = new MemoryRepository { Data = mapper.Capture(session).Value };
+        var fixture = mapper.Capture(session);
+        RequireSuccess(fixture, "Capture fixture");
+        RequireSuccess(mapper.Restore(fixture.Value), "Restore fixture before JSON");
+        var repository = new MemoryRepository { Data = fixture.Value };
         var saves = new CampaignSaveService(sessions, mapper, repository);
         RequireSuccess(saves.LoadCampaign(TestSlot), "Load fixture");
         Require(!saves.StartSuccessor("Early").IsSuccess, "Cannot replace an active racer");
@@ -157,6 +161,32 @@ public static class CareerSuccessionValidation
         Require(!saves.StartSuccessor("Unavailable kit").IsSuccess && sessions.Current.PlayerTeam.Roster.Racers.Count == rosterCount &&
             sessions.Current.PlayerTeam.Garage.Bikes.Count == bikesBefore, "Missing content grants no partial kit or racer");
         Debug.Log("Career succession validation passed: death settlement, retirement, team preservation, recovery, legacy saves, replay and save-failure rollback.");
+    }
+
+    private static void ValidateCalendarNullSerialization()
+    {
+        var empty = new CareerCalendarState().Export();
+        var roundTrip = JsonUtility.FromJson<CareerCalendarData>(JsonUtility.ToJson(empty));
+        var restored = CareerCalendarState.Restore(roundTrip);
+        RequireSuccess(restored, "Empty calendar JSON round trip");
+        Require(restored.Value.Active == null && restored.Value.LastEvent == null && restored.Value.Week == 1 &&
+            restored.Value.Export().seed == empty.seed, "Empty events remain absent without resetting calendar");
+
+        var sentinel = empty.Copy();
+        sentinel.active = new CareerEventEntryData(); sentinel.lastEvent = new CareerEventEntryData();
+        RequireSuccess(CareerCalendarState.Restore(sentinel), "Default inline event placeholders");
+        Require(sentinel.active != null && sentinel.lastEvent != null, "Restore does not mutate input snapshot");
+        sentinel.active.eventId = "broken-event";
+        Require(!CareerCalendarState.Restore(sentinel).IsSuccess, "Partially populated event is not discarded");
+        sentinel.active = new CareerEventEntryData { entryFee = 100 };
+        Require(!CareerCalendarState.Restore(sentinel).IsSuccess, "Missing identity with a paid fee remains invalid");
+        sentinel.active = null; sentinel.lastEvent.completed = true;
+        Require(!CareerCalendarState.Restore(sentinel).IsSuccess, "Incomplete history is not discarded");
+        sentinel.lastEvent = null; sentinel.week = 0;
+        Require(!CareerCalendarState.Restore(sentinel).IsSuccess, "Invalid week remains rejected");
+        Require(CareerRunSaveData.IsAbsent(new CareerRunSaveData()), "Empty inline career run is absent");
+        Require(!CareerRunSaveData.IsAbsent(new CareerRunSaveData { playerRacerId = "broken" }),
+            "Partially populated career run still requires validation");
     }
 
     private static CareerEventEntryData Entry(string pending) => new CareerEventEntryData {
