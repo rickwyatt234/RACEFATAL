@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd901ca9fa565074b8338b1dde3f8424, type: 3}
   m_Name: EQ_Shield_Bulwark_X
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.ShieldDefinitionSO
-  id: flashcage_mkii_shield
-  displayName: FLASH//CAGE MKII
-  requiredNodeSize: 1
-  creditCost: 600
+  id: bulwark_x_shield
+  displayName: Bulwark X
+  requiredNodeSize: 2
+  creditCost: 750
   requiredTechnologyId: 
-  capacity: 400
-  rechargePerSecond: 20
-  rechargeDelay: 8
+  capacity: 550
+  rechargePerSecond: 25
+  rechargeDelay: 10

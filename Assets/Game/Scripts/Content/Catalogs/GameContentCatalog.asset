@@ -16,6 +16,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
   engineDefinitions:
   - {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
+  - {fileID: 11400000, guid: f7bcede6c056440449503888c565450c, type: 2}
+  - {fileID: 11400000, guid: 259e9c0df2b16a24e8a2a7f434f0aa09, type: 2}
   chassisDefinitions:
   - {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}
   bikeBuildDefinitions:
@@ -32,6 +34,25 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b6b3324ec27cd7145a8824319df2622a, type: 2}
   - {fileID: 11400000, guid: f7d70ce11d6673c439b1a91745b3d660, type: 2}
   - {fileID: 11400000, guid: 9550cf9481924524ea13ff5e55dd6b0c, type: 2}
+  - {fileID: 11400000, guid: 08070c1a61cd77743b200a7791446db4, type: 2}
+  - {fileID: 11400000, guid: 7135476e08e8859479a9620b67f55da1, type: 2}
+  - {fileID: 11400000, guid: 7bbec5421f8697e45872468c62eae825, type: 2}
+  - {fileID: 11400000, guid: c07e5ed1615717d468ae160c7e2040c8, type: 2}
+  - {fileID: 11400000, guid: a284e51efd0d274459579d3b2a614c19, type: 2}
+  - {fileID: 11400000, guid: ae8365ec0698d284b8223f8ecac6ae80, type: 2}
+  - {fileID: 11400000, guid: bb6a6cc17bb543341b219672bc3536b3, type: 2}
+  - {fileID: 11400000, guid: 4692efe3d0ebf514dbc55424425f01d9, type: 2}
+  researchProgression: {fileID: 11400000, guid: 231dd2b052284ea4c9ea58bd6ada7912, type: 2}
+  researchTreeLayout: {fileID: 11400000, guid: 5b2591011c33b2f4085a89b21e24fead, type: 2}
+  researcherDefinitions:
+  - {fileID: 11400000, guid: 1e9f64c101e96544fb14dddb634546c3, type: 2}
+  - {fileID: 11400000, guid: 166f85e60b169d74ab6efbbc0279e7fb, type: 2}
+  technologyDefinitions:
+  - {fileID: 11400000, guid: e451a6c25932b0f479d08a2180db1141, type: 2}
+  - {fileID: 11400000, guid: 8d2570676465aad46a9688309b1c3d80, type: 2}
+  - {fileID: 11400000, guid: d75cf405f4c39784cb9355a49ecd2a73, type: 2}
+  - {fileID: 11400000, guid: 98582002b0020cb4184f3845e4cb9584, type: 2}
+  - {fileID: 11400000, guid: 2e986d48d577d4b45ab0018ad25e7f6b, type: 2}
   racerDefinitions:
   - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
   - {fileID: 11400000, guid: 3c307af10d5676c4ba9196e9e2e17166, type: 2}
@@ -43,7 +64,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 977027f9916dd0642adf4e5abba96e3b, type: 2}
   - {fileID: 11400000, guid: 510a58afb0f9a75418c323bef894efe7, type: 2}
   - {fileID: 11400000, guid: 9f8abb4d50a58f54b90fd6b2431e71b2, type: 2}
+  - {fileID: 11400000, guid: 248f06222e29ccb4daefb20239a80b95, type: 2}
+  - {fileID: 11400000, guid: b7570fca0c1c60b4b9479231aba682a0, type: 2}
+  - {fileID: 11400000, guid: 6fffd9c5fb0a80840bac41762adee2bf, type: 2}
+  - {fileID: 11400000, guid: ed7ce5b65a158824abb106b7e83307ee, type: 2}
+  - {fileID: 11400000, guid: 569b0f7653e4ac1429cee7b787a15244, type: 2}
+  - {fileID: 11400000, guid: 8be465059fcfbae49ab67a796f7776fa, type: 2}
+  - {fileID: 11400000, guid: 8e7cc0998e2880c428a96523435bda7c, type: 2}
+  - {fileID: 11400000, guid: 51eb56225cfb7654ba0b3b236925715b, type: 2}
+  - {fileID: 11400000, guid: 9e816fbcc7608e04dbe139359d9062a6, type: 2}
+  - {fileID: 11400000, guid: 0318b2d9252ca4944a541b7b07291797, type: 2}
+  - {fileID: 11400000, guid: 7ac5ab96b2939704cb7fb3f838e5660f, type: 2}
+  - {fileID: 11400000, guid: 07939644fdb19874290957e8665ee072, type: 2}
+  - {fileID: 11400000, guid: b55a9ddc719f1494594053f9bfda6b98, type: 2}
   - {fileID: 11400000, guid: ef9f1acc04350f74da6b7c5345b10592, type: 2}
+  - {fileID: 11400000, guid: 6d60e87b40b03924599c4d81e757fd30, type: 2}
+  - {fileID: 11400000, guid: fb770a49215160a45915c7447b2cb961, type: 2}
   opponentTeamDefinitions:
   - {fileID: 11400000, guid: 4f218b04437ddc54ab8116f1e39ba31f, type: 2}
   - {fileID: 11400000, guid: 3f284dd08e59be440bdbc49ee0bf9b65, type: 2}

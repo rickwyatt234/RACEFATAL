@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd901ca9fa565074b8338b1dde3f8424, type: 3}
-  m_Name: EQ_Shield_Bulwark_XX
+  m_Name: DEV_SHIELD_RESEARCH
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.ShieldDefinitionSO
-  id: bulwark_xx_shield
-  displayName: Bulwark XX
-  requiredNodeSize: 2
-  creditCost: 1000
-  requiredTechnologyId: 
-  capacity: 650
-  rechargePerSecond: 25
-  rechargeDelay: 10
+  id: DEV_SHIELD_RESEARCH
+  displayName: Development Research Shield
+  requiredNodeSize: 0
+  creditCost: 100
+  requiredTechnologyId: DEV_TECH_SHIELD_01
+  capacity: 100
+  rechargePerSecond: 10
+  rechargeDelay: 5

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb35a9d9cee64308817cfb8429114019, type: 3}
+  m_Name: ResearchLayout
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.ResearchTreeLayoutSO
+  nodes:
+  - technology: {fileID: 11400000, guid: d75cf405f4c39784cb9355a49ecd2a73, type: 2}
+    position: {x: 0, y: 0}
+  - technology: {fileID: 11400000, guid: 98582002b0020cb4184f3845e4cb9584, type: 2}
+    position: {x: 0, y: 190}
+  - technology: {fileID: 11400000, guid: 2e986d48d577d4b45ab0018ad25e7f6b, type: 2}
+    position: {x: 400, y: 0}
+  - technology: {fileID: 11400000, guid: e451a6c25932b0f479d08a2180db1141, type: 2}
+    position: {x: 400, y: 190}
+  - technology: {fileID: 11400000, guid: 8d2570676465aad46a9688309b1c3d80, type: 2}
+    position: {x: 200, y: 380}

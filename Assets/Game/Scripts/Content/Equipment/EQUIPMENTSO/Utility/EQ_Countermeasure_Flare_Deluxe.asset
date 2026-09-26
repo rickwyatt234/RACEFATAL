@@ -15,7 +15,7 @@ MonoBehaviour:
   id: countermeasure_flare_deluxe
   displayName: Deluxe Countermeasure Flare
   requiredNodeSize: 1
-  creditCost: 0
+  creditCost: 600
   requiredTechnologyId: 
   countermeasureType: 1
   cooldown: 0
