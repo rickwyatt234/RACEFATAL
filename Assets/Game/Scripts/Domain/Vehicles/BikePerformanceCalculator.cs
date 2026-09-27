@@ -1,5 +1,6 @@
 using System;
 using RaceFatal.Data;
+using RaceFatal.Equipment;
 using RaceFatal.Shared;
 
 namespace RaceFatal.Vehicles
@@ -79,22 +80,26 @@ namespace RaceFatal.Vehicles
                     $"Chassis definition '{chassisState.ChassisDefinitionId}' was not found.");
             }
 
-            float mass = Math.Max(
-                1f,
-                bikeDefinition.BaseWeight +
-                chassisDefinition.MassModifier);
+            float passiveHandling = 1f;
+            float energyCapacity = 0f;
+            foreach (var node in bike.Loadout.Nodes)
+            {
+                if (!node.IsOccupied) continue;
+                var definition = database.GetEquipmentDefinition(node.InstalledEquipment.EquipmentDefinitionId);
+                if (definition == null)
+                    return Result<BikePerformance>.Failure("Installed equipment definition was not found.");
+                if (definition is HandlingUtilityDefinition handling)
+                    passiveHandling *= handling.HandlingMultiplier;
+                if (definition is BoosterDefinition booster)
+                    energyCapacity += booster.EnergyCapacity;
+            }
 
-            float handling = Math.Max(
-                0.1f,
-                bikeDefinition.BaseHandling +
-                chassisDefinition.HandlingModifier);
-
-            var performance =
-                new BikePerformance(
-                    engineDefinition.TopSpeed,
-                    engineDefinition.Acceleration,
-                    handling,
-                    mass);
+            var performance = new BikePerformance(
+                engineDefinition.TopSpeed, engineDefinition.Acceleration,
+                chassisDefinition.HandlingMultiplier, chassisDefinition.Mass,
+                chassisDefinition.MaxIntegrity, chassisDefinition.SteeringResponseMultiplier,
+                chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier,
+                chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
 
             return Result<BikePerformance>.Success(
                 performance);

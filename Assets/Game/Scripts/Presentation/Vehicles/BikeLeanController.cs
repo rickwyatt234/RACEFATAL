@@ -78,6 +78,8 @@ namespace RaceFatal.Presentation.Vehicles
                     ? leanResponse
                     : uprightResponse;
 
+            response *= motor.LeanResponseMultiplier;
+
             float factor =
                 response <= 0f
                     ? 1f

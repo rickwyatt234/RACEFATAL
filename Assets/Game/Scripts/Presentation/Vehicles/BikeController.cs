@@ -68,9 +68,7 @@ namespace RaceFatal.Presentation.Vehicles
                 participant.Vehicle
                     .EquipmentSystem
                     .AccelerationMultiplier,
-                participant.Vehicle
-                    .EquipmentSystem
-                    .HandlingMultiplier);
+                participant.Vehicle.TemporaryHandlingMultiplier);
 
             motor.SetControls(
                 input.Throttle,

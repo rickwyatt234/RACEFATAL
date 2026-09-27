@@ -5,6 +5,8 @@ namespace RaceFatal.Equipment
     public class BoosterDefinition :
         EquipmentDefinition
     {
+        public float EnergyCapacity { get; }
+
         public float EnergyPerSecond { get; }
 
         public float SpeedMultiplier { get; }
@@ -19,7 +21,8 @@ namespace RaceFatal.Equipment
             float speedMultiplier,
             float accelerationMultiplier,
             int creditCost,
-            string requiredTechnologyId)
+            string requiredTechnologyId,
+            float energyCapacity = 100f)
             : base(
                 id,
                 displayName,
@@ -29,6 +32,9 @@ namespace RaceFatal.Equipment
                 creditCost,
                 requiredTechnologyId)
         {
+            if (float.IsNaN(energyCapacity) || float.IsInfinity(energyCapacity) || energyCapacity < 0f)
+                throw new System.ArgumentOutOfRangeException(nameof(energyCapacity));
+            EnergyCapacity = energyCapacity;
             EnergyPerSecond = energyPerSecond;
             SpeedMultiplier = speedMultiplier;
             AccelerationMultiplier =

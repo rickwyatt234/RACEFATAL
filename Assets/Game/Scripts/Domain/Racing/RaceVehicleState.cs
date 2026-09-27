@@ -14,6 +14,20 @@ namespace RaceFatal.Racing
         public EnergyPool EnergyPool { get; }
         public RaceEquipmentSystem EquipmentSystem { get; }
 
+        // Passive equipment is already included in Performance.ConfiguredHandling.
+        private float temporaryHandlingMultiplier = 1f;
+        public float TemporaryHandlingMultiplier
+        {
+            get => temporaryHandlingMultiplier;
+            set
+            {
+                if (float.IsNaN(value) || float.IsInfinity(value) || value < 0f)
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                temporaryHandlingMultiplier = value;
+            }
+        }
+        public float RuntimeHandling => Performance.ConfiguredHandling * TemporaryHandlingMultiplier;
+
         public bool IsDestroyed =>
             Damage.IsDestroyed ||
             Bike.IsDestroyed;
@@ -41,11 +55,11 @@ namespace RaceFatal.Racing
                     nameof(equipmentSystem));
 
             Damage =
-                new DamageMeter();
+                new DamageMeter(performance.MaxIntegrity);
         }
 
         internal DamageResolution ApplyDamage(
-            float incomingDamage)
+            float incomingDamage, DamageCause cause = DamageCause.Other)
         {
             if (incomingDamage <= 0f)
             {
@@ -63,6 +77,9 @@ namespace RaceFatal.Racing
             float shieldAbsorbed =
                 incomingDamage -
                 remainingDamage;
+
+            if (cause == DamageCause.Collision)
+                remainingDamage *= 1f - Performance.ImpactResistance;
 
             bool wasDestroyed =
                 Damage.IsDestroyed;

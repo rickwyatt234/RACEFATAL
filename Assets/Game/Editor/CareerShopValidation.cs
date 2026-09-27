@@ -15,8 +15,8 @@ public static class CareerShopValidation
     {
         var database = new GameDatabase();
         database.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 100, "tech"));
-        database.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 1, 1, 50, null));
-        database.AddChassisDefinition(new ChassisDefinition("invalid", "Invalid", 1, 1, -1, null));
+        database.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 50, null));
+        database.AddChassisDefinition(new ChassisDefinition("invalid", "Invalid", 250, 1, -1, null));
         database.AddEquipmentDefinition(new ShieldDefinition("shield", "Shield", default, 100, 10, 2, 25, null));
         database.AddEquipmentDefinition(new ShieldDefinition("free", "Free", default, 100, 10, 2, 0, null));
         var shop = new ShopService(database);

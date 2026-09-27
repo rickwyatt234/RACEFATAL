@@ -17,7 +17,6 @@ namespace RaceFatal.Equipment
         private readonly List<CountermeasureState> countermeasures = new List<CountermeasureState>();
 
         private int selectedIndex;
-        private float passiveHandlingMultiplier = 1f;
 
         private bool boostAllowed = true;
         private bool weaponsAllowed = true;
@@ -159,7 +158,6 @@ namespace RaceFatal.Equipment
             }
         }
 
-        public float HandlingMultiplier => passiveHandlingMultiplier;
 
         public float SpeedMultiplier
         {
@@ -280,8 +278,8 @@ namespace RaceFatal.Equipment
 
                     return Result<RaceEquipmentSystem>.Success(this);
 
-                case HandlingUtilityDefinition handling:
-                    passiveHandlingMultiplier *= handling.HandlingMultiplier;
+                case HandlingUtilityDefinition _:
+                    // Already included in BikePerformance.ConfiguredHandling.
                     return Result<RaceEquipmentSystem>.Success(this);
 
                 case CountermeasureDefinition countermeasure:

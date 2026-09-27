@@ -14,7 +14,7 @@ public static class CareerTeamValidation
         var service = new TeamManagementService();
         var team = new TeamState("team", "Original", "#FFFFFF", "#000000");
         var database = new GameDatabase();
-        var bikeDefinition = new BikeDefinition("bike", "Bike", 0, 0, 0, 100, 1, 100);
+        var bikeDefinition = new BikeDefinition("bike", "Bike", 0, 0, 0);
         database.AddBikeDefinition(bikeDefinition);
         var bike = bikeDefinition.CreateBikeState("owned-bike", "#111111", "#222222");
         Require(team.Garage.AddBike(bike).IsSuccess, "Own bike");

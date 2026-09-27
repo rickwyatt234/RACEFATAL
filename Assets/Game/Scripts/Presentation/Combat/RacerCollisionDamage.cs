@@ -320,7 +320,7 @@ namespace RaceFatal.Presentation.Combat
                     null,
                     racer.RacerId,
                     damage,
-                    DamageCause.Environmental);
+                    DamageCause.Collision);
             }
 
             if (rebound > 0f &&
@@ -359,8 +359,7 @@ namespace RaceFatal.Presentation.Combat
             float remainingHull =
                 Mathf.Max(
                     0f,
-                    DamageMeter.MaxDamage -
-                    vehicle.Damage.Percent);
+                    vehicle.Damage.CurrentIntegrity);
 
             RaceShieldState shield =
                 vehicle.EquipmentSystem.Shield;

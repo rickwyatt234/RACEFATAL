@@ -66,6 +66,8 @@ namespace RaceFatal.Presentation.Vehicles
         #region Steering
 
         [Header("Steering")]
+        [Tooltip("Input response rate per second before the chassis steering response multiplier.")]
+        [Min(0.1f)][SerializeField] private float steeringResponse = 20f;
         [Tooltip("Maximum steering rate at low speed, in degrees per second.")]
         [Min(0f)][SerializeField] private float lowSpeedTurnRate = 120f;
 
@@ -143,6 +145,7 @@ namespace RaceFatal.Presentation.Vehicles
         private float throttleInput;
         private float brakeInput;
         private float steeringInput;
+        private float targetSteeringInput;
 
         private float speedMultiplier = 1f;
         private float accelerationMultiplier = 1f;
@@ -156,6 +159,7 @@ namespace RaceFatal.Presentation.Vehicles
         public float ThrottleInput => throttleInput;
         public float BrakeInput => brakeInput;
         public float SteeringInput => steeringInput;
+        public float LeanResponseMultiplier => performance?.LeanResponseMultiplier ?? 1f;
 
         public bool HasSurface =>
             surfaceProbe != null &&
@@ -236,6 +240,9 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (performance == null)
                 return;
+
+            steeringInput = Mathf.Lerp(steeringInput, targetSteeringInput,
+                1f - Mathf.Exp(-steeringResponse * performance.SteeringResponseMultiplier * Time.fixedDeltaTime));
 
             UpdateWallRecoveryTimer();
             SuppressPhysicsRotation();
@@ -327,7 +334,7 @@ namespace RaceFatal.Presentation.Vehicles
             brakeInput =
                 Mathf.Clamp01(brake);
 
-            steeringInput =
+            targetSteeringInput =
                 Mathf.Clamp(
                     steering,
                     -1f,
@@ -598,7 +605,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             float effectiveHandling =
                 Mathf.Clamp(
-                    performance.Handling *
+                    performance.ConfiguredHandling *
                     handlingMultiplier,
                     0.1f,
                     3f);
@@ -777,8 +784,9 @@ namespace RaceFatal.Presentation.Vehicles
 
             float effectiveGrip =
                 lateralGrip *
+                performance.StabilityMultiplier *
                 Mathf.Clamp(
-                    performance.Handling *
+                    performance.ConfiguredHandling *
                     handlingMultiplier,
                     0.1f,
                     3f);

@@ -82,7 +82,7 @@ namespace RaceFatal.Presentation.Vehicles
                 equipment.AccelerationMultiplier;
 
             handlingMultiplier =
-                equipment.HandlingMultiplier;
+                vehicle.RuntimeHandling;
         }
     }
 }

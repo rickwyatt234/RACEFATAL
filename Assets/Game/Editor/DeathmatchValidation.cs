@@ -120,9 +120,9 @@ public static class DeathmatchValidation
         public readonly RaceDirector Race;
         public Fixture(DeathmatchRules rules)
         {
-            Database.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0, 100, 1, 100));
+            Database.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0));
             Database.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
-            Database.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 1, 1, 0, null));
+            Database.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0, null));
             Database.AddRaceDefinition(new RaceDefinition("race", "Deathmatch", "track", default, 1, 4, 2, 7, rules));
             Database.AddCareerEventDefinition(new CareerEventDefinition("dm", "Deathmatch", "", CareerEventKind.Deathmatch,
                 0, 100, new[] { "race" }, new[] { 1000, 800, 500, 100 }, new int[0], new int[0]));

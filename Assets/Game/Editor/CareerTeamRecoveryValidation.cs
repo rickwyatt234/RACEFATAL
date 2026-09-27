@@ -17,10 +17,10 @@ public static class CareerTeamRecoveryValidation
     public static void Run()
     {
         var db = new GameDatabase();
-        db.AddBikeDefinition(new BikeDefinition("bike", "Combat Bike", 1, 0, 0, 100, 1, 100));
+        db.AddBikeDefinition(new BikeDefinition("bike", "Combat Bike", 1, 0, 0));
         db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 100, null));
         db.AddEngineDefinition(new EngineDefinition("locked-engine", "Advanced", default, 120, 12, 200, "engine-tech"));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 1, 1, 50, null));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 50, null));
         db.AddEquipmentDefinition(new ShieldDefinition("shield", "Shield", default, 100, 10, 2, 25, "shield-tech"));
         db.AddRacerDefinition(new RacerDefinition("partner-template", "Partner", .5f, .5f, .5f, .5f, .5f));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("player_starter", "Starter", "bike", "engine", "chassis",

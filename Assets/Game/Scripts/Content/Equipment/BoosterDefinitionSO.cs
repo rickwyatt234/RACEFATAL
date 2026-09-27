@@ -10,6 +10,7 @@ namespace RaceFatal.Content.Equipment
         EquipmentDefinitionSO
     {
         [Header("Booster")]
+        [Min(0f)][SerializeField] private float energyCapacity = 100f;
         [Min(0f)]
         [SerializeField]
         private float energyPerSecond;
@@ -33,7 +34,7 @@ namespace RaceFatal.Content.Equipment
                 speedMultiplier,
                 accelerationMultiplier,
                 creditCost,
-                requiredTechnologyId);
+                requiredTechnologyId, energyCapacity);
         }
     }
 }

@@ -1403,9 +1403,7 @@ namespace RaceFatal.Presentation.Vehicles
                     .AccelerationMultiplier;
 
             float handlingMultiplier =
-                participant.Vehicle
-                    .EquipmentSystem
-                    .HandlingMultiplier;
+                participant.Vehicle.TemporaryHandlingMultiplier;
 
             speedMultiplier *=
                 racePressurePlanner.SpeedMultiplier *

@@ -18,11 +18,11 @@ namespace RaceFatal.Energy
 
         public EnergyPool(float maxEnergy)
         {
-            if (maxEnergy <= 0f)
+            if (float.IsNaN(maxEnergy) || float.IsInfinity(maxEnergy) || maxEnergy < 0f)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(maxEnergy),
-                    "Max energy must be greater than zero.");
+                    "Max energy must be finite and nonnegative.");
             }
 
             MaxEnergy = maxEnergy;

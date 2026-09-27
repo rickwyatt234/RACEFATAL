@@ -16,9 +16,9 @@ public static class CareerCalendarValidation
     public static void Run()
     {
         var db = new GameDatabase();
-        db.AddBikeDefinition(new BikeDefinition("test-bike", "Bike", 0, 0, 0, 100, 1, 100));
+        db.AddBikeDefinition(new BikeDefinition("test-bike", "Bike", 0, 0, 0));
         db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 1, 1, 0, null));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0, null));
         db.AddRaceDefinition(new RaceDefinition("race", "Test Race", "track", default, 3, 4, 2, 7));
         db.AddCareerEventDefinition(Event("free", 0, 0, false));
         db.AddCareerEventDefinition(Event("paid", 0, 200, false));

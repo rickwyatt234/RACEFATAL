@@ -261,8 +261,7 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdateDamage(RaceVehicleState vehicle)
         {
             float damage = vehicle.Damage.Percent;
-            float normalized = Mathf.Clamp01(
-                damage / RaceFatal.Combat.DamageMeter.MaxDamage);
+            float normalized = vehicle.Damage.DamageRatio;
 
             if (damageFill != null)
                 damageFill.fillAmount = normalized;

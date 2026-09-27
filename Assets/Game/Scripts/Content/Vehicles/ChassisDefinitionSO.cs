@@ -12,8 +12,14 @@ namespace RaceFatal.Content.Vehicles
         [SerializeField] private string displayName;
 
         [Header("Performance Stats")]
-        [Min(0)][SerializeField] private float massModifier = 1f;
-        [Min(0)][SerializeField] private float handlingModifier = 1f;
+        [Min(1f)][SerializeField] private float mass = 250f;
+        [Min(1f)][SerializeField] private float maxIntegrity = 100f;
+        [Min(0.1f)][SerializeField] private float handlingMultiplier = 1f;
+        [Min(0.1f)][SerializeField] private float steeringResponseMultiplier = 1f;
+        [Min(0.1f)][SerializeField] private float leanResponseMultiplier = 1f;
+        [Min(0.1f)][SerializeField] private float stabilityMultiplier = 1f;
+        [Tooltip("Fraction of structural collision damage prevented after shields. 0.2 = 20%. Does not prevent fatal wall impacts.")]
+        [Range(0f, 0.9f)][SerializeField] private float impactResistance;
 
         [Header("Cost")]
         [Min(0)][SerializeField] private int creditCost;
@@ -26,10 +32,11 @@ namespace RaceFatal.Content.Vehicles
             return new ChassisDefinition(
                 id,
                 displayName,
-                massModifier,
-                handlingModifier,
+                mass,
+                handlingMultiplier,
                 creditCost,
-                requiredTechnologyId);
+                requiredTechnologyId, maxIntegrity, steeringResponseMultiplier,
+                leanResponseMultiplier, stabilityMultiplier, impactResistance);
         }
 
     } 

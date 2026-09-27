@@ -62,10 +62,13 @@ namespace RaceFatal.Racing
                         bike);
 
 
+            if (!performanceResult.IsSuccess)
+                return Result<RaceParticipant>.Failure(performanceResult.ErrorMessage);
+
             var perks = RacerPerkBonuses.For(racer, database);
             var energy =
                 new EnergyPool(
-                    bikeDefinition.EnergyCapacity + perks.EnergyCapacity);
+                    System.Math.Max(0f, performanceResult.Value.EnergyCapacity + perks.EnergyCapacity));
 
             Result<RaceEquipmentSystem>
                 equipmentResult =
@@ -74,6 +77,9 @@ namespace RaceFatal.Racing
                         bike.Loadout,
                         database,
                         energy);
+
+            if (!equipmentResult.IsSuccess)
+                return Result<RaceParticipant>.Failure(equipmentResult.ErrorMessage);
 
             RaceVehicleState vehicle =
                 new RaceVehicleState(

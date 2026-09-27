@@ -15,7 +15,15 @@ namespace RaceFatal.Vehicles
 
         public float Acceleration { get; }
 
-        public float Handling { get; }
+        public float BaseHandling { get; }
+        public float ConfiguredHandling { get; }
+        public float Handling => ConfiguredHandling;
+        public float EnergyCapacity { get; }
+        public float MaxIntegrity { get; }
+        public float SteeringResponseMultiplier { get; }
+        public float LeanResponseMultiplier { get; }
+        public float StabilityMultiplier { get; }
+        public float ImpactResistance { get; }
 
         public float Mass { get; }
 
@@ -23,11 +31,21 @@ namespace RaceFatal.Vehicles
             float topSpeedMPH,
             float acceleration,
             float handling,
-            float mass)
+            float mass, float maxIntegrity = 100f,
+            float steeringResponseMultiplier = 1f, float leanResponseMultiplier = 1f,
+            float stabilityMultiplier = 1f, float impactResistance = 0f,
+            float passiveHandlingMultiplier = 1f, float energyCapacity = 0f)
         {
             TopSpeedMPH = topSpeedMPH;
             Acceleration = acceleration;
-            Handling = handling;
+            BaseHandling = handling;
+            ConfiguredHandling = handling * passiveHandlingMultiplier;
+            MaxIntegrity = maxIntegrity;
+            SteeringResponseMultiplier = steeringResponseMultiplier;
+            LeanResponseMultiplier = leanResponseMultiplier;
+            StabilityMultiplier = stabilityMultiplier;
+            ImpactResistance = impactResistance;
+            EnergyCapacity = energyCapacity;
             Mass = mass;
         }
     }

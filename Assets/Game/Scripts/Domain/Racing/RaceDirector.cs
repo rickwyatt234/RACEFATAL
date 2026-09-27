@@ -261,7 +261,7 @@ namespace RaceFatal.Racing
                 shield.Current > 0f;
 
             DamageResolution resolution =
-                victim.Vehicle.ApplyDamage(resolvedDamage);
+                victim.Vehicle.ApplyDamage(resolvedDamage, cause);
 
             bool shieldDepleted =
                 shieldWasActive &&

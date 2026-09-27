@@ -19,9 +19,9 @@ public static class CareerSuccessionValidation
     {
         ValidateCalendarNullSerialization();
         var db = new GameDatabase();
-        db.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0, 100, 1, 100));
+        db.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0));
         db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 1, 1, 0, null));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0, null));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("player_starter", "Starter", "bike", "engine", "chassis", Array.Empty<EquipmentMountDefinition>()));
         db.AddRacerPerkDefinition(new RacerPerkDefinition("starter-perk", "Energy Reserve", "More energy", 100, RacerPerkEffect.EnergyCapacity, 10));
         db.AddRacerPerkDefinition(new RacerPerkDefinition("ai-perk", "AI Pace", "AI only", 0, RacerPerkEffect.Pace, 1));

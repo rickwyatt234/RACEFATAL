@@ -56,13 +56,15 @@ namespace RaceFatal.Career
                     d.CreditCost, d.RequiredTechnologyId));
             foreach (var d in database.ChassisDefinitions.Values)
                 offers.Add(new ShopOffer(ShopItemKind.Chassis, d.Id, d.DisplayName,
-                    "CHASSIS", $"MASS MODIFIER  {d.MassModifier:0.##}\nHANDLING MODIFIER  {d.HandlingModifier:0.##}",
+                    "CHASSIS", $"MASS  {d.Mass:0.##} kg\nMAX INTEGRITY  {d.MaxIntegrity:0.##}\nHANDLING  x{d.HandlingMultiplier:0.##}\nSTEERING RESPONSE  x{d.SteeringResponseMultiplier:0.##}\nLEAN RESPONSE  x{d.LeanResponseMultiplier:0.##}\nSTABILITY  x{d.StabilityMultiplier:0.##}\nIMPACT RESISTANCE  {d.ImpactResistance:P0}",
                     d.CreditCost, d.RequiredTechnologyId));
             foreach (var d in database.EquipmentDefinitions.Values)
             {
                 string details = $"CATEGORY  {d.Category}\nREQUIRED NODE  {d.RequiredNodeSize}\nACTIVATION  {d.ActivationMode}";
                 if (d is WeaponDefinition weapon)
                     details += $"\nDAMAGE  {weapon.Damage:0.##}    RANGE  {weapon.Range:0.##}\nSTARTING AMMO  {weapon.StartingAmmo}";
+                if (d is BoosterDefinition booster)
+                    details += $"\nENERGY CAPACITY  {booster.EnergyCapacity:0.##}\nENERGY / SEC  {booster.EnergyPerSecond:0.##}";
                 if (d is ShieldDefinition shield)
                     details += $"\nCAPACITY  {shield.Capacity:0.##}\nRECHARGE / SEC  {shield.RechargePerSecond:0.##}";
                 offers.Add(new ShopOffer(ShopItemKind.Equipment, d.Id, d.DisplayName,

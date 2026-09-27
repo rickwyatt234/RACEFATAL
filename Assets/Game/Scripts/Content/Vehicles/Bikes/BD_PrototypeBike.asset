@@ -18,6 +18,3 @@ MonoBehaviour:
   smallNodeCount: 2
   mediumNodeCount: 2
   largeNodeCount: 2
-  baseMass: 250
-  baseHandling: 1
-  energyCapacity: 100

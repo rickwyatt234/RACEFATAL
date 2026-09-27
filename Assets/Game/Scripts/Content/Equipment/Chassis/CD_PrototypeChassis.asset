@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.ChassisDefinitionSO
   id: 
   displayName: CD_PrototypeChassis
-  massModifier: 0
-  handlingModifier: 0
+  mass: 250
+  maxIntegrity: 100
+  handlingMultiplier: 1
+  steeringResponseMultiplier: 1
+  leanResponseMultiplier: 1
+  stabilityMultiplier: 1
+  impactResistance: 0
   creditCost: 0
   requiredTechnologyId: 
