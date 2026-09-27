@@ -18,7 +18,7 @@ namespace RaceFatal.Career
         public IReadOnlyList<int> RacePayouts { get; }
         public IReadOnlyList<int> ChampionshipPrizes { get; }
         public IReadOnlyList<int> PositionPoints { get; }
-        public bool Supported => Kind == CareerEventKind.Race || Kind == CareerEventKind.Championship;
+        public bool Supported => Kind == CareerEventKind.Race || Kind == CareerEventKind.Championship || Kind == CareerEventKind.Deathmatch;
 
         public CareerEventDefinition(string id, string name, string description, CareerEventKind kind,
             int fame, int fee, IEnumerable<string> raceIds, IEnumerable<int> payouts,

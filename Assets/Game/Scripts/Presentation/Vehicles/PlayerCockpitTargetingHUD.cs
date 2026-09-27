@@ -1081,7 +1081,7 @@ namespace RaceFatal.Presentation.Vehicles
              * Teammates can still receive ID boxes,
              * but cannot be targeted by guided weapons.
              */
-            return !string.Equals(
+            return raceRuntime?.Director?.State.Deathmatch?.Mode == DeathmatchVictoryMode.Individual || !string.Equals(
                 candidate.TeamId,
                 player.TeamId,
                 System.StringComparison.Ordinal);

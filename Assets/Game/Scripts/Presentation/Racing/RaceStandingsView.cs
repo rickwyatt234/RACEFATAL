@@ -108,7 +108,7 @@ namespace RaceFatal.Presentation.Racing
             refreshTimer = 0f;
 
             if (headingText != null)
-                headingText.text = "LIVE RACE STANDINGS";
+                headingText.text = raceRuntime.Director.State.Deathmatch != null ? "DEATHMATCH — LIVE SURVIVAL" : "LIVE RACE STANDINGS";
 
             RefreshLive();
         }
@@ -175,6 +175,9 @@ namespace RaceFatal.Presentation.Racing
             IReadOnlyList<RaceParticipant> order =
                 state.GetCurrentOrder();
 
+            if (state.Deathmatch != null && headingText != null)
+                headingText.text = $"SURVIVORS {state.SurvivingContenders} / WINNER SLOTS {state.Deathmatch.AllowedWinners} — " +
+                    $"{Mathf.Max(0, state.Deathmatch.TimeLimitSeconds - raceRuntime.Director.ElapsedRaceTime):0}s";
             debugParticipantCount =
                 order.Count;
 
@@ -194,10 +197,10 @@ namespace RaceFatal.Presentation.Racing
                     continue;
 
                 rows[i].Render(
-                    i + 1,
+                    state.Deathmatch != null ? state.DeathmatchRank(participant) : i + 1,
                     participant.Racer.Name,
                     participant.TeamName,
-                    GetLiveRaceTimeText(participant));
+                    state.Deathmatch != null ? $"{(participant.Status == RaceParticipantStatus.Racing ? "ALIVE" : "OUT")} / {participant.Eliminations} K" : GetLiveRaceTimeText(participant), state.Deathmatch != null);
             }
 
             HideRowsAfter(
@@ -239,7 +242,7 @@ namespace RaceFatal.Presentation.Racing
                     entry.Position,
                     entry.RacerName,
                     entry.TeamName,
-                    GetFinalRaceTimeText(entry));
+                    result.Deathmatch != null ? $"{(entry.IsWinner ? "WIN" : "OUT")} / {entry.Eliminations} K\n{ShortReason(entry.EliminationReason)}" : GetFinalRaceTimeText(entry), result.Deathmatch != null);
             }
 
             HideRowsAfter(
@@ -248,6 +251,9 @@ namespace RaceFatal.Presentation.Racing
             debugVisibleRows =
                 visible;
         }
+
+        private static string ShortReason(string reason) => reason == "BELOW MINIMUM SPEED" ? "SPEED DQ" :
+            reason == "TIME LIMIT" ? "TIME LIMIT" : string.IsNullOrEmpty(reason) ? "SURVIVED" : reason;
 
         private string GetLiveRaceTimeText(
             RaceParticipant participant)

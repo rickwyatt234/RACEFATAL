@@ -176,12 +176,12 @@ namespace RaceFatal.Career
         }
 
         public void RecordFinish(
-            int position)
+            int position, bool? isWinner = null)
         {
             if (position <= 0)
                 return;
 
-            if (position == 1)
+            if (isWinner ?? (position == 1))
             {
                 RacesWon++;
             }

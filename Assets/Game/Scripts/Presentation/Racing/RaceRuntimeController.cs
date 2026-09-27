@@ -72,6 +72,9 @@ namespace RaceFatal.Presentation.Racing
             raceDirector.RacerDestroyed +=
                 OnRacerDestroyed;
 
+            raceDirector.RacerRetired += OnRacerRetired;
+            raceDirector.RaceCompleted += OnRaceCompleted;
+
             if (!trackRuntime.Initialize(this))
             {
                 throw new InvalidOperationException(
@@ -102,6 +105,12 @@ namespace RaceFatal.Presentation.Racing
                 return;
 
             HandlePlayerEquipmentInput();
+            foreach (var view in racerViews.Values)
+            {
+                if (view == null) continue;
+                var motor = view.GetComponent<BikeMotor>();
+                raceDirector.ReportSpeed(view.RacerId, motor != null ? motor.SpeedKph : 0);
+            }
 
             raceDirector.Tick(
                 Time.deltaTime);
@@ -319,6 +328,9 @@ namespace RaceFatal.Presentation.Racing
             }
         }
 
+        private void OnRacerRetired(RaceParticipant participant) => StopRacerControl(participant.RacerId);
+        private void OnRaceCompleted(RaceResult result) => StopAllVehicleControl();
+
         private void OnRacerDestroyed(
             RaceParticipant participant)
         {
@@ -346,6 +358,8 @@ namespace RaceFatal.Presentation.Racing
         {
             if (raceDirector != null)
             {
+                raceDirector.RacerRetired -= OnRacerRetired;
+                raceDirector.RaceCompleted -= OnRaceCompleted;
                 raceDirector.RacerDestroyed -=
                     OnRacerDestroyed;
             }

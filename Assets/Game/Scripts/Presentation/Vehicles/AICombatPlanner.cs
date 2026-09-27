@@ -1509,7 +1509,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            if (string.Equals(
+            if (raceRuntime?.Director?.State.Deathmatch?.Mode != DeathmatchVictoryMode.Individual && string.Equals(
                     candidate.TeamId,
                     participant.TeamId,
                     StringComparison.Ordinal))

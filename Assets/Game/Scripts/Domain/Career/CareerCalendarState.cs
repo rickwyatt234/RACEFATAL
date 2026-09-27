@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RaceFatal.Shared;
+using RaceFatal.Racing;
 
 namespace RaceFatal.Career
 {
@@ -12,6 +13,16 @@ namespace RaceFatal.Career
         public string teamId, teamName;
         public int points;
         public ChampionshipStandingData Copy() => (ChampionshipStandingData)MemberwiseClone();
+    }
+
+    [Serializable]
+    public sealed class DeathmatchStandingData
+    {
+        public string racerId, racerName, teamId, teamName, eliminationReason;
+        public int position, eliminations;
+        public bool winner;
+        public RaceParticipantStatus status;
+        public DeathmatchStandingData Copy() => (DeathmatchStandingData)MemberwiseClone();
     }
 
     [Serializable]
@@ -28,12 +39,35 @@ namespace RaceFatal.Career
         public string pendingInstanceId, pendingRaceId;
         public bool completed, withdrawn;
         public int finalRank, finalPrize;
+        // Primitive snapshot fields avoid Unity inline-null serialization ambiguity.
+        public List<DeathmatchStandingData> deathmatchResults = new List<DeathmatchStandingData>();
+        public int deathmatchVersion, deathmatchMode, allowedWinners;
+        public bool shareTimeoutTies;
+        public float timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds;
+        public void CaptureDeathmatch(DeathmatchRules rules)
+        {
+            if (rules == null) return;
+            shareTimeoutTies = rules.ShareTimeoutTies;
+            deathmatchVersion = 1; deathmatchMode = (int)rules.Mode; allowedWinners = rules.AllowedWinners;
+            timeLimitSeconds = rules.TimeLimitSeconds; minimumSpeedKph = rules.MinimumSpeedKph;
+            startGraceSeconds = rules.StartGraceSeconds; belowSpeedGraceSeconds = rules.BelowSpeedGraceSeconds;
+        }
+        public DeathmatchRules RestoreDeathmatch() => new DeathmatchRules((DeathmatchVictoryMode)deathmatchMode,
+            allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies);
+        public bool ValidDeathmatch()
+        {
+            if (kind != CareerEventKind.Deathmatch) return !shareTimeoutTies && deathmatchVersion == 0 && deathmatchMode == 0 && allowedWinners == 0 &&
+                timeLimitSeconds == 0 && minimumSpeedKph == 0 && startGraceSeconds == 0 && belowSpeedGraceSeconds == 0;
+            if (deathmatchVersion != 1) return false;
+            try { RestoreDeathmatch(); return true; } catch (ArgumentException) { return false; }
+        }
         public CareerEventEntryData Copy()
         {
             var copy = (CareerEventEntryData)MemberwiseClone();
             copy.raceIds = new List<string>(raceIds);
             copy.payouts = new List<int>(payouts); copy.prizes = new List<int>(prizes); copy.points = new List<int>(points);
             copy.standings = standings.Select(s => s.Copy()).ToList();
+            copy.deathmatchResults = (deathmatchResults ?? new List<DeathmatchStandingData>()).Select(s => s.Copy()).ToList();
             return copy;
         }
     }
@@ -92,12 +126,12 @@ namespace RaceFatal.Career
         }
         private static bool Empty<T>(List<T> values) => values == null || values.Count == 0;
         private static bool IsEmptyEntry(CareerEventEntryData entry) => entry == null || (
-            string.IsNullOrEmpty(entry.eventId) && string.IsNullOrEmpty(entry.displayName) &&
+            entry.ValidDeathmatch() && entry.deathmatchVersion == 0 && string.IsNullOrEmpty(entry.eventId) && string.IsNullOrEmpty(entry.displayName) &&
             string.IsNullOrEmpty(entry.description) && entry.kind == default &&
             entry.entryFee == 0 && entry.roundIndex == 0 && entry.finalRank == 0 && entry.finalPrize == 0 &&
             !entry.completed && !entry.withdrawn && string.IsNullOrEmpty(entry.pendingInstanceId) &&
             string.IsNullOrEmpty(entry.pendingRaceId) && Empty(entry.raceIds) && Empty(entry.payouts) &&
-            Empty(entry.prizes) && Empty(entry.points) && Empty(entry.standings));
+            Empty(entry.prizes) && Empty(entry.points) && Empty(entry.standings) && Empty(entry.deathmatchResults));
 
         private static bool ValidIds(List<string> ids) => ids != null &&
             ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct().Count() == ids.Count;
@@ -105,16 +139,28 @@ namespace RaceFatal.Career
         {
             if (entry == null) return true;
             if (string.IsNullOrWhiteSpace(entry.eventId) || string.IsNullOrWhiteSpace(entry.displayName) ||
-                (entry.kind != CareerEventKind.Race && entry.kind != CareerEventKind.Championship) ||
+                (entry.kind != CareerEventKind.Race && entry.kind != CareerEventKind.Championship && entry.kind != CareerEventKind.Deathmatch) ||
+                !entry.ValidDeathmatch() ||
                 entry.entryFee < 0 || entry.roundIndex < 0 || entry.raceIds == null || entry.raceIds.Count == 0 ||
                 entry.raceIds.Any(string.IsNullOrWhiteSpace) || entry.roundIndex > entry.raceIds.Count ||
-                (entry.kind == CareerEventKind.Race && entry.raceIds.Count != 1) ||
+                (entry.kind != CareerEventKind.Championship && entry.raceIds.Count != 1) ||
                 (entry.kind == CareerEventKind.Championship && entry.raceIds.Count < 2) ||
                 entry.payouts == null || entry.prizes == null || entry.points == null ||
                 entry.payouts.Concat(entry.prizes).Concat(entry.points).Any(p => p < 0) ||
                 entry.standings == null || entry.standings.Any(s => s == null || string.IsNullOrWhiteSpace(s.teamId) || s.points < 0) ||
                 entry.standings.Select(s => s.teamId).Distinct().Count() != entry.standings.Count ||
                 entry.finalRank < 0 || entry.finalPrize < 0) return false;
+            if (entry.kind == CareerEventKind.Deathmatch && entry.allowedWinners >=
+                (entry.deathmatchMode == (int)DeathmatchVictoryMode.Team ? entry.standings.Count : entry.standings.Count * 2)) return false;
+            if (!Empty(entry.deathmatchResults))
+            {
+                if (entry.kind != CareerEventKind.Deathmatch || !history || entry.withdrawn ||
+                    entry.deathmatchResults.Any(s => s == null || string.IsNullOrWhiteSpace(s.racerId) ||
+                        s.position < 1 || s.eliminations < 0 || !entry.standings.Any(t => t.teamId == s.teamId) ||
+                        (s.status != RaceParticipantStatus.Finished && s.status != RaceParticipantStatus.Destroyed && s.status != RaceParticipantStatus.Retired)) ||
+                    entry.deathmatchResults.Select(s => s.racerId).Distinct().Count() != entry.deathmatchResults.Count) return false;
+            }
+            if (entry.kind == CareerEventKind.Deathmatch && history && !entry.withdrawn && Empty(entry.deathmatchResults)) return false;
             if (history) return entry.completed && (entry.withdrawn || entry.roundIndex == entry.raceIds.Count) &&
                 string.IsNullOrEmpty(entry.pendingInstanceId) && string.IsNullOrEmpty(entry.pendingRaceId);
             if (entry.completed || entry.withdrawn || entry.roundIndex >= entry.raceIds.Count) return false;

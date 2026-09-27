@@ -13,6 +13,7 @@ namespace RaceFatal.Racing
         public int EntrantCount { get; }
         public int TeamSize { get; }
         public int ResearchPointBonus { get; }
+        public DeathmatchRules Deathmatch { get; }
 
         public RaceDefinition(
             string id, 
@@ -21,7 +22,7 @@ namespace RaceFatal.Racing
             EngineClass engineClass, 
             int lapCount, 
             int entrantCount, 
-            int teamSize, int researchPointBonus = 0)
+            int teamSize, int researchPointBonus = 0, DeathmatchRules deathmatch = null)
         {
             if (lapCount <= 0)
             {
@@ -44,6 +45,9 @@ namespace RaceFatal.Racing
             DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
             TrackId = trackId ?? throw new ArgumentNullException(nameof(trackId));
 
+            if (deathmatch != null && deathmatch.AllowedWinners >= (deathmatch.Mode == DeathmatchVictoryMode.Team ? entrantCount / teamSize : entrantCount))
+                throw new ArgumentException("Deathmatch needs more entrants than winner slots.");
+            Deathmatch = deathmatch;
             EngineClass = engineClass;
             LapCount = lapCount;
             EntrantCount = entrantCount;

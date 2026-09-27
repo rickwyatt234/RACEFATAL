@@ -15,7 +15,7 @@ namespace RaceFatal.Content.Career
         [SerializeField] private CareerEventKind kind;
         [Min(0)] [SerializeField] private int requiredFame;
         [Min(0)] [SerializeField] private int entryFee;
-        [Tooltip("One race for a single event; ordered rounds for a championship. Deathmatch is reserved for future rules.")]
+        [Tooltip("One race for a single event or deathmatch; ordered circuit races for a championship. Deathmatch requires enabled Deathmatch rules on its race asset.")]
         [SerializeField] private List<RaceDefinitionSO> rounds = new List<RaceDefinitionSO>();
         [Tooltip("Credits for the player's finishing place each round. Entries beyond this table pay zero. DNF pays 40%.")]
         [SerializeField] private List<int> racePayouts = new List<int> {10000,8000,6500,5000,5000,5000,3500,3500,3500,2500,2500,2500};

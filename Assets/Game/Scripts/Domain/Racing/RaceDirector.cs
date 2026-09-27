@@ -76,9 +76,12 @@ namespace RaceFatal.Racing
 
         public void Tick(float deltaTime)
         {
-            if (!CanProcessRaceEvent() || deltaTime <= 0f)
+            if (!CanProcessRaceEvent() || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))
                 return;
 
+            var rules = state.Deathmatch;
+            if (rules != null) deltaTime = Math.Min(deltaTime, Math.Max(0, rules.TimeLimitSeconds - ElapsedRaceTime));
+            float previousTime = ElapsedRaceTime;
             ElapsedRaceTime += deltaTime;
 
             foreach (RaceParticipant participant in state.Participants)
@@ -88,6 +91,34 @@ namespace RaceFatal.Racing
 
                 participant.Vehicle.Tick(deltaTime);
             }
+            if (rules == null) return;
+            float speedDelta = Math.Max(0, ElapsedRaceTime - Math.Max(previousTime, rules.StartGraceSeconds));
+            // Process the entire frame before checking survival, avoiding iteration-order winners.
+            foreach (var participant in state.Participants)
+            {
+                if (participant.Status != RaceParticipantStatus.Racing) continue;
+                participant.BelowSpeedSeconds = rules.MinimumSpeedKph > 0 && participant.SpeedKph < rules.MinimumSpeedKph
+                    ? participant.BelowSpeedSeconds + speedDelta : 0;
+                if (participant.BelowSpeedSeconds >= rules.BelowSpeedGraceSeconds)
+                {
+                    participant.EliminationReason = "BELOW MINIMUM SPEED";
+                    RetireRacer(participant.RacerId);
+                }
+            }
+            if (state.SurvivingContenders <= rules.AllowedWinners || ElapsedRaceTime >= rules.TimeLimitSeconds)
+                FinalizeDeathmatch();
+        }
+
+        public void UseDeathmatchRules(DeathmatchRules rules)
+        {
+            if (state.IsStarted) throw new InvalidOperationException("Cannot change started event rules.");
+            state.Deathmatch = rules;
+        }
+
+        public void ReportSpeed(string racerId, float speedKph)
+        {
+            var participant = GetRacingParticipant(racerId);
+            if (participant != null) participant.SpeedKph = float.IsNaN(speedKph) || float.IsInfinity(speedKph) ? 0 : Math.Max(0, speedKph);
         }
 
         public void ReportCourseProgress(string racerId, float progress)
@@ -110,6 +141,7 @@ namespace RaceFatal.Racing
                 participant.Status != RaceParticipantStatus.Racing)
                 return;
 
+            if (state.Deathmatch != null) { lapTracker.CompleteLap(participant); return; }
             if (lapTracker.CompleteLap(participant))
                 ConfirmFinish(participant, false);
         }
@@ -252,7 +284,14 @@ namespace RaceFatal.Racing
             DamageApplied?.Invoke(damageEvent);
 
             if (resolution.CausedDestruction)
+            {
+                if (attacker != null && attacker != victim && (state.Deathmatch?.Mode == DeathmatchVictoryMode.Individual || attacker.TeamId != victim.TeamId))
+                {
+                    attacker.Eliminations++;
+                    if (state.Deathmatch != null) attacker.Racer.RecordDestruction();
+                }
                 PermanentlyDestroy(victim);
+            }
 
             return Result<DamageEvent>.Success(damageEvent);
         }
@@ -293,6 +332,8 @@ namespace RaceFatal.Racing
             if (participant == null)
                 return;
 
+            participant.EliminationTime = ElapsedRaceTime;
+            if (string.IsNullOrEmpty(participant.EliminationReason)) participant.EliminationReason = "RETIRED";
             participant.Retire();
             RacerRetired?.Invoke(participant);
         }
@@ -304,6 +345,9 @@ namespace RaceFatal.Racing
 
             if (!state.IsStarted)
                 return null;
+
+            // Survival must run to completion; the player cannot fast-resolve a live deathmatch.
+            if (state.Deathmatch != null) return null;
 
             IReadOnlyList<RaceParticipant> currentOrder =
                 state.GetCurrentOrder();
@@ -322,6 +366,7 @@ namespace RaceFatal.Racing
             if (state.IsFinished)
                 return finalRaceResult ?? BuildResult();
 
+            if (state.Deathmatch != null && !deathmatchClassified) return null;
             state.FinishRace();
 
             finalRaceResult = BuildResult();
@@ -331,6 +376,35 @@ namespace RaceFatal.Racing
             RaceCompleted?.Invoke(finalRaceResult);
 
             return finalRaceResult;
+        }
+
+        private bool deathmatchClassified;
+        private void FinalizeDeathmatch()
+        {
+            var rules = state.Deathmatch;
+            bool naturalFinish = state.SurvivingContenders <= rules.AllowedWinners;
+            // Freeze all ranks before changing any participant status.
+            foreach (var p in state.Participants) p.DeathmatchPosition = state.DeathmatchRank(p);
+            foreach (var p in state.Participants)
+            {
+                bool survives = false;
+                foreach (var other in state.Participants)
+                    if (state.ContenderId(other) == state.ContenderId(p) && other.Status == RaceParticipantStatus.Racing) survives = true;
+                p.DeathmatchWinner = survives && (naturalFinish || p.DeathmatchPosition <= rules.AllowedWinners);
+            }
+            foreach (var p in state.Participants)
+            {
+                if (p.Status != RaceParticipantStatus.Racing) continue;
+                if (p.DeathmatchWinner)
+                {
+                    p.Finish(p.DeathmatchPosition, ElapsedRaceTime, false);
+                    p.Racer.RecordFinish(p.FinishPosition, true);
+                    RacerFinished?.Invoke(p);
+                }
+                else { p.EliminationReason = "TIME LIMIT"; RetireRacer(p.RacerId); }
+            }
+            deathmatchClassified = true;
+            CompleteRace();
         }
 
         private void ResolvePostRace(RaceResult raceResult)
@@ -380,20 +454,22 @@ namespace RaceFatal.Racing
                         participant.Racer.Name,
                         participant.TeamId,
                         participant.TeamName,
-                        i + 1,
+                        state.Deathmatch != null ? participant.DeathmatchPosition : i + 1,
                         participant.CompletedLaps,
                         participant.Status,
                         participant.FinishTimeSeconds,
-                        participant.WasFastResolved));
+                        participant.WasFastResolved, participant.DeathmatchWinner, participant.Eliminations, participant.EliminationReason));
             }
 
             return new RaceResult(
                 state.RaceDefinition.Id,
-                results, raceInstanceId, state.RaceDefinition.ResearchPointBonus, state.IsFinished);
+                results, raceInstanceId, state.RaceDefinition.ResearchPointBonus, state.IsFinished, state.Deathmatch);
         }
 
         private void PermanentlyDestroy(RaceParticipant participant)
         {
+            participant.EliminationTime = ElapsedRaceTime;
+            participant.EliminationReason = "DESTROYED";
             participant.Bike.Destroy();
             participant.Destroy();
 

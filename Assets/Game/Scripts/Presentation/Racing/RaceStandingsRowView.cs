@@ -15,7 +15,7 @@ namespace RaceFatal.Presentation.Racing
             int position,
             string racerName,
             string teamName,
-            string raceTime)
+            string raceTime, bool survival = false)
         {
             gameObject.SetActive(true);
 
@@ -39,7 +39,14 @@ namespace RaceFatal.Presentation.Racing
             }
 
             if (raceTimeText != null)
+            {
+                if (survival)
+                {
+                    raceTimeText.enableAutoSizing = true;
+                    raceTimeText.fontSizeMin = 10; raceTimeText.fontSizeMax = 24;
+                }
                 raceTimeText.text = raceTime;
+            }
         }
 
         public void Hide()

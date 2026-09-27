@@ -17,7 +17,7 @@ namespace RaceFatal.Career
         {
             if (definition == null || !definition.Supported) return Result.Failure("EVENT FORMAT IS NOT AVAILABLE.");
             if (definition.RequiredFame < 0 || definition.EntryFee < 0 || definition.RaceIds.Count == 0 ||
-                (definition.Kind == CareerEventKind.Race && definition.RaceIds.Count != 1) ||
+                (definition.Kind != CareerEventKind.Championship && definition.RaceIds.Count != 1) ||
                 (definition.Kind == CareerEventKind.Championship && definition.RaceIds.Count < 2) ||
                 definition.RacePayouts.Concat(definition.ChampionshipPrizes).Concat(definition.PositionPoints).Any(p => p < 0))
                 return Result.Failure("INVALID EVENT RULES.");
@@ -27,6 +27,8 @@ namespace RaceFatal.Career
                 var race = string.IsNullOrWhiteSpace(id) ? null : database.GetRaceDefinition(id);
                 if (race == null || race.TeamSize != 2 || race.EntrantCount < 2)
                     return Result.Failure("EVENT NEEDS VALID TWO-RACER TEAM RACES.");
+                if ((definition.Kind == CareerEventKind.Deathmatch) != (race.Deathmatch != null))
+                    return Result.Failure("EVENT FORMAT MUST MATCH THE RACE DEFINITION RULES.");
                 if (first != null && (race.EngineClass != first.EngineClass || race.EntrantCount != first.EntrantCount))
                     return Result.Failure("CHAMPIONSHIP ROUNDS MUST SHARE ENGINE CLASS AND GRID SIZE.");
                 first = race;
@@ -100,6 +102,8 @@ namespace RaceFatal.Career
             if (active == null)
             {
                 var definition = database.GetCareerEventDefinition(eventId);
+                if ((definition.Kind == CareerEventKind.Deathmatch) != (race.State.Deathmatch != null))
+                    return Result<CareerEntryTransaction>.Failure("PREPARED RACE FORMAT DOES NOT MATCH THE EVENT.");
                 fee = definition.EntryFee;
                 if (!team.TrySpendCredits(fee)) return Result<CareerEntryTransaction>.Failure("NOT ENOUGH CREDITS.");
                 active = new CareerEventEntryData {
@@ -108,8 +112,10 @@ namespace RaceFatal.Career
                     payouts = definition.RacePayouts.ToList(), prizes = definition.ChampionshipPrizes.ToList(), points = definition.PositionPoints.ToList(),
                     standings = race.State.Participants.GroupBy(p => p.TeamId).Select(g => new ChampionshipStandingData {
                         teamId = g.Key, teamName = g.Key == team.TeamId ? team.TeamName : session.World.FindOpponentTeam(g.Key)?.TeamName ?? g.Key }).ToList() };
+                active.CaptureDeathmatch(race.State.Deathmatch);
                 team.Calendar.Data.active = active;
             }
+            race.UseDeathmatchRules(active.kind == CareerEventKind.Deathmatch ? active.RestoreDeathmatch() : null);
             if (string.IsNullOrEmpty(active.pendingInstanceId))
             { active.pendingInstanceId = race.InstanceId; active.pendingRaceId = race.State.RaceDefinition.Id; }
             else race.UseInstanceId(active.pendingInstanceId);
@@ -166,8 +172,18 @@ namespace RaceFatal.Career
                 if (!entry.withdrawn && entry.kind == CareerEventKind.Championship) bonus = At(entry.prizes, entry.finalRank);
                 entry.finalPrize = bonus; data.lastEvent = entry; data.active = null;
             }
+            if (entry.kind == CareerEventKind.Deathmatch)
+            {
+                entry.finalRank = player.Position;
+                entry.deathmatchResults = race.Standings.Select(s => new DeathmatchStandingData {
+                    racerId = s.RacerId, racerName = s.RacerName, teamId = s.TeamId, teamName = s.TeamName,
+                    position = s.Position, eliminations = s.Eliminations, winner = s.IsWinner,
+                    status = s.Status, eliminationReason = s.EliminationReason }).ToList();
+            }
             int payout = At(entry.payouts, player.Position);
-            if (player.Status != RaceParticipantStatus.Finished) payout = (int)Math.Round(payout * .4, MidpointRounding.AwayFromZero);
+            bool teamSurvived = race.Deathmatch?.Mode == DeathmatchVictoryMode.Team &&
+                race.Standings.Any(s => s.TeamId == team.TeamId && s.Status == RaceParticipantStatus.Finished);
+            if (player.Status != RaceParticipantStatus.Finished && !teamSurvived) payout = (int)Math.Round(payout * .4, MidpointRounding.AwayFromZero);
             var validation = CareerCalendarState.Restore(data);
             if (!validation.IsSuccess) throw new InvalidOperationException(validation.ErrorMessage);
             return new CalendarSettlement(data, checked(payout + bonus));

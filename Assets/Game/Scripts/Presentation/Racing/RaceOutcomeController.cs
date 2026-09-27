@@ -132,6 +132,7 @@ namespace RaceFatal.Presentation.Racing
             director.RacerFinished +=
                 OnRacerFinished;
 
+            director.RacerRetired += OnRacerRetired;
             director.RacerDestroyed +=
                 OnRacerDestroyed;
 
@@ -164,6 +165,7 @@ namespace RaceFatal.Presentation.Racing
             director.RacerFinished -=
                 OnRacerFinished;
 
+            director.RacerRetired -= OnRacerRetired;
             director.RacerDestroyed -=
                 OnRacerDestroyed;
 
@@ -292,6 +294,13 @@ namespace RaceFatal.Presentation.Racing
                 "CAREER TERMINATED");
         }
 
+        private void OnRacerRetired(RaceParticipant participant)
+        {
+            if (!IsPlayer(participant) || playerResolved) return;
+            playerResolved = true; waitingForContinue = true; outcomeActive = true;
+            ShowLiveOutcome("RACER DISQUALIFIED", participant.EliminationReason ?? "RETIRED");
+        }
+
         private void OnPostRaceResolved(
             PostRaceResult result)
         {
@@ -384,6 +393,12 @@ namespace RaceFatal.Presentation.Racing
                     "CONTINUE";
             }
 
+            if (director?.State.Deathmatch != null)
+            {
+                waitingForContinue = false;
+                if (continueButton != null) continueButton.gameObject.SetActive(false);
+                if (outcomeSubtitle != null) outcomeSubtitle.text += " — EVENT CONTINUES";
+            }
             if (releaseCursorOnOutcome)
                 ReleaseCursor();
         }
@@ -446,6 +461,8 @@ namespace RaceFatal.Presentation.Racing
         private void ShowFinalResults(
             RaceResult result)
         {
+            playerHud?.SetHudVisible(false);
+            playerCockpitView?.SetReticleVisible(false);
             finalResults = true;
             outcomeActive = true;
 
@@ -461,7 +478,7 @@ namespace RaceFatal.Presentation.Racing
                 }
 
             if (outcomeTitle != null)
-                outcomeTitle.text = "RACE COMPLETE";
+                outcomeTitle.text = result?.Deathmatch != null ? "DEATHMATCH COMPLETE" : "RACE COMPLETE";
 
             if (outcomeSubtitle != null)
             {

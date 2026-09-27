@@ -76,7 +76,7 @@ namespace RaceFatal.Racing
                 session.SelectedPlayerBikeId,
                 session.SelectedPartnerRacerId,
                 session.SelectedPartnerBikeId,
-                active?.standings.Select(s => s.teamId).Where(id => id != session.PlayerTeam.TeamId).ToList());
+                active?.kind == CareerEventKind.Championship ? active.standings.Select(s => s.teamId).Where(id => id != session.PlayerTeam.TeamId).ToList() : null);
         }
 
         public Result<RaceDirector>
@@ -105,6 +105,11 @@ namespace RaceFatal.Racing
                 return Result<RaceDirector>.Failure(
                     $"Race '{raceId}' was not found.");
             }
+
+            var savedEntry = session.PlayerTeam.Calendar.Active;
+            if (savedEntry?.kind == CareerEventKind.Deathmatch && savedEntry.raceIds[savedEntry.roundIndex] == raceId)
+                race = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass,
+                    race.LapCount, race.EntrantCount, race.TeamSize, race.ResearchPointBonus, savedEntry.RestoreDeathmatch());
 
             BikeState playerBike =
                 session.PlayerTeam.Garage.FindBike(
@@ -147,7 +152,7 @@ namespace RaceFatal.Racing
                     t.Roster.GetRaceEligibleRacers().Count >= race.TeamSize &&
                     t.Garage.GetRaceReadyBikesFor(race.EngineClass).Count >= race.TeamSize).ToList();
                 var round = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass,
-                    race.LapCount, (eligible.Count + 1) * race.TeamSize, race.TeamSize, race.ResearchPointBonus);
+                    race.LapCount, (eligible.Count + 1) * race.TeamSize, race.TeamSize, race.ResearchPointBonus, race.Deathmatch);
                 return raceEntryBuilder.Build(round, session.CareerRun, playerBike, partner, partnerBike, eligible);
             }
 

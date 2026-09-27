@@ -437,7 +437,7 @@ namespace RaceFatal.Presentation.Vehicles
                 if (order[i].RacerId != participant.RacerId)
                     continue;
 
-                position = i + 1;
+                position = raceRuntime.Director.State.Deathmatch != null ? raceRuntime.Director.State.DeathmatchRank(participant) : i + 1;
                 break;
             }
 
@@ -453,6 +453,25 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateLap()
         {
+            var director = raceRuntime.Director;
+            var rules = director.State.Deathmatch;
+            if (rules != null)
+            {
+                UpdateLapBoxes(0);
+                if (lapText != null)
+                {
+                    lapText.enableAutoSizing = true;
+                    lapText.fontSizeMin = 10;
+                    float remaining = Mathf.Max(0, rules.TimeLimitSeconds - director.ElapsedRaceTime);
+                    string speed = director.ElapsedRaceTime < rules.StartGraceSeconds
+                        ? $"START GRACE {rules.StartGraceSeconds - director.ElapsedRaceTime:0}s"
+                        : participant.BelowSpeedSeconds > 0
+                            ? $"SPEED UP! DQ IN {Mathf.Max(0, rules.BelowSpeedGraceSeconds - participant.BelowSpeedSeconds):0.0}s"
+                            : $"MIN {rules.MinimumSpeedKph:0} KM/H";
+                    lapText.text = $"ALIVE {director.State.SurvivingContenders} / WINNERS {rules.AllowedWinners}  {remaining:0}s\n{speed}";
+                }
+                return;
+            }
             int totalLaps =
                 raceRuntime.Director.State
                     .RaceDefinition.LapCount;

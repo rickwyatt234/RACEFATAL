@@ -25,6 +25,13 @@ namespace RaceFatal.Racing
         public RaceParticipantStatus Status { get; private set; }
 
         public int CompletedLaps { get; private set; }
+        public int Eliminations { get; internal set; }
+        public float EliminationTime { get; internal set; }
+        public float BelowSpeedSeconds { get; internal set; }
+        public float SpeedKph { get; internal set; }
+        public string EliminationReason { get; internal set; }
+        public bool DeathmatchWinner { get; internal set; }
+        public int DeathmatchPosition { get; internal set; }
 
         public float CourseProgress { get; private set; }
 

@@ -32,6 +32,17 @@ namespace RaceFatal.Content.Racing
         [Tooltip("Bonus RP for a finalized race, including a resolved DNF.")]
         [Min(0)] [SerializeField] private int researchPointBonus;
 
+        [Header("Deathmatch (laps do not end this event)")]
+        [SerializeField] private bool deathmatch;
+        [SerializeField] private DeathmatchVictoryMode victoryMode = DeathmatchVictoryMode.Team;
+        [Min(1)] [SerializeField] private int allowedWinners = 1;
+        [Tooltip("Allow tied timeout ranks to exceed winner slots. Disabled: break ties by course distance, then original grid order.")]
+        [SerializeField] private bool shareTimeoutTies;
+        [Min(1)] [SerializeField] private float timeLimitSeconds = 300;
+        [Min(0)] [SerializeField] private float minimumSpeedKph = 30;
+        [Min(0)] [SerializeField] private float startGraceSeconds = 15;
+        [Min(0.1f)] [SerializeField] private float belowSpeedGraceSeconds = 8;
+
         public RaceDefinition CreateRaceDefinition()
         {
             return new RaceDefinition(
@@ -41,7 +52,8 @@ namespace RaceFatal.Content.Racing
                 engineClass,
                 lapCount,
                 entrantCount,
-                teamSize, researchPointBonus);
+                teamSize, researchPointBonus, deathmatch ? new DeathmatchRules(victoryMode, allowedWinners,
+                    timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies) : null);
         }
     }
 }

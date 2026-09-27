@@ -738,7 +738,7 @@ namespace RaceFatal.Presentation.Combat
                     continue;
                 }
 
-                if (string.Equals(
+                if (runtime?.Director?.State.Deathmatch?.Mode != DeathmatchVictoryMode.Individual && string.Equals(
                         candidate.TeamId,
                         shooterParticipant.TeamId,
                         System.StringComparison.Ordinal))

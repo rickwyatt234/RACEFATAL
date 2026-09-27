@@ -60,6 +60,11 @@ namespace RaceFatal.Career
                 rewardPolicy.Calculate(
                     playerEntry.Position,
                     playerEntry.Status);
+            if (raceResult.Deathmatch?.Mode == DeathmatchVictoryMode.Team && playerEntry.IsWinner)
+            {
+                var teamReward = rewardPolicy.Calculate(playerEntry.Position, RaceParticipantStatus.Finished);
+                reward = new RaceReward(teamReward.Credits, teamReward.TeamFame, teamReward.ResearchPoints, reward.CharacterFame);
+            }
             var calendarSettlement = CareerCalendarService.PreviewSettlement(team, raceResult);
             if (calendarSettlement != null)
                 reward = new RaceReward(calendarSettlement.Credits, reward.TeamFame, reward.ResearchPoints, reward.CharacterFame);

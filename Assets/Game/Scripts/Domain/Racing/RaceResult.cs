@@ -17,6 +17,9 @@ namespace RaceFatal.Racing
 
         public float? RaceTimeSeconds { get; }
         public bool WasFastResolved { get; }
+        public bool IsWinner { get; }
+        public int Eliminations { get; }
+        public string EliminationReason { get; }
 
         public RaceResultEntry(
             string racerId,
@@ -27,7 +30,7 @@ namespace RaceFatal.Racing
             int completedLaps,
             RaceParticipantStatus status,
             float? raceTimeSeconds,
-            bool wasFastResolved)
+            bool wasFastResolved, bool isWinner = false, int eliminations = 0, string eliminationReason = null)
         {
             RacerId = racerId;
             RacerName = racerName;
@@ -42,6 +45,7 @@ namespace RaceFatal.Racing
 
             RaceTimeSeconds = raceTimeSeconds;
             WasFastResolved = wasFastResolved;
+            IsWinner = isWinner; Eliminations = eliminations; EliminationReason = eliminationReason;
         }
 
         /*
@@ -74,6 +78,7 @@ namespace RaceFatal.Racing
         public string InstanceId { get; }
         public int ResearchPointBonus { get; }
         public bool IsFinalized { get; }
+        public DeathmatchRules Deathmatch { get; }
 
         public IReadOnlyList<RaceResultEntry> Standings {
             get;
@@ -81,8 +86,9 @@ namespace RaceFatal.Racing
 
         public RaceResult(
             string raceId,
-            IReadOnlyList<RaceResultEntry> standings, string instanceId = null, int researchPointBonus = 0, bool isFinalized = true)
+            IReadOnlyList<RaceResultEntry> standings, string instanceId = null, int researchPointBonus = 0, bool isFinalized = true, DeathmatchRules deathmatch = null)
         {
+            Deathmatch = deathmatch;
             RaceId = raceId;
             InstanceId = instanceId ?? System.Guid.NewGuid().ToString("N");
             ResearchPointBonus = System.Math.Max(0, researchPointBonus);

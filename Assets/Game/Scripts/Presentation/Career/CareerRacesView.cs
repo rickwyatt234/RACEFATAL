@@ -142,9 +142,14 @@ namespace RaceFatal.Presentation.Career
             var text = new StringBuilder();
             text.AppendLine(entry?.description ?? definition.Description);
             text.AppendLine($"\nFORMAT  {kind.ToString().ToUpperInvariant()}\nENTRY FEE  {entry?.entryFee ?? definition.EntryFee:N0} CREDITS{(entry != null ? " (PAID)" : "")}");
-            if (race != null) text.AppendLine($"ENGINE CLASS  {race.EngineClass}\nLAPS  {race.LapCount}\nRACERS  UP TO {race.EntrantCount} / {race.TeamSize} PER TEAM\nEVENT RESEARCH BONUS  +{race.ResearchPointBonus} RP");
-            text.AppendLine($"\nRACE PURSE  {payouts.Take(race?.EntrantCount ?? payouts.Count).Sum(v => (long)v):N0} CREDITS\nPLAYER PAYOUT BY FINISH");
+            if (race != null) text.AppendLine($"ENGINE CLASS  {race.EngineClass}\n{(kind == CareerEventKind.Deathmatch ? "DEATHMATCH — KEEP CIRCULATING" : "LAPS  " + race.LapCount)}\nRACERS  UP TO {race.EntrantCount} / {race.TeamSize} PER TEAM\nEVENT RESEARCH BONUS  +{race.ResearchPointBonus} RP");
+            var survivalRules = kind == CareerEventKind.Deathmatch ? (entry != null ? entry.RestoreDeathmatch() : race?.Deathmatch) : null;
+            int payoutPlaces = survivalRules?.Mode == DeathmatchVictoryMode.Team && race != null ? race.EntrantCount / race.TeamSize : race?.EntrantCount ?? payouts.Count;
+            text.AppendLine($"\nBASE PURSE  {payouts.Take(payoutPlaces).Sum(v => (long)v):N0} CREDITS\n{(survivalRules?.Mode == DeathmatchVictoryMode.Team ? "TEAM" : "PLAYER")} PAYOUT BY POSITION");
             for (int i = 0; i < payouts.Count; i++) text.AppendLine($"{i + 1}.  {payouts[i]:N0} CREDITS");
+            if (kind == CareerEventKind.Deathmatch)
+                text.AppendLine("\n" + (entry != null ? entry.RestoreDeathmatch() : race?.Deathmatch)?.Summary +
+                    "\nTeam survival pays the team's position once, in full if a teammate wins. Character death remains permanent.");
             text.AppendLine("DNF: 40% OF POSITION PAYOUT.\nTEAM FAME, CHARACTER FAME AND BASE RP ALSO FOLLOW THE EXISTING FINISH REWARDS.");
             if (kind == CareerEventKind.Championship)
             {
@@ -184,6 +189,23 @@ namespace RaceFatal.Presentation.Career
             selectedEventId = entry.eventId;
             Set(selectedRaceNameText, entry.displayName);
             Set(selectedTrackText, entry.withdrawn ? "WITHDRAWN" : entry.completed ? "COMPLETED" : $"ROUND {entry.roundIndex + 1}/{entry.raceIds.Count}");
+            if (entry.kind == CareerEventKind.Deathmatch)
+            {
+                var results = new StringBuilder("DEATHMATCH RESULTS\n\n");
+                foreach (var standing in entry.deathmatchResults.OrderBy(s => s.position))
+                    results.AppendLine($"{standing.position}. {standing.racerName} / {standing.teamName} — " +
+                        $"{(standing.winner ? "WINNER" : "OUT")} / {standing.eliminations} ELIMINATIONS / {(string.IsNullOrEmpty(standing.eliminationReason) ? "SURVIVED" : standing.eliminationReason)}");
+                if (entry.deathmatchResults.Count == 0) results.AppendLine(entry.withdrawn ? "EVENT WITHDRAWN" : "EVENT AWAITING COMPLETION");
+                results.AppendLine("\n" + entry.RestoreDeathmatch().Summary);
+                Set(selectedRequirementsText, results.ToString());
+                if (!entry.completed)
+                {
+                    var available = Preview(entry.eventId);
+                    Set(selectedStatusText, available.IsSuccess ? "CONTINUE DEATHMATCH" : available.ErrorMessage);
+                    if (enterRaceButton != null) enterRaceButton.interactable = available.IsSuccess;
+                }
+                return;
+            }
             var text = new StringBuilder("TEAM STANDINGS\n\n");
             foreach (var standing in entry.standings.OrderByDescending(s => s.points).ThenBy(s => s.teamName))
                 text.AppendLine($"{1 + entry.standings.Count(s => s.points > standing.points)}. {standing.teamName}  ·  {standing.points} POINTS");

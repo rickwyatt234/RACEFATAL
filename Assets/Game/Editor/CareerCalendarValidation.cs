@@ -41,7 +41,7 @@ public static class CareerCalendarValidation
         Require(service.Refresh(team), "First draw generated");
         string draw = string.Join(",", team.Calendar.DrawIds);
         Require(team.Calendar.DrawIds.Count == 3 && !team.Calendar.DrawIds.Contains("locked") && !team.Calendar.DrawIds.Contains("future"),
-            "Only unlocked supported events appear");
+            "Only unlocked valid events appear; deathmatch without survival rules is rejected");
         Require(!service.Refresh(team) && string.Join(",", team.Calendar.DrawIds) == draw, "Refresh never rerolls");
         Require(!service.CanEnter(team, "locked").IsSuccess && !service.CanEnter(team, null).IsSuccess, "Entry validates unlock and ID");
         var mapper = new CampaignSaveMapper(db);
