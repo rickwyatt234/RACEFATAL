@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: DEV_EVENT_3
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: DEV_EVENT_3
+  displayName: Open Circuit 3
+  description: Development event. Tune the entry fee, Fame threshold and position
+    payouts in this asset.
+  kind: 0
+  requiredFame: 0
+  entryFee: 500
+  rounds:
+  - {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}
+  racePayouts: 10270000401f000064190000881300008813000088130000ac0d0000ac0d0000ac0d0000c4090000c4090000c4090000
+  championshipPrizes: 204e00001027000088130000
+  positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000

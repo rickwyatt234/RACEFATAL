@@ -53,6 +53,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d75cf405f4c39784cb9355a49ecd2a73, type: 2}
   - {fileID: 11400000, guid: 98582002b0020cb4184f3845e4cb9584, type: 2}
   - {fileID: 11400000, guid: 2e986d48d577d4b45ab0018ad25e7f6b, type: 2}
+  careerEventDefinitions:
+  - {fileID: 11400000, guid: 4682ccb991a488e4daa05468ef7f64d9, type: 2}
+  - {fileID: 11400000, guid: 3569016e9367cea4c849f8dc285c9acb, type: 2}
+  - {fileID: 11400000, guid: a5cf4464ee618e543aaedacff6273942, type: 2}
+  - {fileID: 11400000, guid: b74ea2b96cbc3e54488a71a523b9b1d4, type: 2}
+  - {fileID: 11400000, guid: 36d76e1ddf38232498ea4100b82a45ae, type: 2}
+  - {fileID: 11400000, guid: c873cb906cc613a4496f3f2f5d9ca0b2, type: 2}
+  racerPerkDefinitions:
+  - {fileID: 11400000, guid: aff4d65e188359b4c864d87a9e1fc40d, type: 2}
+  - {fileID: 11400000, guid: d1842b0939a4264489791cc12dffb049, type: 2}
+  - {fileID: 11400000, guid: 00ba04b7ec68f4444a4586e636fa0185, type: 2}
+  - {fileID: 11400000, guid: 26cce81c093c66644b372027e62aeafd, type: 2}
   racerDefinitions:
   - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
   - {fileID: 11400000, guid: 3c307af10d5676c4ba9196e9e2e17166, type: 2}
