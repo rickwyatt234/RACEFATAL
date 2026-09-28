@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abd48beaac2d02f4cbb76032c34dfb0d, type: 3}
+  m_Name: WeaponPresentation_LateralRam
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
+  weaponDefinitionId: weapon_lateral_ram
+  projectilePrefab: {fileID: 0}
+  muzzlePrefab: {fileID: 0}
+  muzzleFallbackLifetime: 1
+  chargePrefab: {fileID: 0}
+  fullChargePrefab: {fileID: 0}
+  fullChargeFallbackLifetime: 2
+  chargeLoopClip: {fileID: 0}
+  fullChargeClip: {fileID: 0}
+  minimumChargeVolume: 0.2
+  maximumChargeVolume: 0.8
+  minimumChargePitch: 0.7
+  maximumChargePitch: 1.25
+  fullChargeVolume: 1
+  fireClips:
+  - {fileID: 8300000, guid: e0bfb1c36318d4174aae02723b975437, type: 3}
+  fireVolume: 0.42
+  fireVolumeVariation: 0.04
+  minimumFirePitch: 0.58
+  maximumFirePitch: 0.72
+  impactPrefab: {fileID: 104661966040741559, guid: beb3a3f9b796e4642a9901a2553c9dc6, type: 3}
+  impactFallbackLifetime: 2
+  impactClips:
+  - {fileID: 8300000, guid: d4bf706e37f6f4578bb47c2af69331f2, type: 3}
+  impactVolume: 0.7
+  fireSpatialBlend: 1
+  fireMinDistance: 3
+  fireMaxDistance: 120
+  fireRolloffMode: 0
+  fireDopplerLevel: 0.1
