@@ -402,6 +402,77 @@ namespace RaceFatal.Presentation.Vehicles
             SuppressPhysicsRotation();
         }
 
+        public void ApplyExternalVelocityChange(
+            Vector3 worldDirection,
+            float velocityChange)
+        {
+            if (body == null ||
+                velocityChange <= 0f ||
+                worldDirection.sqrMagnitude < 0.001f)
+            {
+                return;
+            }
+
+            Vector3 direction =
+                worldDirection.normalized;
+
+            if (surfaceProbe != null)
+            {
+                Vector3 surfaceNormal =
+                    surfaceProbe.HasSurface
+                        ? surfaceProbe.SurfaceNormal
+                        : surfaceProbe.LastSurfaceNormal;
+
+                if (surfaceNormal.sqrMagnitude > 0.001f)
+                {
+                    Vector3 planar =
+                        Vector3.ProjectOnPlane(
+                            direction,
+                            surfaceNormal);
+
+                    if (planar.sqrMagnitude > 0.001f)
+                        direction = planar.normalized;
+                }
+            }
+
+            body.AddForce(
+                direction *
+                velocityChange,
+                ForceMode.VelocityChange);
+
+            SuppressPhysicsRotation();
+        }
+
+        public void ApplyLateralDash(
+            float signedDistance,
+            float duration)
+        {
+            if (body == null ||
+                Mathf.Abs(signedDistance) <= 0.001f)
+            {
+                return;
+            }
+
+            float safeDuration =
+                Mathf.Max(
+                    0.04f,
+                    duration);
+
+            float requestedVelocityChange =
+                Mathf.Abs(
+                    signedDistance) /
+                safeDuration;
+
+            Vector3 lateralDirection =
+                transform.right *
+                Mathf.Sign(
+                    signedDistance);
+
+            ApplyExternalVelocityChange(
+                lateralDirection,
+                requestedVelocityChange);
+        }
+
         private void BeginWallRecovery()
         {
             wallRecoveryTimer =
