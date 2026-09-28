@@ -107,7 +107,9 @@ namespace RaceFatal.Presentation.Combat
         private void OnCollisionEnter(
             Collision collision)
         {
-            if (Time.time >
+            if (runtime == null ||
+                !runtime.IsRaceActive ||
+                Time.time >
                     activeUntil ||
                 collision == null ||
                 collision.collider == null)
