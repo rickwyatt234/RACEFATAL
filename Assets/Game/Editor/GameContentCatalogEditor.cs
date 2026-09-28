@@ -19,6 +19,8 @@ public sealed class GameContentCatalogEditor : Editor
     private Plan preview;
     private string error;
     private Vector2 scroll;
+    private string importMessage;
+    private MessageType importMessageType;
 
     private sealed class Plan
     {
@@ -33,6 +35,13 @@ public sealed class GameContentCatalogEditor : Editor
     public override void OnInspectorGUI()
     {
         if (DrawDefaultInspector()) preview = null;
+        EditorGUILayout.Space();
+        using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
+        {
+            if (GUILayout.Button("Add All Racer Definitions")) AddAllRacerDefinitions();
+        }
+        if (!string.IsNullOrEmpty(importMessage))
+            EditorGUILayout.HelpBox(importMessage, importMessageType);
         EditorGUILayout.Space();
         showRandomizer = EditorGUILayout.Foldout(showRandomizer, "Randomize Opponent Team Rosters", true);
         if (!showRandomizer) return;
@@ -86,6 +95,62 @@ public sealed class GameContentCatalogEditor : Editor
             }
             EditorGUILayout.EndScrollView();
             if (GUILayout.Button("Apply preview to team assets (Undo supported)")) ApplyPreview();
+        }
+    }
+
+    private void AddAllRacerDefinitions()
+    {
+        try
+        {
+            var catalog = (GameContentCatalogSO)target;
+            if (!AssetDatabase.IsOpenForEdit(catalog))
+                throw new InvalidOperationException("The catalog asset is not editable.");
+
+            var existing = new HashSet<RacerDefinitionSO>(catalog.RacerDefinitions.Where(r => r != null));
+            var additions = FindAssets<RacerDefinitionSO>()
+                .Where(r => !existing.Contains(r)).Distinct()
+                .OrderBy(r => AssetDatabase.GetAssetPath(r), StringComparer.Ordinal).ToArray();
+
+            // Validate before any mutation: two assets with the same ID would collide in GameDatabase.
+            var ids = new Dictionary<string, RacerDefinitionSO>(StringComparer.Ordinal);
+            foreach (var racer in existing.Concat(additions))
+            {
+                if (string.IsNullOrWhiteSpace(racer.Id))
+                    throw new InvalidOperationException($"Racer '{AssetDatabase.GetAssetPath(racer)}' has no ID. Set its ID and try again.");
+                if (ids.TryGetValue(racer.Id, out var other))
+                    throw new InvalidOperationException($"Duplicate racer ID '{racer.Id}' in '{AssetDatabase.GetAssetPath(other)}' and '{AssetDatabase.GetAssetPath(racer)}'. Give them unique IDs and try again.");
+                ids.Add(racer.Id, racer);
+            }
+
+            if (additions.Length == 0)
+            {
+                importMessage = "All racer definitions under Assets are already in this catalog.";
+                importMessageType = MessageType.Info;
+                return;
+            }
+
+            serializedObject.Update();
+            var registry = serializedObject.FindProperty("racerDefinitions");
+            Undo.IncrementCurrentGroup();
+            int group = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Add All Racer Definitions");
+            Undo.RegisterCompleteObjectUndo(catalog, "Add All Racer Definitions");
+            foreach (var racer in additions)
+            {
+                int index = registry.arraySize++;
+                registry.GetArrayElementAtIndex(index).objectReferenceValue = racer;
+            }
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(catalog);
+            Undo.CollapseUndoOperations(group);
+            preview = null;
+            importMessage = $"Added {additions.Length} racer definitions. Existing entries were preserved. Save Project to persist; Undo restores the previous list.";
+            importMessageType = MessageType.Info;
+        }
+        catch (Exception e)
+        {
+            importMessage = e.Message;
+            importMessageType = MessageType.Error;
         }
     }
 
