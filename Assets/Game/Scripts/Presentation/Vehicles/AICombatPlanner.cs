@@ -984,6 +984,33 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
+            if (definition.DeliveryMode ==
+                WeaponDeliveryMode.Ram)
+            {
+                BikeMotor motor =
+                    racerView != null
+                        ? racerView.GetComponent<BikeMotor>()
+                        : null;
+
+                float steering =
+                    motor != null
+                        ? motor.SteeringInput
+                        : 0f;
+
+                float targetSide =
+                    Vector3.Dot(
+                        origin.right,
+                        direction);
+
+                if (Mathf.Abs(steering) < 0.05f ||
+                    Mathf.Abs(targetSide) < 0.05f ||
+                    Mathf.Sign(steering) !=
+                        Mathf.Sign(targetSide))
+                {
+                    return false;
+                }
+            }
+
             float alignmentScore =
                 1f -
                 Mathf.Clamp01(
