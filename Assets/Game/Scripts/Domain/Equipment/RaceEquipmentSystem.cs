@@ -1100,11 +1100,14 @@ namespace RaceFatal.Equipment
 
         private void StopCurrentWeaponActivation()
         {
-            WeaponState weapon =
-                GetSelectedWeapon();
+            if (selectedIndex < 0 ||
+                selectedIndex >= weapons.Count)
+            {
+                return;
+            }
 
-            if (weapon != null)
-                StopWeaponActivation(weapon);
+            StopWeaponActivation(
+                weapons[selectedIndex]);
         }
 
         private void StopAllWeaponActivations()
