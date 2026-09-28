@@ -1262,9 +1262,52 @@ namespace RaceFatal.Presentation.Combat
             Vector3 position =
                 origin.position -
                 racer.transform.forward *
-                1.5f -
+                1.5f;
+
+            Vector3 rayOrigin =
+                position +
                 racer.transform.up *
-                0.12f;
+                0.8f;
+
+            RaycastHit[] groundHits =
+                Physics.RaycastAll(
+                    rayOrigin,
+                    -racer.transform.up,
+                    4f,
+                    hitMask,
+                    QueryTriggerInteraction.Ignore);
+
+            float nearestGroundDistance =
+                float.PositiveInfinity;
+
+            for (int i = 0;
+                 i < groundHits.Length;
+                 i++)
+            {
+                RaycastHit groundHit =
+                    groundHits[i];
+
+                RacerViewController hitRacer =
+                    groundHit.collider != null
+                        ? groundHit.collider.GetComponentInParent<
+                            RacerViewController>()
+                        : null;
+
+                if (hitRacer == racer ||
+                    groundHit.distance >=
+                        nearestGroundDistance)
+                {
+                    continue;
+                }
+
+                nearestGroundDistance =
+                    groundHit.distance;
+
+                position =
+                    groundHit.point +
+                    groundHit.normal *
+                    0.08f;
+            }
 
             GameObject mineObject =
                 new GameObject(
