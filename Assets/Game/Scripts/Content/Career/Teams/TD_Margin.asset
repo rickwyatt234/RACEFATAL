@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_Margin
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: team_margin
+  displayName: Margin
+  primaryColor: '#F1FF4A'
+  secondaryColor: '#821E82'
+  philosophy: 2
+  racers:
+  - {fileID: 11400000, guid: 8e7cc0998e2880c428a96523435bda7c, type: 2}
+  - {fileID: 11400000, guid: b39ac74456ff3f043b565f08adf331a6, type: 2}
+  - {fileID: 11400000, guid: ed7ce5b65a158824abb106b7e83307ee, type: 2}
+  - {fileID: 11400000, guid: 6fffd9c5fb0a80840bac41762adee2bf, type: 2}
+  - {fileID: 11400000, guid: 983ef74b1dacffe45b55d32e360b3575, type: 2}
+  - {fileID: 11400000, guid: 569b0f7653e4ac1429cee7b787a15244, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}

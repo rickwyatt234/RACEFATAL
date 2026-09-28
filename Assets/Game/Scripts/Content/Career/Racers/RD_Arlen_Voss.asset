@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_arlen_voss
   displayName: Arlen Voss
-  pace: 1
-  aggression: 0.73
-  overtakingSkill: 0.59
-  defensiveSkill: 0.27
-  weaponAggression: 0.75
+  pace: 0.5
+  aggression: 0.89
+  overtakingSkill: 0.62
+  defensiveSkill: 0.98
+  weaponAggression: 0.8

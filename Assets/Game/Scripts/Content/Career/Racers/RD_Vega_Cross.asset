@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_vega_cross
   displayName: Vega Cross
-  pace: 1
-  aggression: 0.79
-  overtakingSkill: 0.53
-  defensiveSkill: 0.95
-  weaponAggression: 0.34
+  pace: 0.15
+  aggression: 0.41
+  overtakingSkill: 0.77
+  defensiveSkill: 0.64
+  weaponAggression: 0.57

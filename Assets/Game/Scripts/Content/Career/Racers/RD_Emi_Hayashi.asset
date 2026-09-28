@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_emi_hayashi
   displayName: Emi Hayashi
-  pace: 1
+  pace: 0.85
   aggression: 0.67
-  overtakingSkill: 0.44
-  defensiveSkill: 0.08
-  weaponAggression: 0.83
+  overtakingSkill: 0.57
+  defensiveSkill: 0.57
+  weaponAggression: 0.86

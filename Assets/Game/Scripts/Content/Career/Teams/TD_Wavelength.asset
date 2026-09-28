@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_Wavelength
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: team_wavelength
+  displayName: Wavelength
+  primaryColor: '#816219'
+  secondaryColor: '#193881'
+  philosophy: 6
+  racers:
+  - {fileID: 11400000, guid: 2ad9da4d8c4dd8645a153795033cf572, type: 2}
+  - {fileID: 11400000, guid: 5b180ca9822ac6941a7481ff8d22fc09, type: 2}
+  - {fileID: 11400000, guid: 248f06222e29ccb4daefb20239a80b95, type: 2}
+  - {fileID: 11400000, guid: 0218cd9bd3d7d7f408d6a491f2bde6e5, type: 2}
+  - {fileID: 11400000, guid: 3c307af10d5676c4ba9196e9e2e17166, type: 2}
+  - {fileID: 11400000, guid: 8be465059fcfbae49ab67a796f7776fa, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}

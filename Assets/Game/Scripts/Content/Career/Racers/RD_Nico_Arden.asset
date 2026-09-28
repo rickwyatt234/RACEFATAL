@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_nico_arden
   displayName: Nico Arden
-  pace: 1
-  aggression: 0.49
-  overtakingSkill: 0.66
-  defensiveSkill: 0.02
-  weaponAggression: 0.54
+  pace: 0.32
+  aggression: 0.61
+  overtakingSkill: 0.5
+  defensiveSkill: 0.06
+  weaponAggression: 0.24

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_Dynamic
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: team_dynamic
+  displayName: Dynamic
+  primaryColor: '#EBEBEB'
+  secondaryColor: '#75B2F0'
+  philosophy: 5
+  racers:
+  - {fileID: 11400000, guid: fb770a49215160a45915c7447b2cb961, type: 2}
+  - {fileID: 11400000, guid: 0318b2d9252ca4944a541b7b07291797, type: 2}
+  - {fileID: 11400000, guid: ef9f1acc04350f74da6b7c5345b10592, type: 2}
+  - {fileID: 11400000, guid: 0d845fbef915fcd4aaab04a02016e3a3, type: 2}
+  - {fileID: 11400000, guid: efec13cc52bf0e44f9ac9c3319b445e4, type: 2}
+  - {fileID: 11400000, guid: 5b7d37fb922b04d4f98d5b2bcaecec18, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}

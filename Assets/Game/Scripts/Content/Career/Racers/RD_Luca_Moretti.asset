@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_luca_moretti
   displayName: Luca Moretti
-  pace: 1
-  aggression: 0.73
-  overtakingSkill: 0.83
-  defensiveSkill: 0.81
-  weaponAggression: 0.65
+  pace: 0
+  aggression: 0.78
+  overtakingSkill: 0.84
+  defensiveSkill: 0.95
+  weaponAggression: 0.19

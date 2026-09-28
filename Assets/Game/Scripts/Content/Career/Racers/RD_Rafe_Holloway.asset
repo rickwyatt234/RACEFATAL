@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_rafe_holloway
   displayName: Rafe Holloway
-  pace: 1
-  aggression: 0.65
-  overtakingSkill: 0.56
-  defensiveSkill: 0.7
-  weaponAggression: 0.25
+  pace: 0.44
+  aggression: 0.96
+  overtakingSkill: 0.63
+  defensiveSkill: 0.35
+  weaponAggression: 0.29

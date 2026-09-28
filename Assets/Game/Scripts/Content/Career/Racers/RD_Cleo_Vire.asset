@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_cleo_vire
   displayName: Cleo Vire
-  pace: 1
-  aggression: 0.54
-  overtakingSkill: 0.53
-  defensiveSkill: 0.82
-  weaponAggression: 0.68
+  pace: 0.22
+  aggression: 0.48
+  overtakingSkill: 0.14
+  defensiveSkill: 0.19
+  weaponAggression: 0.08

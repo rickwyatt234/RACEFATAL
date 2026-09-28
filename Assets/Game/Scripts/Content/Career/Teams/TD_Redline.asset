@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_Redline
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: team_redline
+  displayName: Redline
+  primaryColor: '#D13619'
+  secondaryColor: '#242222'
+  philosophy: 0
+  racers:
+  - {fileID: 11400000, guid: 9e816fbcc7608e04dbe139359d9062a6, type: 2}
+  - {fileID: 11400000, guid: b55a9ddc719f1494594053f9bfda6b98, type: 2}
+  - {fileID: 11400000, guid: 6d60e87b40b03924599c4d81e757fd30, type: 2}
+  - {fileID: 11400000, guid: 07939644fdb19874290957e8665ee072, type: 2}
+  - {fileID: 11400000, guid: 758bb24f9008a274d909b436adb89bf2, type: 2}
+  - {fileID: 11400000, guid: 977027f9916dd0642adf4e5abba96e3b, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}

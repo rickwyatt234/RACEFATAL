@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_Equinox
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: team_equinox
+  displayName: Equinox
+  primaryColor: '#C8B53A'
+  secondaryColor: '#4DC83A'
+  philosophy: 3
+  racers:
+  - {fileID: 11400000, guid: 3254be5987fc5934d84fea6b29df55b3, type: 2}
+  - {fileID: 11400000, guid: 510a58afb0f9a75418c323bef894efe7, type: 2}
+  - {fileID: 11400000, guid: 7ac5ab96b2939704cb7fb3f838e5660f, type: 2}
+  - {fileID: 11400000, guid: 86242840343f5a2488e481de2a892153, type: 2}
+  - {fileID: 11400000, guid: b7570fca0c1c60b4b9479231aba682a0, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
+  - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}

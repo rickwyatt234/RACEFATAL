@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_lyra_knox
   displayName: Lyra Knox
-  pace: 1
-  aggression: 0.18
-  overtakingSkill: 0.85
-  defensiveSkill: 0.94
-  weaponAggression: 0.28
+  pace: 0.64
+  aggression: 0.67
+  overtakingSkill: 0.76
+  defensiveSkill: 0.87
+  weaponAggression: 0.77

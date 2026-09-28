@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c48eb73acca17f64e9f4e1ddef9cb769, type: 3}
   m_Name: EQ_Countermeasure_Flare_Basic
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.CountermeasureDefinitionSO
-  id: countermeasure_flare_Basic
+  id: countermeasure_flare_basic
   displayName: Basic Countermeasure Flare
   requiredNodeSize: 0
   creditCost: 200

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: racer_soren_ash
   displayName: Soren Ash
   pace: 1
-  aggression: 0.95
-  overtakingSkill: 0.25
-  defensiveSkill: 0.17
-  weaponAggression: 0.47
+  aggression: 0.51
+  overtakingSkill: 0.47
+  defensiveSkill: 0.52
+  weaponAggression: 0.62

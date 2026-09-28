@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.RacerDefinitionSO
   id: racer_ronan_vex
   displayName: Ronan Vex
-  pace: 1
-  aggression: 0.67
-  overtakingSkill: 0.93
-  defensiveSkill: 0.34
-  weaponAggression: 0.31
+  pace: 0.59
+  aggression: 0.17
+  overtakingSkill: 0
+  defensiveSkill: 0.5
+  weaponAggression: 0.25

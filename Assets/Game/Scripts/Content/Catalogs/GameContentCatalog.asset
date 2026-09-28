@@ -16,19 +16,34 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
   engineDefinitions:
   - {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
-  - {fileID: 11400000, guid: f7bcede6c056440449503888c565450c, type: 2}
-  - {fileID: 11400000, guid: 259e9c0df2b16a24e8a2a7f434f0aa09, type: 2}
+  - {fileID: 11400000, guid: 8c6f39b27fd625b4b9dd144c5eb9bac6, type: 2}
+  - {fileID: 11400000, guid: 2b6dfe87cd2ad094588a9547c3df05c4, type: 2}
+  - {fileID: 11400000, guid: 38052b20372781646b312579ed51c237, type: 2}
+  - {fileID: 11400000, guid: 852819e62642c9e4eb84bd795d365347, type: 2}
+  - {fileID: 11400000, guid: 8b35eb15780f40b4195048184b6fbb97, type: 2}
+  - {fileID: 11400000, guid: 3a39f25a43d00fe47a0a753953e54ae0, type: 2}
+  - {fileID: 11400000, guid: 6dc9f2624af4f614b81be32e3061ea67, type: 2}
+  - {fileID: 11400000, guid: 2c688693be7f9d845b22ae67dbebb5a3, type: 2}
+  - {fileID: 11400000, guid: 89729dc7c25a0184787a08c16fcc15e6, type: 2}
+  - {fileID: 11400000, guid: bd3bb4257acd7ed48a21bad0f8aadf57, type: 2}
+  - {fileID: 11400000, guid: 160015ea695e48845a05963e50a29b03, type: 2}
   chassisDefinitions:
   - {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}
+  - {fileID: 11400000, guid: 82fea8b72ff489841a317490f090fae7, type: 2}
+  - {fileID: 11400000, guid: 99f6df3ee976dae4e808a43e6bcfaeea, type: 2}
+  - {fileID: 11400000, guid: 8197935d1a87b594fa741a301152ce0a, type: 2}
+  - {fileID: 11400000, guid: 77af472645284404eaff616e649617af, type: 2}
+  - {fileID: 11400000, guid: 513bc2718c8b4ca40a2ab8bedb77fe2a, type: 2}
+  - {fileID: 11400000, guid: 4c511b224c454ee43b47968518978ad7, type: 2}
+  - {fileID: 11400000, guid: 121b5455b2bb656418f989dd801dc818, type: 2}
+  - {fileID: 11400000, guid: dd20ed736887d83409b93a7db8ef5d0b, type: 2}
   bikeBuildDefinitions:
   - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
   - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}
-  - {fileID: 11400000, guid: 5ad21c28002990a49b41afc15d5e69b8, type: 2}
   - {fileID: 11400000, guid: b7e0e396491470246be4dc428bda3aeb, type: 2}
   equipmentDefinitions:
   - {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
   - {fileID: 11400000, guid: 463ff824628f33a4d82909b70c48124c, type: 2}
-  - {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
   - {fileID: 11400000, guid: 49380ec564638b5458e951a9350f1fe3, type: 2}
   - {fileID: 11400000, guid: 4365eae4d206dd3448e2cb7576eaa371, type: 2}
   - {fileID: 11400000, guid: b6b3324ec27cd7145a8824319df2622a, type: 2}
@@ -40,8 +55,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c07e5ed1615717d468ae160c7e2040c8, type: 2}
   - {fileID: 11400000, guid: a284e51efd0d274459579d3b2a614c19, type: 2}
   - {fileID: 11400000, guid: ae8365ec0698d284b8223f8ecac6ae80, type: 2}
-  - {fileID: 11400000, guid: bb6a6cc17bb543341b219672bc3536b3, type: 2}
-  - {fileID: 11400000, guid: 4692efe3d0ebf514dbc55424425f01d9, type: 2}
+  - {fileID: 11400000, guid: 617054cb9ba12634aa5e42280eeae4f1, type: 2}
+  - {fileID: 11400000, guid: e7f561d4037bb8f4a86f0d4aa902cabc, type: 2}
+  - {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
+  - {fileID: 11400000, guid: f7359d48fc8acdf43b0f97bf9928f46b, type: 2}
+  - {fileID: 11400000, guid: 5bebde85cfcc8aa4d99d56a9930c74a9, type: 2}
+  - {fileID: 11400000, guid: b7b6adc34ad0e79458d3b5ab208ebcf1, type: 2}
+  - {fileID: 11400000, guid: 2255379ff0086884fa924e6decc9c188, type: 2}
   researchProgression: {fileID: 11400000, guid: 231dd2b052284ea4c9ea58bd6ada7912, type: 2}
   researchTreeLayout: {fileID: 11400000, guid: 5b2591011c33b2f4085a89b21e24fead, type: 2}
   researcherDefinitions:
@@ -60,6 +80,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b74ea2b96cbc3e54488a71a523b9b1d4, type: 2}
   - {fileID: 11400000, guid: 36d76e1ddf38232498ea4100b82a45ae, type: 2}
   - {fileID: 11400000, guid: c873cb906cc613a4496f3f2f5d9ca0b2, type: 2}
+  - {fileID: 11400000, guid: 941f660dfce297d4a871c091b3f8f0ae, type: 2}
+  - {fileID: 11400000, guid: 589fa2f1f963d2f4880f6ae34f22f478, type: 2}
   racerPerkDefinitions:
   - {fileID: 11400000, guid: aff4d65e188359b4c864d87a9e1fc40d, type: 2}
   - {fileID: 11400000, guid: d1842b0939a4264489791cc12dffb049, type: 2}
@@ -92,13 +114,32 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ef9f1acc04350f74da6b7c5345b10592, type: 2}
   - {fileID: 11400000, guid: 6d60e87b40b03924599c4d81e757fd30, type: 2}
   - {fileID: 11400000, guid: fb770a49215160a45915c7447b2cb961, type: 2}
+  - {fileID: 11400000, guid: a0a4eecfc8f7c6548b79fc7bb319448f, type: 2}
+  - {fileID: 11400000, guid: 5b180ca9822ac6941a7481ff8d22fc09, type: 2}
+  - {fileID: 11400000, guid: efec13cc52bf0e44f9ac9c3319b445e4, type: 2}
+  - {fileID: 11400000, guid: 9706f84b1b751874da624988deb3e103, type: 2}
+  - {fileID: 11400000, guid: b39ac74456ff3f043b565f08adf331a6, type: 2}
+  - {fileID: 11400000, guid: 891584d9821c8c747b95e83763bf2602, type: 2}
+  - {fileID: 11400000, guid: dc3772b669448484598d20bbcc2e508c, type: 2}
+  - {fileID: 11400000, guid: 0218cd9bd3d7d7f408d6a491f2bde6e5, type: 2}
+  - {fileID: 11400000, guid: 8005b29c666ac8a49a22aff7374ca374, type: 2}
+  - {fileID: 11400000, guid: 86242840343f5a2488e481de2a892153, type: 2}
+  - {fileID: 11400000, guid: ffe2e828695536e4087dc2b49405380c, type: 2}
+  - {fileID: 11400000, guid: 5b7d37fb922b04d4f98d5b2bcaecec18, type: 2}
+  - {fileID: 11400000, guid: 2ad9da4d8c4dd8645a153795033cf572, type: 2}
+  - {fileID: 11400000, guid: 33afd8614c5ede9408251da1fdccb2a5, type: 2}
+  - {fileID: 11400000, guid: d384802d81839d24580a966f7aebc217, type: 2}
   opponentTeamDefinitions:
   - {fileID: 11400000, guid: 4f218b04437ddc54ab8116f1e39ba31f, type: 2}
   - {fileID: 11400000, guid: 3f284dd08e59be440bdbc49ee0bf9b65, type: 2}
   - {fileID: 11400000, guid: 66193d1ef198cef4fb2a5bfcc6ab39cd, type: 2}
   - {fileID: 11400000, guid: 72fdb3673ef1c3840bc8ab0b60fedd33, type: 2}
   - {fileID: 11400000, guid: a96f51aee09ad1747ba40cb7228a0f1c, type: 2}
+  - {fileID: 11400000, guid: bdd99c6f681d02d47a022ad4114c7b2c, type: 2}
+  - {fileID: 11400000, guid: c43860626df205046892af0ed704cab3, type: 2}
   trackDefinitions:
   - {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
   raceDefinitions:
   - {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}
+  - {fileID: 11400000, guid: b09c7e038e410c64089f561889fc948b, type: 2}
+  - {fileID: 11400000, guid: d293c2f4b62c5b343bde851099c26150, type: 2}
