@@ -10,32 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
-  m_Name: EQ_BallisticShotgun
+  m_Name: EQ_Rocket_Launcher
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: weapon_ballistic_shotgun
-  displayName: Ballistic Shotgun
-  requiredNodeSize: 1
+  id: weapon_rocket_launcher
+  displayName: Rocket Launcher
+  requiredNodeSize: 2
   creditCost: 0
   requiredTechnologyId: 
   activationMode: 1
-  aimMode: 0
-  deliveryMode: 5
-  range: 68
-  projectileSpeed: 420
-  damage: 3.2
-  startingAmmo: 36
+  aimMode: 2
+  deliveryMode: 2
+  range: 500
+  projectileSpeed: 165
+  damage: 30
+  startingAmmo: 6
   fireInterval: 0
   chargeDuration: 0
-  targetLockDuration: 0
-  projectileCount: 18
-  spreadAngle: 34
-  explosionRadius: 0
-  armingDelay: 0
-  lifetime: 0
-  exposureDuration: 0
-  effectDuration: 0
-  statusDamagePerSecond: 0
-  lateralDistance: 0
-  dashDuration: 0
-  impactPush: 0
-  targetingHalfAngle: 24
+  targetLockDuration: 3

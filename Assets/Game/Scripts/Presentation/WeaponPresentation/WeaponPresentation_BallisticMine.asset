@@ -27,17 +27,17 @@ MonoBehaviour:
   maximumChargePitch: 1.25
   fullChargeVolume: 1
   fireClips:
-  - {fileID: 8300000, guid: 715ae2cab2b764ebdace4410bc395d62, type: 3}
+  - {fileID: 8300000, guid: 40c81305477914a5a91ec3858d659d4d, type: 3}
+  - {fileID: 8300000, guid: 74c06e118e36c4d17be16348a39e10c0, type: 3}
+  - {fileID: 8300000, guid: d237fed0d3c184243814277808c0f833, type: 3}
+  - {fileID: 8300000, guid: 349670ad0d46e49b7a8c2020d7f570d1, type: 3}
   fireVolume: 0.28
   fireVolumeVariation: 0.04
   minimumFirePitch: 0.55
   maximumFirePitch: 0.72
   impactPrefab: {fileID: 843707215034721197, guid: cd0f666efc0f05242a04a3d319095738, type: 3}
   impactFallbackLifetime: 2
-  impactClips:
-  - {fileID: 8300000, guid: e0bfb1c36318d4174aae02723b975437, type: 3}
-  - {fileID: 8300000, guid: d4bf706e37f6f4578bb47c2af69331f2, type: 3}
-  - {fileID: 8300000, guid: 5e6fe790db4c640b88dd0f78d5fdc721, type: 3}
+  impactClips: []
   impactVolume: 0.8
   fireSpatialBlend: 1
   fireMinDistance: 3

@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
-  m_Name: EQ_LateralRam
+  m_Name: EQ_Rear_Auto_Turret
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: weapon_lateral_ram
-  displayName: Kinetic Ram
+  id: weapon_rear_auto_turret
+  displayName: Rear Auto Turret
   requiredNodeSize: 1
   creditCost: 0
   requiredTechnologyId: 
-  activationMode: 1
-  aimMode: 6
-  deliveryMode: 6
-  range: 10
-  projectileSpeed: 0
-  damage: 42
-  startingAmmo: 12
-  fireInterval: 0
+  activationMode: 0
+  aimMode: 5
+  deliveryMode: 1
+  range: 115
+  projectileSpeed: 360
+  damage: 2.2
+  startingAmmo: 240
+  fireInterval: 0.16
   chargeDuration: 0
   targetLockDuration: 0
   projectileCount: 1
@@ -35,7 +35,7 @@ MonoBehaviour:
   exposureDuration: 0
   effectDuration: 0
   statusDamagePerSecond: 0
-  lateralDistance: 4.2
-  dashDuration: 0.16
-  impactPush: 7.5
-  targetingHalfAngle: 42
+  lateralDistance: 0
+  dashDuration: 0
+  impactPush: 0
+  targetingHalfAngle: 58

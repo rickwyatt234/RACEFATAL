@@ -10,20 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
-  m_Name: EQ_RocketLauncher
+  m_Name: EQ_Lateral_Ram
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: weapon_rocket_launcher
-  displayName: Rocket Launcher
+  id: weapon_lateral_ram
+  displayName: Kinetic Ram
   requiredNodeSize: 2
   creditCost: 0
   requiredTechnologyId: 
   activationMode: 1
-  aimMode: 2
-  deliveryMode: 2
-  range: 500
-  projectileSpeed: 165
-  damage: 30
-  startingAmmo: 6
+  aimMode: 6
+  deliveryMode: 6
+  range: 10
+  projectileSpeed: 0
+  damage: 25
+  startingAmmo: 100
   fireInterval: 0
   chargeDuration: 0
-  targetLockDuration: 3
+  targetLockDuration: 0
+  projectileCount: 1
+  spreadAngle: 0
+  explosionRadius: 0
+  armingDelay: 0
+  lifetime: 0
+  exposureDuration: 0
+  effectDuration: 0
+  statusDamagePerSecond: 0
+  lateralDistance: 4.2
+  dashDuration: 0.16
+  impactPush: 7.5
+  targetingHalfAngle: 42

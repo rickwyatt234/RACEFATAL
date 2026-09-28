@@ -10,32 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
-  m_Name: EQ_RearAutoTurret
+  m_Name: EQ_Ballistic_Mine
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: weapon_rear_auto_turret
-  displayName: Rear Auto Turret
+  id: weapon_ballistic_mine
+  displayName: Ballistic Mine
   requiredNodeSize: 1
   creditCost: 0
   requiredTechnologyId: 
-  activationMode: 0
-  aimMode: 5
-  deliveryMode: 1
-  range: 115
-  projectileSpeed: 360
-  damage: 2.2
-  startingAmmo: 240
-  fireInterval: 0.16
+  activationMode: 1
+  aimMode: 1
+  deliveryMode: 3
+  range: 45
+  projectileSpeed: 0
+  damage: 38
+  startingAmmo: 8
+  fireInterval: 0
   chargeDuration: 0
   targetLockDuration: 0
   projectileCount: 1
   spreadAngle: 0
-  explosionRadius: 0
-  armingDelay: 0
-  lifetime: 0
+  explosionRadius: 8
+  armingDelay: 0.45
+  lifetime: 60
   exposureDuration: 0
   effectDuration: 0
   statusDamagePerSecond: 0
   lateralDistance: 0
   dashDuration: 0
   impactPush: 0
-  targetingHalfAngle: 58
+  targetingHalfAngle: 52

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
   id: weapon_machine_gun
   displayName: Machine Gun
-  requiredNodeSize: 1
+  requiredNodeSize: 0
   creditCost: 0
   requiredTechnologyId: 
   activationMode: 2
@@ -26,3 +26,16 @@ MonoBehaviour:
   startingAmmo: 250
   fireInterval: 0.1
   chargeDuration: 0
+  targetLockDuration: 0
+  projectileCount: 1
+  spreadAngle: 0
+  explosionRadius: 0
+  armingDelay: 0
+  lifetime: 0
+  exposureDuration: 0
+  effectDuration: 0
+  statusDamagePerSecond: 0
+  lateralDistance: 0
+  dashDuration: 0
+  impactPush: 0
+  targetingHalfAngle: 0

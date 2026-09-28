@@ -10,32 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b3d0e4e1c1902842b2d1a8be012d66f, type: 3}
-  m_Name: EQ_BallisticMine
+  m_Name: EQ_Ballistic_Shotgun
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Equipment.WeaponDefinitionSO
-  id: weapon_ballistic_mine
-  displayName: Ballistic Mine
-  requiredNodeSize: 1
+  id: weapon_ballistic_shotgun
+  displayName: Ballistic Shotgun
+  requiredNodeSize: 0
   creditCost: 0
   requiredTechnologyId: 
   activationMode: 1
-  aimMode: 1
-  deliveryMode: 3
-  range: 45
-  projectileSpeed: 0
-  damage: 38
-  startingAmmo: 8
+  aimMode: 0
+  deliveryMode: 5
+  range: 68
+  projectileSpeed: 420
+  damage: 3.2
+  startingAmmo: 36
   fireInterval: 0
   chargeDuration: 0
   targetLockDuration: 0
-  projectileCount: 1
-  spreadAngle: 0
-  explosionRadius: 8
-  armingDelay: 0.45
-  lifetime: 24
+  projectileCount: 18
+  spreadAngle: 34
+  explosionRadius: 0
+  armingDelay: 0
+  lifetime: 0
   exposureDuration: 0
   effectDuration: 0
   statusDamagePerSecond: 0
   lateralDistance: 0
   dashDuration: 0
   impactPush: 0
-  targetingHalfAngle: 52
+  targetingHalfAngle: 24
