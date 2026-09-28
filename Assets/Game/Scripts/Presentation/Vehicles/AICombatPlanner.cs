@@ -635,7 +635,9 @@ namespace RaceFatal.Presentation.Vehicles
                 }
 
                 if (!weapon.HasAmmo ||
-                    weapon.Definition == null)
+                    weapon.Definition == null ||
+                    weapon.Definition.ActivationMode ==
+                        EquipmentActivationMode.Passive)
                 {
                     continue;
                 }
@@ -910,12 +912,6 @@ namespace RaceFatal.Presentation.Vehicles
                 return false;
             }
 
-            if (definition.DeliveryMode ==
-                WeaponDeliveryMode.Dropped)
-            {
-                return false;
-            }
-
             bool targetIsPlayer =
                 IsPlayerTarget(
                     target);
@@ -969,22 +965,18 @@ namespace RaceFatal.Presentation.Vehicles
                 toTarget /
                 distance;
 
-            if (Vector3.Dot(
-                    origin.forward,
-                    direction) <= 0f)
-            {
-                return false;
-            }
-
             float angle =
-                Vector3.Angle(
-                    origin.forward,
+                GetAimAngle(
+                    definition,
+                    origin,
                     direction);
 
             float allowedAngle =
-                GetAllowedFiringAngle(
-                    definition,
-                    target);
+                definition.TargetingHalfAngle > 0f
+                    ? definition.TargetingHalfAngle
+                    : GetAllowedFiringAngle(
+                        definition,
+                        target);
 
             if (angle >
                 allowedAngle)
@@ -1141,6 +1133,64 @@ namespace RaceFatal.Presentation.Vehicles
             return true;
         }
 
+        private float GetAimAngle(
+            WeaponDefinition weapon,
+            Transform origin,
+            Vector3 targetDirection)
+        {
+            if (weapon == null ||
+                origin == null)
+            {
+                return 180f;
+            }
+
+            if (weapon.AimMode ==
+                    WeaponAimMode.RearDrop ||
+                weapon.AimMode ==
+                    WeaponAimMode.RearTargeted)
+            {
+                return
+                    Vector3.Angle(
+                        -origin.forward,
+                        targetDirection);
+            }
+
+            if (weapon.DeliveryMode ==
+                WeaponDeliveryMode.Ram)
+            {
+                return
+                    Mathf.Min(
+                        Vector3.Angle(
+                            origin.right,
+                            targetDirection),
+                        Vector3.Angle(
+                            -origin.right,
+                            targetDirection));
+            }
+
+            if (weapon.AimMode ==
+                WeaponAimMode.ForwardAndSideways)
+            {
+                return
+                    Mathf.Min(
+                        Vector3.Angle(
+                            origin.forward,
+                            targetDirection),
+                        Mathf.Min(
+                            Vector3.Angle(
+                                origin.right,
+                                targetDirection),
+                            Vector3.Angle(
+                                -origin.right,
+                                targetDirection)));
+            }
+
+            return
+                Vector3.Angle(
+                    origin.forward,
+                    targetDirection);
+        }
+
         private float GetAllowedFiringAngle(
             WeaponDefinition weapon,
             RacerViewController target)
@@ -1185,9 +1235,29 @@ namespace RaceFatal.Presentation.Vehicles
             WeaponDefinition weapon)
         {
             if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.Area)
+                    WeaponDeliveryMode.Area ||
+                weapon.DeliveryMode ==
+                    WeaponDeliveryMode.Ram)
             {
                 return 0.15f;
+            }
+
+            if (weapon.DeliveryMode ==
+                WeaponDeliveryMode.Dropped)
+            {
+                return 0.22f;
+            }
+
+            if (weapon.DeliveryMode ==
+                WeaponDeliveryMode.FlameCone)
+            {
+                return 0.28f;
+            }
+
+            if (weapon.DeliveryMode ==
+                WeaponDeliveryMode.ConeProjectile)
+            {
+                return 0.3f;
             }
 
             if (weapon.ActivationMode ==
@@ -1397,6 +1467,12 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (weapon.DeliveryMode ==
                     WeaponDeliveryMode.Hitscan ||
+                weapon.DeliveryMode ==
+                    WeaponDeliveryMode.Dropped ||
+                weapon.DeliveryMode ==
+                    WeaponDeliveryMode.Ram ||
+                weapon.DeliveryMode ==
+                    WeaponDeliveryMode.FlameCone ||
                 weapon.ProjectileSpeed <=
                     0.01f)
             {
