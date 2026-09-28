@@ -77,6 +77,15 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
+            if (runtime == null ||
+                !runtime.IsRaceActive)
+            {
+                Destroy(
+                    gameObject);
+
+                return;
+            }
+
             if (Time.time >=
                 expireTime)
             {
