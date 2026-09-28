@@ -16,7 +16,7 @@ namespace RaceFatal.Equipment
         private readonly List<BoosterState> boosters = new List<BoosterState>();
         private readonly List<CountermeasureState> countermeasures = new List<CountermeasureState>();
 
-        private int selectedIndex;
+        private int selectedIndex = -1;
 
         private bool boostAllowed = true;
         private bool weaponsAllowed = true;
@@ -83,7 +83,7 @@ namespace RaceFatal.Equipment
         }
 
         public bool SelectedWeaponIsEmpty =>
-            HasWeapon &&
+            SelectedWeaponDefinition != null &&
             SelectedWeaponAmmo <= 0;
 
         public bool SelectedWeaponIsCharging
