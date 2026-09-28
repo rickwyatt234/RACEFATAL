@@ -1293,7 +1293,7 @@ namespace RaceFatal.Presentation.Combat
                             RacerViewController>()
                         : null;
 
-                if (hitRacer == racer ||
+                if (hitRacer != null ||
                     groundHit.distance >=
                         nearestGroundDistance)
                 {
