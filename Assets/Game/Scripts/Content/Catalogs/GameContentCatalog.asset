@@ -62,6 +62,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5bebde85cfcc8aa4d99d56a9930c74a9, type: 2}
   - {fileID: 11400000, guid: b7b6adc34ad0e79458d3b5ab208ebcf1, type: 2}
   - {fileID: 11400000, guid: 2255379ff0086884fa924e6decc9c188, type: 2}
+  - {fileID: 11400000, guid: bb6a6cc17bb543341b219672bc3536b3, type: 2}
+  - {fileID: 11400000, guid: 4692efe3d0ebf514dbc55424425f01d9, type: 2}
+  - {fileID: 11400000, guid: d10e34f76d9b410b9b3b62808aed54aa, type: 2}
+  - {fileID: 11400000, guid: 2a4cb5c0ce7a48a38861324ba3f0b3c1, type: 2}
+  - {fileID: 11400000, guid: 73b137646cbb4b598221f98d6634ce3b, type: 2}
+  - {fileID: 11400000, guid: e5ac5a5ba3574e47aaaeb580c62a5ec4, type: 2}
+  - {fileID: 11400000, guid: 94d0cf9870fe4cb1be9aa9c81c851715, type: 2}
   researchProgression: {fileID: 11400000, guid: 231dd2b052284ea4c9ea58bd6ada7912, type: 2}
   researchTreeLayout: {fileID: 11400000, guid: 5b2591011c33b2f4085a89b21e24fead, type: 2}
   researcherDefinitions:

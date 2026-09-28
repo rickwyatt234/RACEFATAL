@@ -33,7 +33,11 @@ namespace RaceFatal.Shared
         RearDrop,
         Targeted,
         AreaOfEffect,
-        NotApplicable
+        NotApplicable,
+
+        // Appended to preserve the serialized values of existing content.
+        RearTargeted,
+        ForwardAndSideways
     }
     public enum WeaponDeliveryMode
     {
@@ -41,7 +45,12 @@ namespace RaceFatal.Shared
         Projectile,
         GuidedProjectile,
         Dropped,
-        Area
+        Area,
+
+        // Appended to preserve the serialized values of existing content.
+        ConeProjectile,
+        Ram,
+        FlameCone
     }
     public enum EquipmentActivationMode
     {

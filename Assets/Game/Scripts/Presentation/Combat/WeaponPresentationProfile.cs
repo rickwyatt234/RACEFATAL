@@ -56,6 +56,17 @@ namespace RaceFatal.Presentation.Combat
         [Range(0.5f, 2f)][SerializeField] private float minimumFirePitch = 0.97f;
         [Range(0.5f, 2f)][SerializeField] private float maximumFirePitch = 1.03f;
 
+        [Header("Impact / Secondary Feedback")]
+        [Tooltip("Optional world-space effect used by mines, ram impacts, and status applications.")]
+        [SerializeField] private GameObject impactPrefab;
+
+        [Min(0.01f)][SerializeField] private float impactFallbackLifetime = 2f;
+
+        [Tooltip("Optional impact/trigger sounds used by special weapons.")]
+        [SerializeField] private AudioClip[] impactClips;
+
+        [Range(0f, 1f)][SerializeField] private float impactVolume = 1f;
+
         [Header("Fire / Charge Audio - 3D")]
         [Range(0f, 1f)][SerializeField] private float fireSpatialBlend = 1f;
         [Min(0.01f)][SerializeField] private float fireMinDistance = 3f;
@@ -89,6 +100,11 @@ namespace RaceFatal.Presentation.Combat
         public float FireVolumeVariation => fireVolumeVariation;
         public float MinimumFirePitch => minimumFirePitch;
         public float MaximumFirePitch => maximumFirePitch;
+
+        public GameObject ImpactPrefab => impactPrefab;
+        public float ImpactFallbackLifetime => impactFallbackLifetime;
+        public AudioClip[] ImpactClips => impactClips;
+        public float ImpactVolume => impactVolume;
 
         public float FireSpatialBlend => fireSpatialBlend;
         public float FireMinDistance => fireMinDistance;

@@ -16,7 +16,7 @@ namespace RaceFatal.Equipment
         private readonly List<BoosterState> boosters = new List<BoosterState>();
         private readonly List<CountermeasureState> countermeasures = new List<CountermeasureState>();
 
-        private int selectedIndex;
+        private int selectedIndex = -1;
 
         private bool boostAllowed = true;
         private bool weaponsAllowed = true;
@@ -35,8 +35,11 @@ namespace RaceFatal.Equipment
             {
                 foreach (WeaponState weapon in weapons)
                 {
-                    if (weapon.CurrentAmmo > 0)
+                    if (IsSelectableWeapon(weapon) &&
+                        weapon.CurrentAmmo > 0)
+                    {
                         return true;
+                    }
                 }
 
                 return false;
@@ -80,7 +83,7 @@ namespace RaceFatal.Equipment
         }
 
         public bool SelectedWeaponIsEmpty =>
-            HasWeapon &&
+            SelectedWeaponDefinition != null &&
             SelectedWeaponAmmo <= 0;
 
         public bool SelectedWeaponIsCharging
@@ -425,6 +428,9 @@ namespace RaceFatal.Equipment
                     continue;
                 }
 
+                if (!IsSelectableWeapon(weapon))
+                    return false;
+
                 if (selectedIndex == i)
                     return true;
 
@@ -443,14 +449,15 @@ namespace RaceFatal.Equipment
         {
             StopCurrentWeaponActivation();
 
-            if (weapons.Count == 0)
+            int nextIndex =
+                FindSelectableWeaponIndex(
+                    selectedIndex,
+                    1);
+
+            if (nextIndex < 0)
                 return null;
 
-            selectedIndex++;
-
-            if (selectedIndex >= weapons.Count)
-                selectedIndex = 0;
-
+            selectedIndex = nextIndex;
             return SelectedEquipmentId;
         }
 
@@ -458,14 +465,15 @@ namespace RaceFatal.Equipment
         {
             StopCurrentWeaponActivation();
 
-            if (weapons.Count == 0)
+            int previousIndex =
+                FindSelectableWeaponIndex(
+                    selectedIndex,
+                    -1);
+
+            if (previousIndex < 0)
                 return null;
 
-            selectedIndex--;
-
-            if (selectedIndex < 0)
-                selectedIndex = weapons.Count - 1;
-
+            selectedIndex = previousIndex;
             return SelectedEquipmentId;
         }
 
@@ -490,8 +498,12 @@ namespace RaceFatal.Equipment
                     (selectedIndex + offset) %
                     weapons.Count;
 
-                if (weapons[index].CurrentAmmo <= 0)
+                if (!IsSelectableWeapon(
+                        weapons[index]) ||
+                    weapons[index].CurrentAmmo <= 0)
+                {
                     continue;
+                }
 
                 selectedIndex = index;
                 return true;
@@ -528,6 +540,41 @@ namespace RaceFatal.Equipment
                 return false;
 
             return EndWeapon(weapon);
+        }
+
+        public bool TryFirePassiveWeapon(
+            string equipmentId)
+        {
+            if (!weaponsAllowed)
+                return false;
+
+            WeaponState weapon =
+                FindWeapon(
+                    equipmentId);
+
+            if (weapon == null ||
+                weapon.Definition.ActivationMode !=
+                    EquipmentActivationMode.Passive ||
+                weapon.CurrentAmmo <= 0 ||
+                weapon.FireTimer > 0f)
+            {
+                return false;
+            }
+
+            bool fired =
+                TryFire(
+                    weapon,
+                    1f);
+
+            if (fired)
+            {
+                weapon.FireTimer =
+                    Math.Max(
+                        0.01f,
+                        weapon.Definition.FireInterval);
+            }
+
+            return fired;
         }
 
         private bool BeginWeapon(WeaponState weapon)
@@ -674,6 +721,18 @@ namespace RaceFatal.Equipment
                 return;
             }
 
+            if (weapon.Definition.ActivationMode ==
+                EquipmentActivationMode.Passive)
+            {
+                weapon.FireTimer =
+                    Math.Max(
+                        0f,
+                        weapon.FireTimer -
+                        deltaTime);
+
+                return;
+            }
+
             if (weapon.IsCharging)
             {
                 weapon.ChargeTime += deltaTime;
@@ -779,7 +838,20 @@ namespace RaceFatal.Equipment
                     weapon.Definition.Damage,
                     weapon.Definition.Range,
                     weapon.Definition.ProjectileSpeed,
-                    chargeRatio));
+                    chargeRatio,
+                    weapon.Definition.ProjectileCount,
+                    weapon.Definition.SpreadAngle,
+                    weapon.Definition.ExplosionRadius,
+                    weapon.Definition.ArmingDelay,
+                    weapon.Definition.Lifetime,
+                    weapon.Definition.ExposureDuration,
+                    weapon.Definition.EffectDuration,
+                    weapon.Definition.StatusDamagePerSecond,
+                    weapon.Definition.LateralDistance,
+                    weapon.Definition.DashDuration,
+                    weapon.Definition.ImpactPush,
+                    weapon.Definition.TargetingHalfAngle,
+                    weapon.Definition.FireInterval));
 
             return true;
         }
@@ -936,21 +1008,106 @@ namespace RaceFatal.Equipment
                 return null;
 
             if (selectedIndex < 0 ||
+                selectedIndex >= weapons.Count ||
+                !IsSelectableWeapon(
+                    weapons[selectedIndex]))
+            {
+                selectedIndex =
+                    FindSelectableWeaponIndex(
+                        -1,
+                        1);
+            }
+
+            if (selectedIndex < 0 ||
                 selectedIndex >= weapons.Count)
             {
-                selectedIndex = 0;
+                return null;
             }
 
             return weapons[selectedIndex];
         }
 
+        private WeaponState FindWeapon(
+            string equipmentId)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    equipmentId))
+            {
+                return null;
+            }
+
+            foreach (WeaponState weapon in weapons)
+            {
+                if (weapon?.Equipment == null)
+                    continue;
+
+                if (string.Equals(
+                        weapon.Equipment.EquipmentId,
+                        equipmentId,
+                        StringComparison.Ordinal))
+                {
+                    return weapon;
+                }
+            }
+
+            return null;
+        }
+
+        private int FindSelectableWeaponIndex(
+            int fromIndex,
+            int direction)
+        {
+            if (weapons.Count == 0)
+                return -1;
+
+            direction =
+                direction < 0
+                    ? -1
+                    : 1;
+
+            for (int offset = 1;
+                 offset <= weapons.Count;
+                 offset++)
+            {
+                int index =
+                    fromIndex +
+                    direction * offset;
+
+                index %=
+                    weapons.Count;
+
+                if (index < 0)
+                    index += weapons.Count;
+
+                if (IsSelectableWeapon(
+                        weapons[index]))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool IsSelectableWeapon(
+            WeaponState weapon)
+        {
+            return
+                weapon?.Definition != null &&
+                weapon.Definition.ActivationMode !=
+                    EquipmentActivationMode.Passive;
+        }
+
         private void StopCurrentWeaponActivation()
         {
-            WeaponState weapon =
-                GetSelectedWeapon();
+            if (selectedIndex < 0 ||
+                selectedIndex >= weapons.Count)
+            {
+                return;
+            }
 
-            if (weapon != null)
-                StopWeaponActivation(weapon);
+            StopWeaponActivation(
+                weapons[selectedIndex]);
         }
 
         private void StopAllWeaponActivations()

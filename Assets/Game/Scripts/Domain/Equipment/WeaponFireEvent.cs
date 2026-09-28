@@ -16,6 +16,20 @@ namespace RaceFatal.Equipment
         public float ProjectileSpeed { get; }
         public float ChargeRatio { get; }
 
+        public int ProjectileCount { get; }
+        public float SpreadAngle { get; }
+        public float ExplosionRadius { get; }
+        public float ArmingDelay { get; }
+        public float Lifetime { get; }
+        public float ExposureDuration { get; }
+        public float EffectDuration { get; }
+        public float StatusDamagePerSecond { get; }
+        public float LateralDistance { get; }
+        public float DashDuration { get; }
+        public float ImpactPush { get; }
+        public float TargetingHalfAngle { get; }
+        public float FireInterval { get; }
+
         public WeaponFireEvent(
             string racerId,
             string equipmentId,
@@ -25,7 +39,20 @@ namespace RaceFatal.Equipment
             float damage,
             float range,
             float projectileSpeed,
-            float chargeRatio)
+            float chargeRatio,
+            int projectileCount,
+            float spreadAngle,
+            float explosionRadius,
+            float armingDelay,
+            float lifetime,
+            float exposureDuration,
+            float effectDuration,
+            float statusDamagePerSecond,
+            float lateralDistance,
+            float dashDuration,
+            float impactPush,
+            float targetingHalfAngle,
+            float fireInterval)
         {
             RacerId = racerId;
             EquipmentId = equipmentId;
@@ -38,6 +65,20 @@ namespace RaceFatal.Equipment
             Range = range;
             ProjectileSpeed = projectileSpeed;
             ChargeRatio = chargeRatio;
+
+            ProjectileCount = projectileCount;
+            SpreadAngle = spreadAngle;
+            ExplosionRadius = explosionRadius;
+            ArmingDelay = armingDelay;
+            Lifetime = lifetime;
+            ExposureDuration = exposureDuration;
+            EffectDuration = effectDuration;
+            StatusDamagePerSecond = statusDamagePerSecond;
+            LateralDistance = lateralDistance;
+            DashDuration = dashDuration;
+            ImpactPush = impactPush;
+            TargetingHalfAngle = targetingHalfAngle;
+            FireInterval = fireInterval;
         }
     }
 }
