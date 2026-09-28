@@ -20,6 +20,18 @@ namespace RaceFatal.Presentation.Combat
                         position,
                         rotation);
 
+                ParticleSystem[] systems =
+                    effect.GetComponentsInChildren<
+                        ParticleSystem>(true);
+
+                for (int i = 0;
+                     i < systems.Length;
+                     i++)
+                {
+                    if (systems[i] != null)
+                        systems[i].Play(true);
+                }
+
                 Object.Destroy(
                     effect,
                     ResolveLifetime(
