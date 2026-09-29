@@ -69,6 +69,8 @@ namespace RaceFatal.Infrastructure.Saving
         public string instanceId, raceId, playerRacerId, status;
         public int position, credits, teamFame, researchPoints, characterFame, eventRP, researcherRP;
         public bool playerDied, careerEnded;
+        public bool hasAudienceFavor;
+        public float averageAudienceFavor = 100f;
     }
     [Serializable]
     public class RacerSaveData

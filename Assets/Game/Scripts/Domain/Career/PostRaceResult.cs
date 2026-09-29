@@ -18,6 +18,9 @@ namespace RaceFatal.Career
         public int EventResearchPoints { get; }
         public int ResearcherPoints { get; }
 
+        public float AverageAudienceFavor { get; }
+        public float AudienceFameMultiplier => RaceAudience.MultiplierFor(AverageAudienceFavor);
+
         public bool PlayerDied { get; }
         public bool CareerEnded { get; }
 
@@ -28,8 +31,9 @@ namespace RaceFatal.Career
             RaceParticipantStatus playerRaceStatus,
             RaceReward reward,
             bool playerDied,
-            bool careerEnded, int eventResearchPoints = 0, int researcherPoints = 0)
+            bool careerEnded, int eventResearchPoints = 0, int researcherPoints = 0, float averageAudienceFavor = 100f)
         {
+            AverageAudienceFavor = RaceAudience.ClampFavor(averageAudienceFavor);
             RaceId = raceId;
             PlayerRacerId = playerRacerId;
 

@@ -12,6 +12,14 @@ namespace RaceFatal.Racing
         private readonly RaceState state;
         private readonly LapTracker lapTracker;
         private readonly CareerManager careerManager;
+        public RaceAudience Audience { get; } = new RaceAudience();
+        private RaceParticipant audiencePlayer;
+
+        public void ConfigureAudience(AudienceSettings settings)
+        {
+            if (state.IsStarted) throw new InvalidOperationException("Cannot change audience rules during a race.");
+            Audience.Configure(settings);
+        }
 
         private string raceInstanceId = Guid.NewGuid().ToString("N");
         public string InstanceId => raceInstanceId;
@@ -69,6 +77,7 @@ namespace RaceFatal.Racing
 
             ElapsedRaceTime = 0f;
             state.StartRace();
+            audiencePlayer = FindPlayerParticipant();
 
             foreach (RaceParticipant participant in state.Participants)
                 participant.Racer.RecordRaceEntered();
@@ -83,6 +92,7 @@ namespace RaceFatal.Racing
             if (rules != null) deltaTime = Math.Min(deltaTime, Math.Max(0, rules.TimeLimitSeconds - ElapsedRaceTime));
             float previousTime = ElapsedRaceTime;
             ElapsedRaceTime += deltaTime;
+            Audience.Tick(deltaTime, state, audiencePlayer);
 
             foreach (RaceParticipant participant in state.Participants)
             {
@@ -208,12 +218,12 @@ namespace RaceFatal.Racing
             string victimRacerId,
             float amount,
             DamageCause cause,
-            DamageImpactSide impactSide = DamageImpactSide.Unknown)
+            DamageImpactSide impactSide = DamageImpactSide.Unknown, bool isRamAttack = false)
         {
             if (!CanProcessRaceEvent())
                 return Result<DamageEvent>.Failure("Race is not active.");
 
-            if (amount <= 0f)
+            if (amount <= 0f || float.IsNaN(amount) || float.IsInfinity(amount))
                 return Result<DamageEvent>.Failure("Damage must be greater than zero.");
 
             RaceParticipant victim = GetRacingParticipant(victimRacerId);
@@ -280,6 +290,11 @@ namespace RaceFatal.Racing
                     impactSide,
                     shieldDepleted,
                     resolution.CausedDestruction);
+
+            if (attacker != null && attacker == audiencePlayer && attacker != victim &&
+                (state.Deathmatch?.Mode == DeathmatchVictoryMode.Individual || attacker.TeamId != victim.TeamId) &&
+                (cause == DamageCause.Weapon || cause == DamageCause.Collision))
+                Audience.RecordDamage(damageEvent, isRamAttack);
 
             DamageApplied?.Invoke(damageEvent);
 
@@ -458,7 +473,8 @@ namespace RaceFatal.Racing
                         participant.CompletedLaps,
                         participant.Status,
                         participant.FinishTimeSeconds,
-                        participant.WasFastResolved, participant.DeathmatchWinner, participant.Eliminations, participant.EliminationReason));
+                        participant.WasFastResolved, participant.DeathmatchWinner, participant.Eliminations, participant.EliminationReason,
+                        participant == audiencePlayer ? Audience.AverageFavor : 100f));
             }
 
             return new RaceResult(

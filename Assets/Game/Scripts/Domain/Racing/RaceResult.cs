@@ -20,6 +20,8 @@ namespace RaceFatal.Racing
         public bool IsWinner { get; }
         public int Eliminations { get; }
         public string EliminationReason { get; }
+        public float AverageAudienceFavor { get; }
+        public float AudienceFameMultiplier => RaceAudience.MultiplierFor(AverageAudienceFavor);
 
         public RaceResultEntry(
             string racerId,
@@ -30,8 +32,9 @@ namespace RaceFatal.Racing
             int completedLaps,
             RaceParticipantStatus status,
             float? raceTimeSeconds,
-            bool wasFastResolved, bool isWinner = false, int eliminations = 0, string eliminationReason = null)
+            bool wasFastResolved, bool isWinner = false, int eliminations = 0, string eliminationReason = null, float averageAudienceFavor = 100f)
         {
+            AverageAudienceFavor = RaceAudience.ClampFavor(averageAudienceFavor);
             RacerId = racerId;
             RacerName = racerName;
 

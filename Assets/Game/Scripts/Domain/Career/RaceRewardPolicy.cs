@@ -29,6 +29,12 @@ namespace RaceFatal.Career
                 Scale(baseReward.CharacterFame, 0.25f));
         }
 
+        public RaceReward ApplyAudience(RaceReward reward, float averageFavor)
+        {
+            float multiplier = RaceAudience.MultiplierFor(averageFavor);
+            return new RaceReward(reward.Credits, Scale(reward.TeamFame, multiplier), reward.ResearchPoints, Scale(reward.CharacterFame, multiplier));
+        }
+
         private RaceReward GetBaseReward(
             int position)
         {

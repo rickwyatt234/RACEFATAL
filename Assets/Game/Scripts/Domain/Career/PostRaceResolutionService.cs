@@ -65,6 +65,7 @@ namespace RaceFatal.Career
                 var teamReward = rewardPolicy.Calculate(playerEntry.Position, RaceParticipantStatus.Finished);
                 reward = new RaceReward(teamReward.Credits, teamReward.TeamFame, teamReward.ResearchPoints, reward.CharacterFame);
             }
+            reward = rewardPolicy.ApplyAudience(reward, playerEntry.AverageAudienceFavor);
             var calendarSettlement = CareerCalendarService.PreviewSettlement(team, raceResult);
             if (calendarSettlement != null)
                 reward = new RaceReward(calendarSettlement.Credits, reward.TeamFame, reward.ResearchPoints, reward.CharacterFame);
@@ -127,7 +128,7 @@ namespace RaceFatal.Career
                 playerEntry.Status,
                 reward,
                 playerDied,
-                careerEnded, raceResult.ResearchPointBonus, researcherPoints);
+                careerEnded, raceResult.ResearchPointBonus, researcherPoints, playerEntry.AverageAudienceFavor);
             team.RestoreSettledRace(raceResult.InstanceId, result);
             if (calendarSettlement != null) team.RestoreCalendar(calendarSettlement.Calendar);
             return result;

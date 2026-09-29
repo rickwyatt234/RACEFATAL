@@ -25,6 +25,9 @@ namespace RaceFatal.Presentation.Racing
         private float aiVsAIDamageMultiplier = 0.45f;
 
 
+        [Header("Audience Favor")]
+        [SerializeField] private AudienceSettings audienceSettings = new AudienceSettings();
+
         private TrackRuntimeController trackRuntime;
 
         private readonly Dictionary<string, RacerViewController> racerViews =
@@ -58,6 +61,8 @@ namespace RaceFatal.Presentation.Racing
             raceDirector.AIVsAIDamageMultiplier =
                 Mathf.Clamp01(
                     aiVsAIDamageMultiplier);
+
+            raceDirector.ConfigureAudience(audienceSettings);
 
             trackRuntime = track
                 ?? throw new ArgumentNullException(nameof(track));

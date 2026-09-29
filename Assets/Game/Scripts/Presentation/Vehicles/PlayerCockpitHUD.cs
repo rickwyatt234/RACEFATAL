@@ -41,6 +41,17 @@ namespace RaceFatal.Presentation.Vehicles
         [Tooltip("Optional full-screen image flashed when the player takes shield or bike damage.")]
         [SerializeField] private Image damageFlash;
 
+        [Header("Audience")]
+        [SerializeField] private bool showAudience = true;
+        [SerializeField] private RectTransform audienceRoot;
+        [SerializeField] private Vector2 audienceAnchor = new Vector2(0.5f, 0f);
+        [SerializeField] private Vector2 audiencePosition = new Vector2(0f, 100f);
+        [SerializeField] private Vector2 audienceSize = new Vector2(260f, 96f);
+        [SerializeField] private AudioClip crowdCheeringLoop;
+        [SerializeField] private AudioClip crowdBooingLoop;
+        [Range(0f, 1f)][SerializeField] private float crowdVolume = 0.35f;
+        private CockpitAudienceHUD audienceHud;
+
         [Header("Root")]
         [Tooltip("Root GameObject containing the normal player cockpit HUD.")]
         [SerializeField] private GameObject hudRoot;
@@ -173,6 +184,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (participant?.Vehicle == null)
                 return;
 
+            if (showAudience && audienceHud == null) TryCreateAudienceHUD();
             UpdateVehicleHUD();
             UpdateRaceHUD();
             UpdateDamageFeedback();
@@ -215,6 +227,25 @@ namespace RaceFatal.Presentation.Vehicles
         #endregion
 
         #region Vehicle HUD
+
+        private void TryCreateAudienceHUD()
+        {
+            if (raceRuntime?.Director == null) return;
+            if (audienceRoot == null)
+            {
+                Transform parent = hudRoot != null ? hudRoot.transform : speedText != null ? speedText.canvas?.transform : null;
+                if (parent == null) return;
+                audienceRoot = new GameObject("Audience HUD", typeof(RectTransform)).GetComponent<RectTransform>();
+                audienceRoot.SetParent(parent, false);
+                audienceRoot.gameObject.layer = parent.gameObject.layer;
+                audienceRoot.anchorMin = audienceRoot.anchorMax = audienceAnchor;
+                audienceRoot.pivot = new Vector2(0.5f, 0f);
+                audienceRoot.anchoredPosition = audiencePosition;
+                audienceRoot.sizeDelta = audienceSize;
+            }
+            audienceHud = audienceRoot.GetComponent<CockpitAudienceHUD>() ?? audienceRoot.gameObject.AddComponent<CockpitAudienceHUD>();
+            audienceHud.Initialize(raceRuntime.Director, participant, speedText != null ? speedText.font : null, crowdCheeringLoop, crowdBooingLoop, crowdVolume);
+        }
 
         private void UpdateVehicleHUD()
         {

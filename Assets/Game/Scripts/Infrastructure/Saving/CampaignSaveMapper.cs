@@ -233,6 +233,7 @@ namespace RaceFatal.Infrastructure.Saving
                     credits = result.Reward.Credits, teamFame = result.Reward.TeamFame,
                     researchPoints = result.Reward.ResearchPoints, characterFame = result.Reward.CharacterFame,
                     eventRP = result.EventResearchPoints, researcherRP = result.ResearcherPoints,
+                    hasAudienceFavor = true, averageAudienceFavor = result.AverageAudienceFavor,
                     playerDied = result.PlayerDied, careerEnded = result.CareerEnded });
             }
             foreach (string technologyId
@@ -578,7 +579,8 @@ namespace RaceFatal.Infrastructure.Saving
                             return Result<TeamState>.Failure("Invalid research race receipt.");
                         team.RestoreSettledRace(receipt.instanceId, new PostRaceResult(receipt.raceId, receipt.playerRacerId,
                             receipt.position, status, new RaceReward(receipt.credits, receipt.teamFame, receipt.researchPoints,
-                            receipt.characterFame), receipt.playerDied, receipt.careerEnded, receipt.eventRP, receipt.researcherRP));
+                            receipt.characterFame), receipt.playerDied, receipt.careerEnded, receipt.eventRP, receipt.researcherRP,
+                            receipt.hasAudienceFavor ? receipt.averageAudienceFavor : 100f));
                     }
                 _ = team.ResearchOutputPerRace;
             }

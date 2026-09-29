@@ -18,6 +18,9 @@ namespace RaceFatal.Racing
         public string TeamName { get; }
 
         private bool hasCourseSample;
+        private float lastAudienceCourseSample;
+        internal bool HasCourseSample => hasCourseSample;
+        internal double AudienceCourseProgress { get; private set; }
         private float lapTraversalProgress;
 
         public float LapTraversalProgress => lapTraversalProgress;
@@ -86,6 +89,8 @@ namespace RaceFatal.Racing
             if (Status != RaceParticipantStatus.Racing)
                 return;
 
+            if (float.IsNaN(progress) || float.IsInfinity(progress)) return;
+
             if (progress < 0f)
                 progress = 0f;
 
@@ -95,6 +100,8 @@ namespace RaceFatal.Racing
             if (!hasCourseSample)
             {
                 CourseProgress = progress;
+                AudienceCourseProgress = progress >= 0.5f ? progress - 1f : progress;
+                lastAudienceCourseSample = progress;
                 hasCourseSample = true;
                 return;
             }
@@ -108,9 +115,15 @@ namespace RaceFatal.Racing
                 delta -= 1f;
 
             const float maximumAcceptedDelta = 0.15f;
+            float audienceDelta = progress - lastAudienceCourseSample;
+            if (audienceDelta < -0.5f) audienceDelta += 1f;
+            else if (audienceDelta > 0.5f) audienceDelta -= 1f;
+            if (Math.Abs(audienceDelta) <= maximumAcceptedDelta) AudienceCourseProgress += audienceDelta;
+            lastAudienceCourseSample = progress;
 
             if (Math.Abs(delta) <= maximumAcceptedDelta)
             {
+
                 lapTraversalProgress += delta;
 
                 if (lapTraversalProgress < 0f)

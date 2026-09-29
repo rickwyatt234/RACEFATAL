@@ -29,6 +29,7 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private GameObject payoutPanel;
         [SerializeField] private TextMeshProUGUI creditsText;
         [SerializeField] private TextMeshProUGUI teamFameText;
+        [SerializeField] private TextMeshProUGUI audienceSummaryText;
         [SerializeField] private TextMeshProUGUI researchPointsText;
         [SerializeField] private TextMeshProUGUI characterFameText;
         [SerializeField] private TextMeshProUGUI careerStatusText;
@@ -545,10 +546,17 @@ namespace RaceFatal.Presentation.Racing
                     $"+{reward.Credits:N0}";
             }
 
+            string audienceSummary = $"CROWD {result.AverageAudienceFavor:0}/200 | FAME {(result.AudienceFameMultiplier - 1f) * 100f:+0;-0;0}%";
+            if (audienceSummaryText != null) audienceSummaryText.text = audienceSummary;
             if (teamFameText != null)
             {
-                teamFameText.text =
-                    $"+{reward.TeamFame:N0}";
+                teamFameText.text = $"+{reward.TeamFame:N0}";
+                if (audienceSummaryText == null)
+                {
+                    teamFameText.enableAutoSizing = true;
+                    teamFameText.fontSizeMin = 12f; teamFameText.fontSizeMax = 24f;
+                    teamFameText.text += $"\n<size=65%>{audienceSummary}</size>";
+                }
             }
 
             if (researchPointsText != null)

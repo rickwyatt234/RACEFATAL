@@ -133,7 +133,7 @@ namespace RaceFatal.Presentation.Combat
                 racer.RacerId,
                 other.RacerId,
                 damage,
-                DamageCause.Weapon);
+                DamageCause.Weapon, isRamAttack: true);
 
             BikeMotor otherMotor =
                 other.GetComponent<
