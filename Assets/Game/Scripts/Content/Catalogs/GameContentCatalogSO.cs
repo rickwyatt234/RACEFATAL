@@ -8,48 +8,34 @@ using UnityEngine;
 
 namespace RaceFatal.Content
 {
-    [CreateAssetMenu(
-        fileName = "GameContentCatalog",
-        menuName = "RaceFatal/Game Content Catalog")]
+    [CreateAssetMenu(fileName = "GameContentCatalog", menuName = "RaceFatal/Game Content Catalog")]
     public class GameContentCatalogSO : ScriptableObject
     {
-        [Header("Vehicles")]
-        [SerializeField] private List<BikeDefinitionSO> bikeDefinitions = new List<BikeDefinitionSO>();
+        [Header("Vehicles")] [SerializeField] private List<BikeDefinitionSO> bikeDefinitions = new List<BikeDefinitionSO>();
         [SerializeField] private List<EngineDefinitionSO> engineDefinitions = new List<EngineDefinitionSO>();
         [SerializeField] private List<ChassisDefinitionSO> chassisDefinitions = new List<ChassisDefinitionSO>();
         [SerializeField] private List<BikeBuildDefinitionSO> bikeBuildDefinitions = new List<BikeBuildDefinitionSO>();
-
-        [Header("Equipment")]
-        [SerializeField] private List<EquipmentDefinitionSO> equipmentDefinitions = new List<EquipmentDefinitionSO>();
-
+        [Header("Equipment")] [SerializeField] private List<EquipmentDefinitionSO> equipmentDefinitions = new List<EquipmentDefinitionSO>();
         [SerializeField] private ResearchProgressionSO researchProgression;
         [SerializeField] private ResearchTreeLayoutSO researchTreeLayout;
         [SerializeField] private List<ResearcherDefinitionSO> researcherDefinitions = new List<ResearcherDefinitionSO>();
         public ResearchProgressionSO ResearchProgression => researchProgression;
         public ResearchTreeLayoutSO ResearchTreeLayout => researchTreeLayout;
         public IReadOnlyList<ResearcherDefinitionSO> ResearcherDefinitions => researcherDefinitions;
-        [Header("Research")]
-        [SerializeField] private List<TechnologyDefinitionSO> technologyDefinitions = new List<TechnologyDefinitionSO>();
+
+        [Header("Research")] [SerializeField] private List<TechnologyDefinitionSO> technologyDefinitions = new List<TechnologyDefinitionSO>();
         public IReadOnlyList<TechnologyDefinitionSO> TechnologyDefinitions => technologyDefinitions;
 
-        [Header("Calendar Events")]
-        [SerializeField] private List<CareerEventDefinitionSO> careerEventDefinitions = new List<CareerEventDefinitionSO>();
+        [Header("Calendar Events")] [SerializeField] private List<CareerEventDefinitionSO> careerEventDefinitions = new List<CareerEventDefinitionSO>();
         public IReadOnlyList<CareerEventDefinitionSO> CareerEventDefinitions => careerEventDefinitions;
 
-        [Header("Roster Perks")]
-        [SerializeField] private List<RacerPerkDefinitionSO> racerPerkDefinitions = new List<RacerPerkDefinitionSO>();
+        [Header("Roster Perks")] [SerializeField] private List<RacerPerkDefinitionSO> racerPerkDefinitions = new List<RacerPerkDefinitionSO>();
         public IReadOnlyList<RacerPerkDefinitionSO> RacerPerkDefinitions => racerPerkDefinitions;
 
-        [Header("Career")]
-        [SerializeField] private List<RacerDefinitionSO> racerDefinitions = new List<RacerDefinitionSO>();
+        [Header("Career")] [SerializeField] private List<RacerDefinitionSO> racerDefinitions = new List<RacerDefinitionSO>();
         [SerializeField] private List<OpponentTeamDefinitionSO> opponentTeamDefinitions = new List<OpponentTeamDefinitionSO>();
-
-        [Header("Tracks")]
-        [SerializeField] private List<TrackDefinitionSO> trackDefinitions = new List<TrackDefinitionSO>();
-
-        [Header("Races")]
-        [SerializeField] private List<RaceDefinitionSO> raceDefinitions = new List<RaceDefinitionSO>();
-
+        [Header("Tracks")] [SerializeField] private List<TrackDefinitionSO> trackDefinitions = new List<TrackDefinitionSO>();
+        [Header("Races")] [SerializeField] private List<RaceDefinitionSO> raceDefinitions = new List<RaceDefinitionSO>();
         public IReadOnlyList<BikeDefinitionSO> BikeDefinitions => bikeDefinitions;
         public IReadOnlyList<EngineDefinitionSO> EngineDefinitions => engineDefinitions;
         public IReadOnlyList<ChassisDefinitionSO> ChassisDefinitions => chassisDefinitions;
@@ -60,19 +46,13 @@ namespace RaceFatal.Content
         public IReadOnlyList<TrackDefinitionSO> TrackDefinitions => trackDefinitions;
         public IReadOnlyList<RaceDefinitionSO> RaceDefinitions => raceDefinitions;
 
-        // -----------------------------------------------------
-        // UNITY CONTENT LOOKUPS
-        // -----------------------------------------------------
-
         public TrackDefinitionSO FindTrackContent(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 return null;
-
             foreach (TrackDefinitionSO track in trackDefinitions)
             {
-                if (track != null &&
-                    track.Id == id)
+                if (track != null && track.Id == id)
                 {
                     return track;
                 }
@@ -85,11 +65,9 @@ namespace RaceFatal.Content
         {
             if (string.IsNullOrWhiteSpace(id))
                 return null;
-
             foreach (BikeDefinitionSO bike in bikeDefinitions)
             {
-                if (bike != null &&
-                    bike.Id == id)
+                if (bike != null && bike.Id == id)
                 {
                     return bike;
                 }
@@ -102,11 +80,9 @@ namespace RaceFatal.Content
         {
             if (string.IsNullOrWhiteSpace(id))
                 return null;
-
             foreach (RacerDefinitionSO racer in racerDefinitions)
             {
-                if (racer != null &&
-                    racer.Id == id)
+                if (racer != null && racer.Id == id)
                 {
                     return racer;
                 }

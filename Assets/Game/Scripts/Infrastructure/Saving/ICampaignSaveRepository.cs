@@ -4,21 +4,11 @@ namespace RaceFatal.Infrastructure.Saving
 {
     public interface ICampaignSaveRepository
     {
-        int SlotCount {
-            get;
-        }
+        int SlotCount { get; }
 
-        bool Exists(
-            int slotIndex);
-
-        Result Save(
-            int slotIndex,
-            CampaignSaveData data);
-
-        Result<CampaignSaveData> Load(
-            int slotIndex);
-
-        Result Delete(
-            int slotIndex);
+        bool Exists(int slotIndex);
+        Result Save(int slotIndex, CampaignSaveData data);
+        Result<CampaignSaveData> Load(int slotIndex);
+        Result Delete(int slotIndex);
     }
 }

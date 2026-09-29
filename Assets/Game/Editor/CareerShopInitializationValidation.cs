@@ -22,23 +22,24 @@ public static class CareerShopInitializationValidation
             var serialized = new SerializedObject(view);
             serialized.FindProperty("detailsText").objectReferenceValue = originalText;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-
-            // Match CareerController.Start: initialize a hidden tab before selecting it.
             view.Initialize(null, null);
             var scrolls = root.GetComponentsInChildren<ScrollRect>(true);
-            Require(scrolls.Length == 1 && scrolls[0].content != null && scrolls[0].viewport != null,
-                "Hidden Shop must build a complete scroll panel without throwing.");
+            Require(scrolls.Length == 1 && scrolls[0].content != null && scrolls[0].viewport != null, "Hidden Shop must build a complete scroll panel without throwing.");
             Require(!originalText.gameObject.activeSelf, "Original details label should be replaced.");
             Require(!root.activeSelf, "Initialization must not activate the hidden tab.");
             view.Initialize(null, null);
-            Require(root.GetComponentsInChildren<ScrollRect>(true).Length == 1,
-                "Repeated initialization must reuse the panel.");
+            Require(root.GetComponentsInChildren<ScrollRect>(true).Length == 1, "Repeated initialization must reuse the panel.");
             Debug.Log("Inactive Shop initialization validation passed.");
         }
-        finally { UnityEngine.Object.DestroyImmediate(root); }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(root);
+        }
     }
+
     private static void Require(bool condition, string message)
     {
-        if (!condition) throw new InvalidOperationException(message);
+        if (!condition)
+            throw new InvalidOperationException(message);
     }
 }

@@ -3,40 +3,21 @@ using UnityEngine;
 
 namespace RaceFatal.Content.Tracks
 {
-    [CreateAssetMenu(
-        fileName = "TrackDefinition",
-        menuName = "RaceFatal/Racing/Track")]
-    public sealed class TrackDefinitionSO :
-        ScriptableObject
+    [CreateAssetMenu(fileName = "TrackDefinition", menuName = "RaceFatal/Racing/Track")]
+    public sealed class TrackDefinitionSO : ScriptableObject
     {
-        [Header("Identity")]
-        [SerializeField]
-        private string id;
-
-        [SerializeField]
-        private string displayName;
-
-        [Header("Scene Content")]
-        [SerializeField]
-        private GameObject trackPrefab;
-        [Header("Calendar preview")]
-        [SerializeField] private Sprite trackDiagram;
+        [Header("Identity")] [SerializeField] private string id;
+        [SerializeField] private string displayName;
+        [Header("Scene Content")] [SerializeField] private GameObject trackPrefab;
+        [Header("Calendar preview")] [SerializeField] private Sprite trackDiagram;
         public Sprite TrackDiagram => trackDiagram;
-
-        public string Id =>
-            id;
-
-        public string DisplayName =>
-            displayName;
-
-        public GameObject TrackPrefab =>
-            trackPrefab;
+        public string Id => id;
+        public string DisplayName => displayName;
+        public GameObject TrackPrefab => trackPrefab;
 
         public TrackDefinition CreateTrackDefinition()
         {
-            return new TrackDefinition(
-                id,
-                displayName);
+            return new TrackDefinition(id, displayName);
         }
     }
 }

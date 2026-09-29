@@ -4,182 +4,99 @@ using UnityEngine.UI;
 
 namespace RaceFatal.Presentation.FrontEnd
 {
-    public class TeamCreationController :
-        MonoBehaviour
+    public class TeamCreationController : MonoBehaviour
     {
-        [Header("Fields")]
-        [SerializeField]
-        private TMP_InputField teamNameInput;
-
-        [SerializeField]
-        private TMP_InputField primaryColorInput;
-
-        [SerializeField]
-        private TMP_InputField secondaryColorInput;
-
-        [Header("Preview")]
-        [SerializeField]
-        private Image primaryColorPreview;
-
-        [SerializeField]
-        private Image secondaryColorPreview;
-
-        [Header("Actions")]
-        [SerializeField]
-        private Button continueButton;
-
-        [SerializeField]
-        private Button backButton;
-
-        [Header("Feedback")]
-        [SerializeField]
-        private TMP_Text statusText;
-
+        [Header("Fields")] [SerializeField] private TMP_InputField teamNameInput;
+        [SerializeField] private TMP_InputField primaryColorInput;
+        [SerializeField] private TMP_InputField secondaryColorInput;
+        [Header("Preview")] [SerializeField] private Image primaryColorPreview;
+        [SerializeField] private Image secondaryColorPreview;
+        [Header("Actions")] [SerializeField] private Button continueButton;
+        [SerializeField] private Button backButton;
+        [Header("Feedback")] [SerializeField] private TMP_Text statusText;
         private FrontEndController frontEnd;
-
-        public void Initialize(
-            FrontEndController owner)
+        public void Initialize(FrontEndController owner)
         {
-            frontEnd =
-                owner;
-
+            frontEnd = owner;
             if (continueButton != null)
             {
-                continueButton.onClick.RemoveListener(
-                    Continue);
-
-                continueButton.onClick.AddListener(
-                    Continue);
+                continueButton.onClick.RemoveListener(Continue);
+                continueButton.onClick.AddListener(Continue);
             }
 
             if (backButton != null)
             {
-                backButton.onClick.RemoveListener(
-                    Back);
-
-                backButton.onClick.AddListener(
-                    Back);
+                backButton.onClick.RemoveListener(Back);
+                backButton.onClick.AddListener(Back);
             }
 
             if (primaryColorInput != null)
             {
-                primaryColorInput.onValueChanged.RemoveListener(
-                    HandlePrimaryColorChanged);
-
-                primaryColorInput.onValueChanged.AddListener(
-                    HandlePrimaryColorChanged);
+                primaryColorInput.onValueChanged.RemoveListener(HandlePrimaryColorChanged);
+                primaryColorInput.onValueChanged.AddListener(HandlePrimaryColorChanged);
             }
 
             if (secondaryColorInput != null)
             {
-                secondaryColorInput.onValueChanged.RemoveListener(
-                    HandleSecondaryColorChanged);
-
-                secondaryColorInput.onValueChanged.AddListener(
-                    HandleSecondaryColorChanged);
+                secondaryColorInput.onValueChanged.RemoveListener(HandleSecondaryColorChanged);
+                secondaryColorInput.onValueChanged.AddListener(HandleSecondaryColorChanged);
             }
         }
 
-        public void Present(
-            NewCampaignDraft draft)
+        public void Present(NewCampaignDraft draft)
         {
             if (draft == null)
                 return;
-
             if (teamNameInput != null)
             {
-                teamNameInput.SetTextWithoutNotify(
-                    draft.TeamName ?? string.Empty);
+                teamNameInput.SetTextWithoutNotify(draft.TeamName ?? string.Empty);
             }
 
             if (primaryColorInput != null)
             {
-                primaryColorInput.SetTextWithoutNotify(
-                    string.IsNullOrWhiteSpace(
-                        draft.PrimaryColor)
-                        ? "#FFFFFF"
-                        : draft.PrimaryColor);
+                primaryColorInput.SetTextWithoutNotify(string.IsNullOrWhiteSpace(draft.PrimaryColor) ? "#FFFFFF" : draft.PrimaryColor);
             }
 
             if (secondaryColorInput != null)
             {
-                secondaryColorInput.SetTextWithoutNotify(
-                    string.IsNullOrWhiteSpace(
-                        draft.SecondaryColor)
-                        ? "#202020"
-                        : draft.SecondaryColor);
+                secondaryColorInput.SetTextWithoutNotify(string.IsNullOrWhiteSpace(draft.SecondaryColor) ? "#202020" : draft.SecondaryColor);
             }
 
             RefreshColorPreviews();
-            SetStatus(
-                string.Empty);
+            SetStatus(string.Empty);
         }
 
         private void Continue()
         {
             if (frontEnd == null)
             {
-                SetStatus(
-                    "Front-end controller is unavailable.");
-
+                SetStatus("Front-end controller is unavailable.");
                 return;
             }
 
-            string teamName =
-                teamNameInput != null
-                    ? teamNameInput.text.Trim()
-                    : string.Empty;
-
-            if (string.IsNullOrWhiteSpace(
-                    teamName))
+            string teamName = teamNameInput != null ? teamNameInput.text.Trim() : string.Empty;
+            if (string.IsNullOrWhiteSpace(teamName))
             {
-                SetStatus(
-                    "Team name is required.");
-
+                SetStatus("Team name is required.");
                 return;
             }
 
-            if (!TryNormalizeColor(
-                    primaryColorInput != null
-                        ? primaryColorInput.text
-                        : null,
-                    out string primaryColor,
-                    out Color primaryPreview))
+            if (!TryNormalizeColor(primaryColorInput != null ? primaryColorInput.text : null, out string primaryColor, out Color primaryPreview))
             {
-                SetStatus(
-                    "Primary color must be a valid HTML hex color, for example #FFFFFF.");
-
+                SetStatus("Primary color must be a valid HTML hex color, for example #FFFFFF.");
                 return;
             }
 
-            if (!TryNormalizeColor(
-                    secondaryColorInput != null
-                        ? secondaryColorInput.text
-                        : null,
-                    out string secondaryColor,
-                    out Color secondaryPreview))
+            if (!TryNormalizeColor(secondaryColorInput != null ? secondaryColorInput.text : null, out string secondaryColor, out Color secondaryPreview))
             {
-                SetStatus(
-                    "Secondary color must be a valid HTML hex color, for example #202020.");
-
+                SetStatus("Secondary color must be a valid HTML hex color, for example #202020.");
                 return;
             }
 
-            SetPreviewColor(
-                primaryColorPreview,
-                primaryPreview);
-
-            SetPreviewColor(
-                secondaryColorPreview,
-                secondaryPreview);
-
-            SetStatus(
-                string.Empty);
-
-            frontEnd.AcceptTeamCreation(
-                teamName,
-                primaryColor,
-                secondaryColor);
+            SetPreviewColor(primaryColorPreview, primaryPreview);
+            SetPreviewColor(secondaryColorPreview, secondaryPreview);
+            SetStatus(string.Empty);
+            frontEnd.AcceptTeamCreation(teamName, primaryColor, secondaryColor);
         }
 
         private void Back()
@@ -187,106 +104,65 @@ namespace RaceFatal.Presentation.FrontEnd
             frontEnd?.CancelNewCampaign();
         }
 
-        private void HandlePrimaryColorChanged(
-            string value)
+        private void HandlePrimaryColorChanged(string value)
         {
-            if (TryNormalizeColor(
-                    value,
-                    out _,
-                    out Color color))
+            if (TryNormalizeColor(value, out _, out Color color))
             {
-                SetPreviewColor(
-                    primaryColorPreview,
-                    color);
+                SetPreviewColor(primaryColorPreview, color);
             }
         }
 
-        private void HandleSecondaryColorChanged(
-            string value)
+        private void HandleSecondaryColorChanged(string value)
         {
-            if (TryNormalizeColor(
-                    value,
-                    out _,
-                    out Color color))
+            if (TryNormalizeColor(value, out _, out Color color))
             {
-                SetPreviewColor(
-                    secondaryColorPreview,
-                    color);
+                SetPreviewColor(secondaryColorPreview, color);
             }
         }
 
         private void RefreshColorPreviews()
         {
-            HandlePrimaryColorChanged(
-                primaryColorInput != null
-                    ? primaryColorInput.text
-                    : null);
-
-            HandleSecondaryColorChanged(
-                secondaryColorInput != null
-                    ? secondaryColorInput.text
-                    : null);
+            HandlePrimaryColorChanged(primaryColorInput != null ? primaryColorInput.text : null);
+            HandleSecondaryColorChanged(secondaryColorInput != null ? secondaryColorInput.text : null);
         }
 
-        private bool TryNormalizeColor(
-            string value,
-            out string normalized,
-            out Color color)
+        private bool TryNormalizeColor(string value, out string normalized, out Color color)
         {
-            normalized =
-                null;
-
-            color =
-                Color.white;
-
-            if (string.IsNullOrWhiteSpace(
-                    value))
+            normalized = null;
+            color = Color.white;
+            if (string.IsNullOrWhiteSpace(value))
             {
                 return false;
             }
 
-            string candidate =
-                value.Trim();
-
+            string candidate = value.Trim();
             if (!candidate.StartsWith("#"))
             {
-                candidate =
-                    "#" + candidate;
+                candidate = "#" + candidate;
             }
 
-            if (!ColorUtility.TryParseHtmlString(
-                    candidate,
-                    out color))
+            if (!ColorUtility.TryParseHtmlString(candidate, out color))
             {
                 return false;
             }
 
-            normalized =
-                "#" +
-                ColorUtility.ToHtmlStringRGB(
-                    color);
-
+            normalized = "#" + ColorUtility.ToHtmlStringRGB(color);
             return true;
         }
 
-        private void SetPreviewColor(
-            Image image,
-            Color color)
+        private void SetPreviewColor(Image image, Color color)
         {
             if (image != null)
             {
-                image.color =
-                    color;
+                image.color = color;
             }
         }
 
-        private void SetStatus(
-            string message)
+        private void SetStatus(string message)
         {
             if (statusText != null)
             {
-                statusText.text =
-                    message ?? string.Empty;
+                statusText.text = message ?? string.Empty;
             }
         }
     }

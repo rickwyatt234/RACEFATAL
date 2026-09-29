@@ -7,93 +7,42 @@ using UnityEngine;
 
 namespace RaceFatal.Content.Vehicles
 {
-    [CreateAssetMenu(
-        fileName = "BikeBuildDefinition",
-        menuName = "RaceFatal/Vehicles/Bike Build")]
-    public class BikeBuildDefinitionSO :
-        ScriptableObject
+    [CreateAssetMenu(fileName = "BikeBuildDefinition", menuName = "RaceFatal/Vehicles/Bike Build")]
+    public class BikeBuildDefinitionSO : ScriptableObject
     {
         [Serializable]
         private class EquipmentMount
         {
             public EquipmentDefinitionSO equipment;
-
             public NodeSize nodeSize;
-
-            [Min(0)]
-            public int nodeIndex;
+            [Min(0)] public int nodeIndex;
         }
 
-        [Header("Identity")]
-
-        [SerializeField]
-        private string id;
-
-        [SerializeField]
-        private string displayName;
-
-        [Header("Complete-bike Shop Offer")]
-        [SerializeField] private bool availableInShop;
+        [Header("Identity")] [SerializeField] private string id;
+        [SerializeField] private string displayName;
+        [Header("Complete-bike Shop Offer")] [SerializeField] private bool availableInShop;
         [Min(0)] [SerializeField] private int creditCost = 12000;
         [SerializeField] private string requiredTechnologyId;
+        [Header("Bike")] [SerializeField] private BikeDefinitionSO bike;
+        [SerializeField] private EngineDefinitionSO engine;
+        [SerializeField] private ChassisDefinitionSO chassis;
+        [Header("Equipment")] [SerializeField] private List<EquipmentMount> equipment = new List<EquipmentMount>();
+        public string Id => id;
 
-        [Header("Bike")]
-
-        [SerializeField]
-        private BikeDefinitionSO bike;
-
-        [SerializeField]
-        private EngineDefinitionSO engine;
-
-        [SerializeField]
-        private ChassisDefinitionSO chassis;
-
-        [Header("Equipment")]
-
-        [SerializeField]
-        private List<EquipmentMount>
-            equipment =
-                new List<EquipmentMount>();
-
-        public string Id =>
-            id;
-
-        public BikeBuildDefinition
-            CreateDefinition()
+        public BikeBuildDefinition CreateDefinition()
         {
-            var mounts =
-                new List<
-                    EquipmentMountDefinition>();
-
-            foreach (EquipmentMount mount
-                     in equipment)
+            var mounts = new List<EquipmentMountDefinition>();
+            foreach (EquipmentMount mount in equipment)
             {
-                if (mount == null ||
-                    mount.equipment == null)
+                if (mount == null || mount.equipment == null)
                 {
                     continue;
                 }
 
-                mounts.Add(
-                    new EquipmentMountDefinition(
-                        mount.equipment.Id,
-                        mount.nodeSize,
-                        mount.nodeIndex));
+                mounts.Add(new EquipmentMountDefinition(mount.equipment.Id, mount.nodeSize, mount.nodeIndex));
             }
 
-            return new BikeBuildDefinition(
-                id,
-                displayName,
-                bike != null
-                    ? bike.Id
-                    : null,
-                engine != null
-                    ? engine.Id
-                    : null,
-                chassis != null
-                    ? chassis.Id
-                    : null,
-                mounts, availableInShop, creditCost, requiredTechnologyId);
+            return new BikeBuildDefinition(id, displayName, bike != null ? bike.Id : null, engine != null ? engine.Id : null, chassis != null ? chassis.Id : null, mounts, availableInShop, creditCost, requiredTechnologyId);
         }
     }
 }

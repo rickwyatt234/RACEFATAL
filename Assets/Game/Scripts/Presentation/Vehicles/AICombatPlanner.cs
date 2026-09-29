@@ -12,104 +12,67 @@ namespace RaceFatal.Presentation.Vehicles
     [Serializable]
     public class AICombatPlanner
     {
-        [Header("Target Saturation")]
-        [Range(0f, 1f)][SerializeField] private float oneExistingAttackerMultiplier = 0.85f;
-        [Range(0f, 1f)][SerializeField] private float twoExistingAttackersMultiplier = 0.55f;
-        [Range(0f, 1f)][SerializeField] private float threePlusExistingAttackersMultiplier = 0.25f;
+        [Header("Target Saturation")] [Range(0f, 1f)] [SerializeField] private float oneExistingAttackerMultiplier = 0.85f;
+        [Range(0f, 1f)] [SerializeField] private float twoExistingAttackersMultiplier = 0.55f;
+        [Range(0f, 1f)] [SerializeField] private float threePlusExistingAttackersMultiplier = 0.25f;
         [SerializeField] private bool applyTargetSaturationToPlayer = false;
-
-        [Header("Race Position Relevance")]
-        [Min(2)][SerializeField] private int maximumRelevantPositionGap = 6;
-        [Range(0.1f, 1f)][SerializeField] private float distantRivalScoreMultiplier = 0.35f;
-        [Range(1f, 2f)][SerializeField] private float aheadRivalMultiplier = 1.15f;
-        [Range(0.1f, 1f)][SerializeField] private float behindRivalMultiplier = 0.90f;
-
-        [Header("Targeting")]
-        [Min(1f)][SerializeField] private float maximumTargetDistance = 150f;
-        [Range(0.1f, 1f)][SerializeField] private float lowAggressionTargetDistanceMultiplier = 0.6f;
-        [Range(0.1f, 45f)][SerializeField] private float firingHalfAngle = 6f;
-        [Range(1f, 4f)][SerializeField] private float guidedAngleMultiplier = 1.75f;
-        [Range(0.1f, 1f)][SerializeField] private float chargeAngleMultiplier = 0.8f;
-        [Min(0f)][SerializeField] private float minimumTargetDistance = 3f;
-
-        [Header("Tactical Decisions")]
-        [Min(0.05f)][SerializeField] private float decisionInterval = 0.2f;
-        [Min(0f)][SerializeField] private float minimumDecisionCommitTime = 0.6f;
-        [Range(0f, 1f)][SerializeField] private float weaponSwitchScoreAdvantage = 0.12f;
-        [Range(0f, 1f)][SerializeField] private float targetSwitchScoreAdvantage = 0.08f;
-        [Range(0f, 1f)][SerializeField] private float conservativeMinimumAttackScore = 0.48f;
-        [Range(0f, 1f)][SerializeField] private float aggressiveMinimumAttackScore = 0.3f;
-
-        [Header("Tactical Scoring")]
-        [Min(0f)][SerializeField] private float distanceWeight = 0.34f;
-        [Min(0f)][SerializeField] private float alignmentWeight = 0.34f;
-        [Min(0f)][SerializeField] private float vulnerabilityWeight = 0.14f;
-        [Min(0f)][SerializeField] private float finisherWeight = 0.18f;
-        [Min(1f)][SerializeField] private float damageForFullFinisherValue = 30f;
-
-        [Header("Ammo Tactics")]
-        [Min(1)][SerializeField] private int plentifulAmmoReference = 30;
-        [Range(0f, 1f)][SerializeField] private float conservativeScarcityPenalty = 0.45f;
-        [Range(0f, 1f)][SerializeField] private float aggressiveScarcityPenalty = 0.08f;
-        [Range(0f, 1f)][SerializeField] private float lowAmmoPenalty = 0.25f;
-        [Min(1)][SerializeField] private int scarceAmmoThreshold = 8;
-        [Range(0.1f, 1f)][SerializeField] private float conservativeScarceWeaponFactor = 0.48f;
-        [Range(0.1f, 1f)][SerializeField] private float aggressiveScarceWeaponFactor = 0.72f;
-        [Range(0f, 1f)][SerializeField] private float vulnerabilityForFullScarceWeaponValue = 0.65f;
-
-        [Header("Projectile Tactics")]
-        [Min(0f)][SerializeField] private float projectileTravelTimePenalty = 0.12f;
-        [Min(0f)][SerializeField] private float chargeDurationPenalty = 0.12f;
-        [Range(0f, 1f)][SerializeField] private float minimumChargeAlignment = 0.45f;
-
-        [Header("Racing Conditions")]
-        [Range(0f, 1f)][SerializeField] private float conservativeCornerSeverity = 0.18f;
-        [Range(0f, 1f)][SerializeField] private float maximumCornerSeverity = 0.35f;
+        [Header("Race Position Relevance")] [Min(2)] [SerializeField] private int maximumRelevantPositionGap = 6;
+        [Range(0.1f, 1f)] [SerializeField] private float distantRivalScoreMultiplier = 0.35f;
+        [Range(1f, 2f)] [SerializeField] private float aheadRivalMultiplier = 1.15f;
+        [Range(0.1f, 1f)] [SerializeField] private float behindRivalMultiplier = 0.90f;
+        [Header("Targeting")] [Min(1f)] [SerializeField] private float maximumTargetDistance = 150f;
+        [Range(0.1f, 1f)] [SerializeField] private float lowAggressionTargetDistanceMultiplier = 0.6f;
+        [Range(0.1f, 45f)] [SerializeField] private float firingHalfAngle = 6f;
+        [Range(1f, 4f)] [SerializeField] private float guidedAngleMultiplier = 1.75f;
+        [Range(0.1f, 1f)] [SerializeField] private float chargeAngleMultiplier = 0.8f;
+        [Min(0f)] [SerializeField] private float minimumTargetDistance = 3f;
+        [Header("Tactical Decisions")] [Min(0.05f)] [SerializeField] private float decisionInterval = 0.2f;
+        [Min(0f)] [SerializeField] private float minimumDecisionCommitTime = 0.6f;
+        [Range(0f, 1f)] [SerializeField] private float weaponSwitchScoreAdvantage = 0.12f;
+        [Range(0f, 1f)] [SerializeField] private float targetSwitchScoreAdvantage = 0.08f;
+        [Range(0f, 1f)] [SerializeField] private float conservativeMinimumAttackScore = 0.48f;
+        [Range(0f, 1f)] [SerializeField] private float aggressiveMinimumAttackScore = 0.3f;
+        [Header("Tactical Scoring")] [Min(0f)] [SerializeField] private float distanceWeight = 0.34f;
+        [Min(0f)] [SerializeField] private float alignmentWeight = 0.34f;
+        [Min(0f)] [SerializeField] private float vulnerabilityWeight = 0.14f;
+        [Min(0f)] [SerializeField] private float finisherWeight = 0.18f;
+        [Min(1f)] [SerializeField] private float damageForFullFinisherValue = 30f;
+        [Header("Ammo Tactics")] [Min(1)] [SerializeField] private int plentifulAmmoReference = 30;
+        [Range(0f, 1f)] [SerializeField] private float conservativeScarcityPenalty = 0.45f;
+        [Range(0f, 1f)] [SerializeField] private float aggressiveScarcityPenalty = 0.08f;
+        [Range(0f, 1f)] [SerializeField] private float lowAmmoPenalty = 0.25f;
+        [Min(1)] [SerializeField] private int scarceAmmoThreshold = 8;
+        [Range(0.1f, 1f)] [SerializeField] private float conservativeScarceWeaponFactor = 0.48f;
+        [Range(0.1f, 1f)] [SerializeField] private float aggressiveScarceWeaponFactor = 0.72f;
+        [Range(0f, 1f)] [SerializeField] private float vulnerabilityForFullScarceWeaponValue = 0.65f;
+        [Header("Projectile Tactics")] [Min(0f)] [SerializeField] private float projectileTravelTimePenalty = 0.12f;
+        [Min(0f)] [SerializeField] private float chargeDurationPenalty = 0.12f;
+        [Range(0f, 1f)] [SerializeField] private float minimumChargeAlignment = 0.45f;
+        [Header("Racing Conditions")] [Range(0f, 1f)] [SerializeField] private float conservativeCornerSeverity = 0.18f;
+        [Range(0f, 1f)] [SerializeField] private float maximumCornerSeverity = 0.35f;
         [SerializeField] private bool avoidFiringWhileBoosting = true;
-
-        [Header("Race Pressure")]
-        [Range(0f, 0.4f)][SerializeField] private float fullPressureAttackThresholdReduction = 0.12f;
-        [Range(0f, 0.5f)][SerializeField] private float fullPressurePreferredTargetBonus = 0.22f;
-        [Range(0f, 0.5f)][SerializeField] private float fullPressureTargetRangeBonus = 0.12f;
-        [Range(0f, 0.25f)][SerializeField] private float fullPressureCornerToleranceBonus = 0.06f;
-
-        [Header("Player Response")]
-        [Range(0f, 0.3f)]
-        [SerializeField]
-        private float playerResponseAttackThresholdReduction = 0.12f;
-
-        [Range(1f, 3f)]
-        [SerializeField]
-        private float playerGuidedAngleMultiplier = 1.75f;
-
-        [Range(1f, 4f)]
-        [SerializeField]
-        private float playerTargetCommitMultiplier = 2f;
-
-        [Header("Hold Weapons")]
-        [Min(0.05f)][SerializeField] private float minimumBurstDuration = 0.45f;
-        [Min(0.05f)][SerializeField] private float maximumBurstDuration = 1f;
-        [Min(0f)][SerializeField] private float minimumBurstCooldown = 0.35f;
-        [Min(0f)][SerializeField] private float maximumBurstCooldown = 0.8f;
-
-        [Header("Press Weapons")]
-        [Min(0.05f)][SerializeField] private float pressWeaponCooldown = 1.25f;
-        [Min(1f)][SerializeField] private float lowAggressionPressCooldownMultiplier = 1.5f;
-        [Range(0.1f, 1f)][SerializeField] private float highAggressionPressCooldownMultiplier = 0.65f;
-
-        [Header("Weapon Role Bias")]
-        [Range(0f, 0.5f)][SerializeField] private float holdWeaponPressureBonus = 0.12f;
-        [Range(0f, 0.5f)][SerializeField] private float pressWeaponFinisherBonus = 0.12f;
-
-        [Header("Runtime Debug")]
-        [SerializeField] private int debugTargetPositionGap;
+        [Header("Race Pressure")] [Range(0f, 0.4f)] [SerializeField] private float fullPressureAttackThresholdReduction = 0.12f;
+        [Range(0f, 0.5f)] [SerializeField] private float fullPressurePreferredTargetBonus = 0.22f;
+        [Range(0f, 0.5f)] [SerializeField] private float fullPressureTargetRangeBonus = 0.12f;
+        [Range(0f, 0.25f)] [SerializeField] private float fullPressureCornerToleranceBonus = 0.06f;
+        [Header("Player Response")] [Range(0f, 0.3f)] [SerializeField] private float playerResponseAttackThresholdReduction = 0.12f;
+        [Range(1f, 3f)] [SerializeField] private float playerGuidedAngleMultiplier = 1.75f;
+        [Range(1f, 4f)] [SerializeField] private float playerTargetCommitMultiplier = 2f;
+        [Header("Hold Weapons")] [Min(0.05f)] [SerializeField] private float minimumBurstDuration = 0.45f;
+        [Min(0.05f)] [SerializeField] private float maximumBurstDuration = 1f;
+        [Min(0f)] [SerializeField] private float minimumBurstCooldown = 0.35f;
+        [Min(0f)] [SerializeField] private float maximumBurstCooldown = 0.8f;
+        [Header("Press Weapons")] [Min(0.05f)] [SerializeField] private float pressWeaponCooldown = 1.25f;
+        [Min(1f)] [SerializeField] private float lowAggressionPressCooldownMultiplier = 1.5f;
+        [Range(0.1f, 1f)] [SerializeField] private float highAggressionPressCooldownMultiplier = 0.65f;
+        [Header("Weapon Role Bias")] [Range(0f, 0.5f)] [SerializeField] private float holdWeaponPressureBonus = 0.12f;
+        [Range(0f, 0.5f)] [SerializeField] private float pressWeaponFinisherBonus = 0.12f;
+        [Header("Runtime Debug")] [SerializeField] private int debugTargetPositionGap;
         [SerializeField] private float debugRacePositionFactor = 1f;
         [SerializeField] private int debugExistingTargetAttackers;
         [SerializeField] private float debugTargetSaturationFactor = 1f;
-
         [SerializeField] private bool debugInitialized;
         [SerializeField] private string debugDecision = "Not Initialized";
-
         [SerializeField] private float debugWeaponAggression;
         [SerializeField] private float debugRuntimeTargetDistance;
         [SerializeField] private float debugRuntimeCornerSeverity;
@@ -117,151 +80,102 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugRuntimeBurstCooldown;
         [SerializeField] private float debugRuntimePressCooldown;
         [SerializeField] private float debugMinimumAttackScore;
-
         [SerializeField] private float debugRacePressure;
         [SerializeField] private string debugPreferredTarget = "None";
         [SerializeField] private float debugPlayerTargetBonus;
         [SerializeField] private float debugPlayerCombatUrgency;
-
         [SerializeField] private string debugSelectedWeapon = "None";
         [SerializeField] private string debugActivationMode = "None";
         [SerializeField] private string debugDeliveryMode = "None";
-
         [SerializeField] private int debugAmmo;
         [SerializeField] private int debugMaximumAmmo;
-
         [SerializeField] private string debugTargetRacer = "None";
         [SerializeField] private float debugTargetDistance;
         [SerializeField] private float debugTargetAngle;
-
         [SerializeField] private float debugCurrentScore;
         [SerializeField] private float debugBestScore;
         [SerializeField] private float debugDistanceScore;
         [SerializeField] private float debugAlignmentScore;
         [SerializeField] private float debugVulnerabilityScore;
         [SerializeField] private float debugAmmoFactor;
-
         [SerializeField] private float debugDecisionTimer;
         [SerializeField] private float debugCommitTimer;
-
         [SerializeField] private bool debugWeaponActive;
         [SerializeField] private float debugBurstTimer;
         [SerializeField] private float debugCooldownTimer;
         [SerializeField] private float debugChargeTimer;
-
         private GuidedTargetLockState guidedLockState;
-
         private AIRacerSensor sensor;
         private RacerViewController racerView;
-
         private RaceParticipant participant;
         private RaceEquipmentSystem equipment;
-
         private RacerViewController currentTarget;
         private string currentEquipmentId;
-
         private bool initialized;
         private bool weaponActive;
-
         private float weaponAggression;
-
         private float burstTimer;
         private float cooldownTimer;
         private float chargeTimer;
-
         private float decisionTimer;
         private float commitTimer;
-
         private float runtimeTargetDistance;
         private float runtimeMaximumCornerSeverity;
         private float runtimeBurstDuration;
         private float runtimeBurstCooldown;
         private float runtimePressWeaponCooldown;
         private float runtimeMinimumAttackScore;
-
         private float currentRacePressure;
         private string preferredTargetRacerId;
-
         private float currentPlayerTargetBonus;
         private float currentPlayerCombatUrgency;
-
         private RaceRuntimeController raceRuntime;
-
         private IReadOnlyList<RaceParticipant> cachedRaceOrder;
         private int cachedSelfPosition;
-
-        private static readonly List<AICombatPlanner>
-            ActiveCombatPlanners =
-                new List<AICombatPlanner>();
-
+        private static readonly List<AICombatPlanner> ActiveCombatPlanners = new List<AICombatPlanner>();
         private struct TacticalOpportunity
         {
             public bool Valid;
-
             public RaceWeaponSnapshot Weapon;
             public RacerViewController Target;
-
             public float Score;
             public float Distance;
             public float Angle;
-
             public int PositionGap;
             public float RacePositionFactor;
-
             public int ExistingAttackers;
             public float SaturationFactor;
-
             public float DistanceScore;
             public float AlignmentScore;
             public float VulnerabilityScore;
             public float AmmoFactor;
         }
 
-        public bool IsInitialized =>
-            initialized;
+        public bool IsInitialized => initialized;
+        public float WeaponAggression => weaponAggression;
 
-        public float WeaponAggression =>
-            weaponAggression;
-
-        public bool Initialize(
-            RaceParticipant raceParticipant,
-            AIRacerSensor racerSensor,
-            RacerViewController view,
-            RaceRuntimeController runtime,
-            float aggression)
+        public bool Initialize(RaceParticipant raceParticipant, AIRacerSensor racerSensor, RacerViewController view, RaceRuntimeController runtime, float aggression)
         {
-            if (raceParticipant == null ||
-                racerSensor == null ||
-                view == null ||
-                runtime == null ||
-                runtime.Director?.State == null)
+            if (raceParticipant == null || racerSensor == null || view == null || runtime == null || runtime.Director?.State == null)
             {
-                Debug.LogError(
-                    $"{nameof(AICombatPlanner)} is missing required runtime state.");
-
+                Debug.LogError($"{nameof(AICombatPlanner)} is missing required runtime state.");
                 return false;
             }
 
-            if (raceParticipant.Role ==
-                RaceParticipantRole.Player)
+            if (raceParticipant.Role == RaceParticipantRole.Player)
             {
                 return false;
             }
 
             if (raceParticipant.Vehicle?.EquipmentSystem == null)
             {
-                Debug.LogError(
-                    $"{nameof(AICombatPlanner)} requires a race vehicle with an equipment system.");
-
+                Debug.LogError($"{nameof(AICombatPlanner)} requires a race vehicle with an equipment system.");
                 return false;
             }
 
             if (!view.IsInitialized)
             {
-                Debug.LogError(
-                    $"{nameof(AICombatPlanner)} requires an initialized " +
-                    $"{nameof(RacerViewController)}.");
-
+                Debug.LogError($"{nameof(AICombatPlanner)} requires an initialized " + $"{nameof(RacerViewController)}.");
                 return false;
             }
 
@@ -269,159 +183,59 @@ namespace RaceFatal.Presentation.Vehicles
             sensor = racerSensor;
             racerView = view;
             raceRuntime = runtime;
-
-            guidedLockState =
-                racerView.GetComponent<
-                    GuidedTargetLockState>();
-
-            equipment =
-                participant.Vehicle
-                    .EquipmentSystem;
-
-            weaponAggression =
-                Mathf.Clamp01(
-                    aggression);
-
-            runtimeTargetDistance =
-                maximumTargetDistance *
-                Mathf.Lerp(
-                    lowAggressionTargetDistanceMultiplier,
-                    1f,
-                    weaponAggression);
-
-            runtimeMaximumCornerSeverity =
-                Mathf.Lerp(
-                    conservativeCornerSeverity,
-                    maximumCornerSeverity,
-                    weaponAggression);
-
-            runtimeBurstDuration =
-                Mathf.Lerp(
-                    minimumBurstDuration,
-                    maximumBurstDuration,
-                    weaponAggression);
-
-            runtimeBurstCooldown =
-                Mathf.Lerp(
-                    maximumBurstCooldown,
-                    minimumBurstCooldown,
-                    weaponAggression);
-
-            runtimePressWeaponCooldown =
-                pressWeaponCooldown *
-                Mathf.Lerp(
-                    lowAggressionPressCooldownMultiplier,
-                    highAggressionPressCooldownMultiplier,
-                    weaponAggression);
-
-            runtimeMinimumAttackScore =
-                Mathf.Lerp(
-                    conservativeMinimumAttackScore,
-                    aggressiveMinimumAttackScore,
-                    weaponAggression);
-
+            guidedLockState = racerView.GetComponent<GuidedTargetLockState>();
+            equipment = participant.Vehicle.EquipmentSystem;
+            weaponAggression = Mathf.Clamp01(aggression);
+            runtimeTargetDistance = maximumTargetDistance * Mathf.Lerp(lowAggressionTargetDistanceMultiplier, 1f, weaponAggression);
+            runtimeMaximumCornerSeverity = Mathf.Lerp(conservativeCornerSeverity, maximumCornerSeverity, weaponAggression);
+            runtimeBurstDuration = Mathf.Lerp(minimumBurstDuration, maximumBurstDuration, weaponAggression);
+            runtimeBurstCooldown = Mathf.Lerp(maximumBurstCooldown, minimumBurstCooldown, weaponAggression);
+            runtimePressWeaponCooldown = pressWeaponCooldown * Mathf.Lerp(lowAggressionPressCooldownMultiplier, highAggressionPressCooldownMultiplier, weaponAggression);
+            runtimeMinimumAttackScore = Mathf.Lerp(conservativeMinimumAttackScore, aggressiveMinimumAttackScore, weaponAggression);
             burstTimer = 0f;
             cooldownTimer = 0f;
             chargeTimer = 0f;
             decisionTimer = 0f;
             commitTimer = 0f;
-
             weaponActive = false;
             currentTarget = null;
             currentEquipmentId = null;
-
             currentRacePressure = 0f;
             currentPlayerTargetBonus = 0f;
             currentPlayerCombatUrgency = 0f;
-
-            debugWeaponAggression =
-                weaponAggression;
-
-            debugRuntimeTargetDistance =
-                runtimeTargetDistance;
-
-            debugRuntimeCornerSeverity =
-                runtimeMaximumCornerSeverity;
-
-            debugRuntimeBurstDuration =
-                runtimeBurstDuration;
-
-            debugRuntimeBurstCooldown =
-                runtimeBurstCooldown;
-
-            debugRuntimePressCooldown =
-                runtimePressWeaponCooldown;
-
-            debugMinimumAttackScore =
-                runtimeMinimumAttackScore;
-
+            debugWeaponAggression = weaponAggression;
+            debugRuntimeTargetDistance = runtimeTargetDistance;
+            debugRuntimeCornerSeverity = runtimeMaximumCornerSeverity;
+            debugRuntimeBurstDuration = runtimeBurstDuration;
+            debugRuntimeBurstCooldown = runtimeBurstCooldown;
+            debugRuntimePressCooldown = runtimePressWeaponCooldown;
+            debugMinimumAttackScore = runtimeMinimumAttackScore;
             debugInitialized = true;
             initialized = true;
-
-            debugDecision =
-                equipment.HasUsableWeapon
-                    ? "Ready"
-                    : equipment.HasWeapon
-                        ? "Out Of Ammo"
-                        : "No Weapon";
-
+            debugDecision = equipment.HasUsableWeapon ? "Ready" : equipment.HasWeapon ? "Out Of Ammo" : "No Weapon";
             PruneCombatPlannerRegistry();
-
-            if (!ActiveCombatPlanners.Contains(
-                    this))
+            if (!ActiveCombatPlanners.Contains(this))
             {
-                ActiveCombatPlanners.Add(
-                    this);
+                ActiveCombatPlanners.Add(this);
             }
 
             return true;
         }
 
-        public void Tick(
-            float cornerSeverity,
-            bool boosting,
-            float racePressure,
-            string preferredTargetId,
-            float playerTargetBonus,
-            float playerCombatUrgency)
+        public void Tick(float cornerSeverity, bool boosting, float racePressure, string preferredTargetId, float playerTargetBonus, float playerCombatUrgency)
         {
             if (!initialized)
                 return;
-
             RefreshRacePositionCache();
-
-            currentRacePressure =
-                Mathf.Clamp01(
-                    racePressure);
-
-            preferredTargetRacerId =
-                preferredTargetId;
-
-            currentPlayerTargetBonus =
-                Mathf.Clamp01(
-                    playerTargetBonus);
-
-            currentPlayerCombatUrgency =
-                Mathf.Clamp01(
-                    playerCombatUrgency);
-
-            debugRacePressure =
-                currentRacePressure;
-
-            debugPreferredTarget =
-                string.IsNullOrWhiteSpace(
-                    preferredTargetRacerId)
-                    ? "None"
-                    : preferredTargetRacerId;
-
-            debugPlayerTargetBonus =
-                currentPlayerTargetBonus;
-
-            debugPlayerCombatUrgency =
-                currentPlayerCombatUrgency;
-
+            currentRacePressure = Mathf.Clamp01(racePressure);
+            preferredTargetRacerId = preferredTargetId;
+            currentPlayerTargetBonus = Mathf.Clamp01(playerTargetBonus);
+            currentPlayerCombatUrgency = Mathf.Clamp01(playerCombatUrgency);
+            debugRacePressure = currentRacePressure;
+            debugPreferredTarget = string.IsNullOrWhiteSpace(preferredTargetRacerId) ? "None" : preferredTargetRacerId;
+            debugPlayerTargetBonus = currentPlayerTargetBonus;
+            debugPlayerCombatUrgency = currentPlayerCombatUrgency;
             TickTimers();
-
             if (!CanConsiderCombat())
             {
                 ClearDecision();
@@ -429,76 +243,42 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            float effectiveCornerLimit =
-                Mathf.Clamp01(
-                    runtimeMaximumCornerSeverity +
-                    fullPressureCornerToleranceBonus *
-                    currentRacePressure);
-
-            if (cornerSeverity >
-                effectiveCornerLimit)
+            float effectiveCornerLimit = Mathf.Clamp01(runtimeMaximumCornerSeverity + fullPressureCornerToleranceBonus * currentRacePressure);
+            if (cornerSeverity > effectiveCornerLimit)
             {
-                debugDecision =
-                    "Corner / Hold Fire";
-
+                debugDecision = "Corner / Hold Fire";
                 CancelWeapon();
                 return;
             }
 
-            /*
-             * Strong player pursuit may continue attacking while
-             * boosting. Ordinary racing still respects the old
-             * boost hold-fire rule.
-             */
-            if (avoidFiringWhileBoosting &&
-                boosting &&
-                currentRacePressure < 0.65f &&
-                currentPlayerCombatUrgency < 0.65f)
+            if (avoidFiringWhileBoosting && boosting && currentRacePressure < 0.65f && currentPlayerCombatUrgency < 0.65f)
             {
-                debugDecision =
-                    "Boosting / Hold Fire";
-
+                debugDecision = "Boosting / Hold Fire";
                 CancelWeapon();
                 return;
             }
 
-            if (equipment.SelectedWeaponIsEmpty &&
-                weaponActive)
+            if (equipment.SelectedWeaponIsEmpty && weaponActive)
             {
                 CancelWeapon();
             }
 
             if (weaponActive)
             {
-                if (!TryGetCurrentOpportunity(
-                        cornerSeverity,
-                        out TacticalOpportunity activeOpportunity))
+                if (!TryGetCurrentOpportunity(cornerSeverity, out TacticalOpportunity activeOpportunity))
                 {
-                    debugDecision =
-                        "Attack Opportunity Lost";
-
+                    debugDecision = "Attack Opportunity Lost";
                     CancelWeapon();
                     ForceDecisionRefresh();
-
                     return;
                 }
 
-                ApplyDebugOpportunity(
-                    activeOpportunity);
-
-                UpdateWeapon(
-                    activeOpportunity
-                        .Weapon
-                        .Definition);
-
+                ApplyDebugOpportunity(activeOpportunity);
+                UpdateWeapon(activeOpportunity.Weapon.Definition);
                 return;
             }
 
-            bool currentValid =
-                TryGetCurrentOpportunity(
-                    cornerSeverity,
-                    out TacticalOpportunity currentOpportunity);
-
+            bool currentValid = TryGetCurrentOpportunity(cornerSeverity, out TacticalOpportunity currentOpportunity);
             if (!currentValid)
             {
                 ForceDecisionRefresh();
@@ -506,217 +286,119 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (decisionTimer <= 0f)
             {
-                TacticalOpportunity best =
-                    FindBestOpportunity(
-                        cornerSeverity);
-
-                SelectDecision(
-                    currentOpportunity,
-                    currentValid,
-                    best);
-
-                decisionTimer =
-                    decisionInterval;
+                TacticalOpportunity best = FindBestOpportunity(cornerSeverity);
+                SelectDecision(currentOpportunity, currentValid, best);
+                decisionTimer = decisionInterval;
             }
 
-            if (!TryGetCurrentOpportunity(
-                    cornerSeverity,
-                    out TacticalOpportunity opportunity))
+            if (!TryGetCurrentOpportunity(cornerSeverity, out TacticalOpportunity opportunity))
             {
                 debugTargetRacer = "None";
                 debugTargetDistance = 0f;
                 debugTargetAngle = 0f;
                 debugCurrentScore = 0f;
                 debugDecision = "No Tactical Opportunity";
-
                 return;
             }
 
-            float effectiveAttackScore =
-                Mathf.Max(
-                    0f,
-                    runtimeMinimumAttackScore -
-                    fullPressureAttackThresholdReduction *
-                    currentRacePressure);
-
-            bool opportunityTargetsPlayer =
-                IsPlayerTarget(
-                    opportunity.Target);
-
+            float effectiveAttackScore = Mathf.Max(0f, runtimeMinimumAttackScore - fullPressureAttackThresholdReduction * currentRacePressure);
+            bool opportunityTargetsPlayer = IsPlayerTarget(opportunity.Target);
             if (opportunityTargetsPlayer)
             {
-                effectiveAttackScore =
-                    Mathf.Max(
-                        0f,
-                        effectiveAttackScore -
-                        playerResponseAttackThresholdReduction *
-                        currentPlayerCombatUrgency);
+                effectiveAttackScore = Mathf.Max(0f, effectiveAttackScore - playerResponseAttackThresholdReduction * currentPlayerCombatUrgency);
             }
 
-            if (opportunity.Score <
-                effectiveAttackScore)
+            if (opportunity.Score < effectiveAttackScore)
             {
-                ApplyDebugOpportunity(
-                    opportunity);
-
-                debugDecision =
-                    "Opportunity Too Weak";
-
+                ApplyDebugOpportunity(opportunity);
+                debugDecision = "Opportunity Too Weak";
                 return;
             }
 
-            ApplyDebugOpportunity(
-                opportunity);
-
-            UpdateWeapon(
-                opportunity
-                    .Weapon
-                    .Definition);
+            ApplyDebugOpportunity(opportunity);
+            UpdateWeapon(opportunity.Weapon.Definition);
         }
 
         private void TickTimers()
         {
             if (cooldownTimer > 0f)
             {
-                cooldownTimer =
-                    Mathf.Max(
-                        0f,
-                        cooldownTimer -
-                        Time.fixedDeltaTime);
+                cooldownTimer = Mathf.Max(0f, cooldownTimer - Time.fixedDeltaTime);
             }
 
             if (decisionTimer > 0f)
             {
-                decisionTimer =
-                    Mathf.Max(
-                        0f,
-                        decisionTimer -
-                        Time.fixedDeltaTime);
+                decisionTimer = Mathf.Max(0f, decisionTimer - Time.fixedDeltaTime);
             }
 
             if (commitTimer > 0f)
             {
-                commitTimer =
-                    Mathf.Max(
-                        0f,
-                        commitTimer -
-                        Time.fixedDeltaTime);
+                commitTimer = Mathf.Max(0f, commitTimer - Time.fixedDeltaTime);
             }
 
-            debugCooldownTimer =
-                cooldownTimer;
-
-            debugDecisionTimer =
-                decisionTimer;
-
-            debugCommitTimer =
-                commitTimer;
+            debugCooldownTimer = cooldownTimer;
+            debugDecisionTimer = decisionTimer;
+            debugCommitTimer = commitTimer;
         }
 
-        private TacticalOpportunity FindBestOpportunity(
-            float cornerSeverity)
+        private TacticalOpportunity FindBestOpportunity(float cornerSeverity)
         {
-            TacticalOpportunity best =
-                default;
-
-            float bestScore =
-                float.NegativeInfinity;
-
-            for (int weaponIndex = 0;
-                 weaponIndex <
-                    equipment.WeaponCount;
-                 weaponIndex++)
+            TacticalOpportunity best = default;
+            float bestScore = float.NegativeInfinity;
+            for (int weaponIndex = 0; weaponIndex < equipment.WeaponCount; weaponIndex++)
             {
-                if (!equipment.TryGetWeaponSnapshot(
-                        weaponIndex,
-                        out RaceWeaponSnapshot weapon))
+                if (!equipment.TryGetWeaponSnapshot(weaponIndex, out RaceWeaponSnapshot weapon))
                 {
                     continue;
                 }
 
-                if (!weapon.HasAmmo ||
-                    weapon.Definition == null ||
-                    weapon.Definition.ActivationMode ==
-                        EquipmentActivationMode.Passive)
+                if (!weapon.HasAmmo || weapon.Definition == null || weapon.Definition.ActivationMode == EquipmentActivationMode.Passive)
                 {
                     continue;
                 }
 
-                if (!racerView.TryGetEquipmentMount(
-                        weapon.EquipmentId,
-                        out BikeEquipmentMountBinding mount))
+                if (!racerView.TryGetEquipmentMount(weapon.EquipmentId, out BikeEquipmentMountBinding mount))
                 {
                     continue;
                 }
 
-                Transform origin =
-                    mount.EquipmentOrigin != null
-                        ? mount.EquipmentOrigin
-                        : mount.MountRoot;
-
+                Transform origin = mount.EquipmentOrigin != null ? mount.EquipmentOrigin : mount.MountRoot;
                 if (origin == null)
                     continue;
-
-                var racers =
-                    AIRacerSensor.ActiveSensors;
-
-                for (int racerIndex = 0;
-                     racerIndex <
-                        racers.Count;
-                     racerIndex++)
+                var racers = AIRacerSensor.ActiveSensors;
+                for (int racerIndex = 0; racerIndex < racers.Count; racerIndex++)
                 {
-                    AIRacerSensor candidateSensor =
-                        racers[racerIndex];
-
-                    if (!TryGetValidEnemy(
-                            candidateSensor,
-                            out RacerViewController candidate))
+                    AIRacerSensor candidateSensor = racers[racerIndex];
+                    if (!TryGetValidEnemy(candidateSensor, out RacerViewController candidate))
                     {
                         continue;
                     }
 
-                    if (!TryScoreOpportunity(
-                            weapon,
-                            origin,
-                            candidate,
-                            cornerSeverity,
-                            out TacticalOpportunity opportunity))
+                    if (!TryScoreOpportunity(weapon, origin, candidate, cornerSeverity, out TacticalOpportunity opportunity))
                     {
                         continue;
                     }
 
-                    if (opportunity.Score <=
-                        bestScore)
+                    if (opportunity.Score <= bestScore)
                     {
                         continue;
                     }
 
-                    best =
-                        opportunity;
-
-                    bestScore =
-                        opportunity.Score;
+                    best = opportunity;
+                    bestScore = opportunity.Score;
                 }
             }
 
-            debugBestScore =
-                best.Valid
-                    ? best.Score
-                    : 0f;
-
+            debugBestScore = best.Valid ? best.Score : 0f;
             return best;
         }
 
-        private void SelectDecision(
-            TacticalOpportunity current,
-            bool currentValid,
-            TacticalOpportunity best)
+        private void SelectDecision(TacticalOpportunity current, bool currentValid, TacticalOpportunity best)
         {
             if (!best.Valid)
             {
                 if (!currentValid)
                     ClearDecision();
-
                 return;
             }
 
@@ -726,46 +408,27 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            bool sameWeapon =
-                string.Equals(
-                    current.Weapon.EquipmentId,
-                    best.Weapon.EquipmentId,
-                    StringComparison.Ordinal);
-
-            bool sameTarget =
-                current.Target ==
-                best.Target;
-
-            if (sameWeapon &&
-                sameTarget)
+            bool sameWeapon = string.Equals(current.Weapon.EquipmentId, best.Weapon.EquipmentId, StringComparison.Ordinal);
+            bool sameTarget = current.Target == best.Target;
+            if (sameWeapon && sameTarget)
             {
                 return;
             }
 
             if (commitTimer > 0f)
                 return;
-
             float requiredAdvantage = 0f;
-
             if (!sameWeapon)
             {
-                requiredAdvantage =
-                    Mathf.Max(
-                        requiredAdvantage,
-                        weaponSwitchScoreAdvantage);
+                requiredAdvantage = Mathf.Max(requiredAdvantage, weaponSwitchScoreAdvantage);
             }
 
             if (!sameTarget)
             {
-                requiredAdvantage =
-                    Mathf.Max(
-                        requiredAdvantage,
-                        targetSwitchScoreAdvantage);
+                requiredAdvantage = Mathf.Max(requiredAdvantage, targetSwitchScoreAdvantage);
             }
 
-            if (best.Score <
-                current.Score +
-                requiredAdvantage)
+            if (best.Score < current.Score + requiredAdvantage)
             {
                 return;
             }
@@ -773,49 +436,26 @@ namespace RaceFatal.Presentation.Vehicles
             ApplyDecision(best);
         }
 
-        private void ApplyDecision(
-            TacticalOpportunity opportunity)
+        private void ApplyDecision(TacticalOpportunity opportunity)
         {
             if (!opportunity.Valid)
                 return;
-
-            if (!equipment.SelectWeapon(
-                    opportunity
-                        .Weapon
-                        .EquipmentId))
+            if (!equipment.SelectWeapon(opportunity.Weapon.EquipmentId))
             {
-                debugDecision =
-                    "Weapon Selection Failed";
-
+                debugDecision = "Weapon Selection Failed";
                 return;
             }
 
-            currentEquipmentId =
-                opportunity
-                    .Weapon
-                    .EquipmentId;
-
-            currentTarget =
-                opportunity.Target;
-
-            commitTimer =
-                minimumDecisionCommitTime;
-
-            if (IsPlayerTarget(
-                    opportunity.Target))
+            currentEquipmentId = opportunity.Weapon.EquipmentId;
+            currentTarget = opportunity.Target;
+            commitTimer = minimumDecisionCommitTime;
+            if (IsPlayerTarget(opportunity.Target))
             {
-                commitTimer *=
-                    Mathf.Lerp(
-                        1f,
-                        playerTargetCommitMultiplier,
-                        currentPlayerCombatUrgency);
+                commitTimer *= Mathf.Lerp(1f, playerTargetCommitMultiplier, currentPlayerCombatUrgency);
             }
 
-            ApplyDebugOpportunity(
-                opportunity);
-
-            debugDecision =
-                "Tactical Decision";
+            ApplyDebugOpportunity(opportunity);
+            debugDecision = "Tactical Decision";
         }
 
         private void ClearDecision()
@@ -823,10 +463,8 @@ namespace RaceFatal.Presentation.Vehicles
             currentTarget = null;
             currentEquipmentId = null;
             commitTimer = 0f;
-
             debugTargetRacer = "None";
             debugCurrentScore = 0f;
-
             guidedLockState?.ClearTarget();
         }
 
@@ -836,316 +474,124 @@ namespace RaceFatal.Presentation.Vehicles
             commitTimer = 0f;
         }
 
-        private bool TryGetCurrentOpportunity(
-            float cornerSeverity,
-            out TacticalOpportunity opportunity)
+        private bool TryGetCurrentOpportunity(float cornerSeverity, out TacticalOpportunity opportunity)
         {
-            opportunity =
-                default;
-
-            if (currentTarget == null ||
-                string.IsNullOrWhiteSpace(
-                    currentEquipmentId))
+            opportunity = default;
+            if (currentTarget == null || string.IsNullOrWhiteSpace(currentEquipmentId))
             {
                 return false;
             }
 
-            if (!equipment.TryGetWeaponSnapshot(
-                    currentEquipmentId,
-                    out RaceWeaponSnapshot weapon))
+            if (!equipment.TryGetWeaponSnapshot(currentEquipmentId, out RaceWeaponSnapshot weapon))
             {
                 return false;
             }
 
-            if (!weapon.HasAmmo ||
-                weapon.Definition == null)
+            if (!weapon.HasAmmo || weapon.Definition == null)
             {
                 return false;
             }
 
-            if (!racerView.TryGetEquipmentMount(
-                    weapon.EquipmentId,
-                    out BikeEquipmentMountBinding mount))
+            if (!racerView.TryGetEquipmentMount(weapon.EquipmentId, out BikeEquipmentMountBinding mount))
             {
                 return false;
             }
 
-            Transform origin =
-                mount.EquipmentOrigin != null
-                    ? mount.EquipmentOrigin
-                    : mount.MountRoot;
-
+            Transform origin = mount.EquipmentOrigin != null ? mount.EquipmentOrigin : mount.MountRoot;
             if (origin == null)
                 return false;
-
-            if (!IsValidEnemy(
-                    currentTarget))
+            if (!IsValidEnemy(currentTarget))
             {
                 return false;
             }
 
-            return TryScoreOpportunity(
-                weapon,
-                origin,
-                currentTarget,
-                cornerSeverity,
-                out opportunity);
+            return TryScoreOpportunity(weapon, origin, currentTarget, cornerSeverity, out opportunity);
         }
 
-        private bool TryScoreOpportunity(
-            RaceWeaponSnapshot weapon,
-            Transform origin,
-            RacerViewController target,
-            float cornerSeverity,
-            out TacticalOpportunity opportunity)
+        private bool TryScoreOpportunity(RaceWeaponSnapshot weapon, Transform origin, RacerViewController target, float cornerSeverity, out TacticalOpportunity opportunity)
         {
-            opportunity =
-                default;
-
-            WeaponDefinition definition =
-                weapon.Definition;
-
-            if (definition == null ||
-                origin == null ||
-                target == null)
+            opportunity = default;
+            WeaponDefinition definition = weapon.Definition;
+            if (definition == null || origin == null || target == null)
             {
                 return false;
             }
 
-            bool targetIsPlayer =
-                IsPlayerTarget(
-                    target);
-
-            Vector3 toTarget =
-                target.transform.position -
-                origin.position;
-
-            if (toTarget.sqrMagnitude <
-                0.001f)
+            bool targetIsPlayer = IsPlayerTarget(target);
+            Vector3 toTarget = target.transform.position - origin.position;
+            if (toTarget.sqrMagnitude < 0.001f)
             {
                 return false;
             }
 
-            float distance =
-                toTarget.magnitude;
-
-            float pressureRange =
-                runtimeTargetDistance *
-                (1f +
-                 fullPressureTargetRangeBonus *
-                 currentRacePressure);
-
-            /*
-             * Strong player pursuit gets a modest additional
-             * target-range extension.
-             */
+            float distance = toTarget.magnitude;
+            float pressureRange = runtimeTargetDistance * (1f + fullPressureTargetRangeBonus * currentRacePressure);
             if (targetIsPlayer)
             {
-                pressureRange *=
-                    Mathf.Lerp(
-                        1f,
-                        1.25f,
-                        currentPlayerCombatUrgency);
+                pressureRange *= Mathf.Lerp(1f, 1.25f, currentPlayerCombatUrgency);
             }
 
-            float searchRange =
-                Mathf.Min(
-                    pressureRange,
-                    definition.Range);
-
-            if (distance <
-                    minimumTargetDistance ||
-                distance >
-                    searchRange)
+            float searchRange = Mathf.Min(pressureRange, definition.Range);
+            if (distance < minimumTargetDistance || distance > searchRange)
             {
                 return false;
             }
 
-            Vector3 direction =
-                toTarget /
-                distance;
-
-            float angle =
-                GetAimAngle(
-                    definition,
-                    origin,
-                    direction);
-
-            float allowedAngle =
-                definition.TargetingHalfAngle > 0f
-                    ? definition.TargetingHalfAngle
-                    : GetAllowedFiringAngle(
-                        definition,
-                        target);
-
-            if (angle >
-                allowedAngle)
+            Vector3 direction = toTarget / distance;
+            float angle = GetAimAngle(definition, origin, direction);
+            float allowedAngle = definition.TargetingHalfAngle > 0f ? definition.TargetingHalfAngle : GetAllowedFiringAngle(definition, target);
+            if (angle > allowedAngle)
             {
                 return false;
             }
 
-            if (definition.DeliveryMode ==
-                WeaponDeliveryMode.Ram)
+            if (definition.DeliveryMode == WeaponDeliveryMode.Ram)
             {
-                BikeMotor motor =
-                    racerView != null
-                        ? racerView.GetComponent<BikeMotor>()
-                        : null;
-
-                float steering =
-                    motor != null
-                        ? motor.SteeringInput
-                        : 0f;
-
-                float targetSide =
-                    Vector3.Dot(
-                        origin.right,
-                        direction);
-
-                if (Mathf.Abs(steering) < 0.05f ||
-                    Mathf.Abs(targetSide) < 0.05f ||
-                    Mathf.Sign(steering) !=
-                        Mathf.Sign(targetSide))
+                BikeMotor motor = racerView != null ? racerView.GetComponent<BikeMotor>() : null;
+                float steering = motor != null ? motor.SteeringInput : 0f;
+                float targetSide = Vector3.Dot(origin.right, direction);
+                if (Mathf.Abs(steering) < 0.05f || Mathf.Abs(targetSide) < 0.05f || Mathf.Sign(steering) != Mathf.Sign(targetSide))
                 {
                     return false;
                 }
             }
 
-            float alignmentScore =
-                1f -
-                Mathf.Clamp01(
-                    angle /
-                    Mathf.Max(
-                        0.01f,
-                        allowedAngle));
-
-            if (definition.ActivationMode ==
-                    EquipmentActivationMode.ChargeRelease &&
-                alignmentScore <
-                    minimumChargeAlignment)
+            float alignmentScore = 1f - Mathf.Clamp01(angle / Mathf.Max(0.01f, allowedAngle));
+            if (definition.ActivationMode == EquipmentActivationMode.ChargeRelease && alignmentScore < minimumChargeAlignment)
             {
                 return false;
             }
 
-            float normalizedDistance =
-                Mathf.Clamp01(
-                    distance /
-                    Mathf.Max(
-                        minimumTargetDistance +
-                        0.01f,
-                        searchRange));
-
-            float idealRange =
-                GetIdealRange(
-                    definition);
-
-            float distanceScore =
-                CalculateRangeScore(
-                    normalizedDistance,
-                    idealRange);
-
-            float vulnerability =
-                CalculateTargetVulnerability(
-                    target);
-
-            float damageValue =
-                Mathf.Clamp01(
-                    definition.Damage /
-                    Mathf.Max(
-                        1f,
-                        damageForFullFinisherValue));
-
-            float finisherScore =
-                vulnerability *
-                damageValue;
-
-            float baseScore =
-                distanceScore *
-                    distanceWeight +
-                alignmentScore *
-                    alignmentWeight +
-                vulnerability *
-                    vulnerabilityWeight +
-                finisherScore *
-                    finisherWeight;
-
-            /*
-             * Preserve the existing weapon-role behavior.
-             */
-            float roleBonus =
-                CalculateWeaponRoleBonus(
-                    definition,
-                    vulnerability);
-
-            float ammoFactor =
-                CalculateAmmoFactor(
-                    weapon,
-                    vulnerability);
-
-            float travelFactor =
-                CalculateTravelFactor(
-                    definition,
-                    distance);
-
-            float chargeFactor =
-                CalculateChargeFactor(
-                    definition,
-                    cornerSeverity);
-
+            float normalizedDistance = Mathf.Clamp01(distance / Mathf.Max(minimumTargetDistance + 0.01f, searchRange));
+            float idealRange = GetIdealRange(definition);
+            float distanceScore = CalculateRangeScore(normalizedDistance, idealRange);
+            float vulnerability = CalculateTargetVulnerability(target);
+            float damageValue = Mathf.Clamp01(definition.Damage / Mathf.Max(1f, damageForFullFinisherValue));
+            float finisherScore = vulnerability * damageValue;
+            float baseScore = distanceScore * distanceWeight + alignmentScore * alignmentWeight + vulnerability * vulnerabilityWeight + finisherScore * finisherWeight;
+            float roleBonus = CalculateWeaponRoleBonus(definition, vulnerability);
+            float ammoFactor = CalculateAmmoFactor(weapon, vulnerability);
+            float travelFactor = CalculateTravelFactor(definition, distance);
+            float chargeFactor = CalculateChargeFactor(definition, cornerSeverity);
             int positionGap;
-
-            float racePositionFactor =
-                CalculateRacePositionFactor(
-                    target,
-                    out positionGap);
-
-            int existingAttackers =
-                CountOtherAttackersTargeting(
-                    target);
-
-            float saturationFactor =
-                CalculateTargetSaturationFactor(
-                    target,
-                    existingAttackers);
-
-            float score =
-                (
-                    baseScore +
-                    roleBonus
-                ) *
-                ammoFactor *
-                travelFactor *
-                chargeFactor *
-                racePositionFactor *
-                saturationFactor;
-
-            if (!string.IsNullOrWhiteSpace(
-                    preferredTargetRacerId) &&
-                target.Participant != null &&
-                string.Equals(
-                    target.Participant.RacerId,
-                    preferredTargetRacerId,
-                    StringComparison.Ordinal))
+            float racePositionFactor = CalculateRacePositionFactor(target, out positionGap);
+            int existingAttackers = CountOtherAttackersTargeting(target);
+            float saturationFactor = CalculateTargetSaturationFactor(target, existingAttackers);
+            float score = (baseScore + roleBonus) * ammoFactor * travelFactor * chargeFactor * racePositionFactor * saturationFactor;
+            if (!string.IsNullOrWhiteSpace(preferredTargetRacerId) && target.Participant != null && string.Equals(target.Participant.RacerId, preferredTargetRacerId, StringComparison.Ordinal))
             {
-                score +=
-                    fullPressurePreferredTargetBonus *
-                    currentRacePressure;
+                score += fullPressurePreferredTargetBonus * currentRacePressure;
             }
 
             if (targetIsPlayer)
             {
-                score +=
-                    currentPlayerTargetBonus;
+                score += currentPlayerTargetBonus;
             }
 
             opportunity.Valid = true;
             opportunity.Weapon = weapon;
             opportunity.Target = target;
-
-            opportunity.Score =
-                Mathf.Clamp01(
-                    score);
-
+            opportunity.Score = Mathf.Clamp01(score);
             opportunity.Distance = distance;
             opportunity.Angle = angle;
             opportunity.DistanceScore = distanceScore;
@@ -1156,151 +602,88 @@ namespace RaceFatal.Presentation.Vehicles
             opportunity.RacePositionFactor = racePositionFactor;
             opportunity.ExistingAttackers = existingAttackers;
             opportunity.SaturationFactor = saturationFactor;
-
             return true;
         }
 
-        private float GetAimAngle(
-            WeaponDefinition weapon,
-            Transform origin,
-            Vector3 targetDirection)
+        private float GetAimAngle(WeaponDefinition weapon, Transform origin, Vector3 targetDirection)
         {
-            if (weapon == null ||
-                origin == null)
+            if (weapon == null || origin == null)
             {
                 return 180f;
             }
 
-            if (weapon.AimMode ==
-                    WeaponAimMode.RearDrop ||
-                weapon.AimMode ==
-                    WeaponAimMode.RearTargeted)
+            if (weapon.AimMode == WeaponAimMode.RearDrop || weapon.AimMode == WeaponAimMode.RearTargeted)
             {
-                return
-                    Vector3.Angle(
-                        -origin.forward,
-                        targetDirection);
+                return Vector3.Angle(-origin.forward, targetDirection);
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.Ram)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.Ram)
             {
-                return
-                    Mathf.Min(
-                        Vector3.Angle(
-                            origin.right,
-                            targetDirection),
-                        Vector3.Angle(
-                            -origin.right,
-                            targetDirection));
+                return Mathf.Min(Vector3.Angle(origin.right, targetDirection), Vector3.Angle(-origin.right, targetDirection));
             }
 
-            if (weapon.AimMode ==
-                WeaponAimMode.ForwardAndSideways)
+            if (weapon.AimMode == WeaponAimMode.ForwardAndSideways)
             {
-                return
-                    Mathf.Min(
-                        Vector3.Angle(
-                            origin.forward,
-                            targetDirection),
-                        Mathf.Min(
-                            Vector3.Angle(
-                                origin.right,
-                                targetDirection),
-                            Vector3.Angle(
-                                -origin.right,
-                                targetDirection)));
+                return Mathf.Min(Vector3.Angle(origin.forward, targetDirection), Mathf.Min(Vector3.Angle(origin.right, targetDirection), Vector3.Angle(-origin.right, targetDirection)));
             }
 
-            return
-                Vector3.Angle(
-                    origin.forward,
-                    targetDirection);
+            return Vector3.Angle(origin.forward, targetDirection);
         }
 
-        private float GetAllowedFiringAngle(
-            WeaponDefinition weapon,
-            RacerViewController target)
+        private float GetAllowedFiringAngle(WeaponDefinition weapon, RacerViewController target)
         {
             float multiplier = 1f;
-
-            bool targetIsPlayer =
-                IsPlayerTarget(
-                    target);
-
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.GuidedProjectile)
+            bool targetIsPlayer = IsPlayerTarget(target);
+            if (weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
             {
-                multiplier *=
-                    guidedAngleMultiplier;
-
+                multiplier *= guidedAngleMultiplier;
                 if (targetIsPlayer)
                 {
-                    multiplier *=
-                        Mathf.Lerp(
-                            1f,
-                            playerGuidedAngleMultiplier,
-                            currentPlayerCombatUrgency);
+                    multiplier *= Mathf.Lerp(1f, playerGuidedAngleMultiplier, currentPlayerCombatUrgency);
                 }
             }
 
-            if (weapon.ActivationMode ==
-                EquipmentActivationMode.ChargeRelease)
+            if (weapon.ActivationMode == EquipmentActivationMode.ChargeRelease)
             {
-                multiplier *=
-                    chargeAngleMultiplier;
+                multiplier *= chargeAngleMultiplier;
             }
 
-            return Mathf.Clamp(
-                firingHalfAngle *
-                multiplier,
-                0.1f,
-                75f);
+            return Mathf.Clamp(firingHalfAngle * multiplier, 0.1f, 75f);
         }
 
-        private float GetIdealRange(
-            WeaponDefinition weapon)
+        private float GetIdealRange(WeaponDefinition weapon)
         {
-            if (weapon.DeliveryMode ==
-                    WeaponDeliveryMode.Area ||
-                weapon.DeliveryMode ==
-                    WeaponDeliveryMode.Ram)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.Area || weapon.DeliveryMode == WeaponDeliveryMode.Ram)
             {
                 return 0.15f;
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.Dropped)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.Dropped)
             {
                 return 0.22f;
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.FlameCone)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.FlameCone)
             {
                 return 0.28f;
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.ConeProjectile)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.ConeProjectile)
             {
                 return 0.3f;
             }
 
-            if (weapon.ActivationMode ==
-                EquipmentActivationMode.ChargeRelease)
+            if (weapon.ActivationMode == EquipmentActivationMode.ChargeRelease)
             {
                 return 0.72f;
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.GuidedProjectile)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
             {
                 return 0.58f;
             }
 
-            if (weapon.ActivationMode ==
-                EquipmentActivationMode.Hold)
+            if (weapon.ActivationMode == EquipmentActivationMode.Hold)
             {
                 return 0.38f;
             }
@@ -1308,314 +691,132 @@ namespace RaceFatal.Presentation.Vehicles
             return 0.52f;
         }
 
-        private float CalculateRangeScore(
-            float normalizedDistance,
-            float idealRange)
+        private float CalculateRangeScore(float normalizedDistance, float idealRange)
         {
-            idealRange =
-                Mathf.Clamp(
-                    idealRange,
-                    0.05f,
-                    0.95f);
-
-            float difference =
-                Mathf.Abs(
-                    normalizedDistance -
-                    idealRange);
-
-            float maximumDifference =
-                Mathf.Max(
-                    idealRange,
-                    1f -
-                    idealRange);
-
-            float fit =
-                1f -
-                Mathf.Clamp01(
-                    difference /
-                    maximumDifference);
-
-            return Mathf.Lerp(
-                0.35f,
-                1f,
-                fit);
+            idealRange = Mathf.Clamp(idealRange, 0.05f, 0.95f);
+            float difference = Mathf.Abs(normalizedDistance - idealRange);
+            float maximumDifference = Mathf.Max(idealRange, 1f - idealRange);
+            float fit = 1f - Mathf.Clamp01(difference / maximumDifference);
+            return Mathf.Lerp(0.35f, 1f, fit);
         }
 
-        private float CalculateTargetVulnerability(
-            RacerViewController target)
+        private float CalculateTargetVulnerability(RacerViewController target)
         {
             if (target?.Participant?.Vehicle == null)
                 return 0f;
-
-            RaceVehicleState vehicle =
-                target.Participant.Vehicle;
-
-            float damageRatio =
-                Mathf.Clamp01(
-                    vehicle.Damage.Percent /
-                    100f);
-
-            RaceShieldState shield =
-                vehicle.EquipmentSystem?
-                    .Shield;
-
+            RaceVehicleState vehicle = target.Participant.Vehicle;
+            float damageRatio = Mathf.Clamp01(vehicle.Damage.Percent / 100f);
+            RaceShieldState shield = vehicle.EquipmentSystem?.Shield;
             float shieldWeakness = 0f;
-
-            if (shield != null &&
-                shield.BaseMaximum > 0f)
+            if (shield != null && shield.BaseMaximum > 0f)
             {
-                float shieldRatio =
-                    Mathf.Clamp01(
-                        shield.Current /
-                        shield.BaseMaximum);
-
-                shieldWeakness =
-                    1f -
-                    shieldRatio;
+                float shieldRatio = Mathf.Clamp01(shield.Current / shield.BaseMaximum);
+                shieldWeakness = 1f - shieldRatio;
             }
 
-            float vulnerability =
-                damageRatio *
-                    0.85f +
-                shieldWeakness *
-                    0.15f;
-
-            return Mathf.Clamp01(
-                vulnerability);
+            float vulnerability = damageRatio * 0.85f + shieldWeakness * 0.15f;
+            return Mathf.Clamp01(vulnerability);
         }
 
-        private float CalculateAmmoFactor(
-            RaceWeaponSnapshot weapon,
-            float targetVulnerability)
+        private float CalculateAmmoFactor(RaceWeaponSnapshot weapon, float targetVulnerability)
         {
             if (weapon.MaximumAmmo <= 0)
                 return 0f;
-
-            float ammoRatio =
-                Mathf.Clamp01(
-                    weapon.AmmoRatio);
-
-            float capacityFactor =
-                Mathf.Clamp01(
-                    weapon.MaximumAmmo /
-                    (float)Mathf.Max(
-                        1,
-                        plentifulAmmoReference));
-
-            float conservationPenalty =
-                Mathf.Lerp(
-                    conservativeScarcityPenalty,
-                    aggressiveScarcityPenalty,
-                    weaponAggression);
-
-            float normalFactor =
-                1f -
-                (1f - capacityFactor) *
-                conservationPenalty *
-                Mathf.Lerp(
-                    0.5f,
-                    1f,
-                    1f - ammoRatio);
-
-            normalFactor *=
-                1f -
-                lowAmmoPenalty *
-                Mathf.Lerp(
-                    0f,
-                    1f,
-                    1f - ammoRatio);
-
-            if (weapon.MaximumAmmo <=
-                scarceAmmoThreshold)
+            float ammoRatio = Mathf.Clamp01(weapon.AmmoRatio);
+            float capacityFactor = Mathf.Clamp01(weapon.MaximumAmmo / (float)Mathf.Max(1, plentifulAmmoReference));
+            float conservationPenalty = Mathf.Lerp(conservativeScarcityPenalty, aggressiveScarcityPenalty, weaponAggression);
+            float normalFactor = 1f - (1f - capacityFactor) * conservationPenalty * Mathf.Lerp(0.5f, 1f, 1f - ammoRatio);
+            normalFactor *= 1f - lowAmmoPenalty * Mathf.Lerp(0f, 1f, 1f - ammoRatio);
+            if (weapon.MaximumAmmo <= scarceAmmoThreshold)
             {
-                float baseScarceFactor =
-                    Mathf.Lerp(
-                        conservativeScarceWeaponFactor,
-                        aggressiveScarceWeaponFactor,
-                        weaponAggression);
-
-                float vulnerabilityFactor =
-                    Mathf.InverseLerp(
-                        0f,
-                        Mathf.Max(
-                            0.01f,
-                            vulnerabilityForFullScarceWeaponValue),
-                        targetVulnerability);
-
-                float scarceFactor =
-                    Mathf.Lerp(
-                        baseScarceFactor,
-                        1f,
-                        vulnerabilityFactor);
-
-                float remainingFactor =
-                    Mathf.Lerp(
-                        0.7f,
-                        1f,
-                        ammoRatio);
-
-                normalFactor *=
-                    scarceFactor *
-                    remainingFactor;
+                float baseScarceFactor = Mathf.Lerp(conservativeScarceWeaponFactor, aggressiveScarceWeaponFactor, weaponAggression);
+                float vulnerabilityFactor = Mathf.InverseLerp(0f, Mathf.Max(0.01f, vulnerabilityForFullScarceWeaponValue), targetVulnerability);
+                float scarceFactor = Mathf.Lerp(baseScarceFactor, 1f, vulnerabilityFactor);
+                float remainingFactor = Mathf.Lerp(0.7f, 1f, ammoRatio);
+                normalFactor *= scarceFactor * remainingFactor;
             }
 
-            return Mathf.Clamp01(
-                normalFactor);
+            return Mathf.Clamp01(normalFactor);
         }
 
-        private float CalculateWeaponRoleBonus(
-            WeaponDefinition weapon,
-            float targetVulnerability)
+        private float CalculateWeaponRoleBonus(WeaponDefinition weapon, float targetVulnerability)
         {
             if (weapon == null)
                 return 0f;
-
             switch (weapon.ActivationMode)
             {
                 case EquipmentActivationMode.Hold:
-                    return
-                        holdWeaponPressureBonus *
-                        (1f -
-                         targetVulnerability);
-
+                    return holdWeaponPressureBonus * (1f - targetVulnerability);
                 case EquipmentActivationMode.Press:
-                    return
-                        pressWeaponFinisherBonus *
-                        targetVulnerability;
-
+                    return pressWeaponFinisherBonus * targetVulnerability;
                 default:
                     return 0f;
             }
         }
 
-        private float CalculateTravelFactor(
-            WeaponDefinition weapon,
-            float distance)
+        private float CalculateTravelFactor(WeaponDefinition weapon, float distance)
         {
-            if (weapon.DeliveryMode ==
-                    WeaponDeliveryMode.Hitscan ||
-                weapon.DeliveryMode ==
-                    WeaponDeliveryMode.Dropped ||
-                weapon.DeliveryMode ==
-                    WeaponDeliveryMode.Ram ||
-                weapon.DeliveryMode ==
-                    WeaponDeliveryMode.FlameCone ||
-                weapon.ProjectileSpeed <=
-                    0.01f)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.Hitscan || weapon.DeliveryMode == WeaponDeliveryMode.Dropped || weapon.DeliveryMode == WeaponDeliveryMode.Ram || weapon.DeliveryMode == WeaponDeliveryMode.FlameCone || weapon.ProjectileSpeed <= 0.01f)
             {
                 return 1f;
             }
 
-            float travelTime =
-                distance /
-                weapon.ProjectileSpeed;
-
-            float penalty =
-                projectileTravelTimePenalty;
-
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.GuidedProjectile)
+            float travelTime = distance / weapon.ProjectileSpeed;
+            float penalty = projectileTravelTimePenalty;
+            if (weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
             {
-                penalty *=
-                    0.5f;
+                penalty *= 0.5f;
             }
 
-            return
-                1f /
-                (1f +
-                 travelTime *
-                 penalty);
+            return 1f / (1f + travelTime * penalty);
         }
 
-        private float CalculateChargeFactor(
-            WeaponDefinition weapon,
-            float cornerSeverity)
+        private float CalculateChargeFactor(WeaponDefinition weapon, float cornerSeverity)
         {
-            if (weapon.ActivationMode !=
-                EquipmentActivationMode.ChargeRelease)
+            if (weapon.ActivationMode != EquipmentActivationMode.ChargeRelease)
             {
                 return 1f;
             }
 
-            float durationFactor =
-                1f /
-                (1f +
-                 Mathf.Max(
-                     0f,
-                     weapon.ChargeDuration) *
-                 chargeDurationPenalty);
-
-            float cornerFactor =
-                1f -
-                Mathf.Clamp01(
-                    cornerSeverity /
-                    Mathf.Max(
-                        0.01f,
-                        runtimeMaximumCornerSeverity));
-
-            cornerFactor =
-                Mathf.Lerp(
-                    0.55f,
-                    1f,
-                    cornerFactor);
-
-            return
-                durationFactor *
-                cornerFactor;
+            float durationFactor = 1f / (1f + Mathf.Max(0f, weapon.ChargeDuration) * chargeDurationPenalty);
+            float cornerFactor = 1f - Mathf.Clamp01(cornerSeverity / Mathf.Max(0.01f, runtimeMaximumCornerSeverity));
+            cornerFactor = Mathf.Lerp(0.55f, 1f, cornerFactor);
+            return durationFactor * cornerFactor;
         }
 
-        private bool TryGetValidEnemy(
-            AIRacerSensor candidateSensor,
-            out RacerViewController candidateView)
+        private bool TryGetValidEnemy(AIRacerSensor candidateSensor, out RacerViewController candidateView)
         {
             candidateView = null;
-
-            if (candidateSensor == null ||
-                candidateSensor == sensor ||
-                !candidateSensor.isActiveAndEnabled)
+            if (candidateSensor == null || candidateSensor == sensor || !candidateSensor.isActiveAndEnabled)
             {
                 return false;
             }
 
-            candidateView =
-                candidateSensor.RacerView;
-
-            return IsValidEnemy(
-                candidateView);
+            candidateView = candidateSensor.RacerView;
+            return IsValidEnemy(candidateView);
         }
 
-        private bool IsValidEnemy(
-            RacerViewController candidateView)
+        private bool IsValidEnemy(RacerViewController candidateView)
         {
-            if (candidateView == null ||
-                !candidateView.IsInitialized ||
-                candidateView.Participant == null)
+            if (candidateView == null || !candidateView.IsInitialized || candidateView.Participant == null)
             {
                 return false;
             }
 
-            RaceParticipant candidate =
-                candidateView.Participant;
-
+            RaceParticipant candidate = candidateView.Participant;
             if (candidate == participant)
                 return false;
-
-            if (candidate.Status !=
-                RaceParticipantStatus.Racing)
+            if (candidate.Status != RaceParticipantStatus.Racing)
             {
                 return false;
             }
 
-            if (candidate.Vehicle == null ||
-                candidate.Vehicle.IsDestroyed)
+            if (candidate.Vehicle == null || candidate.Vehicle.IsDestroyed)
             {
                 return false;
             }
 
-            if (raceRuntime?.Director?.State.Deathmatch?.Mode != DeathmatchVictoryMode.Individual && string.Equals(
-                    candidate.TeamId,
-                    participant.TeamId,
-                    StringComparison.Ordinal))
+            if (raceRuntime?.Director?.State.Deathmatch?.Mode != DeathmatchVictoryMode.Individual && string.Equals(candidate.TeamId, participant.TeamId, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -1623,89 +824,35 @@ namespace RaceFatal.Presentation.Vehicles
             return true;
         }
 
-        private bool IsPlayerTarget(
-            RacerViewController target)
+        private bool IsPlayerTarget(RacerViewController target)
         {
-            return
-                target != null &&
-                target.Participant != null &&
-                target.Participant.Role ==
-                    RaceParticipantRole.Player;
+            return target != null && target.Participant != null && target.Participant.Role == RaceParticipantRole.Player;
         }
 
-        private void ApplyDebugOpportunity(
-            TacticalOpportunity opportunity)
+        private void ApplyDebugOpportunity(TacticalOpportunity opportunity)
         {
             if (!opportunity.Valid)
                 return;
-
-            debugSelectedWeapon =
-                opportunity
-                    .Weapon
-                    .Definition
-                    .DisplayName;
-
-            debugActivationMode =
-                opportunity
-                    .Weapon
-                    .Definition
-                    .ActivationMode
-                    .ToString();
-
-            debugDeliveryMode =
-                opportunity
-                    .Weapon
-                    .Definition
-                    .DeliveryMode
-                    .ToString();
-
-            debugAmmo =
-                opportunity.Weapon.CurrentAmmo;
-
-            debugMaximumAmmo =
-                opportunity.Weapon.MaximumAmmo;
-
-            debugTargetRacer =
-                opportunity.Target != null
-                    ? opportunity.Target.RacerId
-                    : "None";
-
-            debugTargetDistance =
-                opportunity.Distance;
-
-            debugTargetAngle =
-                opportunity.Angle;
-
-            debugCurrentScore =
-                opportunity.Score;
-
-            debugDistanceScore =
-                opportunity.DistanceScore;
-
-            debugAlignmentScore =
-                opportunity.AlignmentScore;
-
-            debugVulnerabilityScore =
-                opportunity.VulnerabilityScore;
-
-            debugAmmoFactor =
-                opportunity.AmmoFactor;
-
-            debugTargetPositionGap =
-                opportunity.PositionGap;
-
-            debugRacePositionFactor =
-                opportunity.RacePositionFactor;
-
-            debugExistingTargetAttackers =
-                opportunity.ExistingAttackers;
-
-            debugTargetSaturationFactor =
-                opportunity.SaturationFactor;
+            debugSelectedWeapon = opportunity.Weapon.Definition.DisplayName;
+            debugActivationMode = opportunity.Weapon.Definition.ActivationMode.ToString();
+            debugDeliveryMode = opportunity.Weapon.Definition.DeliveryMode.ToString();
+            debugAmmo = opportunity.Weapon.CurrentAmmo;
+            debugMaximumAmmo = opportunity.Weapon.MaximumAmmo;
+            debugTargetRacer = opportunity.Target != null ? opportunity.Target.RacerId : "None";
+            debugTargetDistance = opportunity.Distance;
+            debugTargetAngle = opportunity.Angle;
+            debugCurrentScore = opportunity.Score;
+            debugDistanceScore = opportunity.DistanceScore;
+            debugAlignmentScore = opportunity.AlignmentScore;
+            debugVulnerabilityScore = opportunity.VulnerabilityScore;
+            debugAmmoFactor = opportunity.AmmoFactor;
+            debugTargetPositionGap = opportunity.PositionGap;
+            debugRacePositionFactor = opportunity.RacePositionFactor;
+            debugExistingTargetAttackers = opportunity.ExistingAttackers;
+            debugTargetSaturationFactor = opportunity.SaturationFactor;
         }
 
-        private void UpdateWeapon(
-            WeaponDefinition weapon)
+        private void UpdateWeapon(WeaponDefinition weapon)
         {
             if (weapon == null)
             {
@@ -1713,31 +860,18 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (weapon.DeliveryMode ==
-                WeaponDeliveryMode.GuidedProjectile)
+            if (weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
             {
-                if (guidedLockState == null ||
-                    currentTarget == null)
+                if (guidedLockState == null || currentTarget == null)
                 {
-                    debugDecision =
-                        "No Guided Target";
-
+                    debugDecision = "No Guided Target";
                     return;
                 }
 
-                guidedLockState.TrackCandidate(
-                    currentTarget,
-                    Time.fixedDeltaTime,
-                    weapon.TargetLockDuration);
-
+                guidedLockState.TrackCandidate(currentTarget, Time.fixedDeltaTime, weapon.TargetLockDuration);
                 if (!guidedLockState.IsLocked)
                 {
-                    debugDecision =
-                        IsPlayerTarget(
-                            currentTarget)
-                            ? "Acquiring Player Guided Lock"
-                            : "Acquiring Guided Lock";
-
+                    debugDecision = IsPlayerTarget(currentTarget) ? "Acquiring Player Guided Lock" : "Acquiring Guided Lock";
                     return;
                 }
             }
@@ -1751,21 +885,15 @@ namespace RaceFatal.Presentation.Vehicles
                 case EquipmentActivationMode.Press:
                     UpdatePressWeapon();
                     break;
-
                 case EquipmentActivationMode.Hold:
                     UpdateHoldWeapon();
                     break;
-
                 case EquipmentActivationMode.ChargeRelease:
-                    UpdateChargeWeapon(
-                        weapon);
+                    UpdateChargeWeapon(weapon);
                     break;
-
                 default:
                     CancelWeapon();
-
-                    debugDecision =
-                        "Unsupported Activation";
+                    debugDecision = "Unsupported Activation";
                     break;
             }
         }
@@ -1774,27 +902,15 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (cooldownTimer > 0f)
             {
-                debugDecision =
-                    "Press Cooldown";
-
+                debugDecision = "Press Cooldown";
                 return;
             }
 
-            bool fired =
-                equipment.BeginSelectedActivation();
-
+            bool fired = equipment.BeginSelectedActivation();
             equipment.EndSelectedActivation();
-
-            cooldownTimer =
-                runtimePressWeaponCooldown;
-
-            debugAmmo =
-                equipment.SelectedWeaponAmmo;
-
-            debugDecision =
-                fired
-                    ? "Press Fired"
-                    : "Press Failed";
+            cooldownTimer = runtimePressWeaponCooldown;
+            debugAmmo = equipment.SelectedWeaponAmmo;
+            debugDecision = fired ? "Press Fired" : "Press Failed";
         }
 
         private void UpdateHoldWeapon()
@@ -1803,157 +919,92 @@ namespace RaceFatal.Presentation.Vehicles
             {
                 if (cooldownTimer > 0f)
                 {
-                    debugDecision =
-                        "Burst Cooldown";
-
+                    debugDecision = "Burst Cooldown";
                     return;
                 }
 
-                bool started =
-                    equipment.BeginSelectedActivation();
-
+                bool started = equipment.BeginSelectedActivation();
                 if (!started)
                 {
-                    debugDecision =
-                        equipment.SelectedWeaponIsEmpty
-                            ? "Out Of Ammo"
-                            : "Burst Failed";
-
+                    debugDecision = equipment.SelectedWeaponIsEmpty ? "Out Of Ammo" : "Burst Failed";
                     return;
                 }
 
                 weaponActive = true;
-
-                burstTimer =
-                    runtimeBurstDuration;
-
+                burstTimer = runtimeBurstDuration;
                 debugWeaponActive = true;
-
-                debugDecision =
-                    "Burst Started";
+                debugDecision = "Burst Started";
             }
 
-            burstTimer -=
-                Time.fixedDeltaTime;
-
-            debugBurstTimer =
-                burstTimer;
-
-            debugAmmo =
-                equipment.SelectedWeaponAmmo;
-
+            burstTimer -= Time.fixedDeltaTime;
+            debugBurstTimer = burstTimer;
+            debugAmmo = equipment.SelectedWeaponAmmo;
             if (equipment.SelectedWeaponIsEmpty)
             {
                 equipment.EndSelectedActivation();
-
                 weaponActive = false;
                 burstTimer = 0f;
-
                 debugWeaponActive = false;
                 debugBurstTimer = 0f;
-
-                debugDecision =
-                    "Weapon Empty";
-
+                debugDecision = "Weapon Empty";
                 ForceDecisionRefresh();
-
                 return;
             }
 
             if (burstTimer > 0f)
             {
-                debugDecision =
-                    "Firing Burst";
-
+                debugDecision = "Firing Burst";
                 return;
             }
 
             equipment.EndSelectedActivation();
-
             weaponActive = false;
-
-            cooldownTimer =
-                runtimeBurstCooldown;
-
+            cooldownTimer = runtimeBurstCooldown;
             debugWeaponActive = false;
             debugBurstTimer = 0f;
-
-            debugDecision =
-                "Burst Complete";
+            debugDecision = "Burst Complete";
         }
 
-        private void UpdateChargeWeapon(
-            WeaponDefinition weapon)
+        private void UpdateChargeWeapon(WeaponDefinition weapon)
         {
             if (!weaponActive)
             {
                 if (cooldownTimer > 0f)
                 {
-                    debugDecision =
-                        "Charge Cooldown";
-
+                    debugDecision = "Charge Cooldown";
                     return;
                 }
 
-                bool started =
-                    equipment.BeginSelectedActivation();
-
+                bool started = equipment.BeginSelectedActivation();
                 if (!started)
                 {
-                    debugDecision =
-                        equipment.SelectedWeaponIsEmpty
-                            ? "Out Of Ammo"
-                            : "Charge Failed";
-
+                    debugDecision = equipment.SelectedWeaponIsEmpty ? "Out Of Ammo" : "Charge Failed";
                     return;
                 }
 
                 weaponActive = true;
                 chargeTimer = 0f;
-
                 debugWeaponActive = true;
-
-                debugDecision =
-                    "Charging";
-
+                debugDecision = "Charging";
                 return;
             }
 
-            chargeTimer +=
-                Time.fixedDeltaTime;
-
-            debugChargeTimer =
-                chargeTimer;
-
-            if (chargeTimer <
-                weapon.ChargeDuration)
+            chargeTimer += Time.fixedDeltaTime;
+            debugChargeTimer = chargeTimer;
+            if (chargeTimer < weapon.ChargeDuration)
             {
-                debugDecision =
-                    "Charging";
-
+                debugDecision = "Charging";
                 return;
             }
 
-            bool fired =
-                equipment.EndSelectedActivation();
-
+            bool fired = equipment.EndSelectedActivation();
             weaponActive = false;
             chargeTimer = 0f;
-
-            cooldownTimer =
-                runtimePressWeaponCooldown;
-
+            cooldownTimer = runtimePressWeaponCooldown;
             debugWeaponActive = false;
             debugChargeTimer = 0f;
-
-            debugAmmo =
-                equipment.SelectedWeaponAmmo;
-
-            debugDecision =
-                fired
-                    ? "Charged Shot Fired"
-                    : "Charged Shot Failed";
-
+            debugAmmo = equipment.SelectedWeaponAmmo;
+            debugDecision = fired ? "Charged Shot Fired" : "Charged Shot Failed";
             if (equipment.SelectedWeaponIsEmpty)
             {
                 ForceDecisionRefresh();
@@ -1962,45 +1013,33 @@ namespace RaceFatal.Presentation.Vehicles
 
         private bool CanConsiderCombat()
         {
-            if (participant == null ||
-                participant.Vehicle == null)
+            if (participant == null || participant.Vehicle == null)
             {
-                debugDecision =
-                    "No Participant";
-
+                debugDecision = "No Participant";
                 return false;
             }
 
-            if (participant.Status !=
-                RaceParticipantStatus.Racing)
+            if (participant.Status != RaceParticipantStatus.Racing)
             {
-                debugDecision =
-                    "Not Racing";
-
+                debugDecision = "Not Racing";
                 return false;
             }
 
             if (participant.Vehicle.IsDestroyed)
             {
-                debugDecision =
-                    "Destroyed";
-
+                debugDecision = "Destroyed";
                 return false;
             }
 
             if (!equipment.HasWeapon)
             {
-                debugDecision =
-                    "No Weapon";
-
+                debugDecision = "No Weapon";
                 return false;
             }
 
             if (!equipment.HasUsableWeapon)
             {
-                debugDecision =
-                    "Out Of Ammo";
-
+                debugDecision = "Out Of Ammo";
                 return false;
             }
 
@@ -2016,20 +1055,16 @@ namespace RaceFatal.Presentation.Vehicles
         private void CancelWeapon()
         {
             guidedLockState?.ClearTarget();
-
-            if (!weaponActive ||
-                equipment == null)
+            if (!weaponActive || equipment == null)
             {
                 debugWeaponActive = false;
                 return;
             }
 
             equipment.EndSelectedActivation();
-
             weaponActive = false;
             burstTimer = 0f;
             chargeTimer = 0f;
-
             debugWeaponActive = false;
             debugBurstTimer = 0f;
             debugChargeTimer = 0f;
@@ -2037,65 +1072,39 @@ namespace RaceFatal.Presentation.Vehicles
 
         public void Dispose()
         {
-            ActiveCombatPlanners.Remove(
-                this);
-
+            ActiveCombatPlanners.Remove(this);
             CancelWeapon();
-
             guidedLockState?.ClearTarget();
-
             participant = null;
             equipment = null;
             sensor = null;
             racerView = null;
-
             currentTarget = null;
             currentEquipmentId = null;
-
             initialized = false;
             debugInitialized = false;
-
             raceRuntime = null;
-
             cachedRaceOrder = null;
             cachedSelfPosition = 0;
         }
 
         private void RefreshRacePositionCache()
         {
-            cachedRaceOrder =
-                raceRuntime?
-                    .Director?
-                    .State?
-                    .GetCurrentOrder();
-
-            cachedSelfPosition =
-                GetCachedRacePosition(
-                    participant?.RacerId);
+            cachedRaceOrder = raceRuntime?.Director?.State?.GetCurrentOrder();
+            cachedSelfPosition = GetCachedRacePosition(participant?.RacerId);
         }
 
-        private int GetCachedRacePosition(
-            string racerId)
+        private int GetCachedRacePosition(string racerId)
         {
-            if (cachedRaceOrder == null ||
-                string.IsNullOrWhiteSpace(
-                    racerId))
+            if (cachedRaceOrder == null || string.IsNullOrWhiteSpace(racerId))
             {
                 return 0;
             }
 
-            for (int i = 0;
-                 i < cachedRaceOrder.Count;
-                 i++)
+            for (int i = 0; i < cachedRaceOrder.Count; i++)
             {
-                RaceParticipant racer =
-                    cachedRaceOrder[i];
-
-                if (racer != null &&
-                    string.Equals(
-                        racer.RacerId,
-                        racerId,
-                        StringComparison.Ordinal))
+                RaceParticipant racer = cachedRaceOrder[i];
+                if (racer != null && string.Equals(racer.RacerId, racerId, StringComparison.Ordinal))
                 {
                     return i + 1;
                 }
@@ -2104,116 +1113,61 @@ namespace RaceFatal.Presentation.Vehicles
             return 0;
         }
 
-        private float CalculateRacePositionFactor(
-            RacerViewController target,
-            out int positionGap)
+        private float CalculateRacePositionFactor(RacerViewController target, out int positionGap)
         {
             positionGap = 0;
-
-            if (target?.Participant == null ||
-                cachedSelfPosition <= 0)
+            if (target?.Participant == null || cachedSelfPosition <= 0)
             {
                 return 1f;
             }
 
-            int targetPosition =
-                GetCachedRacePosition(
-                    target.Participant.RacerId);
-
+            int targetPosition = GetCachedRacePosition(target.Participant.RacerId);
             if (targetPosition <= 0)
                 return 1f;
-
-            positionGap =
-                Mathf.Abs(
-                    targetPosition -
-                    cachedSelfPosition);
-
+            positionGap = Mathf.Abs(targetPosition - cachedSelfPosition);
             if (positionGap <= 0)
                 return 1f;
-
-            float proximity =
-                1f -
-                Mathf.InverseLerp(
-                    1f,
-                    Mathf.Max(
-                        2,
-                        maximumRelevantPositionGap),
-                    positionGap);
-
-            float factor =
-                Mathf.Lerp(
-                    distantRivalScoreMultiplier,
-                    1f,
-                    proximity);
-
-            if (targetPosition <
-                cachedSelfPosition)
+            float proximity = 1f - Mathf.InverseLerp(1f, Mathf.Max(2, maximumRelevantPositionGap), positionGap);
+            float factor = Mathf.Lerp(distantRivalScoreMultiplier, 1f, proximity);
+            if (targetPosition < cachedSelfPosition)
             {
-                factor *=
-                    aheadRivalMultiplier;
+                factor *= aheadRivalMultiplier;
             }
             else
             {
-                factor *=
-                    behindRivalMultiplier;
+                factor *= behindRivalMultiplier;
             }
 
-            return Mathf.Clamp(
-                factor,
-                0.1f,
-                2f);
+            return Mathf.Clamp(factor, 0.1f, 2f);
         }
 
         private void PruneCombatPlannerRegistry()
         {
-            for (int i =
-                     ActiveCombatPlanners.Count - 1;
-                 i >= 0;
-                 i--)
+            for (int i = ActiveCombatPlanners.Count - 1; i >= 0; i--)
             {
-                AICombatPlanner planner =
-                    ActiveCombatPlanners[i];
-
-                if (planner == null ||
-                    !planner.initialized ||
-                    planner.participant == null)
+                AICombatPlanner planner = ActiveCombatPlanners[i];
+                if (planner == null || !planner.initialized || planner.participant == null)
                 {
-                    ActiveCombatPlanners.RemoveAt(
-                        i);
+                    ActiveCombatPlanners.RemoveAt(i);
                 }
             }
         }
 
-        private int CountOtherAttackersTargeting(
-            RacerViewController target)
+        private int CountOtherAttackersTargeting(RacerViewController target)
         {
             if (target == null)
                 return 0;
-
             PruneCombatPlannerRegistry();
-
             int count = 0;
-
-            for (int i = 0;
-                 i <
-                    ActiveCombatPlanners.Count;
-                 i++)
+            for (int i = 0; i < ActiveCombatPlanners.Count; i++)
             {
-                AICombatPlanner planner =
-                    ActiveCombatPlanners[i];
-
-                if (planner == null ||
-                    planner == this ||
-                    !planner.initialized ||
-                    planner.participant == null ||
-                    planner.participant.Status !=
-                        RaceParticipantStatus.Racing)
+                AICombatPlanner planner = ActiveCombatPlanners[i];
+                if (planner == null || planner == this || !planner.initialized || planner.participant == null || planner.participant.Status != RaceParticipantStatus.Racing)
                 {
                     continue;
                 }
 
-                if (planner.currentTarget ==
-                    target)
+                if (planner.currentTarget == target)
                 {
                     count++;
                 }
@@ -2222,37 +1176,28 @@ namespace RaceFatal.Presentation.Vehicles
             return count;
         }
 
-        private float CalculateTargetSaturationFactor(
-            RacerViewController target,
-            int existingAttackers)
+        private float CalculateTargetSaturationFactor(RacerViewController target, int existingAttackers)
         {
             if (target?.Participant == null)
                 return 1f;
-
-            if (!applyTargetSaturationToPlayer &&
-                target.Participant.Role ==
-                    RaceParticipantRole.Player)
+            if (!applyTargetSaturationToPlayer && target.Participant.Role == RaceParticipantRole.Player)
             {
                 return 1f;
             }
 
             if (existingAttackers <= 0)
                 return 1f;
-
             if (existingAttackers == 1)
             {
-                return
-                    oneExistingAttackerMultiplier;
+                return oneExistingAttackerMultiplier;
             }
 
             if (existingAttackers == 2)
             {
-                return
-                    twoExistingAttackersMultiplier;
+                return twoExistingAttackersMultiplier;
             }
 
-            return
-                threePlusExistingAttackersMultiplier;
+            return threePlusExistingAttackersMultiplier;
         }
     }
 }

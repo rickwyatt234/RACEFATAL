@@ -4,7 +4,12 @@ using System.Linq;
 
 namespace RaceFatal.Career
 {
-    public enum CareerEventKind { Race, Championship, Deathmatch }
+    public enum CareerEventKind
+    {
+        Race,
+        Championship,
+        Deathmatch
+    }
 
     public sealed class CareerEventDefinition
     {
@@ -20,13 +25,16 @@ namespace RaceFatal.Career
         public IReadOnlyList<int> PositionPoints { get; }
         public bool Supported => Kind == CareerEventKind.Race || Kind == CareerEventKind.Championship || Kind == CareerEventKind.Deathmatch;
 
-        public CareerEventDefinition(string id, string name, string description, CareerEventKind kind,
-            int fame, int fee, IEnumerable<string> raceIds, IEnumerable<int> payouts,
-            IEnumerable<int> prizes, IEnumerable<int> points)
+        public CareerEventDefinition(string id, string name, string description, CareerEventKind kind, int fame, int fee, IEnumerable<string> raceIds, IEnumerable<int> payouts, IEnumerable<int> prizes, IEnumerable<int> points)
         {
-            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Event ID is required.");
-            Id = id; DisplayName = string.IsNullOrWhiteSpace(name) ? id : name; Description = description ?? "";
-            Kind = kind; RequiredFame = fame; EntryFee = fee;
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("Event ID is required.");
+            Id = id;
+            DisplayName = string.IsNullOrWhiteSpace(name) ? id : name;
+            Description = description ?? "";
+            Kind = kind;
+            RequiredFame = fame;
+            EntryFee = fee;
             RaceIds = Array.AsReadOnly((raceIds ?? Array.Empty<string>()).ToArray());
             RacePayouts = Array.AsReadOnly((payouts ?? Array.Empty<int>()).ToArray());
             ChampionshipPrizes = Array.AsReadOnly((prizes ?? Array.Empty<int>()).ToArray());

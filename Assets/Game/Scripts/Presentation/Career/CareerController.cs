@@ -9,20 +9,16 @@ using UnityEngine.UI;
 
 namespace RaceFatal.Presentation.Career
 {
-    public class CareerController :
-        MonoBehaviour
+    public class CareerController : MonoBehaviour
     {
-        [Header("Screens")]
-        [SerializeField] private GameObject homeRoot;
+        [Header("Screens")] [SerializeField] private GameObject homeRoot;
         [SerializeField] private GameObject racesRoot;
         [SerializeField] private GameObject garageRoot;
         [SerializeField] private GameObject researchRoot;
         [SerializeField] private GameObject shopRoot;
         [SerializeField] private GameObject rosterRoot;
         [SerializeField] private GameObject teamRoot;
-
-        [Header("Navigation")]
-        [SerializeField] private Button homeButton;
+        [Header("Navigation")] [SerializeField] private Button homeButton;
         [SerializeField] private Button racesButton;
         [SerializeField] private Button garageButton;
         [SerializeField] private Button researchButton;
@@ -30,36 +26,20 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button rosterButton;
         [SerializeField] private Button teamButton;
         [SerializeField] private Button saveAndReturnButton;
-
-        [Header("Views")]
-        [SerializeField] private CareerHomeView homeView;
+        [Header("Views")] [SerializeField] private CareerHomeView homeView;
         [SerializeField] private CareerRacesView racesView;
         [SerializeField] private CareerGarageView garageView;
         [SerializeField] private CareerShopView shopView;
         [SerializeField] private CareerResearchView researchView;
         [SerializeField] private CareerRosterView rosterView;
         [SerializeField] private CareerTeamView teamView;
-
-        [Header("Feedback")]
-        [SerializeField] private TMP_Text errorText;
-
-        [Header("Scenes")]
-        [SerializeField]
-        private string mainMenuSceneName =
-            "03_MainMenu";
-
-        [SerializeField] private string raceSceneName =
-            "02_Race";
-
+        [Header("Feedback")] [SerializeField] private TMP_Text errorText;
+        [Header("Scenes")] [SerializeField] private string mainMenuSceneName = "03_MainMenu";
+        [SerializeField] private string raceSceneName = "02_Race";
         private GameContext context;
         private bool raceLaunchInProgress;
-
         public string LastError { get; private set; }
-
-        public CareerScreen CurrentScreen {
-            get;
-            private set;
-        }
+        public CareerScreen CurrentScreen { get; private set; }
 
         private void Awake()
         {
@@ -68,23 +48,16 @@ namespace RaceFatal.Presentation.Career
 
         private void Start()
         {
-            context =
-                BootstrapController.Context;
-
+            context = BootstrapController.Context;
             if (context == null)
             {
-                ShowError(
-                    "GameContext is unavailable. Start the game from 00_Bootstrap.");
-
+                ShowError("GameContext is unavailable. Start the game from 00_Bootstrap.");
                 return;
             }
 
-            if (!context.Sessions.HasSession ||
-                context.Sessions.Current == null)
+            if (!context.Sessions.HasSession || context.Sessions.Current == null)
             {
-                ShowError(
-                    "No campaign session is loaded.");
-
+                ShowError("No campaign session is loaded.");
                 return;
             }
 
@@ -94,9 +67,7 @@ namespace RaceFatal.Presentation.Career
             researchView?.Initialize(this, context);
             rosterView?.Initialize(this, context);
             teamView?.Initialize(this, context);
-
-            ShowScreen(
-                CareerScreen.Home);
+            ShowScreen(CareerScreen.Home);
             if (homeRoot != null)
             {
                 CareerPreparationView.Create(this, context, racesView, homeRoot.transform.parent, racesRoot, rosterRoot, garageRoot);
@@ -106,26 +77,22 @@ namespace RaceFatal.Presentation.Career
 
         public void ShowHome()
         {
-            ShowScreen(
-                CareerScreen.Home);
+            ShowScreen(CareerScreen.Home);
         }
 
         public void ShowRaces()
         {
-            ShowScreen(
-                CareerScreen.Races);
+            ShowScreen(CareerScreen.Races);
         }
 
         public void ShowGarage()
         {
-            ShowScreen(
-                CareerScreen.Garage);
+            ShowScreen(CareerScreen.Garage);
         }
 
         public void ShowResearch()
         {
-            ShowScreen(
-                CareerScreen.Research);
+            ShowScreen(CareerScreen.Research);
         }
 
         public void ShowTechnology(string technologyId)
@@ -136,58 +103,30 @@ namespace RaceFatal.Presentation.Career
 
         public void ShowShop()
         {
-            ShowScreen(
-                CareerScreen.Shop);
+            ShowScreen(CareerScreen.Shop);
         }
 
         public void ShowRoster()
         {
-            ShowScreen(
-                CareerScreen.Roster);
+            ShowScreen(CareerScreen.Roster);
         }
 
         public void ShowTeam()
         {
-            ShowScreen(
-                CareerScreen.Team);
+            ShowScreen(CareerScreen.Team);
         }
 
-        public void ShowScreen(
-            CareerScreen screen)
+        public void ShowScreen(CareerScreen screen)
         {
-            CurrentScreen =
-                screen;
-
-            SetActive(
-                homeRoot,
-                screen == CareerScreen.Home);
-
-            SetActive(
-                racesRoot,
-                screen == CareerScreen.Races);
-
-            SetActive(
-                garageRoot,
-                screen == CareerScreen.Garage);
-
-            SetActive(
-                researchRoot,
-                screen == CareerScreen.Research);
-
-            SetActive(
-                shopRoot,
-                screen == CareerScreen.Shop);
-
-            SetActive(
-                rosterRoot,
-                screen == CareerScreen.Roster);
-
-            SetActive(
-                teamRoot,
-                screen == CareerScreen.Team);
-
+            CurrentScreen = screen;
+            SetActive(homeRoot, screen == CareerScreen.Home);
+            SetActive(racesRoot, screen == CareerScreen.Races);
+            SetActive(garageRoot, screen == CareerScreen.Garage);
+            SetActive(researchRoot, screen == CareerScreen.Research);
+            SetActive(shopRoot, screen == CareerScreen.Shop);
+            SetActive(rosterRoot, screen == CareerScreen.Roster);
+            SetActive(teamRoot, screen == CareerScreen.Team);
             ClearError();
-
             if (screen == CareerScreen.Home)
             {
                 RefreshHome();
@@ -222,12 +161,7 @@ namespace RaceFatal.Presentation.Career
         {
             if (raceLaunchInProgress)
                 return;
-
-            if (context == null ||
-                context.RacePreparation == null ||
-                context.RaceLaunch == null ||
-                context.Saves == null ||
-                !context.Saves.HasActiveCampaign)
+            if (context == null || context.RacePreparation == null || context.RaceLaunch == null || context.Saves == null || !context.Saves.HasActiveCampaign)
             {
                 ShowError("A saved campaign is required to launch a race.");
                 return;
@@ -241,9 +175,18 @@ namespace RaceFatal.Presentation.Career
 
             var calendar = new RaceFatal.Career.CareerCalendarService(context.Database);
             var allowed = calendar.CanEnter(context.Sessions.Current.PlayerTeam, eventId);
-            if (!allowed.IsSuccess) { ShowError(allowed.ErrorMessage); return; }
+            if (!allowed.IsSuccess)
+            {
+                ShowError(allowed.ErrorMessage);
+                return;
+            }
+
             string raceId = calendar.NextRaceId(context.Sessions.Current.PlayerTeam, eventId);
-            if (string.IsNullOrEmpty(raceId)) { ShowError("The event has no playable round."); return; }
+            if (string.IsNullOrEmpty(raceId))
+            {
+                ShowError("The event has no playable round.");
+                return;
+            }
 
             if (context.RaceLaunch.HasPendingRace)
             {
@@ -251,41 +194,28 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            RaceDefinition selectedRace =
-                context.Database?.GetRaceDefinition(raceId);
-
-            var trackContent =
-                selectedRace != null
-                    ? BootstrapController.ContentCatalog?.FindTrackContent(
-                        selectedRace.TrackId)
-                    : null;
-
-            if (trackContent == null ||
-                trackContent.TrackPrefab == null)
+            RaceDefinition selectedRace = context.Database?.GetRaceDefinition(raceId);
+            var trackContent = selectedRace != null ? BootstrapController.ContentCatalog?.FindTrackContent(selectedRace.TrackId) : null;
+            if (trackContent == null || trackContent.TrackPrefab == null)
             {
                 ShowError("The selected race has no configured track prefab.");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(raceSceneName) ||
-                !Application.CanStreamedLevelBeLoaded(raceSceneName))
+            if (string.IsNullOrWhiteSpace(raceSceneName) || !Application.CanStreamedLevelBeLoaded(raceSceneName))
             {
-                ShowError(
-                    $"Race scene '{raceSceneName}' is not in Build Settings.");
+                ShowError($"Race scene '{raceSceneName}' is not in Build Settings.");
                 return;
             }
 
             Result<RaceDirector> prepared;
-
             try
             {
-                prepared = context.RacePreparation.PrepareSelectedRace(
-                    raceId);
+                prepared = context.RacePreparation.PrepareSelectedRace(raceId);
             }
             catch (System.Exception exception)
             {
-                ShowError(
-                    "Race preparation failed: " + exception.Message);
+                ShowError("Race preparation failed: " + exception.Message);
                 return;
             }
 
@@ -296,25 +226,23 @@ namespace RaceFatal.Presentation.Career
             }
 
             var registration = calendar.Register(context.Sessions.Current, eventId, prepared.Value);
-            if (!registration.IsSuccess) { ShowError(registration.ErrorMessage); return; }
-            // Persist the paid entry and stable race identity before entering the scene.
-            Result saveResult =
-                context.Saves.SaveCurrentCampaign();
+            if (!registration.IsSuccess)
+            {
+                ShowError(registration.ErrorMessage);
+                return;
+            }
 
+            Result saveResult = context.Saves.SaveCurrentCampaign();
             if (!saveResult.IsSuccess)
             {
                 registration.Value.Rollback();
-                ShowError(
-                    "Campaign could not be saved before racing: " +
-                    saveResult.ErrorMessage);
+                ShowError("Campaign could not be saved before racing: " + saveResult.ErrorMessage);
                 return;
             }
 
             raceLaunchInProgress = true;
             racesView?.SetBusy(true);
-
             context.RaceLaunch.SetPendingRace(prepared.Value);
-
             try
             {
                 SceneManager.LoadScene(raceSceneName);
@@ -324,89 +252,62 @@ namespace RaceFatal.Presentation.Career
                 context.RaceLaunch.Clear();
                 raceLaunchInProgress = false;
                 racesView?.SetBusy(false);
-                ShowError("Failed to load race scene: " +
-                    exception.Message + " Your paid entry is saved; retry without another fee.");
+                ShowError("Failed to load race scene: " + exception.Message + " Your paid entry is saved; retry without another fee.");
             }
         }
 
         public void SaveAndReturnToMainMenu()
         {
-            if (context == null ||
-                context.Saves == null)
+            if (context == null || context.Saves == null)
             {
-                ShowError(
-                    "Campaign save service is unavailable.");
-
+                ShowError("Campaign save service is unavailable.");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(
-                    mainMenuSceneName) ||
-                !Application.CanStreamedLevelBeLoaded(
-                    mainMenuSceneName))
+            if (string.IsNullOrWhiteSpace(mainMenuSceneName) || !Application.CanStreamedLevelBeLoaded(mainMenuSceneName))
             {
-                ShowError(
-                    $"Main-menu scene '{mainMenuSceneName}' cannot be loaded.");
-
+                ShowError($"Main-menu scene '{mainMenuSceneName}' cannot be loaded.");
                 return;
             }
 
-            Result saveResult =
-                context.Saves.SaveCurrentCampaign();
-
+            Result saveResult = context.Saves.SaveCurrentCampaign();
             if (!saveResult.IsSuccess)
             {
-                ShowError(
-                    saveResult.ErrorMessage);
-
+                ShowError(saveResult.ErrorMessage);
                 return;
             }
 
-            Result closeResult =
-                context.Saves.CloseCurrentCampaign(
-                    false);
-
+            Result closeResult = context.Saves.CloseCurrentCampaign(false);
             if (!closeResult.IsSuccess)
             {
-                ShowError(
-                    closeResult.ErrorMessage);
-
+                ShowError(closeResult.ErrorMessage);
                 return;
             }
 
-            SceneManager.LoadScene(
-                mainMenuSceneName);
+            SceneManager.LoadScene(mainMenuSceneName);
         }
 
         public void RefreshHome()
         {
-            if (context == null ||
-                context.Sessions.Current == null)
+            if (context == null || context.Sessions.Current == null)
             {
                 return;
             }
 
-            homeView?.Bind(
-                context.Sessions.Current,
-                context.Database);
+            homeView?.Bind(context.Sessions.Current, context.Database);
         }
 
-        private void ShowError(
-            string message)
+        private void ShowError(string message)
         {
             LastError = message;
             if (errorText != null)
             {
-                errorText.text =
-                    message ?? string.Empty;
+                errorText.text = message ?? string.Empty;
             }
 
             if (CurrentScreen == CareerScreen.Races)
                 racesView?.SetFeedback(message);
-
-            Debug.LogError(
-                $"[Career] {message}",
-                this);
+            Debug.LogError($"[Career] {message}", this);
         }
 
         private void ClearError()
@@ -414,69 +315,36 @@ namespace RaceFatal.Presentation.Career
             LastError = null;
             if (errorText != null)
             {
-                errorText.text =
-                    string.Empty;
+                errorText.text = string.Empty;
             }
         }
 
-        private void SetActive(
-            GameObject root,
-            bool active)
+        private void SetActive(GameObject root, bool active)
         {
             if (root != null)
             {
-                root.SetActive(
-                    active);
+                root.SetActive(active);
             }
         }
 
         private void BindButtons()
         {
-            Bind(
-                homeButton,
-                ShowHome);
-
-            Bind(
-                racesButton,
-                ShowRaces);
-
-            Bind(
-                garageButton,
-                ShowGarage);
-
-            Bind(
-                researchButton,
-                ShowResearch);
-
-            Bind(
-                shopButton,
-                ShowShop);
-
-            Bind(
-                rosterButton,
-                ShowRoster);
-
-            Bind(
-                teamButton,
-                ShowTeam);
-
-            Bind(
-                saveAndReturnButton,
-                SaveAndReturnToMainMenu);
+            Bind(homeButton, ShowHome);
+            Bind(racesButton, ShowRaces);
+            Bind(garageButton, ShowGarage);
+            Bind(researchButton, ShowResearch);
+            Bind(shopButton, ShowShop);
+            Bind(rosterButton, ShowRoster);
+            Bind(teamButton, ShowTeam);
+            Bind(saveAndReturnButton, SaveAndReturnToMainMenu);
         }
 
-        private void Bind(
-            Button button,
-            UnityEngine.Events.UnityAction action)
+        private void Bind(Button button, UnityEngine.Events.UnityAction action)
         {
             if (button == null)
                 return;
-
-            button.onClick.RemoveListener(
-                action);
-
-            button.onClick.AddListener(
-                action);
+            button.onClick.RemoveListener(action);
+            button.onClick.AddListener(action);
         }
     }
 }

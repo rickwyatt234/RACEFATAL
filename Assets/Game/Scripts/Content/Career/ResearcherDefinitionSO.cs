@@ -1,5 +1,6 @@
 using RaceFatal.Career;
 using UnityEngine;
+
 namespace RaceFatal.Content.Career
 {
     [CreateAssetMenu(menuName = "RaceFatal/Career/Researcher Contract")]

@@ -4,38 +4,23 @@ namespace RaceFatal.Combat
     {
         public string AttackerRacerId { get; }
         public string VictimRacerId { get; }
-
         public float IncomingDamage { get; }
         public float ShieldAbsorbed { get; }
         public float BikeDamage { get; }
-
         public DamageCause Cause { get; }
         public DamageImpactSide ImpactSide { get; }
-
         public bool ShieldDepleted { get; }
         public bool CausedDestruction { get; }
 
-        public DamageEvent(
-            string attackerRacerId,
-            string victimRacerId,
-            float incomingDamage,
-            float shieldAbsorbed,
-            float bikeDamage,
-            DamageCause cause,
-            DamageImpactSide impactSide,
-            bool shieldDepleted,
-            bool causedDestruction)
+        public DamageEvent(string attackerRacerId, string victimRacerId, float incomingDamage, float shieldAbsorbed, float bikeDamage, DamageCause cause, DamageImpactSide impactSide, bool shieldDepleted, bool causedDestruction)
         {
             AttackerRacerId = attackerRacerId;
             VictimRacerId = victimRacerId;
-
             IncomingDamage = incomingDamage;
             ShieldAbsorbed = shieldAbsorbed;
             BikeDamage = bikeDamage;
-
             Cause = cause;
             ImpactSide = impactSide;
-
             ShieldDepleted = shieldDepleted;
             CausedDestruction = causedDestruction;
         }

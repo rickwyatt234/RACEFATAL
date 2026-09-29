@@ -6,7 +6,6 @@ using RaceFatal.Content.Career;
 using UnityEditor;
 using UnityEngine;
 
-// Authoring only: existing campaign saves are never edited.
 [CustomEditor(typeof(GameContentCatalogSO))]
 public sealed class GameContentCatalogEditor : Editor
 {
@@ -21,43 +20,41 @@ public sealed class GameContentCatalogEditor : Editor
     private Vector2 scroll;
     private string importMessage;
     private MessageType importMessageType;
-
     private sealed class Plan
     {
         public OpponentTeamDefinitionSO[] Teams;
         public List<RacerDefinitionSO>[] Rosters;
         public int Available;
         public int Assigned;
-        public string Signature => string.Join("|", Teams.Select((t, i) =>
-            t.GetInstanceID() + ":" + string.Join(",", Rosters[i].Select(r => r.GetInstanceID()))));
+        public string Signature => string.Join("|", Teams.Select((t, i) => t.GetInstanceID() + ":" + string.Join(",", Rosters[i].Select(r => r.GetInstanceID()))));
     }
 
     public override void OnInspectorGUI()
     {
-        if (DrawDefaultInspector()) preview = null;
+        if (DrawDefaultInspector())
+            preview = null;
         EditorGUILayout.Space();
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
-            if (GUILayout.Button("Add All Racer Definitions")) AddAllRacerDefinitions();
+            if (GUILayout.Button("Add All Racer Definitions"))
+                AddAllRacerDefinitions();
         }
+
         if (!string.IsNullOrEmpty(importMessage))
             EditorGUILayout.HelpBox(importMessage, importMessageType);
         EditorGUILayout.Space();
         showRandomizer = EditorGUILayout.Foldout(showRandomizer, "Randomize Opponent Team Rosters", true);
-        if (!showRandomizer) return;
-
-        EditorGUILayout.HelpBox("Replaces racer lists on all opponent teams in this catalog. " +
-            "Assignments are unique and distributed evenly. Team philosophies, builds and racer personalities stay as authored. " +
-            "Changes affect new campaigns, not existing saves.", MessageType.Info);
+        if (!showRandomizer)
+            return;
+        EditorGUILayout.HelpBox("Replaces racer lists on all opponent teams in this catalog. " + "Assignments are unique and distributed evenly. Team philosophies, builds and racer personalities stay as authored. " + "Changes affect new campaigns, not existing saves.", MessageType.Info);
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             EditorGUI.BeginChangeCheck();
             includeProjectRacers = EditorGUILayout.Toggle("Use all project racers", includeProjectRacers);
-            EditorGUILayout.LabelField(includeProjectRacers
-                ? "Assigned project racers will also be registered in this catalog."
-                : "Only racers already registered in this catalog are eligible.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField(includeProjectRacers ? "Assigned project racers will also be registered in this catalog." : "Only racers already registered in this catalog are eligible.", EditorStyles.wordWrappedLabel);
             distributeAll = EditorGUILayout.Toggle("Distribute all eligible racers", distributeAll);
-            if (!distributeAll) racersPerTeam = Mathf.Max(1, EditorGUILayout.IntField("Racers per team", racersPerTeam));
+            if (!distributeAll)
+                racersPerTeam = Mathf.Max(1, EditorGUILayout.IntField("Racers per team", racersPerTeam));
             seed = EditorGUILayout.IntField("Shuffle seed", seed);
             EditorGUILayout.LabelField("Starting partners are automatically excluded.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.LabelField("Additional exclusions", EditorStyles.boldLabel);
@@ -65,23 +62,37 @@ public sealed class GameContentCatalogEditor : Editor
             {
                 EditorGUILayout.BeginHorizontal();
                 excluded[i] = (RacerDefinitionSO)EditorGUILayout.ObjectField(excluded[i], typeof(RacerDefinitionSO), false);
-                if (GUILayout.Button("Remove", GUILayout.Width(65))) { excluded.RemoveAt(i); i--; }
+                if (GUILayout.Button("Remove", GUILayout.Width(65)))
+                {
+                    excluded.RemoveAt(i);
+                    i--;
+                }
+
                 EditorGUILayout.EndHorizontal();
             }
-            if (GUILayout.Button("Add exclusion")) excluded.Add(null);
-            if (EditorGUI.EndChangeCheck()) { preview = null; error = null; }
+
+            if (GUILayout.Button("Add exclusion"))
+                excluded.Add(null);
+            if (EditorGUI.EndChangeCheck())
+            {
+                preview = null;
+                error = null;
+            }
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Preview assignments")) GeneratePreview();
+            if (GUILayout.Button("Preview assignments"))
+                GeneratePreview();
             if (GUILayout.Button("New shuffle"))
             {
                 seed = Guid.NewGuid().GetHashCode();
                 GeneratePreview();
             }
-            EditorGUILayout.EndHorizontal();
-            if (!string.IsNullOrEmpty(error)) EditorGUILayout.HelpBox(error, MessageType.Error);
-            if (preview == null) return;
 
+            EditorGUILayout.EndHorizontal();
+            if (!string.IsNullOrEmpty(error))
+                EditorGUILayout.HelpBox(error, MessageType.Error);
+            if (preview == null)
+                return;
             EditorGUILayout.LabelField($"{preview.Assigned} assigned / {preview.Available} eligible / {preview.Teams.Length} teams");
             if (preview.Assigned < preview.Available)
                 EditorGUILayout.HelpBox("Remaining racers are unassigned. Applying replaces the previous rosters.", MessageType.Info);
@@ -93,8 +104,10 @@ public sealed class GameContentCatalogEditor : Editor
                 foreach (var racer in preview.Rosters[i])
                     EditorGUILayout.LabelField("    " + racer.CreateDefinition().DisplayName + "  [" + racer.Id + "]");
             }
+
             EditorGUILayout.EndScrollView();
-            if (GUILayout.Button("Apply preview to team assets (Undo supported)")) ApplyPreview();
+            if (GUILayout.Button("Apply preview to team assets (Undo supported)"))
+                ApplyPreview();
         }
     }
 
@@ -105,13 +118,8 @@ public sealed class GameContentCatalogEditor : Editor
             var catalog = (GameContentCatalogSO)target;
             if (!AssetDatabase.IsOpenForEdit(catalog))
                 throw new InvalidOperationException("The catalog asset is not editable.");
-
             var existing = new HashSet<RacerDefinitionSO>(catalog.RacerDefinitions.Where(r => r != null));
-            var additions = FindAssets<RacerDefinitionSO>()
-                .Where(r => !existing.Contains(r)).Distinct()
-                .OrderBy(r => AssetDatabase.GetAssetPath(r), StringComparer.Ordinal).ToArray();
-
-            // Validate before any mutation: two assets with the same ID would collide in GameDatabase.
+            var additions = FindAssets<RacerDefinitionSO>().Where(r => !existing.Contains(r)).Distinct().OrderBy(r => AssetDatabase.GetAssetPath(r), StringComparer.Ordinal).ToArray();
             var ids = new Dictionary<string, RacerDefinitionSO>(StringComparer.Ordinal);
             foreach (var racer in existing.Concat(additions))
             {
@@ -140,6 +148,7 @@ public sealed class GameContentCatalogEditor : Editor
                 int index = registry.arraySize++;
                 registry.GetArrayElementAtIndex(index).objectReferenceValue = racer;
             }
+
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(catalog);
             Undo.CollapseUndoOperations(group);
@@ -156,33 +165,37 @@ public sealed class GameContentCatalogEditor : Editor
 
     private void GeneratePreview()
     {
-        try { preview = BuildPlan(); error = null; }
-        catch (Exception e) { preview = null; error = e.Message; }
+        try
+        {
+            preview = BuildPlan();
+            error = null;
+        }
+        catch (Exception e)
+        {
+            preview = null;
+            error = e.Message;
+        }
     }
 
     private Plan BuildPlan()
     {
         var catalog = (GameContentCatalogSO)target;
-        var teams = catalog.OpponentTeamDefinitions.Where(t => t != null).Distinct()
-            .OrderBy(t => AssetDatabase.GetAssetPath(t), StringComparer.Ordinal).ToArray();
-        if (teams.Length == 0) throw new InvalidOperationException("Add opponent teams to this catalog first.");
+        var teams = catalog.OpponentTeamDefinitions.Where(t => t != null).Distinct().OrderBy(t => AssetDatabase.GetAssetPath(t), StringComparer.Ordinal).ToArray();
+        if (teams.Length == 0)
+            throw new InvalidOperationException("Add opponent teams to this catalog first.");
         ValidateIds(teams.Select(t => t.Id), "Opponent team");
         foreach (var team in teams)
             if (!AssetDatabase.IsOpenForEdit(team))
                 throw new InvalidOperationException($"Team asset '{team.name}' is not editable.");
         if (!AssetDatabase.IsOpenForEdit(catalog))
             throw new InvalidOperationException("The catalog asset is not editable.");
-
         var reservedIds = new HashSet<string>(excluded.Where(r => r != null).Select(r => r.Id));
         foreach (var defaults in FindAssets<NewCampaignDefaultsSO>())
-            if (defaults.Partner != null) reservedIds.Add(defaults.Partner.Id);
-
-        // Duplicate IDs are invalid even if represented by different asset files.
+            if (defaults.Partner != null)
+                reservedIds.Add(defaults.Partner.Id);
         var registered = catalog.RacerDefinitions.Where(r => r != null).Distinct().ToArray();
         ValidateIds(registered.Select(r => r.Id), "Catalog racer");
-        var pool = (includeProjectRacers ? FindAssets<RacerDefinitionSO>() : registered)
-            .Where(r => !reservedIds.Contains(r.Id)).Distinct()
-            .OrderBy(r => AssetDatabase.GetAssetPath(r), StringComparer.Ordinal).ToList();
+        var pool = (includeProjectRacers ? FindAssets<RacerDefinitionSO>() : registered).Where(r => !reservedIds.Contains(r.Id)).Distinct().OrderBy(r => AssetDatabase.GetAssetPath(r), StringComparer.Ordinal).ToList();
         ValidateIds(pool.Select(r => r.Id), "Eligible racer");
         foreach (var racer in pool)
             if (registered.Any(r => r.Id == racer.Id && r != racer))
@@ -192,18 +205,12 @@ public sealed class GameContentCatalogEditor : Editor
         long required = distributeAll ? pool.Count : (long)teams.Length * racersPerTeam;
         if (required > pool.Count)
             throw new InvalidOperationException($"Need {required} unique racers, but only {pool.Count} are eligible.");
-
         var random = new System.Random(seed);
         Shuffle(pool, random);
         var teamOrder = Enumerable.Range(0, teams.Length).ToList();
         Shuffle(teamOrder, random);
-        var plan = new Plan
-        {
-            Teams = teams,
-            Rosters = teams.Select(t => new List<RacerDefinitionSO>()).ToArray(),
-            Available = pool.Count,
-            Assigned = (int)required
-        };
+        var plan = new Plan {  Teams = teams,  Rosters =
+            teams.Select(t => new List<RacerDefinitionSO>()).ToArray(),  Available = pool.Count,  Assigned = (int)required };
         for (int i = 0; i < plan.Assigned; i++)
             plan.Rosters[teamOrder[i % teams.Length]].Add(pool[i]);
         return plan;
@@ -213,7 +220,6 @@ public sealed class GameContentCatalogEditor : Editor
     {
         try
         {
-            // Recheck source content and editability before writing a previously displayed preview.
             var fresh = BuildPlan();
             if (preview == null || fresh.Signature != preview.Signature)
                 throw new InvalidOperationException("Source content changed. Generate a new preview before applying.");
@@ -223,7 +229,8 @@ public sealed class GameContentCatalogEditor : Editor
             var catalog = (GameContentCatalogSO)target;
             try
             {
-                foreach (var team in fresh.Teams) Undo.RegisterCompleteObjectUndo(team, "Randomize Opponent Team Rosters");
+                foreach (var team in fresh.Teams)
+                    Undo.RegisterCompleteObjectUndo(team, "Randomize Opponent Team Rosters");
                 Undo.RegisterCompleteObjectUndo(catalog, "Register Assigned Racers");
                 for (int i = 0; i < fresh.Teams.Length; i++)
                 {
@@ -235,34 +242,43 @@ public sealed class GameContentCatalogEditor : Editor
                     data.ApplyModifiedPropertiesWithoutUndo();
                     EditorUtility.SetDirty(fresh.Teams[i]);
                 }
+
                 var catalogData = new SerializedObject(catalog);
                 var registry = catalogData.FindProperty("racerDefinitions");
                 var existing = new HashSet<RacerDefinitionSO>(catalog.RacerDefinitions);
                 foreach (var racer in fresh.Rosters.SelectMany(roster => roster))
                 {
-                    if (!existing.Add(racer)) continue;
+                    if (!existing.Add(racer))
+                        continue;
                     int index = registry.arraySize++;
                     registry.GetArrayElementAtIndex(index).objectReferenceValue = racer;
                 }
+
                 catalogData.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(catalog);
                 Undo.CollapseUndoOperations(group);
             }
-            catch { Undo.RevertAllDownToGroup(group); throw; }
-            // Leave dirty assets to Unity's normal Save Project workflow, including any subsequent Undo.
+            catch
+            {
+                Undo.RevertAllDownToGroup(group);
+                throw;
+            }
+
             serializedObject.Update();
             preview = null;
             error = null;
             Debug.Log($"Assigned {fresh.Assigned} racers to {fresh.Teams.Length} teams. Save Project to persist; Undo restores the previous rosters.", catalog);
         }
-        catch (Exception e) { error = e.Message; }
+        catch (Exception e)
+        {
+            error = e.Message;
+        }
     }
 
-    private static T[] FindAssets<T>() where T : UnityEngine.Object
+    private static T[] FindAssets<T>()
+        where T : UnityEngine.Object
     {
-        return AssetDatabase.FindAssets("t:" + typeof(T).Name, new[] { "Assets" })
-            .Select(guid => AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid)))
-            .Where(asset => asset != null).ToArray();
+        return AssetDatabase.FindAssets("t:" + typeof(T).Name, new[] { "Assets" }).Select(guid => AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid))).Where(asset => asset != null).ToArray();
     }
 
     private static void ValidateIds(IEnumerable<string> ids, string label)
@@ -278,7 +294,9 @@ public sealed class GameContentCatalogEditor : Editor
         for (int i = values.Count - 1; i > 0; i--)
         {
             int j = random.Next(i + 1);
-            T value = values[i]; values[i] = values[j]; values[j] = value;
+            T value = values[i];
+            values[i] = values[j];
+            values[j] = value;
         }
     }
 }

@@ -20,7 +20,8 @@ namespace RaceFatal.Combat
 
         internal float ApplyDamage(float amount)
         {
-            if (float.IsNaN(amount) || amount <= 0f || IsDestroyed) return 0f;
+            if (float.IsNaN(amount) || amount <= 0f || IsDestroyed)
+                return 0f;
             float previous = AccumulatedDamage;
             AccumulatedDamage = Math.Min(MaxIntegrity, AccumulatedDamage + amount);
             return AccumulatedDamage - previous;

@@ -10,89 +10,46 @@ namespace RaceFatal.Racing
     public sealed class RaceParticipantFactory
     {
         private readonly GameDatabase database;
-
-        private readonly BikePerformanceCalculator
-            performanceCalculator;
-
-        public RaceParticipantFactory(
-            GameDatabase database,
-            BikePerformanceCalculator performanceCalculator)
+        private readonly BikePerformanceCalculator performanceCalculator;
+        public RaceParticipantFactory(GameDatabase database, BikePerformanceCalculator performanceCalculator)
         {
             this.database = database;
-            this.performanceCalculator =
-                performanceCalculator;
+            this.performanceCalculator = performanceCalculator;
         }
 
-        public Result<RaceParticipant> Create(
-            RacerState racer,
-            BikeState bike,
-            RaceParticipantRole role)
+        public Result<RaceParticipant> Create(RacerState racer, BikeState bike, RaceParticipantRole role)
         {
             if (racer == null)
             {
-                return Result<RaceParticipant>.Failure(
-                    "Racer is required.");
+                return Result<RaceParticipant>.Failure("Racer is required.");
             }
 
             if (bike == null)
             {
-                return Result<RaceParticipant>.Failure(
-                    "Bike is required.");
+                return Result<RaceParticipant>.Failure("Bike is required.");
             }
 
             if (bike.IsDestroyed)
             {
-                return Result<RaceParticipant>.Failure(
-                    "Destroyed bikes cannot enter races.");
+                return Result<RaceParticipant>.Failure("Destroyed bikes cannot enter races.");
             }
 
-            BikeDefinition bikeDefinition =
-                database.GetBikeDefinition(
-                    bike.BikeDefinitionId);
-
+            BikeDefinition bikeDefinition = database.GetBikeDefinition(bike.BikeDefinitionId);
             if (bikeDefinition == null)
             {
-                return Result<RaceParticipant>.Failure(
-                    $"Bike definition '{bike.BikeDefinitionId}' was not found.");
+                return Result<RaceParticipant>.Failure($"Bike definition '{bike.BikeDefinitionId}' was not found.");
             }
 
-            Result<BikePerformance>
-                performanceResult =
-                    performanceCalculator.Calculate(
-                        bike);
-
-
+            Result<BikePerformance> performanceResult = performanceCalculator.Calculate(bike);
             if (!performanceResult.IsSuccess)
                 return Result<RaceParticipant>.Failure(performanceResult.ErrorMessage);
-
             var perks = RacerPerkBonuses.For(racer, database);
-            var energy =
-                new EnergyPool(
-                    System.Math.Max(0f, performanceResult.Value.EnergyCapacity + perks.EnergyCapacity));
-
-            Result<RaceEquipmentSystem>
-                equipmentResult =
-                    RaceEquipmentSystem.Create(
-                        racer.RacerId,
-                        bike.Loadout,
-                        database,
-                        energy);
-
+            var energy = new EnergyPool(System.Math.Max(0f, performanceResult.Value.EnergyCapacity + perks.EnergyCapacity));
+            Result<RaceEquipmentSystem> equipmentResult = RaceEquipmentSystem.Create(racer.RacerId, bike.Loadout, database, energy);
             if (!equipmentResult.IsSuccess)
                 return Result<RaceParticipant>.Failure(equipmentResult.ErrorMessage);
-
-            RaceVehicleState vehicle =
-                new RaceVehicleState(
-                    bike,
-                    performanceResult.Value,
-                    energy,
-                    equipmentResult.Value);
-
-            return Result<RaceParticipant>.Success(
-                new RaceParticipant(
-                    racer,
-                    vehicle,
-                    role, perks: perks));
+            RaceVehicleState vehicle = new RaceVehicleState(bike, performanceResult.Value, energy, equipmentResult.Value);
+            return Result<RaceParticipant>.Success(new RaceParticipant(racer, vehicle, role, perks: perks));
         }
     }
 }

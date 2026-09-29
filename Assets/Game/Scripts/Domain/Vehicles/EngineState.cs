@@ -5,8 +5,8 @@ namespace RaceFatal.Vehicles
 {
     public class EngineState
     {
-        public string EngineId { get; } //physical engine instance id (81ca87...etc)
-        public string EngineDefinitionId { get;  } //engine definition id (e.g. "engine_250cc_v1") - used to look up engine definition data
+        public string EngineId { get; }
+        public string EngineDefinitionId { get; }
         public EngineClass EngineClass { get; }
         public bool IsDestroyed { get; private set; }
 

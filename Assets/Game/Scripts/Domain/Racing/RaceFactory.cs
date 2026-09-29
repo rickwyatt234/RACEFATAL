@@ -8,18 +8,12 @@ namespace RaceFatal.Racing
     public class RaceFactory
     {
         private readonly RaceGridValidator gridValidator;
-
-        public RaceFactory(
-            RaceGridValidator gridValidator)
+        public RaceFactory(RaceGridValidator gridValidator)
         {
-            this.gridValidator =
-                gridValidator;
+            this.gridValidator = gridValidator;
         }
 
-        public Result<RaceDirector> Create(
-            RaceDefinition definition,
-            IReadOnlyList<RaceParticipant> participants,
-            CareerManager careerManager)
+        public Result<RaceDirector> Create(RaceDefinition definition, IReadOnlyList<RaceParticipant> participants, CareerManager careerManager)
         {
             Result<bool> validationResult = gridValidator.ValidateRaceGrid(definition, new List<RaceParticipant>(participants));
             if (!validationResult.IsSuccess)
@@ -29,7 +23,6 @@ namespace RaceFatal.Racing
 
             RaceState state = new RaceState(definition, participants);
             RaceDirector director = new RaceDirector(state, careerManager);
-
             return Result<RaceDirector>.Success(director);
         }
     }

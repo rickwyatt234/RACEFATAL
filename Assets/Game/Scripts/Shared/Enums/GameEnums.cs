@@ -5,6 +5,7 @@ namespace RaceFatal.Shared
         Normal,
         Hard
     }
+
     public enum EngineClass
     {
         Class1,
@@ -13,12 +14,14 @@ namespace RaceFatal.Shared
         Class4,
         Class5
     }
+
     public enum NodeSize
     {
         Small,
         Medium,
         Large
     }
+
     public enum EquipmentCategory
     {
         Engine,
@@ -27,6 +30,7 @@ namespace RaceFatal.Shared
         Weapon,
         Shield,
     }
+
     public enum WeaponAimMode
     {
         Forward,
@@ -34,11 +38,10 @@ namespace RaceFatal.Shared
         Targeted,
         AreaOfEffect,
         NotApplicable,
-
-        // Appended to preserve the serialized values of existing content.
         RearTargeted,
         ForwardAndSideways
     }
+
     public enum WeaponDeliveryMode
     {
         Hitscan,
@@ -46,12 +49,11 @@ namespace RaceFatal.Shared
         GuidedProjectile,
         Dropped,
         Area,
-
-        // Appended to preserve the serialized values of existing content.
         ConeProjectile,
         Ram,
         FlameCone
     }
+
     public enum EquipmentActivationMode
     {
         Passive,
@@ -60,12 +62,14 @@ namespace RaceFatal.Shared
         ChargeRelease,
         Reactive
     }
+
     public enum CountermeasureType
     {
         None,
         Flare,
         Chaff
     }
+
     public enum TeamPhilosophy
     {
         Aggressive,
@@ -76,6 +80,7 @@ namespace RaceFatal.Shared
         Defensive,
         Speed
     }
+
     public enum ResearchField
     {
         ConventionalWeapons,
@@ -87,6 +92,7 @@ namespace RaceFatal.Shared
         EngineTechnology,
         ChassisTechnology,
     }
+
     public enum RacerCareerStatus
     {
         Active,

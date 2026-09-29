@@ -3,27 +3,13 @@ using UnityEngine;
 
 namespace RaceFatal.Content.Equipment
 {
-    [CreateAssetMenu(
-        fileName = "HandlingUtilityDefinition",
-        menuName = "RaceFatal/Equipment/Handling Utility")]
-    public sealed class HandlingUtilityDefinitionSO :
-        EquipmentDefinitionSO
+    [CreateAssetMenu(fileName = "HandlingUtilityDefinition", menuName = "RaceFatal/Equipment/Handling Utility")]
+    public sealed class HandlingUtilityDefinitionSO : EquipmentDefinitionSO
     {
-        [Header("Handling")]
-        [Min(0f)]
-        [SerializeField]
-        private float handlingMultiplier = 1f;
-
-        public override EquipmentDefinition
-            CreateEquipmentDefinition()
+        [Header("Handling")] [Min(0f)] [SerializeField] private float handlingMultiplier = 1f;
+        public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new HandlingUtilityDefinition(
-                id,
-                displayName,
-                requiredNodeSize,
-                handlingMultiplier,
-                creditCost,
-                requiredTechnologyId);
+            return new HandlingUtilityDefinition(id, displayName, requiredNodeSize, handlingMultiplier, creditCost, requiredTechnologyId);
         }
     }
 }

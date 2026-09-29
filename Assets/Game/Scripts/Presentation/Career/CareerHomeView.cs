@@ -6,28 +6,17 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Career
 {
-    public class CareerHomeView :
-        MonoBehaviour
+    public class CareerHomeView : MonoBehaviour
     {
-        [Header("Identity")]
-        [SerializeField] private TMP_Text teamNameText;
+        [Header("Identity")] [SerializeField] private TMP_Text teamNameText;
         [SerializeField] private TMP_Text racerNameText;
-
-        [Header("Resources")]
-        [SerializeField] private TMP_Text creditsText;
+        [Header("Resources")] [SerializeField] private TMP_Text creditsText;
         [SerializeField] private TMP_Text fameText;
         [SerializeField] private TMP_Text researchPointsText;
-
-        [Header("Current Setup")]
-        [SerializeField] private TMP_Text currentBikeText;
+        [Header("Current Setup")] [SerializeField] private TMP_Text currentBikeText;
         [SerializeField] private TMP_Text currentPartnerText;
-
-        [Header("Career")]
-        [SerializeField] private TMP_Text careerStatusText;
-
-        public void Bind(
-            GameSessionState session,
-            GameDatabase database)
+        [Header("Career")] [SerializeField] private TMP_Text careerStatusText;
+        public void Bind(GameSessionState session, GameDatabase database)
         {
             if (session == null)
             {
@@ -35,72 +24,22 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            TeamState team =
-                session.PlayerTeam;
-
-            CareerRun run =
-                session.CareerRun;
-
-            RacerState player =
-                ResolvePlayer(
-                    session);
-
-            RacerState partner =
-                team?.Roster?.FindRacer(
-                    session.SelectedPartnerRacerId);
-
-            SetText(
-                teamNameText,
-                team != null
-                    ? team.TeamName
-                    : "NO TEAM");
-
-            SetText(
-                racerNameText,
-                player != null
-                    ? player.Name
-                    : "NO ACTIVE RACER");
-
-            SetText(
-                creditsText,
-                $"CREDITS  {(team?.Credits ?? 0):N0}");
-
-            SetText(
-                fameText,
-                $"TEAM FAME  {(team?.Fame ?? 0):N0}");
-
-            SetText(
-                researchPointsText,
-                $"RESEARCH POINTS  {(team?.ResearchPoints ?? 0):N0}");
-
-            SetText(
-                currentBikeText,
-                "CURRENT BIKE  " +
-                ResolveBikeName(
-                    session,
-                    database));
-
-            SetText(
-                currentPartnerText,
-                "CURRENT PARTNER  " +
-                (partner != null
-                    ? partner.Name
-                    : "NONE"));
-
-            string careerStatus =
-                run == null
-                    ? "ENDED — CREATE A NEW RACER"
-                    : run.IsActive
-                        ? "ACTIVE"
-                        : player?.Status.ToString().ToUpperInvariant() + " — CAREER ENDED";
-
-            SetText(
-                careerStatusText,
-                $"CAREER STATUS  {careerStatus}");
+            TeamState team = session.PlayerTeam;
+            CareerRun run = session.CareerRun;
+            RacerState player = ResolvePlayer(session);
+            RacerState partner = team?.Roster?.FindRacer(session.SelectedPartnerRacerId);
+            SetText(teamNameText, team != null ? team.TeamName : "NO TEAM");
+            SetText(racerNameText, player != null ? player.Name : "NO ACTIVE RACER");
+            SetText(creditsText, $"CREDITS  {(team?.Credits ?? 0):N0}");
+            SetText(fameText, $"TEAM FAME  {(team?.Fame ?? 0):N0}");
+            SetText(researchPointsText, $"RESEARCH POINTS  {(team?.ResearchPoints ?? 0):N0}");
+            SetText(currentBikeText, "CURRENT BIKE  " + ResolveBikeName(session, database));
+            SetText(currentPartnerText, "CURRENT PARTNER  " + (partner != null ? partner.Name : "NONE"));
+            string careerStatus = run == null ? "ENDED — CREATE A NEW RACER" : run.IsActive ? "ACTIVE" : player?.Status.ToString().ToUpperInvariant() + " — CAREER ENDED";
+            SetText(careerStatusText, $"CAREER STATUS  {careerStatus}");
         }
 
-        private RacerState ResolvePlayer(
-            GameSessionState session)
+        private RacerState ResolvePlayer(GameSessionState session)
         {
             if (session?.CareerRun?.Player != null)
             {
@@ -112,16 +51,10 @@ namespace RaceFatal.Presentation.Career
                 return null;
             }
 
-            for (int i =
-                     session.PlayerTeam.Roster.Racers.Count - 1;
-                 i >= 0;
-                 i--)
+            for (int i = session.PlayerTeam.Roster.Racers.Count - 1; i >= 0; i--)
             {
-                RacerState racer =
-                    session.PlayerTeam.Roster.Racers[i];
-
-                if (racer != null &&
-                    racer.IsPlayerCharacter)
+                RacerState racer = session.PlayerTeam.Roster.Racers[i];
+                if (racer != null && racer.IsPlayerCharacter)
                 {
                     return racer;
                 }
@@ -130,41 +63,26 @@ namespace RaceFatal.Presentation.Career
             return null;
         }
 
-        private string ResolveBikeName(
-            GameSessionState session,
-            GameDatabase database)
+        private string ResolveBikeName(GameSessionState session, GameDatabase database)
         {
-            if (session?.PlayerTeam?.Garage == null ||
-                string.IsNullOrWhiteSpace(
-                    session.SelectedPlayerBikeId))
+            if (session?.PlayerTeam?.Garage == null || string.IsNullOrWhiteSpace(session.SelectedPlayerBikeId))
             {
                 return "NONE";
             }
 
-            BikeState bike =
-                session.PlayerTeam.Garage.FindBike(
-                    session.SelectedPlayerBikeId);
-
+            BikeState bike = session.PlayerTeam.Garage.FindBike(session.SelectedPlayerBikeId);
             if (bike == null)
             {
                 return "NONE";
             }
 
-            BikeDefinition definition =
-                database?.GetBikeDefinition(
-                    bike.BikeDefinitionId);
-
-            if (definition != null &&
-                !string.IsNullOrWhiteSpace(
-                    definition.DisplayName))
+            BikeDefinition definition = database?.GetBikeDefinition(bike.BikeDefinitionId);
+            if (definition != null && !string.IsNullOrWhiteSpace(definition.DisplayName))
             {
                 return definition.DisplayName;
             }
 
-            return string.IsNullOrWhiteSpace(
-                bike.BikeDefinitionId)
-                ? bike.BikeId
-                : bike.BikeDefinitionId;
+            return string.IsNullOrWhiteSpace(bike.BikeDefinitionId) ? bike.BikeId : bike.BikeDefinitionId;
         }
 
         private void Clear()
@@ -179,14 +97,11 @@ namespace RaceFatal.Presentation.Career
             SetText(careerStatusText, "CAREER STATUS  UNAVAILABLE");
         }
 
-        private void SetText(
-            TMP_Text target,
-            string value)
+        private void SetText(TMP_Text target, string value)
         {
             if (target != null)
             {
-                target.text =
-                    value ?? string.Empty;
+                target.text = value ?? string.Empty;
             }
         }
     }

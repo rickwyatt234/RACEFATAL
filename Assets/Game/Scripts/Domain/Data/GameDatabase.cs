@@ -11,9 +11,9 @@ namespace RaceFatal.Data
     {
         private readonly Dictionary<string, CareerEventDefinition> careerEventDefinitions = new Dictionary<string, CareerEventDefinition>();
         public IReadOnlyDictionary<string, CareerEventDefinition> CareerEventDefinitions => careerEventDefinitions;
+
         public void AddCareerEventDefinition(CareerEventDefinition definition) => careerEventDefinitions.Add(definition.Id, definition);
-        public CareerEventDefinition GetCareerEventDefinition(string id) =>
-            !string.IsNullOrWhiteSpace(id) && careerEventDefinitions.TryGetValue(id, out var value) ? value : null;
+        public CareerEventDefinition GetCareerEventDefinition(string id) => !string.IsNullOrWhiteSpace(id) && careerEventDefinitions.TryGetValue(id, out var value) ? value : null;
         private readonly Dictionary<string, BikeDefinition> bikeDefinitions = new Dictionary<string, BikeDefinition>();
         private readonly Dictionary<string, EngineDefinition> engineDefinitions = new Dictionary<string, EngineDefinition>();
         private readonly Dictionary<string, ChassisDefinition> chassisDefinitions = new Dictionary<string, ChassisDefinition>();
@@ -21,30 +21,26 @@ namespace RaceFatal.Data
         private readonly Dictionary<string, BikeBuildDefinition> bikeBuildDefinitions = new Dictionary<string, BikeBuildDefinition>();
         private readonly Dictionary<string, RacerPerkDefinition> racerPerkDefinitions = new Dictionary<string, RacerPerkDefinition>();
         public IReadOnlyDictionary<string, RacerPerkDefinition> RacerPerkDefinitions => racerPerkDefinitions;
-        public void AddRacerPerkDefinition(RacerPerkDefinition definition) => racerPerkDefinitions.Add(definition.Id, definition);
-        public RacerPerkDefinition GetRacerPerkDefinition(string id) =>
-            !string.IsNullOrWhiteSpace(id) && racerPerkDefinitions.TryGetValue(id, out var value) ? value : null;
 
+        public void AddRacerPerkDefinition(RacerPerkDefinition definition) => racerPerkDefinitions.Add(definition.Id, definition);
+        public RacerPerkDefinition GetRacerPerkDefinition(string id) => !string.IsNullOrWhiteSpace(id) && racerPerkDefinitions.TryGetValue(id, out var value) ? value : null;
         private readonly Dictionary<string, RacerDefinition> racerDefinitions = new Dictionary<string, RacerDefinition>();
         public IReadOnlyDictionary<string, RacerDefinition> RacerDefinitions => racerDefinitions;
+
         private readonly Dictionary<string, OpponentTeamDefinition> opponentTeamDefinitions = new Dictionary<string, OpponentTeamDefinition>();
         private readonly Dictionary<string, TrackDefinition> trackDefinitions = new Dictionary<string, TrackDefinition>();
         private readonly Dictionary<string, RaceDefinition> raceDefinitions = new Dictionary<string, RaceDefinition>();
-
         private readonly Dictionary<string, TechnologyDefinition> technologyDefinitions = new Dictionary<string, TechnologyDefinition>();
         public IReadOnlyDictionary<string, TechnologyDefinition> TechnologyDefinitions => technologyDefinitions;
-        public void AddTechnologyDefinition(TechnologyDefinition definition) => technologyDefinitions.Add(definition.Id, definition);
-        public TechnologyDefinition GetTechnologyDefinition(string id) =>
-            !string.IsNullOrWhiteSpace(id) && technologyDefinitions.TryGetValue(id, out var value) ? value : null;
 
+        public void AddTechnologyDefinition(TechnologyDefinition definition) => technologyDefinitions.Add(definition.Id, definition);
+        public TechnologyDefinition GetTechnologyDefinition(string id) => !string.IsNullOrWhiteSpace(id) && technologyDefinitions.TryGetValue(id, out var value) ? value : null;
         private readonly Dictionary<string, ResearcherDefinition> researcherDefinitions = new Dictionary<string, ResearcherDefinition>();
         public IReadOnlyDictionary<string, ResearcherDefinition> ResearcherDefinitions => researcherDefinitions;
+
         public void AddResearcherDefinition(ResearcherDefinition definition) => researcherDefinitions.Add(definition.Id, definition);
-        public ResearcherDefinition GetResearcherDefinition(string id) =>
-            !string.IsNullOrWhiteSpace(id) && researcherDefinitions.TryGetValue(id, out var value) ? value : null;
-
+        public ResearcherDefinition GetResearcherDefinition(string id) => !string.IsNullOrWhiteSpace(id) && researcherDefinitions.TryGetValue(id, out var value) ? value : null;
         private readonly List<OpponentTeamDefinition> opponentTeamDefinitionList = new();
-
         public IReadOnlyDictionary<string, BikeBuildDefinition> BikeBuildDefinitions => bikeBuildDefinitions;
         public IReadOnlyDictionary<string, BikeDefinition> BikeDefinitions => bikeDefinitions;
         public IReadOnlyDictionary<string, EngineDefinition> EngineDefinitions => engineDefinitions;
@@ -52,7 +48,6 @@ namespace RaceFatal.Data
         public IReadOnlyDictionary<string, EquipmentDefinition> EquipmentDefinitions => equipmentDefinitions;
         public IReadOnlyDictionary<string, TrackDefinition> TrackDefinitions => trackDefinitions;
         public IReadOnlyDictionary<string, RaceDefinition> RaceDefinitions => raceDefinitions;
-        
         public IReadOnlyList<OpponentTeamDefinition> OpponentTeamDefinitions => opponentTeamDefinitionList;
 
 #region Setters
@@ -85,7 +80,7 @@ namespace RaceFatal.Data
         {
             raceDefinitions.Add(definition.Id, definition);
         }
-        
+
         public void AddBikeBuildDefinition(BikeBuildDefinition definition)
         {
             bikeBuildDefinitions.Add(definition.Id, definition);
@@ -101,8 +96,8 @@ namespace RaceFatal.Data
         {
             racerDefinitions.Add(definition.Id, definition);
         }
-#endregion
 
+#endregion
 #region Getters
         public BikeDefinition GetBikeDefinition(string id)
         {

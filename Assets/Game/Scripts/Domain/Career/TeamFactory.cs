@@ -7,11 +7,7 @@ namespace RaceFatal.Career
         public TeamState CreateNewTeam(string teamName, string primaryColor, string secondaryColor)
         {
             string teamId = Guid.NewGuid().ToString("N");
-            return new TeamState(
-                teamId: teamId,
-                teamName: teamName,
-                primaryColor: primaryColor,
-                secondaryColor: secondaryColor);
+            return new TeamState(teamId: teamId, teamName: teamName, primaryColor: primaryColor, secondaryColor: secondaryColor);
         }
     }
 }

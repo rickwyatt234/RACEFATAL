@@ -15,70 +15,35 @@ namespace RaceFatal.Presentation.Racing
 {
     public class RaceRuntimeController : MonoBehaviour
     {
-
-        [Header("Combat Balance")]
-        [Tooltip(
-            "Damage dealt when one non-player racer damages another. " +
-            "Player damage dealt and received is unaffected.")]
-        [Range(0f, 1f)]
-        [SerializeField]
-        private float aiVsAIDamageMultiplier = 0.45f;
-
-
+        [Header("Combat Balance")] [Tooltip("Damage dealt when one non-player racer damages another. " + "Player damage dealt and received is unaffected.")] [Range(0f,
+            1f)] [SerializeField] private float aiVsAIDamageMultiplier = 0.45f;
+        [Header("Audience Favor")] [SerializeField] private AudienceSettings audienceSettings = new AudienceSettings();
         private TrackRuntimeController trackRuntime;
-
-        private readonly Dictionary<string, RacerViewController> racerViews =
-            new Dictionary<string, RacerViewController>();
-
+        private readonly Dictionary<string, RacerViewController> racerViews = new Dictionary<string, RacerViewController>();
         private RaceDirector raceDirector;
         private IRaceInputService input;
         private string playerRacerId;
-
         public RaceDirector Director => raceDirector;
         public string PlayerRacerId => playerRacerId;
         public bool IsInitialized => raceDirector != null;
+        public bool HasStarted => raceDirector != null && raceDirector.State.IsStarted;
+        public bool IsRaceActive => raceDirector != null && raceDirector.State.IsStarted && !raceDirector.State.IsFinished;
 
-        public bool HasStarted =>
-            raceDirector != null &&
-            raceDirector.State.IsStarted;
-
-        public bool IsRaceActive =>
-            raceDirector != null &&
-            raceDirector.State.IsStarted &&
-            !raceDirector.State.IsFinished;
-
-        public void Initialize(
-            RaceDirector director,
-            string playerId,
-            TrackRuntimeController track)
+        public void Initialize(RaceDirector director, string playerId, TrackRuntimeController track)
         {
-            raceDirector = director
-                ?? throw new ArgumentNullException(nameof(director));
-
-            raceDirector.AIVsAIDamageMultiplier =
-                Mathf.Clamp01(
-                    aiVsAIDamageMultiplier);
-
-            trackRuntime = track
-                ?? throw new ArgumentNullException(nameof(track));
-
+            raceDirector = director ?? throw new ArgumentNullException(nameof(director));
+            raceDirector.AIVsAIDamageMultiplier = Mathf.Clamp01(aiVsAIDamageMultiplier);
+            raceDirector.ConfigureAudience(audienceSettings);
+            trackRuntime = track ?? throw new ArgumentNullException(nameof(track));
             playerRacerId = playerId;
-
-            GameContext context =
-                BootstrapController.Context;
-
+            GameContext context = BootstrapController.Context;
             input = context?.Input;
-
-            raceDirector.RacerDestroyed +=
-                OnRacerDestroyed;
-
+            raceDirector.RacerDestroyed += OnRacerDestroyed;
             raceDirector.RacerRetired += OnRacerRetired;
             raceDirector.RaceCompleted += OnRaceCompleted;
-
             if (!trackRuntime.Initialize(this))
             {
-                throw new InvalidOperationException(
-                    "Track runtime failed to initialize.");
+                throw new InvalidOperationException("Track runtime failed to initialize.");
             }
 
             foreach (RacerViewController view in racerViews.Values)
@@ -87,15 +52,10 @@ namespace RaceFatal.Presentation.Racing
             }
         }
 
-        /// <summary>
-        /// Only call this once racers have been spawned,
-        /// initialized, registered and placed on the grid.
-        /// </summary>
         public void StartRace()
         {
             if (raceDirector == null)
                 return;
-
             raceDirector.StartRace();
         }
 
@@ -103,255 +63,151 @@ namespace RaceFatal.Presentation.Racing
         {
             if (raceDirector == null)
                 return;
-
             HandlePlayerEquipmentInput();
             foreach (var view in racerViews.Values)
             {
-                if (view == null) continue;
+                if (view == null)
+                    continue;
                 var motor = view.GetComponent<BikeMotor>();
                 raceDirector.ReportSpeed(view.RacerId, motor != null ? motor.SpeedKph : 0);
             }
 
-            raceDirector.Tick(
-                Time.deltaTime);
+            raceDirector.Tick(Time.deltaTime);
         }
 
-        public void RegisterRacerView(
-            RacerViewController racer)
+        public void RegisterRacerView(RacerViewController racer)
         {
-            if (racer == null ||
-                !racer.IsInitialized)
+            if (racer == null || !racer.IsInitialized)
             {
                 return;
             }
 
-            racerViews[racer.RacerId] =
-                racer;
-
-            if (trackRuntime != null &&
-                IsInitialized)
+            racerViews[racer.RacerId] = racer;
+            if (trackRuntime != null && IsInitialized)
             {
-                trackRuntime.BindRacer(
-                    racer);
+                trackRuntime.BindRacer(racer);
             }
         }
 
-        public bool TryGetRacerView(
-            string racerId,
-            out RacerViewController view)
+        public bool TryGetRacerView(string racerId, out RacerViewController view)
         {
-            return racerViews.TryGetValue(
-                racerId,
-                out view);
+            return racerViews.TryGetValue(racerId, out view);
         }
 
-        public bool PlaceRacerOnGrid(
-            string racerId,
-            int slot)
+        public bool PlaceRacerOnGrid(string racerId, int slot)
         {
             if (trackRuntime == null)
                 return false;
-
-            if (!TryGetRacerView(
-                    racerId,
-                    out RacerViewController view))
+            if (!TryGetRacerView(racerId, out RacerViewController view))
             {
                 return false;
             }
 
-            return trackRuntime.PlaceRacerAtGridSlot(
-                view,
-                slot);
+            return trackRuntime.PlaceRacerAtGridSlot(view, slot);
         }
 
-        /// <summary>
-        /// Stops presentation-side vehicle control for one racer.
-        /// This does not alter their Domain race status.
-        /// </summary>
-        public void StopRacerControl(
-            string racerId,
-            float brakeInput = 1f)
+        public void StopRacerControl(string racerId, float brakeInput = 1f)
         {
-            if (!TryGetRacerView(
-                    racerId,
-                    out RacerViewController view))
+            if (!TryGetRacerView(racerId, out RacerViewController view))
             {
                 return;
             }
 
-            RaceParticipant participant =
-                view.Participant;
-
+            RaceParticipant participant = view.Participant;
             if (participant?.Vehicle?.EquipmentSystem != null)
             {
-                participant.Vehicle
-                    .EquipmentSystem
-                    .SetBoostActive(false);
+                participant.Vehicle.EquipmentSystem.SetBoostActive(false);
             }
 
-            BikeController playerController =
-                view.GetComponent<BikeController>();
-
-            AIDriverController aiDriver =
-                view.GetComponent<AIDriverController>();
-
-            BikeMotor motor =
-                view.GetComponent<BikeMotor>();
-
+            BikeController playerController = view.GetComponent<BikeController>();
+            AIDriverController aiDriver = view.GetComponent<AIDriverController>();
+            BikeMotor motor = view.GetComponent<BikeMotor>();
             if (playerController != null)
                 playerController.enabled = false;
-
             if (aiDriver != null)
                 aiDriver.enabled = false;
-
             if (motor != null)
             {
-                motor.SetControls(
-                    0f,
-                    Mathf.Clamp01(brakeInput),
-                    0f);
+                motor.SetControls(0f, Mathf.Clamp01(brakeInput), 0f);
             }
         }
 
-        /// <summary>
-        /// Stops every physical racer after race resolution.
-        /// </summary>
-        public void StopAllVehicleControl(
-            float brakeInput = 1f)
+        public void StopAllVehicleControl(float brakeInput = 1f)
         {
             foreach (RacerViewController view in racerViews.Values)
             {
-                if (view == null ||
-                    !view.IsInitialized)
+                if (view == null || !view.IsInitialized)
                 {
                     continue;
                 }
 
-                StopRacerControl(
-                    view.RacerId,
-                    brakeInput);
+                StopRacerControl(view.RacerId, brakeInput);
             }
         }
 
         private void HandlePlayerEquipmentInput()
         {
-            if (input == null ||
-                string.IsNullOrEmpty(playerRacerId))
+            if (input == null || string.IsNullOrEmpty(playerRacerId))
             {
                 return;
             }
 
-            if (!TryGetRacerView(
-                    playerRacerId,
-                    out RacerViewController playerView))
+            if (!TryGetRacerView(playerRacerId, out RacerViewController playerView))
             {
                 return;
             }
 
-            RaceParticipant participant =
-                playerView.Participant;
-
+            RaceParticipant participant = playerView.Participant;
             if (participant?.Vehicle?.EquipmentSystem == null)
                 return;
-
-            bool raceActive =
-                IsRaceActive &&
-                participant.Status ==
-                    RaceParticipantStatus.Racing &&
-                !participant.Vehicle.IsDestroyed;
-
-            /*
-             * Boost is a dedicated continuous control,
-             * independent from selected weapons.
-             */
-            participant.Vehicle
-                .EquipmentSystem
-                .SetBoostActive(
-                    raceActive &&
-                    input.BoostHeld);
-
+            bool raceActive = IsRaceActive && participant.Status == RaceParticipantStatus.Racing && !participant.Vehicle.IsDestroyed;
+            participant.Vehicle.EquipmentSystem.SetBoostActive(raceActive && input.BoostHeld);
             if (!raceActive)
                 return;
-
             if (input.NextEquipmentPressed)
             {
-                raceDirector.SelectNextEquipment(
-                    playerRacerId);
+                raceDirector.SelectNextEquipment(playerRacerId);
             }
 
             if (input.PreviousEquipmentPressed)
             {
-                raceDirector.SelectPreviousEquipment(
-                    playerRacerId);
+                raceDirector.SelectPreviousEquipment(playerRacerId);
             }
 
             if (input.EquipmentPressed)
             {
-                RaceEquipmentSystem equipment =
-                    participant.Vehicle
-                        .EquipmentSystem;
-
-                WeaponDefinition weapon =
-                    equipment
-                        .SelectedWeaponDefinition;
-
-                bool canActivate =
-                    true;
-
-                if (weapon != null &&
-                    weapon.AimMode ==
-                        WeaponAimMode.Targeted &&
-                    weapon.DeliveryMode ==
-                        WeaponDeliveryMode.GuidedProjectile)
+                RaceEquipmentSystem equipment = participant.Vehicle.EquipmentSystem;
+                WeaponDefinition weapon = equipment.SelectedWeaponDefinition;
+                bool canActivate = true;
+                if (weapon != null && weapon.AimMode == WeaponAimMode.Targeted && weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
                 {
-                    GuidedTargetLockState lockState =
-                        playerView.GetComponent<
-                            GuidedTargetLockState>();
-
-                    canActivate =
-                        lockState != null &&
-                        lockState.IsLocked;
+                    GuidedTargetLockState lockState = playerView.GetComponent<GuidedTargetLockState>();
+                    canActivate = lockState != null && lockState.IsLocked;
                 }
 
                 if (canActivate)
                 {
-                    raceDirector
-                        .BeginEquipmentActivation(
-                            playerRacerId);
+                    raceDirector.BeginEquipmentActivation(playerRacerId);
                 }
             }
 
             if (input.EquipmentReleased)
             {
-                raceDirector.EndEquipmentActivation(
-                    playerRacerId);
+                raceDirector.EndEquipmentActivation(playerRacerId);
             }
         }
 
         private void OnRacerRetired(RaceParticipant participant) => StopRacerControl(participant.RacerId);
         private void OnRaceCompleted(RaceResult result) => StopAllVehicleControl();
-
-        private void OnRacerDestroyed(
-            RaceParticipant participant)
+        private void OnRacerDestroyed(RaceParticipant participant)
         {
-            /*
-             * Ensure a destroyed racer cannot leave its booster
-             * active in race state.
-             */
-            participant.Vehicle
-                .EquipmentSystem
-                .SetBoostActive(false);
-
-            if (!TryGetRacerView(
-                    participant.RacerId,
-                    out RacerViewController view))
+            participant.Vehicle.EquipmentSystem.SetBoostActive(false);
+            if (!TryGetRacerView(participant.RacerId, out RacerViewController view))
             {
                 return;
             }
 
-            view.gameObject.SendMessage(
-                "OnRaceDestroyed",
-                SendMessageOptions.DontRequireReceiver);
+            view.gameObject.SendMessage("OnRaceDestroyed", SendMessageOptions.DontRequireReceiver);
         }
 
         private void OnDestroy()
@@ -360,8 +216,7 @@ namespace RaceFatal.Presentation.Racing
             {
                 raceDirector.RacerRetired -= OnRacerRetired;
                 raceDirector.RaceCompleted -= OnRaceCompleted;
-                raceDirector.RacerDestroyed -=
-                    OnRacerDestroyed;
+                raceDirector.RacerDestroyed -= OnRacerDestroyed;
             }
         }
     }
