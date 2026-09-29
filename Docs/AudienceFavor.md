@@ -20,7 +20,7 @@ Select the scene's **RaceRuntimeController → Audience Favor** to tune:
 | Destroy an opponent | +30 once on destruction |
 | No successful combat | −1.5 per second after a 4-second grace period |
 
-Damage, shield break and destruction can stack. Pellets and damage-over-time ticks share the hit cooldown and damage budget. Friendly fire, self-damage, environmental damage, firing into empty space and damage to eliminated racers earn nothing. Individual deathmatches treat all other racers as opponents, including racers from the same team. Overtakes are disabled in deathmatches; ordinary race passes require a live opponent, forward progress, separation hysteresis and a change from behind to ahead. Overtakes do not reset the combat grace period. A long-range successful hit still counts as combat.
+Damage, shield break and destruction can stack. Pellets and damage-over-time ticks share the hit cooldown and damage budget. Friendly fire, self-damage, environmental damage, firing into empty space and damage to eliminated racers earn nothing. Individual deathmatches treat all other racers as opponents, including racers from the same team. Overtakes are disabled in deathmatches; ordinary race passes require a live opponent, forward progress, separation hysteresis and a change from behind to ahead, including lapping an opponent. Overtakes do not reset the combat grace period. A long-range successful hit still counts as combat.
 
 ## Windshield HUD
 

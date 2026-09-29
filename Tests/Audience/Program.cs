@@ -218,6 +218,18 @@ static class Program
         f.Director.Tick(30);
         Equal(f.Director.Audience.ActiveSeconds, 10, "Deathmatch time limit clips audience interval");
         True(f.Director.State.IsFinished, "Deathmatch finalizes");
+        f = new Fixture(new AudienceSettings { decayPerSecond = 0 });
+        f.Director.StartRace();
+        f.Director.ReportCourseProgress("player", .2f);
+        f.Director.ReportCourseProgress("enemy", .1f);
+        f.Director.Tick(.1f);
+        for (int i = 3; i <= 12; i++)
+        {
+            f.Director.ReportCourseProgress("player", (i % 10) / 10f);
+            f.Director.Tick(1f);
+        }
+        Equal(f.Director.Audience.Favor, 103, "Physical pass also counts when lapping a racer");
+
         var policy = new RaceRewardPolicy();
         foreach (float favor in new[]
         {

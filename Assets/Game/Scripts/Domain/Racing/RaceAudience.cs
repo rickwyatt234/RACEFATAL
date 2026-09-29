@@ -115,6 +115,7 @@ namespace RaceFatal.Racing
                 }
 
                 double gap = other.AudienceCourseProgress - progress;
+                gap -= Math.Floor(gap + 0.5);
                 if (Math.Abs(gap) < separation)
                     continue;
                 bool ahead = gap > 0;
