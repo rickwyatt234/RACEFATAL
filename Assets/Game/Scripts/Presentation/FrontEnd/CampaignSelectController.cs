@@ -6,40 +6,23 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.FrontEnd
 {
-    public class CampaignSelectController :
-        MonoBehaviour
+    public class CampaignSelectController : MonoBehaviour
     {
-        [SerializeField]
-        private SaveSlotView[] slotViews =
-            Array.Empty<SaveSlotView>();
-
-        [SerializeField]
-        private TMP_Text statusText;
-
+        [SerializeField] private SaveSlotView[] slotViews = Array.Empty<SaveSlotView>();
+        [SerializeField] private TMP_Text statusText;
         private FrontEndController frontEnd;
         private CampaignSaveService saves;
-
-        public void Initialize(
-            FrontEndController owner,
-            CampaignSaveService saveService)
+        public void Initialize(FrontEndController owner, CampaignSaveService saveService)
         {
-            frontEnd =
-                owner;
-
-            saves =
-                saveService;
-
+            frontEnd = owner;
+            saves = saveService;
             if (slotViews == null)
                 return;
-
-            foreach (SaveSlotView slotView
-                     in slotViews)
+            foreach (SaveSlotView slotView in slotViews)
             {
                 if (slotView == null)
                     continue;
-
-                slotView.Initialize(
-                    HandleSlotSelected);
+                slotView.Initialize(HandleSlotSelected);
             }
         }
 
@@ -47,66 +30,45 @@ namespace RaceFatal.Presentation.FrontEnd
         {
             if (saves == null)
             {
-                SetStatus(
-                    "Save service is unavailable.");
-
+                SetStatus("Save service is unavailable.");
                 return;
             }
 
-            SetStatus(
-                string.Empty);
-
+            SetStatus(string.Empty);
             if (slotViews == null)
                 return;
-
-            foreach (SaveSlotView slotView
-                     in slotViews)
+            foreach (SaveSlotView slotView in slotViews)
             {
                 if (slotView == null)
                     continue;
-
-                Result<SaveSlotSummary> result =
-                    saves.GetSlotSummary(
-                        slotView.SlotIndex);
-
+                Result<SaveSlotSummary> result = saves.GetSlotSummary(slotView.SlotIndex);
                 if (!result.IsSuccess)
                 {
-                    slotView.BindError(
-                        result.ErrorMessage);
-
-                    SetStatus(
-                        result.ErrorMessage);
-
+                    slotView.BindError(result.ErrorMessage);
+                    SetStatus(result.ErrorMessage);
                     continue;
                 }
 
-                slotView.Bind(
-                    result.Value);
+                slotView.Bind(result.Value);
             }
         }
 
-        private void HandleSlotSelected(
-            int slotIndex)
+        private void HandleSlotSelected(int slotIndex)
         {
             if (frontEnd == null)
             {
-                SetStatus(
-                    "Front-end controller is unavailable.");
-
+                SetStatus("Front-end controller is unavailable.");
                 return;
             }
 
-            frontEnd.SelectCampaignSlot(
-                slotIndex);
+            frontEnd.SelectCampaignSlot(slotIndex);
         }
 
-        private void SetStatus(
-            string message)
+        private void SetStatus(string message)
         {
             if (statusText != null)
             {
-                statusText.text =
-                    message ?? string.Empty;
+                statusText.text = message ?? string.Empty;
             }
         }
     }

@@ -15,27 +15,23 @@ namespace RaceFatal.Racing
         public int ResearchPointBonus { get; }
         public DeathmatchRules Deathmatch { get; }
 
-        public RaceDefinition(
-            string id, 
-            string displayName, 
-            string trackId,
-            EngineClass engineClass, 
-            int lapCount, 
-            int entrantCount, 
-            int teamSize, int researchPointBonus = 0, DeathmatchRules deathmatch = null)
+        public RaceDefinition(string id, string displayName, string trackId, EngineClass engineClass, int lapCount, int entrantCount, int teamSize, int researchPointBonus = 0, DeathmatchRules deathmatch = null)
         {
             if (lapCount <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(lapCount), "Lap count must be greater than zero.");
             }
+
             if (entrantCount <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(entrantCount), "Entrant count must be greater than zero.");
             }
+
             if (teamSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(teamSize), "Team size must be greater than zero.");
             }
+
             if (entrantCount % teamSize != 0)
             {
                 throw new ArgumentException("Entrant count must be divisible by team size.", nameof(entrantCount));
@@ -44,7 +40,6 @@ namespace RaceFatal.Racing
             Id = id ?? throw new ArgumentNullException(nameof(id));
             DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
             TrackId = trackId ?? throw new ArgumentNullException(nameof(trackId));
-
             if (deathmatch != null && deathmatch.AllowedWinners >= (deathmatch.Mode == DeathmatchVictoryMode.Team ? entrantCount / teamSize : entrantCount))
                 throw new ArgumentException("Deathmatch needs more entrants than winner slots.");
             Deathmatch = deathmatch;

@@ -7,7 +7,6 @@ using RaceFatal.Vehicles;
 using UnityEditor;
 using UnityEngine;
 
-// Dependency-free domain checks: run from the menu or Unity -executeMethod.
 public static class CareerShopValidation
 {
     [MenuItem("RACE//FATAL/Career/Validate Shop Purchases")]
@@ -22,15 +21,12 @@ public static class CareerShopValidation
         var shop = new ShopService(database);
         var team = new TeamState("test", "Test", "#ffffff", "#000000");
         team.AddCredits(250);
-
         Require(!shop.Purchase(null, ShopItemKind.Engine, "engine").IsSuccess, "Missing team rejected");
         Require(!shop.Purchase(team, ShopItemKind.Engine, null).IsSuccess, "Missing ID rejected");
         Require(!shop.Purchase(team, ShopItemKind.Engine, "unknown").IsSuccess, "Unknown ID rejected");
         Require(!shop.Purchase(team, ShopItemKind.Engine, "engine").IsSuccess, "Technology lock enforced");
         Require(!shop.Purchase(team, ShopItemKind.Chassis, "invalid").IsSuccess, "Negative price rejected");
-        Require(team.Credits == 250 && team.Garage.Engines.Count == 0 && team.Garage.Chassis.Count == 0,
-            "Failed purchases leave funds and inventory unchanged");
-
+        Require(team.Credits == 250 && team.Garage.Engines.Count == 0 && team.Garage.Chassis.Count == 0, "Failed purchases leave funds and inventory unchanged");
         team.UnlockTechnology("tech");
         Require(shop.Purchase(team, ShopItemKind.Engine, "engine").IsSuccess, "Unlocked engine purchased");
         Require(shop.Purchase(team, ShopItemKind.Engine, "engine").IsSuccess, "Second instance purchased");
@@ -51,6 +47,7 @@ public static class CareerShopValidation
 
     private static void Require(bool condition, string description)
     {
-        if (!condition) throw new InvalidOperationException("Shop validation failed: " + description);
+        if (!condition)
+            throw new InvalidOperationException("Shop validation failed: " + description);
     }
 }

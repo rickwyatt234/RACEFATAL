@@ -7,15 +7,12 @@ namespace RaceFatal.Equipment
         public string RacerId { get; }
         public string EquipmentId { get; }
         public string DefinitionId { get; }
-
         public WeaponAimMode AimMode { get; }
         public WeaponDeliveryMode DeliveryMode { get; }
-
         public float Damage { get; }
         public float Range { get; }
         public float ProjectileSpeed { get; }
         public float ChargeRatio { get; }
-
         public int ProjectileCount { get; }
         public float SpreadAngle { get; }
         public float ExplosionRadius { get; }
@@ -30,42 +27,17 @@ namespace RaceFatal.Equipment
         public float TargetingHalfAngle { get; }
         public float FireInterval { get; }
 
-        public WeaponFireEvent(
-            string racerId,
-            string equipmentId,
-            string definitionId,
-            WeaponAimMode aimMode,
-            WeaponDeliveryMode deliveryMode,
-            float damage,
-            float range,
-            float projectileSpeed,
-            float chargeRatio,
-            int projectileCount,
-            float spreadAngle,
-            float explosionRadius,
-            float armingDelay,
-            float lifetime,
-            float exposureDuration,
-            float effectDuration,
-            float statusDamagePerSecond,
-            float lateralDistance,
-            float dashDuration,
-            float impactPush,
-            float targetingHalfAngle,
-            float fireInterval)
+        public WeaponFireEvent(string racerId, string equipmentId, string definitionId, WeaponAimMode aimMode, WeaponDeliveryMode deliveryMode, float damage, float range, float projectileSpeed, float chargeRatio, int projectileCount, float spreadAngle, float explosionRadius, float armingDelay, float lifetime, float exposureDuration, float effectDuration, float statusDamagePerSecond, float lateralDistance, float dashDuration, float impactPush, float targetingHalfAngle, float fireInterval)
         {
             RacerId = racerId;
             EquipmentId = equipmentId;
             DefinitionId = definitionId;
-
             AimMode = aimMode;
             DeliveryMode = deliveryMode;
-
             Damage = damage;
             Range = range;
             ProjectileSpeed = projectileSpeed;
             ChargeRatio = chargeRatio;
-
             ProjectileCount = projectileCount;
             SpreadAngle = spreadAngle;
             ExplosionRadius = explosionRadius;

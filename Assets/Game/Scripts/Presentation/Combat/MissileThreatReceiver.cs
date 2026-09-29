@@ -5,14 +5,10 @@ namespace RaceFatal.Presentation.Combat
 {
     public class MissileThreatReceiver : MonoBehaviour
     {
-        [Header("Runtime Debug")]
-        [SerializeField] private int debugThreatCount;
+        [Header("Runtime Debug")] [SerializeField] private int debugThreatCount;
         [SerializeField] private string debugNearestMissile = "None";
         [SerializeField] private float debugNearestDistance;
-
-        private readonly List<GuidedProjectileView> threats =
-            new List<GuidedProjectileView>();
-
+        private readonly List<GuidedProjectileView> threats = new List<GuidedProjectileView>();
         public int ThreatCount
         {
             get
@@ -22,14 +18,11 @@ namespace RaceFatal.Presentation.Combat
             }
         }
 
-        public bool HasIncomingMissile =>
-            ThreatCount > 0;
+        public bool HasIncomingMissile => ThreatCount > 0;
 
-        public void RegisterThreat(
-            GuidedProjectileView missile)
+        public void RegisterThreat(GuidedProjectileView missile)
         {
-            if (missile == null ||
-                threats.Contains(missile))
+            if (missile == null || threats.Contains(missile))
             {
                 return;
             }
@@ -38,78 +31,51 @@ namespace RaceFatal.Presentation.Combat
             UpdateDebug();
         }
 
-        public void UnregisterThreat(
-            GuidedProjectileView missile)
+        public void UnregisterThreat(GuidedProjectileView missile)
         {
             if (missile == null)
                 return;
-
             threats.Remove(missile);
             UpdateDebug();
         }
 
-        public bool TryGetNearestThreat(
-            out GuidedProjectileView nearest,
-            out float distance)
+        public bool TryGetNearestThreat(out GuidedProjectileView nearest, out float distance)
         {
             PruneThreats();
-
             nearest = null;
             distance = float.PositiveInfinity;
-
             for (int i = 0; i < threats.Count; i++)
             {
-                GuidedProjectileView missile =
-                    threats[i];
-
-                if (missile == null ||
-                    !missile.IsActiveThreat)
+                GuidedProjectileView missile = threats[i];
+                if (missile == null || !missile.IsActiveThreat)
                 {
                     continue;
                 }
 
-                float currentDistance =
-                    Vector3.Distance(
-                        transform.position,
-                        missile.transform.position);
-
+                float currentDistance = Vector3.Distance(transform.position, missile.transform.position);
                 if (currentDistance >= distance)
                     continue;
-
                 distance = currentDistance;
                 nearest = missile;
             }
 
-            debugNearestMissile =
-                nearest != null
-                    ? nearest.name
-                    : "None";
-
-            debugNearestDistance =
-                nearest != null
-                    ? distance
-                    : 0f;
-
+            debugNearestMissile = nearest != null ? nearest.name : "None";
+            debugNearestDistance = nearest != null ? distance : 0f;
             return nearest != null;
         }
 
         public List<GuidedProjectileView> GetThreatSnapshot()
         {
             PruneThreats();
-
-            return new List<GuidedProjectileView>(
-                threats);
+            return new List<GuidedProjectileView>(threats);
         }
 
         private void PruneThreats()
         {
             for (int i = threats.Count - 1; i >= 0; i--)
             {
-                GuidedProjectileView missile =
-                    threats[i];
-
-                if (missile == null ||
-                    !missile.IsActiveThreat)
+                GuidedProjectileView missile = threats[i];
+                if (missile == null || !missile.IsActiveThreat)
                 {
                     threats.RemoveAt(i);
                 }
@@ -120,8 +86,7 @@ namespace RaceFatal.Presentation.Combat
 
         private void UpdateDebug()
         {
-            debugThreatCount =
-                threats.Count;
+            debugThreatCount = threats.Count;
         }
     }
 }

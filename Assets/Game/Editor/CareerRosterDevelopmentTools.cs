@@ -10,14 +10,17 @@ public static class CareerRosterDevelopmentTools
     [MenuItem("RACE//FATAL/Career/Create Roster Development Perks")]
     public static void Create()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
         var catalog = Selection.activeObject as GameContentCatalogSO;
         if (catalog == null)
         {
             EditorUtility.DisplayDialog("Roster Perks", "Select the GameContentCatalog used by Bootstrap, then run again.", "OK");
             return;
         }
-        if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder("Assets/Game", "RosterDevelopment");
+
+        if (!AssetDatabase.IsValidFolder(Folder))
+            AssetDatabase.CreateFolder("Assets/Game", "RosterDevelopment");
         var serialized = new SerializedObject(catalog);
         var perks = serialized.FindProperty("racerPerkDefinitions");
         Register(perks, Perk("DEV_PERK_RESERVE", "Reserve Cell", "Adds 20 energy capacity to this racer's bike each race.", 50, RacerPerkEffect.EnergyCapacity, 20));
@@ -28,12 +31,13 @@ public static class CareerRosterDevelopmentTools
         AssetDatabase.SaveAssets();
         Debug.Log("Four sample perks registered. Restart from Bootstrap to load them. Existing perk assets were preserved.");
     }
-    private static RacerPerkDefinitionSO Perk(string id, string name, string description, int cost,
-        RacerPerkEffect effect, float strength)
+
+    private static RacerPerkDefinitionSO Perk(string id, string name, string description, int cost, RacerPerkEffect effect, float strength)
     {
         string path = Folder + "/" + id + ".asset";
         var asset = AssetDatabase.LoadAssetAtPath<RacerPerkDefinitionSO>(path);
-        if (asset != null) return asset;
+        if (asset != null)
+            return asset;
         asset = ScriptableObject.CreateInstance<RacerPerkDefinitionSO>();
         var serialized = new SerializedObject(asset);
         serialized.FindProperty("id").stringValue = id;
@@ -46,10 +50,12 @@ public static class CareerRosterDevelopmentTools
         AssetDatabase.CreateAsset(asset, path);
         return asset;
     }
+
     private static void Register(SerializedProperty list, RacerPerkDefinitionSO asset)
     {
         for (int i = 0; i < list.arraySize; i++)
-            if (list.GetArrayElementAtIndex(i).objectReferenceValue == asset) return;
+            if (list.GetArrayElementAtIndex(i).objectReferenceValue == asset)
+                return;
         list.arraySize++;
         list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = asset;
     }

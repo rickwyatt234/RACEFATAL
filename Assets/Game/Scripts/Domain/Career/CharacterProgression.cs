@@ -5,78 +5,52 @@ namespace RaceFatal.Career
 {
     public class CharacterProgression
     {
-        private readonly HashSet<string> puchasedPerkIds =
-            new HashSet<string>();
+        private readonly HashSet<string> puchasedPerkIds = new HashSet<string>();
+        public int Fame { get; private set; }
+        public IReadOnlyCollection<string> PurchasedPerkIds => puchasedPerkIds;
 
-        public int Fame {
-            get;
-            private set;
-        }
-
-        public IReadOnlyCollection<string>
-            PurchasedPerkIds =>
-                puchasedPerkIds;
-
-        public void AddFame(
-            int amount)
+        public void AddFame(int amount)
         {
             if (amount > 0)
                 Fame += amount;
         }
 
-        public bool TryPurchasePerk(
-            string perkId,
-            int fameCost)
+        public bool TryPurchasePerk(string perkId, int fameCost)
         {
             if (Fame < fameCost)
             {
                 return false;
             }
 
-            if (puchasedPerkIds.Contains(
-                    perkId))
+            if (puchasedPerkIds.Contains(perkId))
             {
                 return false;
             }
 
             Fame -= fameCost;
-            puchasedPerkIds.Add(
-                perkId);
-
+            puchasedPerkIds.Add(perkId);
             return true;
         }
 
-        public bool HasPurchasedPerk(
-            string perkId)
+        public bool HasPurchasedPerk(string perkId)
         {
-            return puchasedPerkIds.Contains(
-                perkId);
+            return puchasedPerkIds.Contains(perkId);
         }
 
-        internal void RestoreState(
-            int fame,
-            IEnumerable<string> purchasedPerkIds)
+        internal void RestoreState(int fame, IEnumerable<string> purchasedPerkIds)
         {
-            Fame = Math.Max(
-                0,
-                fame);
-
+            Fame = Math.Max(0, fame);
             puchasedPerkIds.Clear();
-
             if (purchasedPerkIds == null)
                 return;
-
-            foreach (string perkId
-                     in purchasedPerkIds)
+            foreach (string perkId in purchasedPerkIds)
             {
-                if (string.IsNullOrWhiteSpace(
-                        perkId))
+                if (string.IsNullOrWhiteSpace(perkId))
                 {
                     continue;
                 }
 
-                puchasedPerkIds.Add(
-                    perkId);
+                puchasedPerkIds.Add(perkId);
             }
         }
     }

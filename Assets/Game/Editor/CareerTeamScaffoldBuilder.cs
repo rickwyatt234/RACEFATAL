@@ -16,7 +16,9 @@ public static class CareerTeamScaffoldBuilder
             Debug.LogWarning("Exit Play Mode before building the Team UI.");
             return;
         }
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            return;
         var scene = EditorSceneManager.OpenScene("Assets/Game/Scenes/01_Career.unity", OpenSceneMode.Single);
         var canvas = GameObject.Find("CareerCanvas");
         var systems = GameObject.Find("CareerSystems");
@@ -27,13 +29,23 @@ public static class CareerTeamScaffoldBuilder
             EditorUtility.DisplayDialog("RACE//FATAL", "Build the Career Hub scaffold first; TeamRoot or CareerSystems is missing.", "OK");
             return;
         }
-        foreach (string childName in new[] { "Placeholder", "TeamUI" })
+
+        foreach (string childName in new[]
+        {
+            "Placeholder",
+            "TeamUI"
+        }
+
+        )
         {
             var child = root.Find(childName);
-            if (child != null) Object.DestroyImmediate(child.gameObject);
+            if (child != null)
+                Object.DestroyImmediate(child.gameObject);
         }
+
         var view = root.GetComponent<CareerTeamView>();
-        if (view == null) view = root.gameObject.AddComponent<CareerTeamView>();
+        if (view == null)
+            view = root.gameObject.AddComponent<CareerTeamView>();
         var ui = Rect(root, "TeamUI", Vector2.zero, Vector2.zero, true);
         Text(ui, "IdentityHeading", "TEAM IDENTITY", 28, new Vector2(410, -165), new Vector2(410, 44));
         Text(ui, "OverviewHeading", "TEAM OPERATIONS", 28, new Vector2(870, -165), new Vector2(440, 44));
@@ -62,7 +74,6 @@ public static class CareerTeamScaffoldBuilder
         var garage = Button(ui, "OpenGarage", "OPEN GARAGE", new Vector2(870, -945), new Vector2(440, 62));
         var research = Button(ui, "OpenResearch", "MANAGE RESEARCH", new Vector2(1350, -945), new Vector2(450, 62));
         var feedback = Text(ui, "Feedback", "EDIT TEAM IDENTITY, THEN APPLY & SAVE.", 20, new Vector2(410, -1020), new Vector2(1390, 55));
-
         var serialized = new SerializedObject(view);
         Reference(serialized, "nameInput", name);
         Reference(serialized, "primaryInput", primary);
@@ -97,10 +108,20 @@ public static class CareerTeamScaffoldBuilder
         rect.anchorMin = stretch ? Vector2.zero : new Vector2(0, 1);
         rect.anchorMax = stretch ? Vector2.one : new Vector2(0, 1);
         rect.pivot = new Vector2(0, 1);
-        if (stretch) { rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero; }
-        else { rect.anchoredPosition = position; rect.sizeDelta = size; }
+        if (stretch)
+        {
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+        else
+        {
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
         return rect;
     }
+
     private static TMP_Text Text(Transform parent, string name, string value, float size, Vector2 position, Vector2 dimensions)
     {
         var label = Rect(parent, name, position, dimensions).gameObject.AddComponent<TextMeshProUGUI>();
@@ -111,6 +132,7 @@ public static class CareerTeamScaffoldBuilder
         label.raycastTarget = false;
         return label;
     }
+
     private static Button Button(Transform parent, string name, string value, Vector2 position, Vector2 size)
     {
         var rect = Rect(parent, name, position, size);
@@ -122,6 +144,7 @@ public static class CareerTeamScaffoldBuilder
         label.alignment = TextAlignmentOptions.Center;
         return button;
     }
+
     private static TMP_InputField Input(Transform parent, string name, string label, Vector2 position, float width, int limit)
     {
         Text(parent, name + "Label", label, 21, position + new Vector2(0, 40), new Vector2(410, 34));
@@ -146,6 +169,7 @@ public static class CareerTeamScaffoldBuilder
         input.characterLimit = limit;
         return input;
     }
+
     private static TMP_Text ScrollText(Transform parent, string name, Vector2 position, Vector2 size)
     {
         var root = Rect(parent, name, position, size);
@@ -167,10 +191,12 @@ public static class CareerTeamScaffoldBuilder
         scroll.scrollSensitivity = 30;
         return text;
     }
+
     private static void Reference(SerializedObject data, string name, Object value)
     {
         var property = data.FindProperty(name);
-        if (property == null) throw new System.InvalidOperationException("Missing serialized field: " + name);
+        if (property == null)
+            throw new System.InvalidOperationException("Missing serialized field: " + name);
         property.objectReferenceValue = value;
     }
 }

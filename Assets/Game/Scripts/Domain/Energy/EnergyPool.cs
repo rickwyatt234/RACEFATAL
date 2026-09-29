@@ -6,23 +6,15 @@ namespace RaceFatal.Energy
     {
         public float CurrentEnergy { get; private set; }
         public float MaxEnergy { get; }
-
         public bool IsEmpty => CurrentEnergy <= 0f;
-
-        public float EnergyRatio =>
-            MaxEnergy > 0f
-                ? CurrentEnergy / MaxEnergy
-                : 0f;
+        public float EnergyRatio => MaxEnergy > 0f ? CurrentEnergy / MaxEnergy : 0f;
 
         public event Action<float, float> OnEnergyChanged;
-
         public EnergyPool(float maxEnergy)
         {
             if (float.IsNaN(maxEnergy) || float.IsInfinity(maxEnergy) || maxEnergy < 0f)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(maxEnergy),
-                    "Max energy must be finite and nonnegative.");
+                throw new ArgumentOutOfRangeException(nameof(maxEnergy), "Max energy must be finite and nonnegative.");
             }
 
             MaxEnergy = maxEnergy;
@@ -31,43 +23,28 @@ namespace RaceFatal.Energy
 
         public bool CanSpend(float amount)
         {
-            return amount >= 0f &&
-                   CurrentEnergy >= amount;
+            return amount >= 0f && CurrentEnergy >= amount;
         }
 
         public bool TrySpend(float amount)
         {
             if (!CanSpend(amount))
                 return false;
-
             CurrentEnergy -= amount;
-
-            OnEnergyChanged?.Invoke(
-                CurrentEnergy,
-                MaxEnergy);
-
+            OnEnergyChanged?.Invoke(CurrentEnergy, MaxEnergy);
             return true;
         }
 
         public float SpendUpTo(float amount)
         {
-            if (amount <= 0f ||
-                CurrentEnergy <= 0f)
+            if (amount <= 0f || CurrentEnergy <= 0f)
             {
                 return 0f;
             }
 
-            float spent =
-                Math.Min(
-                    CurrentEnergy,
-                    amount);
-
+            float spent = Math.Min(CurrentEnergy, amount);
             CurrentEnergy -= spent;
-
-            OnEnergyChanged?.Invoke(
-                CurrentEnergy,
-                MaxEnergy);
-
+            OnEnergyChanged?.Invoke(CurrentEnergy, MaxEnergy);
             return spent;
         }
 
@@ -75,23 +52,12 @@ namespace RaceFatal.Energy
         {
             if (amount <= 0f)
                 return 0f;
-
-            float previous =
-                CurrentEnergy;
-
-            CurrentEnergy =
-                Math.Min(
-                    MaxEnergy,
-                    CurrentEnergy + amount);
-
-            float restored =
-                CurrentEnergy - previous;
-
+            float previous = CurrentEnergy;
+            CurrentEnergy = Math.Min(MaxEnergy, CurrentEnergy + amount);
+            float restored = CurrentEnergy - previous;
             if (restored > 0f)
             {
-                OnEnergyChanged?.Invoke(
-                    CurrentEnergy,
-                    MaxEnergy);
+                OnEnergyChanged?.Invoke(CurrentEnergy, MaxEnergy);
             }
 
             return restored;

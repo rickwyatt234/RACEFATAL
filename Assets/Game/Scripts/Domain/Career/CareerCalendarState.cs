@@ -6,7 +6,6 @@ using RaceFatal.Racing;
 
 namespace RaceFatal.Career
 {
-    // Serializable value snapshots. Only services mutate the live state's internal data.
     [Serializable]
     public sealed class ChampionshipStandingData
     {
@@ -39,33 +38,49 @@ namespace RaceFatal.Career
         public string pendingInstanceId, pendingRaceId;
         public bool completed, withdrawn;
         public int finalRank, finalPrize;
-        // Primitive snapshot fields avoid Unity inline-null serialization ambiguity.
         public List<DeathmatchStandingData> deathmatchResults = new List<DeathmatchStandingData>();
         public int deathmatchVersion, deathmatchMode, allowedWinners;
         public bool shareTimeoutTies;
         public float timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds;
         public void CaptureDeathmatch(DeathmatchRules rules)
         {
-            if (rules == null) return;
+            if (rules == null)
+                return;
             shareTimeoutTies = rules.ShareTimeoutTies;
-            deathmatchVersion = 1; deathmatchMode = (int)rules.Mode; allowedWinners = rules.AllowedWinners;
-            timeLimitSeconds = rules.TimeLimitSeconds; minimumSpeedKph = rules.MinimumSpeedKph;
-            startGraceSeconds = rules.StartGraceSeconds; belowSpeedGraceSeconds = rules.BelowSpeedGraceSeconds;
+            deathmatchVersion = 1;
+            deathmatchMode = (int)rules.Mode;
+            allowedWinners = rules.AllowedWinners;
+            timeLimitSeconds = rules.TimeLimitSeconds;
+            minimumSpeedKph = rules.MinimumSpeedKph;
+            startGraceSeconds = rules.StartGraceSeconds;
+            belowSpeedGraceSeconds = rules.BelowSpeedGraceSeconds;
         }
-        public DeathmatchRules RestoreDeathmatch() => new DeathmatchRules((DeathmatchVictoryMode)deathmatchMode,
-            allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies);
+
+        public DeathmatchRules RestoreDeathmatch() => new DeathmatchRules((DeathmatchVictoryMode)deathmatchMode, allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies);
         public bool ValidDeathmatch()
         {
-            if (kind != CareerEventKind.Deathmatch) return !shareTimeoutTies && deathmatchVersion == 0 && deathmatchMode == 0 && allowedWinners == 0 &&
-                timeLimitSeconds == 0 && minimumSpeedKph == 0 && startGraceSeconds == 0 && belowSpeedGraceSeconds == 0;
-            if (deathmatchVersion != 1) return false;
-            try { RestoreDeathmatch(); return true; } catch (ArgumentException) { return false; }
+            if (kind != CareerEventKind.Deathmatch)
+                return !shareTimeoutTies && deathmatchVersion == 0 && deathmatchMode == 0 && allowedWinners == 0 && timeLimitSeconds == 0 && minimumSpeedKph == 0 && startGraceSeconds == 0 && belowSpeedGraceSeconds == 0;
+            if (deathmatchVersion != 1)
+                return false;
+            try
+            {
+                RestoreDeathmatch();
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
         }
+
         public CareerEventEntryData Copy()
         {
             var copy = (CareerEventEntryData)MemberwiseClone();
             copy.raceIds = new List<string>(raceIds);
-            copy.payouts = new List<int>(payouts); copy.prizes = new List<int>(prizes); copy.points = new List<int>(points);
+            copy.payouts = new List<int>(payouts);
+            copy.prizes = new List<int>(prizes);
+            copy.points = new List<int>(points);
             copy.standings = standings.Select(s => s.Copy()).ToList();
             copy.deathmatchResults = (deathmatchResults ?? new List<DeathmatchStandingData>()).Select(s => s.Copy()).ToList();
             return copy;
@@ -80,9 +95,8 @@ namespace RaceFatal.Career
         public List<string> unlocked = new List<string>();
         public List<string> cancelledAttempts = new List<string>();
         public CareerEventEntryData active, lastEvent;
-        public CareerCalendarData Copy() => new CareerCalendarData {
-            seed = seed, week = week, drawWeek = drawWeek, draw = new List<string>(draw),
-            unlocked = new List<string>(unlocked), cancelledAttempts = new List<string>(cancelledAttempts), active = active?.Copy(), lastEvent = lastEvent?.Copy() };
+        public CareerCalendarData Copy() => new CareerCalendarData {  seed = seed,  week = week,  drawWeek = drawWeek,  draw = new List<string>(draw),  unlocked =
+            new List<string>(unlocked),  cancelledAttempts = new List<string>(cancelledAttempts),  active = active?.Copy(),  lastEvent = lastEvent?.Copy() };
     }
 
     public sealed class CareerCalendarState
@@ -93,19 +107,19 @@ namespace RaceFatal.Career
         public IReadOnlyList<string> UnlockedIds => Data.unlocked.AsReadOnly();
         public CareerEventEntryData Active => Data.active?.Copy();
         public CareerEventEntryData LastEvent => Data.lastEvent?.Copy();
-        public CareerCalendarState() { Data = new CareerCalendarData { seed = Guid.NewGuid().GetHashCode() }; }
+
+        public CareerCalendarState()
+        {
+            Data = new CareerCalendarData {  seed = Guid.NewGuid().GetHashCode() };
+        }
+
         public CareerCalendarData Export() => Data.Copy();
         public static Result<CareerCalendarState> Restore(CareerCalendarData data)
         {
-            if (data == null) return Result<CareerCalendarState>.Success(new CareerCalendarState());
-            // Unity's inline JSON serializer represents null nested classes as
-            // default-valued objects. Normalize only completely empty sentinels.
-            // Use a separate snapshot so loading never changes the caller's data.
-            data = new CareerCalendarData {
-                seed = data.seed, week = data.week, drawWeek = data.drawWeek,
-                draw = data.draw, unlocked = data.unlocked, cancelledAttempts = data.cancelledAttempts,
-                active = IsEmptyEntry(data.active) ? null : data.active,
-                lastEvent = IsEmptyEntry(data.lastEvent) ? null : data.lastEvent };
+            if (data == null)
+                return Result<CareerCalendarState>.Success(new CareerCalendarState());
+            data = new CareerCalendarData {  seed = data.seed,  week = data.week,  drawWeek = data.drawWeek,  draw = data.draw,  unlocked =
+                data.unlocked,  cancelledAttempts = data.cancelledAttempts,  active = IsEmptyEntry(data.active) ? null : data.active,  lastEvent = IsEmptyEntry(data.lastEvent) ? null : data.lastEvent };
             if (data.week < 1 || data.week == int.MaxValue || (data.drawWeek != 0 && data.drawWeek != data.week))
                 return Result<CareerCalendarState>.Failure($"Invalid career calendar week (week={data.week}, drawWeek={data.drawWeek}).");
             if (!ValidIds(data.draw) || !ValidIds(data.unlocked) || !ValidIds(data.cancelledAttempts))
@@ -124,49 +138,31 @@ namespace RaceFatal.Career
             state.Data = data.Copy();
             return Result<CareerCalendarState>.Success(state);
         }
-        private static bool Empty<T>(List<T> values) => values == null || values.Count == 0;
-        private static bool IsEmptyEntry(CareerEventEntryData entry) => entry == null || (
-            entry.ValidDeathmatch() && entry.deathmatchVersion == 0 && string.IsNullOrEmpty(entry.eventId) && string.IsNullOrEmpty(entry.displayName) &&
-            string.IsNullOrEmpty(entry.description) && entry.kind == default &&
-            entry.entryFee == 0 && entry.roundIndex == 0 && entry.finalRank == 0 && entry.finalPrize == 0 &&
-            !entry.completed && !entry.withdrawn && string.IsNullOrEmpty(entry.pendingInstanceId) &&
-            string.IsNullOrEmpty(entry.pendingRaceId) && Empty(entry.raceIds) && Empty(entry.payouts) &&
-            Empty(entry.prizes) && Empty(entry.points) && Empty(entry.standings) && Empty(entry.deathmatchResults));
 
-        private static bool ValidIds(List<string> ids) => ids != null &&
-            ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct().Count() == ids.Count;
+        private static bool Empty<T>(List<T> values) => values == null || values.Count == 0;
+        private static bool IsEmptyEntry(CareerEventEntryData entry) => entry == null || (entry.ValidDeathmatch() && entry.deathmatchVersion == 0 && string.IsNullOrEmpty(entry.eventId) && string.IsNullOrEmpty(entry.displayName) && string.IsNullOrEmpty(entry.description) && entry.kind == default && entry.entryFee == 0 && entry.roundIndex == 0 && entry.finalRank == 0 && entry.finalPrize == 0 && !entry.completed && !entry.withdrawn && string.IsNullOrEmpty(entry.pendingInstanceId) && string.IsNullOrEmpty(entry.pendingRaceId) && Empty(entry.raceIds) && Empty(entry.payouts) && Empty(entry.prizes) && Empty(entry.points) && Empty(entry.standings) && Empty(entry.deathmatchResults));
+        private static bool ValidIds(List<string> ids) => ids != null && ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct().Count() == ids.Count;
         private static bool ValidEntry(CareerEventEntryData entry, bool history)
         {
-            if (entry == null) return true;
-            if (string.IsNullOrWhiteSpace(entry.eventId) || string.IsNullOrWhiteSpace(entry.displayName) ||
-                (entry.kind != CareerEventKind.Race && entry.kind != CareerEventKind.Championship && entry.kind != CareerEventKind.Deathmatch) ||
-                !entry.ValidDeathmatch() ||
-                entry.entryFee < 0 || entry.roundIndex < 0 || entry.raceIds == null || entry.raceIds.Count == 0 ||
-                entry.raceIds.Any(string.IsNullOrWhiteSpace) || entry.roundIndex > entry.raceIds.Count ||
-                (entry.kind != CareerEventKind.Championship && entry.raceIds.Count != 1) ||
-                (entry.kind == CareerEventKind.Championship && entry.raceIds.Count < 2) ||
-                entry.payouts == null || entry.prizes == null || entry.points == null ||
-                entry.payouts.Concat(entry.prizes).Concat(entry.points).Any(p => p < 0) ||
-                entry.standings == null || entry.standings.Any(s => s == null || string.IsNullOrWhiteSpace(s.teamId) || s.points < 0) ||
-                entry.standings.Select(s => s.teamId).Distinct().Count() != entry.standings.Count ||
-                entry.finalRank < 0 || entry.finalPrize < 0) return false;
-            if (entry.kind == CareerEventKind.Deathmatch && entry.allowedWinners >=
-                (entry.deathmatchMode == (int)DeathmatchVictoryMode.Team ? entry.standings.Count : entry.standings.Count * 2)) return false;
+            if (entry == null)
+                return true;
+            if (string.IsNullOrWhiteSpace(entry.eventId) || string.IsNullOrWhiteSpace(entry.displayName) || (entry.kind != CareerEventKind.Race && entry.kind != CareerEventKind.Championship && entry.kind != CareerEventKind.Deathmatch) || !entry.ValidDeathmatch() || entry.entryFee < 0 || entry.roundIndex < 0 || entry.raceIds == null || entry.raceIds.Count == 0 || entry.raceIds.Any(string.IsNullOrWhiteSpace) || entry.roundIndex > entry.raceIds.Count || (entry.kind != CareerEventKind.Championship && entry.raceIds.Count != 1) || (entry.kind == CareerEventKind.Championship && entry.raceIds.Count < 2) || entry.payouts == null || entry.prizes == null || entry.points == null || entry.payouts.Concat(entry.prizes).Concat(entry.points).Any(p => p < 0) || entry.standings == null || entry.standings.Any(s => s == null || string.IsNullOrWhiteSpace(s.teamId) || s.points < 0) || entry.standings.Select(s => s.teamId).Distinct().Count() != entry.standings.Count || entry.finalRank < 0 || entry.finalPrize < 0)
+                return false;
+            if (entry.kind == CareerEventKind.Deathmatch && entry.allowedWinners >= (entry.deathmatchMode == (int)DeathmatchVictoryMode.Team ? entry.standings.Count : entry.standings.Count * 2))
+                return false;
             if (!Empty(entry.deathmatchResults))
             {
-                if (entry.kind != CareerEventKind.Deathmatch || !history || entry.withdrawn ||
-                    entry.deathmatchResults.Any(s => s == null || string.IsNullOrWhiteSpace(s.racerId) ||
-                        s.position < 1 || s.eliminations < 0 || !entry.standings.Any(t => t.teamId == s.teamId) ||
-                        (s.status != RaceParticipantStatus.Finished && s.status != RaceParticipantStatus.Destroyed && s.status != RaceParticipantStatus.Retired)) ||
-                    entry.deathmatchResults.Select(s => s.racerId).Distinct().Count() != entry.deathmatchResults.Count) return false;
+                if (entry.kind != CareerEventKind.Deathmatch || !history || entry.withdrawn || entry.deathmatchResults.Any(s => s == null || string.IsNullOrWhiteSpace(s.racerId) || s.position < 1 || s.eliminations < 0 || !entry.standings.Any(t => t.teamId == s.teamId) || (s.status != RaceParticipantStatus.Finished && s.status != RaceParticipantStatus.Destroyed && s.status != RaceParticipantStatus.Retired)) || entry.deathmatchResults.Select(s => s.racerId).Distinct().Count() != entry.deathmatchResults.Count)
+                    return false;
             }
-            if (entry.kind == CareerEventKind.Deathmatch && history && !entry.withdrawn && Empty(entry.deathmatchResults)) return false;
-            if (history) return entry.completed && (entry.withdrawn || entry.roundIndex == entry.raceIds.Count) &&
-                string.IsNullOrEmpty(entry.pendingInstanceId) && string.IsNullOrEmpty(entry.pendingRaceId);
-            if (entry.completed || entry.withdrawn || entry.roundIndex >= entry.raceIds.Count) return false;
-            return string.IsNullOrEmpty(entry.pendingInstanceId)
-                ? string.IsNullOrEmpty(entry.pendingRaceId)
-                : !string.IsNullOrWhiteSpace(entry.pendingInstanceId) && entry.pendingRaceId == entry.raceIds[entry.roundIndex];
+
+            if (entry.kind == CareerEventKind.Deathmatch && history && !entry.withdrawn && Empty(entry.deathmatchResults))
+                return false;
+            if (history)
+                return entry.completed && (entry.withdrawn || entry.roundIndex == entry.raceIds.Count) && string.IsNullOrEmpty(entry.pendingInstanceId) && string.IsNullOrEmpty(entry.pendingRaceId);
+            if (entry.completed || entry.withdrawn || entry.roundIndex >= entry.raceIds.Count)
+                return false;
+            return string.IsNullOrEmpty(entry.pendingInstanceId) ? string.IsNullOrEmpty(entry.pendingRaceId) : !string.IsNullOrWhiteSpace(entry.pendingInstanceId) && entry.pendingRaceId == entry.raceIds[entry.roundIndex];
         }
     }
 }

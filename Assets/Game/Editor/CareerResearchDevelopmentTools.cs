@@ -10,34 +10,56 @@ using UnityEngine;
 public static class CareerResearchDevelopmentTools
 {
     private const string Folder = "Assets/Game/ResearchDevelopment";
-
     [MenuItem("RACE//FATAL/Career/Create Research Development Content")]
     public static void Create()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
         var catalog = Selection.activeObject as GameContentCatalogSO;
         if (catalog == null)
         {
-            EditorUtility.DisplayDialog("Research Development Content",
-                "Select the GameContentCatalog asset used by Bootstrap, then run this tool again.", "OK");
+            EditorUtility.DisplayDialog("Research Development Content", "Select the GameContentCatalog asset used by Bootstrap, then run this tool again.", "OK");
             return;
         }
+
         EngineDefinitionSO engine = null;
         ShieldDefinitionSO shield = null;
         foreach (var item in catalog.EngineDefinitions)
-            if (item != null && !AssetDatabase.GetAssetPath(item).StartsWith(Folder + "/", StringComparison.Ordinal)) { engine = item; break; }
+            if (item != null && !AssetDatabase.GetAssetPath(item).StartsWith(Folder + "/", StringComparison.Ordinal))
+            {
+                engine = item;
+                break;
+            }
+
         foreach (var item in catalog.EquipmentDefinitions)
-            if (item is ShieldDefinitionSO candidate && !AssetDatabase.GetAssetPath(item).StartsWith(Folder + "/", StringComparison.Ordinal)) { shield = candidate; break; }
+            if (item is ShieldDefinitionSO candidate && !AssetDatabase.GetAssetPath(item).StartsWith(Folder + "/", StringComparison.Ordinal))
+            {
+                shield = candidate;
+                break;
+            }
+
         if (engine == null || shield == null)
         {
             EditorUtility.DisplayDialog("Research Development Content", "The selected catalog needs an engine and a shield to copy.", "OK");
             return;
         }
-        if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder("Assets/Game", "ResearchDevelopment");
+
+        if (!AssetDatabase.IsValidFolder(Folder))
+            AssetDatabase.CreateFolder("Assets/Game", "ResearchDevelopment");
         var progression = AssetDatabase.LoadAssetAtPath<ResearchProgressionSO>(Folder + "/ResearchProgression.asset");
-        if (progression == null) { progression = ScriptableObject.CreateInstance<ResearchProgressionSO>(); AssetDatabase.CreateAsset(progression, Folder + "/ResearchProgression.asset"); }
+        if (progression == null)
+        {
+            progression = ScriptableObject.CreateInstance<ResearchProgressionSO>();
+            AssetDatabase.CreateAsset(progression, Folder + "/ResearchProgression.asset");
+        }
+
         var layout = AssetDatabase.LoadAssetAtPath<ResearchTreeLayoutSO>(Folder + "/ResearchLayout.asset");
-        if (layout == null) { layout = ScriptableObject.CreateInstance<ResearchTreeLayoutSO>(); AssetDatabase.CreateAsset(layout, Folder + "/ResearchLayout.asset"); }
+        if (layout == null)
+        {
+            layout = ScriptableObject.CreateInstance<ResearchTreeLayoutSO>();
+            AssetDatabase.CreateAsset(layout, Folder + "/ResearchLayout.asset");
+        }
+
         var foundation = Technology("DEV_TECH_ENGINE_01", "Engine Calibration", ResearchField.EngineTechnology, 50, null, 0);
         var propulsion = Technology("DEV_TECH_ENGINE_02", "Advanced Propulsion", ResearchField.EngineTechnology, 125, foundation.Id, 1, 2);
         var defense = Technology("DEV_TECH_SHIELD_01", "Shield Modulation", ResearchField.ShieldTechnology, 50, null, 2);
@@ -51,8 +73,10 @@ public static class CareerResearchDevelopmentTools
         var shieldCopy = CopyComponent(shield, "DEV_SHIELD_RESEARCH", "Development Research Shield", defense.Id, 100);
         Undo.RecordObject(catalog, "Register research development content");
         var serialized = new SerializedObject(catalog);
-        if (catalog.ResearchProgression == null) serialized.FindProperty("researchProgression").objectReferenceValue = progression;
-        if (catalog.ResearchTreeLayout == null) serialized.FindProperty("researchTreeLayout").objectReferenceValue = layout;
+        if (catalog.ResearchProgression == null)
+            serialized.FindProperty("researchProgression").objectReferenceValue = progression;
+        if (catalog.ResearchTreeLayout == null)
+            serialized.FindProperty("researchTreeLayout").objectReferenceValue = layout;
         Append(serialized, "researcherDefinitions", engineer);
         Append(serialized, "researcherDefinitions", lab);
         Append(serialized, "engineDefinitions", hybridEngine);
@@ -79,7 +103,8 @@ public static class CareerResearchDevelopmentTools
     {
         string path = Folder + "/" + id + ".asset";
         var existing = AssetDatabase.LoadAssetAtPath<TechnologyDefinitionSO>(path);
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
         var asset = ScriptableObject.CreateInstance<TechnologyDefinitionSO>();
         var serialized = new SerializedObject(asset);
         serialized.FindProperty("id").stringValue = id;
@@ -92,22 +117,26 @@ public static class CareerResearchDevelopmentTools
         serialized.FindProperty("displayOrder").intValue = order;
         var prerequisites = serialized.FindProperty("prerequisiteTechnologyIds");
         prerequisites.arraySize = prerequisite == null ? 0 : 1;
-        if (prerequisite != null) prerequisites.GetArrayElementAtIndex(0).stringValue = prerequisite;
+        if (prerequisite != null)
+            prerequisites.GetArrayElementAtIndex(0).stringValue = prerequisite;
         if (additionalPrerequisite != null)
         {
             int index = prerequisites.arraySize++;
             prerequisites.GetArrayElementAtIndex(index).stringValue = additionalPrerequisite;
         }
+
         serialized.ApplyModifiedPropertiesWithoutUndo();
         AssetDatabase.CreateAsset(asset, path);
         return asset;
     }
 
-    private static T CopyComponent<T>(T source, string id, string label, string technology, int credits) where T : ScriptableObject
+    private static T CopyComponent<T>(T source, string id, string label, string technology, int credits)
+        where T : ScriptableObject
     {
         string path = Folder + "/" + id + ".asset";
         var existing = AssetDatabase.LoadAssetAtPath<T>(path);
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
         T copy = UnityEngine.Object.Instantiate(source);
         copy.name = id;
         var serialized = new SerializedObject(copy);
@@ -124,7 +153,8 @@ public static class CareerResearchDevelopmentTools
     {
         string path = Folder + "/" + id + ".asset";
         var asset = AssetDatabase.LoadAssetAtPath<ResearcherDefinitionSO>(path);
-        if (asset != null) return asset;
+        if (asset != null)
+            return asset;
         asset = ScriptableObject.CreateInstance<ResearcherDefinitionSO>();
         var serialized = new SerializedObject(asset);
         serialized.FindProperty("id").stringValue = id;
@@ -132,12 +162,18 @@ public static class CareerResearchDevelopmentTools
         serialized.FindProperty("creditCost").intValue = cost;
         serialized.FindProperty("pointsPerRace").intValue = output;
         serialized.FindProperty("duration").intValue = duration;
-        serialized.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.CreateAsset(asset, path); return asset;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        AssetDatabase.CreateAsset(asset, path);
+        return asset;
     }
+
     private static void AddLayout(ResearchTreeLayoutSO layout, TechnologyDefinitionSO technology, Vector2 position)
     {
-        foreach (var node in layout.Nodes) if (node?.technology == technology) return;
-        var serialized = new SerializedObject(layout); var nodes = serialized.FindProperty("nodes");
+        foreach (var node in layout.Nodes)
+            if (node?.technology == technology)
+                return;
+        var serialized = new SerializedObject(layout);
+        var nodes = serialized.FindProperty("nodes");
         int index = nodes.arraySize++;
         nodes.GetArrayElementAtIndex(index).FindPropertyRelative("technology").objectReferenceValue = technology;
         nodes.GetArrayElementAtIndex(index).FindPropertyRelative("position").vector2Value = position;
@@ -148,7 +184,8 @@ public static class CareerResearchDevelopmentTools
     {
         var list = serialized.FindProperty(field);
         for (int i = 0; i < list.arraySize; i++)
-            if (list.GetArrayElementAtIndex(i).objectReferenceValue == value) return;
+            if (list.GetArrayElementAtIndex(i).objectReferenceValue == value)
+                return;
         list.arraySize++;
         list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = value;
     }

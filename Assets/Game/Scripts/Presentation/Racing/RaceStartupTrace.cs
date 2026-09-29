@@ -5,31 +5,19 @@ namespace RaceFatal.Presentation.Racing
     public static class RaceStartupTrace
     {
         private static int step;
-
         public static void Reset()
         {
             step = 0;
-
-            Debug.Log(
-                "========================================\n" +
-                "RACE STARTUP PIPELINE BEGIN\n" +
-                "========================================");
+            Debug.Log("========================================\n" + "RACE STARTUP PIPELINE BEGIN\n" + "========================================");
         }
 
-        public static void Mark(
-            string message,
-            Object context = null)
+        public static void Mark(string message, Object context = null)
         {
             step++;
-
-            string text =
-                $"[RACE STARTUP {step:00}] {message}";
-
+            string text = $"[RACE STARTUP {step:00}] {message}";
             if (context != null)
             {
-                Debug.Log(
-                    text,
-                    context);
+                Debug.Log(text, context);
             }
             else
             {
@@ -37,18 +25,12 @@ namespace RaceFatal.Presentation.Racing
             }
         }
 
-        public static void Warning(
-            string message,
-            Object context = null)
+        public static void Warning(string message, Object context = null)
         {
-            string text =
-                $"[RACE STARTUP WARNING] {message}";
-
+            string text = $"[RACE STARTUP WARNING] {message}";
             if (context != null)
             {
-                Debug.LogWarning(
-                    text,
-                    context);
+                Debug.LogWarning(text, context);
             }
             else
             {
@@ -56,18 +38,12 @@ namespace RaceFatal.Presentation.Racing
             }
         }
 
-        public static void Fail(
-            string message,
-            Object context = null)
+        public static void Fail(string message, Object context = null)
         {
-            string text =
-                $"[RACE STARTUP FAILED] {message}";
-
+            string text = $"[RACE STARTUP FAILED] {message}";
             if (context != null)
             {
-                Debug.LogError(
-                    text,
-                    context);
+                Debug.LogError(text, context);
             }
             else
             {
@@ -77,10 +53,7 @@ namespace RaceFatal.Presentation.Racing
 
         public static void Complete()
         {
-            Debug.Log(
-                "========================================\n" +
-                "RACE STARTUP PIPELINE COMPLETE\n" +
-                "========================================");
+            Debug.Log("========================================\n" + "RACE STARTUP PIPELINE COMPLETE\n" + "========================================");
         }
     }
 }

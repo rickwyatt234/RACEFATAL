@@ -11,21 +11,15 @@ namespace RaceFatal.Equipment
     {
         private readonly string racerId;
         private readonly EnergyPool energy;
-
         private readonly List<WeaponState> weapons = new List<WeaponState>();
         private readonly List<BoosterState> boosters = new List<BoosterState>();
         private readonly List<CountermeasureState> countermeasures = new List<CountermeasureState>();
-
         private int selectedIndex = -1;
-
         private bool boostAllowed = true;
         private bool weaponsAllowed = true;
-
         public RaceShieldState Shield { get; private set; }
-
         public bool BoostAllowed => boostAllowed;
         public bool WeaponsAllowed => weaponsAllowed;
-
         public bool HasWeapon => weapons.Count > 0;
         public int WeaponCount => weapons.Count;
 
@@ -35,8 +29,7 @@ namespace RaceFatal.Equipment
             {
                 foreach (WeaponState weapon in weapons)
                 {
-                    if (IsSelectableWeapon(weapon) &&
-                        weapon.CurrentAmmo > 0)
+                    if (IsSelectableWeapon(weapon) && weapon.CurrentAmmo > 0)
                     {
                         return true;
                     }
@@ -82,19 +75,14 @@ namespace RaceFatal.Equipment
             }
         }
 
-        public bool SelectedWeaponIsEmpty =>
-            SelectedWeaponDefinition != null &&
-            SelectedWeaponAmmo <= 0;
+        public bool SelectedWeaponIsEmpty => SelectedWeaponDefinition != null && SelectedWeaponAmmo <= 0;
 
         public bool SelectedWeaponIsCharging
         {
             get
             {
                 WeaponState weapon = GetSelectedWeapon();
-
-                return weapon != null &&
-                       weapon.Definition.ActivationMode == EquipmentActivationMode.ChargeRelease &&
-                       weapon.IsCharging;
+                return weapon != null && weapon.Definition.ActivationMode == EquipmentActivationMode.ChargeRelease && weapon.IsCharging;
             }
         }
 
@@ -112,10 +100,7 @@ namespace RaceFatal.Equipment
             get
             {
                 WeaponState weapon = GetSelectedWeapon();
-
-                return weapon != null
-                    ? Math.Max(0f, weapon.Definition.ChargeDuration)
-                    : 0f;
+                return weapon != null ? Math.Max(0f, weapon.Definition.ChargeDuration) : 0f;
             }
         }
 
@@ -124,23 +109,15 @@ namespace RaceFatal.Equipment
             get
             {
                 WeaponState weapon = GetSelectedWeapon();
-
-                if (weapon == null ||
-                    weapon.Definition.ActivationMode != EquipmentActivationMode.ChargeRelease ||
-                    !weapon.IsCharging)
+                if (weapon == null || weapon.Definition.ActivationMode != EquipmentActivationMode.ChargeRelease || !weapon.IsCharging)
                 {
                     return 0f;
                 }
 
-                float duration =
-                    weapon.Definition.ChargeDuration;
-
+                float duration = weapon.Definition.ChargeDuration;
                 if (duration <= 0f)
                     return 1f;
-
-                return Math.Min(
-                    1f,
-                    weapon.ChargeTime / duration);
+                return Math.Min(1f, weapon.ChargeTime / duration);
             }
         }
 
@@ -161,13 +138,11 @@ namespace RaceFatal.Equipment
             }
         }
 
-
         public float SpeedMultiplier
         {
             get
             {
                 float multiplier = 1f;
-
                 foreach (BoosterState booster in boosters)
                 {
                     if (booster.IsActive)
@@ -183,7 +158,6 @@ namespace RaceFatal.Equipment
             get
             {
                 float multiplier = 1f;
-
                 foreach (BoosterState booster in boosters)
                 {
                     if (booster.IsActive)
@@ -195,250 +169,150 @@ namespace RaceFatal.Equipment
         }
 
         public event Action<WeaponFireEvent> WeaponFired;
-
         public RaceEquipmentSystem(string racerId, EnergyPool energy)
         {
-            this.racerId = racerId
-                ?? throw new ArgumentNullException(nameof(racerId));
-
-            this.energy = energy
-                ?? throw new ArgumentNullException(nameof(energy));
+            this.racerId = racerId ?? throw new ArgumentNullException(nameof(racerId));
+            this.energy = energy ?? throw new ArgumentNullException(nameof(energy));
         }
 
-        public static Result<RaceEquipmentSystem> Create(
-            string racerId,
-            BikeLoadout loadout,
-            GameDatabase database,
-            EnergyPool energy)
+        public static Result<RaceEquipmentSystem> Create(string racerId, BikeLoadout loadout, GameDatabase database, EnergyPool energy)
         {
             if (loadout == null)
                 return Result<RaceEquipmentSystem>.Failure("Bike loadout is required.");
-
             if (database == null)
                 return Result<RaceEquipmentSystem>.Failure("Game database is required.");
-
-            RaceEquipmentSystem system =
-                new RaceEquipmentSystem(racerId, energy);
-
+            RaceEquipmentSystem system = new RaceEquipmentSystem(racerId, energy);
             foreach (BikeNode node in loadout.Nodes)
             {
                 if (!node.IsOccupied)
                     continue;
-
                 EquipmentState equipment = node.InstalledEquipment;
-
-                EquipmentDefinition definition =
-                    database.GetEquipmentDefinition(
-                        equipment.EquipmentDefinitionId);
-
+                EquipmentDefinition definition = database.GetEquipmentDefinition(equipment.EquipmentDefinitionId);
                 if (definition == null)
                 {
-                    return Result<RaceEquipmentSystem>.Failure(
-                        $"Equipment definition '{equipment.EquipmentDefinitionId}' was not found.");
+                    return Result<RaceEquipmentSystem>.Failure($"Equipment definition '{equipment.EquipmentDefinitionId}' was not found.");
                 }
 
-                Result<RaceEquipmentSystem> result =
-                    system.Register(
-                        equipment,
-                        definition);
-
+                Result<RaceEquipmentSystem> result = system.Register(equipment, definition);
                 if (!result.IsSuccess)
                 {
-                    return Result<RaceEquipmentSystem>.Failure(
-                        $"Failed to register equipment '{equipment.EquipmentId}': " +
-                        result.ErrorMessage);
+                    return Result<RaceEquipmentSystem>.Failure($"Failed to register equipment '{equipment.EquipmentId}': " + result.ErrorMessage);
                 }
             }
 
             return Result<RaceEquipmentSystem>.Success(system);
         }
 
-        private Result<RaceEquipmentSystem> Register(
-            EquipmentState equipment,
-            EquipmentDefinition definition)
+        private Result<RaceEquipmentSystem> Register(EquipmentState equipment, EquipmentDefinition definition)
         {
             switch (definition)
             {
                 case WeaponDefinition weapon:
                     weapons.Add(new WeaponState(equipment, weapon));
                     return Result<RaceEquipmentSystem>.Success(this);
-
                 case BoosterDefinition booster:
                     boosters.Add(new BoosterState(equipment, booster));
                     return Result<RaceEquipmentSystem>.Success(this);
-
                 case ShieldDefinition shield:
                     if (Shield != null)
                     {
-                        return Result<RaceEquipmentSystem>.Failure(
-                            "Only one shield can be installed.");
+                        return Result<RaceEquipmentSystem>.Failure("Only one shield can be installed.");
                     }
 
-                    Shield =
-                        new RaceShieldState(
-                            shield,
-                            energy);
-
+                    Shield = new RaceShieldState(shield, energy);
                     return Result<RaceEquipmentSystem>.Success(this);
-
                 case HandlingUtilityDefinition _:
-                    // Already included in BikePerformance.ConfiguredHandling.
                     return Result<RaceEquipmentSystem>.Success(this);
-
                 case CountermeasureDefinition countermeasure:
-                    countermeasures.Add(
-                        new CountermeasureState(
-                            equipment,
-                            countermeasure));
-
+                    countermeasures.Add(new CountermeasureState(equipment, countermeasure));
                     return Result<RaceEquipmentSystem>.Success(this);
-
                 default:
-                    return Result<RaceEquipmentSystem>.Failure(
-                        $"Unsupported equipment definition '{definition.Id}'.");
+                    return Result<RaceEquipmentSystem>.Failure($"Unsupported equipment definition '{definition.Id}'.");
             }
         }
 
-        #region Race Permissions
-
-        public void SetRaceActivationPermissions(
-            bool allowBoost,
-            bool allowWeapons)
+#region Race Permissions
+        public void SetRaceActivationPermissions(bool allowBoost, bool allowWeapons)
         {
             boostAllowed = allowBoost;
             weaponsAllowed = allowWeapons;
-
             if (!boostAllowed)
                 SetAllBoostersActive(false);
-
             if (!weaponsAllowed)
                 StopAllWeaponActivations();
         }
 
-        #endregion
-
-        #region Weapon Selection
-
-        public bool TryGetWeaponSnapshot(
-            int index,
-            out RaceWeaponSnapshot snapshot)
+#endregion
+#region Weapon Selection
+        public bool TryGetWeaponSnapshot(int index, out RaceWeaponSnapshot snapshot)
         {
-            snapshot =
-                default;
-
-            if (index < 0 ||
-                index >= weapons.Count)
+            snapshot = default;
+            if (index < 0 || index >= weapons.Count)
             {
                 return false;
             }
 
-            WeaponState weapon =
-                weapons[index];
-
-            if (weapon == null ||
-                weapon.Definition == null ||
-                weapon.Equipment == null)
+            WeaponState weapon = weapons[index];
+            if (weapon == null || weapon.Definition == null || weapon.Equipment == null)
             {
                 return false;
             }
 
-            snapshot =
-                new RaceWeaponSnapshot(
-                    weapon.Equipment.EquipmentId,
-                    weapon.Definition,
-                    weapon.CurrentAmmo,
-                    weapon.Definition.StartingAmmo,
-                    index == selectedIndex);
-
+            snapshot = new RaceWeaponSnapshot(weapon.Equipment.EquipmentId, weapon.Definition, weapon.CurrentAmmo, weapon.Definition.StartingAmmo, index == selectedIndex);
             return true;
         }
 
-        public bool TryGetWeaponSnapshot(
-            string equipmentId,
-            out RaceWeaponSnapshot snapshot)
+        public bool TryGetWeaponSnapshot(string equipmentId, out RaceWeaponSnapshot snapshot)
         {
-            snapshot =
-                default;
-
-            if (string.IsNullOrWhiteSpace(
-                    equipmentId))
+            snapshot = default;
+            if (string.IsNullOrWhiteSpace(equipmentId))
             {
                 return false;
             }
 
-            for (int i = 0;
-                i < weapons.Count;
-                i++)
+            for (int i = 0; i < weapons.Count; i++)
             {
-                WeaponState weapon =
-                    weapons[i];
-
-                if (weapon == null ||
-                    weapon.Equipment == null)
+                WeaponState weapon = weapons[i];
+                if (weapon == null || weapon.Equipment == null)
                 {
                     continue;
                 }
 
-                if (!string.Equals(
-                        weapon.Equipment.EquipmentId,
-                        equipmentId,
-                        StringComparison.Ordinal))
+                if (!string.Equals(weapon.Equipment.EquipmentId, equipmentId, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
-                snapshot =
-                    new RaceWeaponSnapshot(
-                        weapon.Equipment.EquipmentId,
-                        weapon.Definition,
-                        weapon.CurrentAmmo,
-                        weapon.Definition.StartingAmmo,
-                        i == selectedIndex);
-
+                snapshot = new RaceWeaponSnapshot(weapon.Equipment.EquipmentId, weapon.Definition, weapon.CurrentAmmo, weapon.Definition.StartingAmmo, i == selectedIndex);
                 return true;
             }
 
             return false;
         }
 
-        public bool SelectWeapon(
-            string equipmentId)
+        public bool SelectWeapon(string equipmentId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    equipmentId))
+            if (string.IsNullOrWhiteSpace(equipmentId))
             {
                 return false;
             }
 
-            for (int i = 0;
-                i < weapons.Count;
-                i++)
+            for (int i = 0; i < weapons.Count; i++)
             {
-                WeaponState weapon =
-                    weapons[i];
-
+                WeaponState weapon = weapons[i];
                 if (weapon?.Equipment == null)
                     continue;
-
-                if (!string.Equals(
-                        weapon.Equipment.EquipmentId,
-                        equipmentId,
-                        StringComparison.Ordinal))
+                if (!string.Equals(weapon.Equipment.EquipmentId, equipmentId, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
                 if (!IsSelectableWeapon(weapon))
                     return false;
-
                 if (selectedIndex == i)
                     return true;
-
                 StopCurrentWeaponActivation();
-
-                selectedIndex =
-                    i;
-
+                selectedIndex = i;
                 return true;
             }
 
@@ -448,15 +322,9 @@ namespace RaceFatal.Equipment
         public string SelectNext()
         {
             StopCurrentWeaponActivation();
-
-            int nextIndex =
-                FindSelectableWeaponIndex(
-                    selectedIndex,
-                    1);
-
+            int nextIndex = FindSelectableWeaponIndex(selectedIndex, 1);
             if (nextIndex < 0)
                 return null;
-
             selectedIndex = nextIndex;
             return SelectedEquipmentId;
         }
@@ -464,15 +332,9 @@ namespace RaceFatal.Equipment
         public string SelectPrevious()
         {
             StopCurrentWeaponActivation();
-
-            int previousIndex =
-                FindSelectableWeaponIndex(
-                    selectedIndex,
-                    -1);
-
+            int previousIndex = FindSelectableWeaponIndex(selectedIndex, -1);
             if (previousIndex < 0)
                 return null;
-
             selectedIndex = previousIndex;
             return SelectedEquipmentId;
         }
@@ -481,26 +343,17 @@ namespace RaceFatal.Equipment
         {
             if (weapons.Count == 0)
                 return false;
-
             WeaponState current = GetSelectedWeapon();
-
-            if (current != null &&
-                current.CurrentAmmo > 0)
+            if (current != null && current.CurrentAmmo > 0)
             {
                 return true;
             }
 
             StopCurrentWeaponActivation();
-
             for (int offset = 1; offset <= weapons.Count; offset++)
             {
-                int index =
-                    (selectedIndex + offset) %
-                    weapons.Count;
-
-                if (!IsSelectableWeapon(
-                        weapons[index]) ||
-                    weapons[index].CurrentAmmo <= 0)
+                int index = (selectedIndex + offset) % weapons.Count;
+                if (!IsSelectableWeapon(weapons[index]) || weapons[index].CurrentAmmo <= 0)
                 {
                     continue;
                 }
@@ -512,19 +365,14 @@ namespace RaceFatal.Equipment
             return false;
         }
 
-        #endregion
-
-        #region Weapon Activation
-
+#endregion
+#region Weapon Activation
         public bool BeginSelectedActivation()
         {
             if (!weaponsAllowed)
                 return false;
-
             WeaponState weapon = GetSelectedWeapon();
-
-            if (weapon == null ||
-                weapon.CurrentAmmo <= 0)
+            if (weapon == null || weapon.CurrentAmmo <= 0)
             {
                 return false;
             }
@@ -535,43 +383,25 @@ namespace RaceFatal.Equipment
         public bool EndSelectedActivation()
         {
             WeaponState weapon = GetSelectedWeapon();
-
             if (weapon == null)
                 return false;
-
             return EndWeapon(weapon);
         }
 
-        public bool TryFirePassiveWeapon(
-            string equipmentId)
+        public bool TryFirePassiveWeapon(string equipmentId)
         {
             if (!weaponsAllowed)
                 return false;
-
-            WeaponState weapon =
-                FindWeapon(
-                    equipmentId);
-
-            if (weapon == null ||
-                weapon.Definition.ActivationMode !=
-                    EquipmentActivationMode.Passive ||
-                weapon.CurrentAmmo <= 0 ||
-                weapon.FireTimer > 0f)
+            WeaponState weapon = FindWeapon(equipmentId);
+            if (weapon == null || weapon.Definition.ActivationMode != EquipmentActivationMode.Passive || weapon.CurrentAmmo <= 0 || weapon.FireTimer > 0f)
             {
                 return false;
             }
 
-            bool fired =
-                TryFire(
-                    weapon,
-                    1f);
-
+            bool fired = TryFire(weapon, 1f);
             if (fired)
             {
-                weapon.FireTimer =
-                    Math.Max(
-                        0.01f,
-                        weapon.Definition.FireInterval);
+                weapon.FireTimer = Math.Max(0.01f, weapon.Definition.FireInterval);
             }
 
             return fired;
@@ -579,8 +409,7 @@ namespace RaceFatal.Equipment
 
         private bool BeginWeapon(WeaponState weapon)
         {
-            if (!weaponsAllowed ||
-                weapon.CurrentAmmo <= 0)
+            if (!weaponsAllowed || weapon.CurrentAmmo <= 0)
             {
                 return false;
             }
@@ -589,17 +418,14 @@ namespace RaceFatal.Equipment
             {
                 case EquipmentActivationMode.Press:
                     return TryFire(weapon, 1f);
-
                 case EquipmentActivationMode.Hold:
                     weapon.IsHeld = true;
                     weapon.FireTimer = 0f;
                     return true;
-
                 case EquipmentActivationMode.ChargeRelease:
                     weapon.IsCharging = true;
                     weapon.ChargeTime = 0f;
                     return true;
-
                 default:
                     return false;
             }
@@ -611,38 +437,21 @@ namespace RaceFatal.Equipment
             {
                 case EquipmentActivationMode.Press:
                     return true;
-
                 case EquipmentActivationMode.Hold:
                     weapon.IsHeld = false;
                     return true;
-
                 case EquipmentActivationMode.ChargeRelease:
                 {
-                    bool fullyCharged =
-                        weapon.ChargeTime >=
-                        weapon.Definition.ChargeDuration;
-
+                    bool fullyCharged = weapon.ChargeTime >= weapon.Definition.ChargeDuration;
                     weapon.IsCharging = false;
-
-                    float chargeRatio =
-                        weapon.Definition.ChargeDuration <= 0f
-                            ? 1f
-                            : Math.Min(
-                                1f,
-                                weapon.ChargeTime /
-                                weapon.Definition.ChargeDuration);
-
+                    float chargeRatio = weapon.Definition.ChargeDuration <= 0f ? 1f : Math.Min(1f, weapon.ChargeTime / weapon.Definition.ChargeDuration);
                     weapon.ChargeTime = 0f;
-
-                    if (!fullyCharged ||
-                        !weaponsAllowed)
+                    if (!fullyCharged || !weaponsAllowed)
                     {
                         return false;
                     }
 
-                    return TryFire(
-                        weapon,
-                        chargeRatio);
+                    return TryFire(weapon, chargeRatio);
                 }
 
                 default:
@@ -650,23 +459,19 @@ namespace RaceFatal.Equipment
             }
         }
 
-        #endregion
-
-        #region Boost
-
+#endregion
+#region Boost
         public bool SetBoostActive(bool active)
         {
             if (boosters.Count == 0)
                 return false;
-
             if (!active)
             {
                 SetAllBoostersActive(false);
                 return true;
             }
 
-            if (!boostAllowed ||
-                energy.IsEmpty)
+            if (!boostAllowed || energy.IsEmpty)
             {
                 SetAllBoostersActive(false);
                 return false;
@@ -682,38 +487,26 @@ namespace RaceFatal.Equipment
                 booster.IsActive = active;
         }
 
-        #endregion
-
-        #region Update
-
+#endregion
+#region Update
         public void Tick(float deltaTime)
         {
             if (deltaTime <= 0f)
                 return;
-
             foreach (CountermeasureState countermeasure in countermeasures)
             {
                 if (countermeasure.CooldownRemaining <= 0f)
                     continue;
-
-                countermeasure.CooldownRemaining =
-                    Math.Max(
-                        0f,
-                        countermeasure.CooldownRemaining -
-                        deltaTime);
+                countermeasure.CooldownRemaining = Math.Max(0f, countermeasure.CooldownRemaining - deltaTime);
             }
 
             foreach (WeaponState weapon in weapons)
                 TickWeapon(weapon, deltaTime);
-
             TickBoosters(deltaTime);
-
             Shield?.Tick(deltaTime);
         }
 
-        private void TickWeapon(
-            WeaponState weapon,
-            float deltaTime)
+        private void TickWeapon(WeaponState weapon, float deltaTime)
         {
             if (!weaponsAllowed)
             {
@@ -721,33 +514,23 @@ namespace RaceFatal.Equipment
                 return;
             }
 
-            if (weapon.Definition.ActivationMode ==
-                EquipmentActivationMode.Passive)
+            if (weapon.Definition.ActivationMode == EquipmentActivationMode.Passive)
             {
-                weapon.FireTimer =
-                    Math.Max(
-                        0f,
-                        weapon.FireTimer -
-                        deltaTime);
-
+                weapon.FireTimer = Math.Max(0f, weapon.FireTimer - deltaTime);
                 return;
             }
 
             if (weapon.IsCharging)
             {
                 weapon.ChargeTime += deltaTime;
-
-                if (weapon.ChargeTime >
-                    weapon.Definition.ChargeDuration)
+                if (weapon.ChargeTime > weapon.Definition.ChargeDuration)
                 {
-                    weapon.ChargeTime =
-                        weapon.Definition.ChargeDuration;
+                    weapon.ChargeTime = weapon.Definition.ChargeDuration;
                 }
             }
 
             if (!weapon.IsHeld)
                 return;
-
             if (weapon.CurrentAmmo <= 0)
             {
                 weapon.IsHeld = false;
@@ -755,24 +538,14 @@ namespace RaceFatal.Equipment
             }
 
             weapon.FireTimer -= deltaTime;
-
             while (weapon.FireTimer <= 0f)
             {
-                bool fired =
-                    TryFire(
-                        weapon,
-                        1f);
-
-                weapon.FireTimer +=
-                    Math.Max(
-                        0.01f,
-                        weapon.Definition.FireInterval);
-
+                bool fired = TryFire(weapon, 1f);
+                weapon.FireTimer += Math.Max(0.01f, weapon.Definition.FireInterval);
                 if (!fired)
                 {
                     if (weapon.CurrentAmmo <= 0)
                         weapon.IsHeld = false;
-
                     break;
                 }
             }
@@ -788,158 +561,88 @@ namespace RaceFatal.Equipment
 
             float totalCostPerSecond = 0f;
             bool anyActive = false;
-
             foreach (BoosterState booster in boosters)
             {
                 if (!booster.IsActive)
                     continue;
-
                 anyActive = true;
                 totalCostPerSecond += booster.Definition.EnergyPerSecond;
             }
 
             if (!anyActive)
                 return;
-
-            float requestedCost =
-                totalCostPerSecond *
-                deltaTime;
-
-            float spent =
-                energy.SpendUpTo(
-                    requestedCost);
-
-            if (spent + 0.0001f <
-                requestedCost)
+            float requestedCost = totalCostPerSecond * deltaTime;
+            float spent = energy.SpendUpTo(requestedCost);
+            if (spent + 0.0001f < requestedCost)
             {
                 SetAllBoostersActive(false);
             }
         }
 
-        private bool TryFire(
-            WeaponState weapon,
-            float chargeRatio)
+        private bool TryFire(WeaponState weapon, float chargeRatio)
         {
-            if (!weaponsAllowed ||
-                weapon.CurrentAmmo <= 0)
+            if (!weaponsAllowed || weapon.CurrentAmmo <= 0)
             {
                 return false;
             }
 
             weapon.CurrentAmmo--;
-
-            WeaponFired?.Invoke(
-                new WeaponFireEvent(
-                    racerId,
-                    weapon.Equipment.EquipmentId,
-                    weapon.Definition.Id,
-                    weapon.Definition.AimMode,
-                    weapon.Definition.DeliveryMode,
-                    weapon.Definition.Damage,
-                    weapon.Definition.Range,
-                    weapon.Definition.ProjectileSpeed,
-                    chargeRatio,
-                    weapon.Definition.ProjectileCount,
-                    weapon.Definition.SpreadAngle,
-                    weapon.Definition.ExplosionRadius,
-                    weapon.Definition.ArmingDelay,
-                    weapon.Definition.Lifetime,
-                    weapon.Definition.ExposureDuration,
-                    weapon.Definition.EffectDuration,
-                    weapon.Definition.StatusDamagePerSecond,
-                    weapon.Definition.LateralDistance,
-                    weapon.Definition.DashDuration,
-                    weapon.Definition.ImpactPush,
-                    weapon.Definition.TargetingHalfAngle,
-                    weapon.Definition.FireInterval));
-
+            WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, weapon.Definition.Damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration, weapon.Definition.StatusDamagePerSecond, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
             return true;
         }
 
-        #endregion
-
-        #region Countermeasures
-
-        public bool TryGetFirstCountermeasureDefinition(
-            out CountermeasureDefinition definition)
+#endregion
+#region Countermeasures
+        public bool TryGetFirstCountermeasureDefinition(out CountermeasureDefinition definition)
         {
             definition = null;
-
             if (countermeasures.Count == 0)
                 return false;
-
-            CountermeasureState state =
-                countermeasures[0];
-
+            CountermeasureState state = countermeasures[0];
             if (state?.Definition == null)
                 return false;
-
-            definition =
-                state.Definition;
-
+            definition = state.Definition;
             return true;
         }
 
-        public bool TryGetFirstCountermeasureDefinitionId(
-            out string definitionId)
+        public bool TryGetFirstCountermeasureDefinitionId(out string definitionId)
         {
             definitionId = null;
-
-            if (!TryGetFirstCountermeasureDefinition(
-                    out CountermeasureDefinition definition))
+            if (!TryGetFirstCountermeasureDefinition(out CountermeasureDefinition definition))
             {
                 return false;
             }
 
-            definitionId =
-                definition.Id;
-
-            return !string.IsNullOrWhiteSpace(
-                definitionId);
+            definitionId = definition.Id;
+            return !string.IsNullOrWhiteSpace(definitionId);
         }
 
-        public int GetCountermeasureRemainingUses(
-            string definitionId)
+        public int GetCountermeasureRemainingUses(string definitionId)
         {
-            CountermeasureState state =
-                FindCountermeasure(
-                    definitionId);
-
+            CountermeasureState state = FindCountermeasure(definitionId);
             return state?.RemainingUses ?? 0;
         }
 
-        public int GetCountermeasureMaximumUses(
-            string definitionId)
+        public int GetCountermeasureMaximumUses(string definitionId)
         {
-            CountermeasureState state =
-                FindCountermeasure(
-                    definitionId);
-
+            CountermeasureState state = FindCountermeasure(definitionId);
             return state?.MaximumUses ?? 0;
         }
 
-        public bool TryTriggerCountermeasure(
-            string definitionId)
+        public bool TryTriggerCountermeasure(string definitionId)
         {
-            CountermeasureState state =
-                FindCountermeasure(
-                    definitionId);
-
+            CountermeasureState state = FindCountermeasure(definitionId);
             if (state == null)
                 return false;
-
-            return TryTriggerCountermeasureState(
-                state);
+            return TryTriggerCountermeasureState(state);
         }
 
-        public bool TryTriggerCountermeasure(
-            CountermeasureType type)
+        public bool TryTriggerCountermeasure(CountermeasureType type)
         {
             foreach (CountermeasureState state in countermeasures)
             {
                 if (state.Definition.CountermeasureType != type)
                     continue;
-
                 if (TryTriggerCountermeasureState(state))
                     return true;
             }
@@ -947,36 +650,25 @@ namespace RaceFatal.Equipment
             return false;
         }
 
-        private bool TryTriggerCountermeasureState(
-            CountermeasureState state)
+        private bool TryTriggerCountermeasureState(CountermeasureState state)
         {
-            if (state == null ||
-                state.RemainingUses <= 0 ||
-                state.CooldownRemaining > 0f)
+            if (state == null || state.RemainingUses <= 0 || state.CooldownRemaining > 0f)
             {
                 return false;
             }
 
             state.RemainingUses--;
-
-            state.CooldownRemaining =
-                state.Definition.Cooldown;
-
+            state.CooldownRemaining = state.Definition.Cooldown;
             return true;
         }
 
-        private CountermeasureState FindCountermeasure(
-            string definitionId)
+        private CountermeasureState FindCountermeasure(string definitionId)
         {
             if (string.IsNullOrWhiteSpace(definitionId))
                 return null;
-
             foreach (CountermeasureState state in countermeasures)
             {
-                if (string.Equals(
-                        state.Definition.Id,
-                        definitionId,
-                        StringComparison.Ordinal))
+                if (string.Equals(state.Definition.Id, definitionId, StringComparison.Ordinal))
                 {
                     return state;
                 }
@@ -985,41 +677,27 @@ namespace RaceFatal.Equipment
             return null;
         }
 
-        #endregion
-
-        #region Shield
-
+#endregion
+#region Shield
         public float AbsorbDamage(float incomingDamage)
         {
             if (Shield == null)
                 return incomingDamage;
-
-            return Shield.AbsorbDamage(
-                incomingDamage);
+            return Shield.AbsorbDamage(incomingDamage);
         }
 
-        #endregion
-
-        #region Helpers
-
+#endregion
+#region Helpers
         private WeaponState GetSelectedWeapon()
         {
             if (weapons.Count == 0)
                 return null;
-
-            if (selectedIndex < 0 ||
-                selectedIndex >= weapons.Count ||
-                !IsSelectableWeapon(
-                    weapons[selectedIndex]))
+            if (selectedIndex < 0 || selectedIndex >= weapons.Count || !IsSelectableWeapon(weapons[selectedIndex]))
             {
-                selectedIndex =
-                    FindSelectableWeaponIndex(
-                        -1,
-                        1);
+                selectedIndex = FindSelectableWeaponIndex(-1, 1);
             }
 
-            if (selectedIndex < 0 ||
-                selectedIndex >= weapons.Count)
+            if (selectedIndex < 0 || selectedIndex >= weapons.Count)
             {
                 return null;
             }
@@ -1027,11 +705,9 @@ namespace RaceFatal.Equipment
             return weapons[selectedIndex];
         }
 
-        private WeaponState FindWeapon(
-            string equipmentId)
+        private WeaponState FindWeapon(string equipmentId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    equipmentId))
+            if (string.IsNullOrWhiteSpace(equipmentId))
             {
                 return null;
             }
@@ -1040,11 +716,7 @@ namespace RaceFatal.Equipment
             {
                 if (weapon?.Equipment == null)
                     continue;
-
-                if (string.Equals(
-                        weapon.Equipment.EquipmentId,
-                        equipmentId,
-                        StringComparison.Ordinal))
+                if (string.Equals(weapon.Equipment.EquipmentId, equipmentId, StringComparison.Ordinal))
                 {
                     return weapon;
                 }
@@ -1053,34 +725,18 @@ namespace RaceFatal.Equipment
             return null;
         }
 
-        private int FindSelectableWeaponIndex(
-            int fromIndex,
-            int direction)
+        private int FindSelectableWeaponIndex(int fromIndex, int direction)
         {
             if (weapons.Count == 0)
                 return -1;
-
-            direction =
-                direction < 0
-                    ? -1
-                    : 1;
-
-            for (int offset = 1;
-                 offset <= weapons.Count;
-                 offset++)
+            direction = direction < 0 ? -1 : 1;
+            for (int offset = 1; offset <= weapons.Count; offset++)
             {
-                int index =
-                    fromIndex +
-                    direction * offset;
-
-                index %=
-                    weapons.Count;
-
+                int index = fromIndex + direction * offset;
+                index %= weapons.Count;
                 if (index < 0)
                     index += weapons.Count;
-
-                if (IsSelectableWeapon(
-                        weapons[index]))
+                if (IsSelectableWeapon(weapons[index]))
                 {
                     return index;
                 }
@@ -1089,25 +745,19 @@ namespace RaceFatal.Equipment
             return -1;
         }
 
-        private static bool IsSelectableWeapon(
-            WeaponState weapon)
+        private static bool IsSelectableWeapon(WeaponState weapon)
         {
-            return
-                weapon?.Definition != null &&
-                weapon.Definition.ActivationMode !=
-                    EquipmentActivationMode.Passive;
+            return weapon?.Definition != null && weapon.Definition.ActivationMode != EquipmentActivationMode.Passive;
         }
 
         private void StopCurrentWeaponActivation()
         {
-            if (selectedIndex < 0 ||
-                selectedIndex >= weapons.Count)
+            if (selectedIndex < 0 || selectedIndex >= weapons.Count)
             {
                 return;
             }
 
-            StopWeaponActivation(
-                weapons[selectedIndex]);
+            StopWeaponActivation(weapons[selectedIndex]);
         }
 
         private void StopAllWeaponActivations()
@@ -1116,28 +766,23 @@ namespace RaceFatal.Equipment
                 StopWeaponActivation(weapon);
         }
 
-        private void StopWeaponActivation(
-            WeaponState weapon)
+        private void StopWeaponActivation(WeaponState weapon)
         {
             if (weapon == null)
                 return;
-
             weapon.IsHeld = false;
             weapon.IsCharging = false;
             weapon.FireTimer = 0f;
             weapon.ChargeTime = 0f;
         }
 
-        #endregion
-
-        #region Internal State
-
+#endregion
+#region Internal State
         private abstract class ActivatableState
         {
             public EquipmentState Equipment { get; }
 
-            protected ActivatableState(
-                EquipmentState equipment)
+            protected ActivatableState(EquipmentState equipment)
             {
                 Equipment = equipment;
             }
@@ -1148,17 +793,11 @@ namespace RaceFatal.Equipment
             public WeaponDefinition Definition { get; }
 
             public int CurrentAmmo;
-
             public bool IsHeld;
             public bool IsCharging;
-
             public float FireTimer;
             public float ChargeTime;
-
-            public WeaponState(
-                EquipmentState equipment,
-                WeaponDefinition definition)
-                : base(equipment)
+            public WeaponState(EquipmentState equipment, WeaponDefinition definition) : base(equipment)
             {
                 Definition = definition;
                 CurrentAmmo = definition.StartingAmmo;
@@ -1168,12 +807,9 @@ namespace RaceFatal.Equipment
         private class BoosterState : ActivatableState
         {
             public BoosterDefinition Definition { get; }
-            public bool IsActive;
 
-            public BoosterState(
-                EquipmentState equipment,
-                BoosterDefinition definition)
-                : base(equipment)
+            public bool IsActive;
+            public BoosterState(EquipmentState equipment, BoosterDefinition definition) : base(equipment)
             {
                 Definition = definition;
             }
@@ -1181,41 +817,21 @@ namespace RaceFatal.Equipment
 
         private class CountermeasureState
         {
-            public EquipmentState Equipment {
-                get;
-            }
-
-            public CountermeasureDefinition Definition {
-                get;
-            }
+            public EquipmentState Equipment { get; }
+            public CountermeasureDefinition Definition { get; }
 
             public int MaximumUses;
             public int RemainingUses;
             public float CooldownRemaining;
-
-            public CountermeasureState(
-                EquipmentState equipment,
-                CountermeasureDefinition definition)
+            public CountermeasureState(EquipmentState equipment, CountermeasureDefinition definition)
             {
-                Equipment =
-                    equipment;
-
-                Definition =
-                    definition;
-
-                MaximumUses =
-                    Math.Max(
-                        0,
-                        definition.UsesPerRace);
-
-                RemainingUses =
-                    MaximumUses;
-
-                CooldownRemaining =
-                    0f;
+                Equipment = equipment;
+                Definition = definition;
+                MaximumUses = Math.Max(0, definition.UsesPerRace);
+                RemainingUses = MaximumUses;
+                CooldownRemaining = 0f;
             }
         }
-
-        #endregion
+#endregion
     }
 }

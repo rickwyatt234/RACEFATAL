@@ -19,8 +19,7 @@ namespace RaceFatal.Presentation.Vehicles
             Rect rect = GetPixelAdjustedRect();
             const int bars = 20, segments = 10;
             float width = rect.width / bars, height = rect.height / segments;
-            Color tint = favor < 100f ? Color.Lerp(new Color(1f, 0.18f, 0.32f), new Color(0.2f, 0.85f, 1f), favor / 100f)
-                : Color.Lerp(new Color(0.2f, 0.85f, 1f), new Color(1f, 0.25f, 0.9f), (favor - 100f) / 100f);
+            Color tint = favor < 100f ? Color.Lerp(new Color(1f, 0.18f, 0.32f), new Color(0.2f, 0.85f, 1f), favor / 100f) : Color.Lerp(new Color(0.2f, 0.85f, 1f), new Color(1f, 0.25f, 0.9f), (favor - 100f) / 100f);
             for (int bar = 0; bar < bars; bar++)
             {
                 float pulse = 0.65f + 0.35f * Mathf.PerlinNoise(bar * 0.43f, animationTime * 3f);

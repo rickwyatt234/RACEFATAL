@@ -27,10 +27,23 @@ public static class CareerResearchValidation
         var team = new TeamState("test", "Test", "#ffffff", "#000000");
         team.AddResearchPoints(150);
         Require(!research.Research(null, "base").IsSuccess, "Missing team rejected");
-        foreach (string id in new[] { null, "", "unknown", "negative", "missing", "cycle-a", "self", "engine", "both", "expensive" })
+        foreach (string id in new[]
+        {
+            null,
+            "",
+            "unknown",
+            "negative",
+            "missing",
+            "cycle-a",
+            "self",
+            "engine",
+            "both",
+            "expensive"
+        }
+
+        )
             Require(!research.Research(team, id).IsSuccess, "Rejected invalid or unavailable technology: " + id);
         Require(team.ResearchPoints == 150 && team.UnlockedTechnologyIds.Count == 0, "Failures cannot mutate funds or unlocks");
-
         database.AddEngineDefinition(new EngineDefinition("engine-item", "Test Engine", default, 100, 10, 25, "engine"));
         var shop = new ShopService(database);
         team.AddCredits(25);
@@ -48,7 +61,6 @@ public static class CareerResearchValidation
         var session = new GameSessionState(team, null, new WorldState(), null, null, null);
         var captured = mapper.Capture(session);
         Require(captured.IsSuccess, "Capture succeeds");
-        // Exercise the actual save DTO serialization and mapper, not a second research-only format.
         var data = JsonUtility.FromJson<CampaignSaveData>(JsonUtility.ToJson(captured.Value));
         var restored = mapper.Restore(data);
         Require(restored.IsSuccess, "Restore succeeds: " + restored.ErrorMessage);
@@ -56,7 +68,6 @@ public static class CareerResearchValidation
         Require(loaded.ResearchPoints == 17 && loaded.HasTechnology("base") && loaded.HasTechnology("engine") && loaded.HasTechnology("both"), "RP and unlocks survive JSON roundtrip");
         Require(loaded.Credits == 0 && loaded.Garage.Engines.Count == 1, "Purchase survives reload");
         Require(!research.Research(loaded, "engine").IsSuccess && loaded.ResearchPoints == 17, "Reload cannot enable repeat research");
-        // A pre-research save with no unlocks still restores without requiring technologies.
         var oldSession = new GameSessionState(new TeamState("old", "Old", "#fff", "#000"), null, new WorldState(), null, null, null);
         Require(new CampaignSaveMapper(new GameDatabase()).Restore(mapper.Capture(oldSession).Value).IsSuccess, "Campaign without research remains compatible");
         Debug.Log("Research validation passed: invalid content, prerequisites, funds, duplicate protection, Shop/Garage integration and JSON save roundtrip.");
@@ -69,6 +80,7 @@ public static class CareerResearchValidation
 
     private static void Require(bool condition, string description)
     {
-        if (!condition) throw new InvalidOperationException("Research validation failed: " + description);
+        if (!condition)
+            throw new InvalidOperationException("Research validation failed: " + description);
     }
 }

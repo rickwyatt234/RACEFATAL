@@ -13,7 +13,7 @@ namespace RaceFatal.Content.Career
         [SerializeField] private RacerPerkEffect effect;
         [Min(.001f)] [SerializeField] private float strength = .1f;
         public string Id => id;
-        public RacerPerkDefinition CreateDefinition() =>
-            new RacerPerkDefinition(id, displayName, description, fameCost, effect, strength);
+
+        public RacerPerkDefinition CreateDefinition() => new RacerPerkDefinition(id, displayName, description, fameCost, effect, strength);
     }
 }

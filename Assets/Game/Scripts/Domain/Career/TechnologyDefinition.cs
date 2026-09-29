@@ -15,10 +15,10 @@ namespace RaceFatal.Career
         public int DisplayOrder { get; }
         public int Tier { get; }
 
-        public TechnologyDefinition(string id, string displayName, string description,
-            ResearchField field, int researchCost, IEnumerable<string> prerequisites = null, int displayOrder = 0, int tier = 1)
+        public TechnologyDefinition(string id, string displayName, string description, ResearchField field, int researchCost, IEnumerable<string> prerequisites = null, int displayOrder = 0, int tier = 1)
         {
-            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Technology ID is required.", nameof(id));
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("Technology ID is required.", nameof(id));
             Id = id;
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? id : displayName;
             Description = description ?? string.Empty;

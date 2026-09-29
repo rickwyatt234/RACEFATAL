@@ -6,77 +6,50 @@ namespace RaceFatal.Vehicles
 {
     public class BikeLoadout
     {
-        private readonly List<BikeNode> nodes =
-            new List<BikeNode>();
-
+        private readonly List<BikeNode> nodes = new List<BikeNode>();
         public EngineState Engine { get; private set; }
         public ChassisState Chassis { get; private set; }
+        public IReadOnlyList<BikeNode> Nodes => nodes;
 
-        public IReadOnlyList<BikeNode> Nodes =>
-            nodes;
-
-        public BikeLoadout(
-            int smallNodes,
-            int mediumNodes,
-            int largeNodes)
+        public BikeLoadout(int smallNodes, int mediumNodes, int largeNodes)
         {
-            CreateNodes(
-                NodeSize.Small,
-                smallNodes);
-
-            CreateNodes(
-                NodeSize.Medium,
-                mediumNodes);
-
-            CreateNodes(
-                NodeSize.Large,
-                largeNodes);
+            CreateNodes(NodeSize.Small, smallNodes);
+            CreateNodes(NodeSize.Medium, mediumNodes);
+            CreateNodes(NodeSize.Large, largeNodes);
         }
 
-        private void CreateNodes(
-            NodeSize size,
-            int count)
+        private void CreateNodes(NodeSize size, int count)
         {
             for (int i = 0; i < count; i++)
             {
-                nodes.Add(
-                    new BikeNode(
-                        size,
-                        i));
+                nodes.Add(new BikeNode(size, i));
             }
         }
 
-        #region Engine
-
-        public Result InstallEngine(
-            EngineState engine)
+#region Engine
+        public Result InstallEngine(EngineState engine)
         {
             if (engine == null)
             {
-                return Result.Failure(
-                    "Engine is required.");
+                return Result.Failure("Engine is required.");
             }
 
             if (engine.IsDestroyed)
             {
-                return Result.Failure(
-                    "A destroyed engine cannot be installed.");
+                return Result.Failure("A destroyed engine cannot be installed.");
             }
 
             if (Engine != null)
             {
                 if (Engine.EngineId == engine.EngineId)
                 {
-                    return Result.Failure(
-                        "This engine is already installed.");
+                    return Result.Failure("This engine is already installed.");
                 }
 
-                return Result.Failure(
-                    "This bike already has an engine installed.");
+                return Result.Failure("This bike already has an engine installed.");
             }
 
             Engine = engine;
-
             return Result.Success();
         }
 
@@ -84,52 +57,39 @@ namespace RaceFatal.Vehicles
         {
             if (Engine == null)
             {
-                return Result<EngineState>.Failure(
-                    "No engine is installed.");
+                return Result<EngineState>.Failure("No engine is installed.");
             }
 
-            EngineState removed =
-                Engine;
-
+            EngineState removed = Engine;
             Engine = null;
-
-            return Result<EngineState>.Success(
-                removed);
+            return Result<EngineState>.Success(removed);
         }
 
-        #endregion
-
-        #region Chassis
-
-        public Result InstallChassis(
-            ChassisState chassis)
+#endregion
+#region Chassis
+        public Result InstallChassis(ChassisState chassis)
         {
             if (chassis == null)
             {
-                return Result.Failure(
-                    "Chassis is required.");
+                return Result.Failure("Chassis is required.");
             }
 
             if (chassis.IsDestroyed)
             {
-                return Result.Failure(
-                    "A destroyed chassis cannot be installed.");
+                return Result.Failure("A destroyed chassis cannot be installed.");
             }
 
             if (Chassis != null)
             {
                 if (Chassis.ChassisId == chassis.ChassisId)
                 {
-                    return Result.Failure(
-                        "This chassis is already installed.");
+                    return Result.Failure("This chassis is already installed.");
                 }
 
-                return Result.Failure(
-                    "This bike already has a chassis installed.");
+                return Result.Failure("This bike already has a chassis installed.");
             }
 
             Chassis = chassis;
-
             return Result.Success();
         }
 
@@ -137,97 +97,61 @@ namespace RaceFatal.Vehicles
         {
             if (Chassis == null)
             {
-                return Result<ChassisState>.Failure(
-                    "No chassis is installed.");
+                return Result<ChassisState>.Failure("No chassis is installed.");
             }
 
-            ChassisState removed =
-                Chassis;
-
+            ChassisState removed = Chassis;
             Chassis = null;
-
-            return Result<ChassisState>.Success(
-                removed);
+            return Result<ChassisState>.Success(removed);
         }
 
-        #endregion
-
-        #region Equipment
-
-        public Result<EquipmentState> InstallEquipment(
-            EquipmentState equipment,
-            NodeSize nodeSize,
-            int index)
+#endregion
+#region Equipment
+        public Result<EquipmentState> InstallEquipment(EquipmentState equipment, NodeSize nodeSize, int index)
         {
             if (equipment == null)
             {
-                return Result<EquipmentState>.Failure(
-                    "Equipment is required.");
+                return Result<EquipmentState>.Failure("Equipment is required.");
             }
 
             if (equipment.IsDestroyed)
             {
-                return Result<EquipmentState>.Failure(
-                    "Destroyed equipment cannot be installed.");
+                return Result<EquipmentState>.Failure("Destroyed equipment cannot be installed.");
             }
 
-            if (HasEquipment(
-                    equipment.EquipmentId))
+            if (HasEquipment(equipment.EquipmentId))
             {
-                return Result<EquipmentState>.Failure(
-                    $"Equipment '{equipment.EquipmentId}' " +
-                    "is already installed on this bike.");
+                return Result<EquipmentState>.Failure($"Equipment '{equipment.EquipmentId}' " + "is already installed on this bike.");
             }
 
-            if (equipment.Category ==
-                    EquipmentCategory.Shield &&
-                ContainsCategory(
-                    EquipmentCategory.Shield))
+            if (equipment.Category == EquipmentCategory.Shield && ContainsCategory(EquipmentCategory.Shield))
             {
-                return Result<EquipmentState>.Failure(
-                    "Cannot install more than one shield.");
+                return Result<EquipmentState>.Failure("Cannot install more than one shield.");
             }
 
-            BikeNode node =
-                FindNode(
-                    nodeSize,
-                    index);
-
+            BikeNode node = FindNode(nodeSize, index);
             if (node == null)
             {
-                return Result<EquipmentState>.Failure(
-                    $"No node found with size " +
-                    $"{nodeSize} and index {index}.");
+                return Result<EquipmentState>.Failure($"No node found with size " + $"{nodeSize} and index {index}.");
             }
 
-            return node.Install(
-                equipment);
+            return node.Install(equipment);
         }
 
-        public Result<EquipmentState> RemoveEquipment(
-            NodeSize nodeSize,
-            int index)
+        public Result<EquipmentState> RemoveEquipment(NodeSize nodeSize, int index)
         {
-            BikeNode node =
-                FindNode(
-                    nodeSize,
-                    index);
-
+            BikeNode node = FindNode(nodeSize, index);
             if (node == null)
             {
-                return Result<EquipmentState>.Failure(
-                    $"No node found with size " +
-                    $"{nodeSize} and index {index}.");
+                return Result<EquipmentState>.Failure($"No node found with size " + $"{nodeSize} and index {index}.");
             }
 
             return node.Remove();
         }
 
-        public bool HasEquipment(
-            string equipmentId)
+        public bool HasEquipment(string equipmentId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    equipmentId))
+            if (string.IsNullOrWhiteSpace(equipmentId))
             {
                 return false;
             }
@@ -236,9 +160,7 @@ namespace RaceFatal.Vehicles
             {
                 if (node.InstalledEquipment == null)
                     continue;
-
-                if (node.InstalledEquipment.EquipmentId ==
-                    equipmentId)
+                if (node.InstalledEquipment.EquipmentId == equipmentId)
                 {
                     return true;
                 }
@@ -247,14 +169,11 @@ namespace RaceFatal.Vehicles
             return false;
         }
 
-        public BikeNode FindNode(
-            NodeSize nodeSize,
-            int index)
+        public BikeNode FindNode(NodeSize nodeSize, int index)
         {
             foreach (BikeNode node in nodes)
             {
-                if (node.NodeSize == nodeSize &&
-                    node.Index == index)
+                if (node.NodeSize == nodeSize && node.Index == index)
                 {
                     return node;
                 }
@@ -263,16 +182,13 @@ namespace RaceFatal.Vehicles
             return null;
         }
 
-        public bool ContainsCategory(
-            EquipmentCategory category)
+        public bool ContainsCategory(EquipmentCategory category)
         {
             foreach (BikeNode node in nodes)
             {
                 if (!node.IsOccupied)
                     continue;
-
-                if (node.InstalledEquipment.Category ==
-                    category)
+                if (node.InstalledEquipment.Category == category)
                 {
                     return true;
                 }
@@ -281,8 +197,7 @@ namespace RaceFatal.Vehicles
             return false;
         }
 
-        #endregion
-
+#endregion
         internal void DestroyInstalledEquipment()
         {
             foreach (BikeNode node in nodes)

@@ -23,8 +23,6 @@ namespace RaceFatal.Racing
         public float ramFavor = 10f;
         public float impactCooldownSeconds = 2f;
         public float destructionFavor = 30f;
-
-        internal static float Safe(float value, float fallback = 0f) =>
-            float.IsNaN(value) || float.IsInfinity(value) ? fallback : Math.Max(0f, value);
+        internal static float Safe(float value, float fallback = 0f) => float.IsNaN(value) || float.IsInfinity(value) ? fallback : Math.Max(0f, value);
     }
 }

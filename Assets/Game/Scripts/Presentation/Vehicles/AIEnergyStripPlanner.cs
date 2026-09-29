@@ -10,24 +10,17 @@ namespace RaceFatal.Presentation.Vehicles
     [Serializable]
     public class AIEnergyStripPlanner
     {
-        [Header("Energy Strategy")]
-        [Range(0f, 1f)][SerializeField] private float beginSeekingEnergyPercent = 0.65f;
-        [Range(0f, 1f)][SerializeField] private float urgentEnergyPercent = 0.30f;
-
-        [Header("Strip Search")]
-        [Min(1f)][SerializeField] private float normalSearchDistance = 120f;
-        [Min(1f)][SerializeField] private float urgentSearchDistance = 240f;
-        [Min(0f)][SerializeField] private float minimumApproachDistance = 15f;
-        [Min(0f)][SerializeField] private float urgentMinimumApproachDistance = 5f;
-        [Range(0f, 1f)][SerializeField] private float maximumCornerSeverityForNewTarget = 0.35f;
-
-        [Header("Lateral Movement")]
-        [Min(0.1f)][SerializeField] private float lateralShiftSpeed = 2.5f;
-        [Min(0f)][SerializeField] private float completionDistance = 12f;
-        [Min(0f)][SerializeField] private float lateralTravelPenalty = 10f;
-
-        [Header("Runtime Debug")]
-        [SerializeField] private bool debugInitialized;
+        [Header("Energy Strategy")] [Range(0f, 1f)] [SerializeField] private float beginSeekingEnergyPercent = 0.65f;
+        [Range(0f, 1f)] [SerializeField] private float urgentEnergyPercent = 0.30f;
+        [Header("Strip Search")] [Min(1f)] [SerializeField] private float normalSearchDistance = 120f;
+        [Min(1f)] [SerializeField] private float urgentSearchDistance = 240f;
+        [Min(0f)] [SerializeField] private float minimumApproachDistance = 15f;
+        [Min(0f)] [SerializeField] private float urgentMinimumApproachDistance = 5f;
+        [Range(0f, 1f)] [SerializeField] private float maximumCornerSeverityForNewTarget = 0.35f;
+        [Header("Lateral Movement")] [Min(0.1f)] [SerializeField] private float lateralShiftSpeed = 2.5f;
+        [Min(0f)] [SerializeField] private float completionDistance = 12f;
+        [Min(0f)] [SerializeField] private float lateralTravelPenalty = 10f;
+        [Header("Runtime Debug")] [SerializeField] private bool debugInitialized;
         [SerializeField] private bool debugTargetingStrip;
         [SerializeField] private string debugTargetName;
         [SerializeField] private string debugDecision = "Not Initialized";
@@ -40,367 +33,186 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugEffectiveSeekThreshold;
         [SerializeField] private bool debugRecoveryPriority;
         [SerializeField] private bool debugSuppressOptionalRecovery;
-
         private RaceParticipant participant;
         private RaceRuntimeController raceRuntime;
         private TrackProgressPath progressPath;
-
         private EnergyStripAIAnchor targetStrip;
-
         private float targetProgress;
         private float targetLateralOffset;
         private float currentTacticalOffset;
-
         private bool initialized;
-
         public bool IsInitialized => initialized;
         public bool IsTargetingStrip => targetStrip != null;
         public float TacticalOffset => currentTacticalOffset;
 
-        public bool Initialize(
-            RaceParticipant raceParticipant,
-            RaceRuntimeController runtime,
-            TrackProgressPath path)
+        public bool Initialize(RaceParticipant raceParticipant, RaceRuntimeController runtime, TrackProgressPath path)
         {
             if (raceParticipant == null)
             {
-                Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a RaceParticipant.");
-
+                Debug.LogError($"{nameof(AIEnergyStripPlanner)} requires a RaceParticipant.");
                 return false;
             }
 
             if (runtime == null)
             {
-                Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a RaceRuntimeController.");
-
+                Debug.LogError($"{nameof(AIEnergyStripPlanner)} requires a RaceRuntimeController.");
                 return false;
             }
 
             if (path == null)
             {
-                Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a TrackProgressPath.");
-
+                Debug.LogError($"{nameof(AIEnergyStripPlanner)} requires a TrackProgressPath.");
                 return false;
             }
 
             if (raceParticipant.Vehicle?.EnergyPool == null)
             {
-                Debug.LogError(
-                    $"{nameof(AIEnergyStripPlanner)} requires a race vehicle with Energy.");
-
+                Debug.LogError($"{nameof(AIEnergyStripPlanner)} requires a race vehicle with Energy.");
                 return false;
             }
 
             participant = raceParticipant;
             raceRuntime = runtime;
             progressPath = path;
-
             targetStrip = null;
             targetProgress = 0f;
             targetLateralOffset = 0f;
             currentTacticalOffset = 0f;
-
             initialized = true;
             debugInitialized = true;
-
             return true;
         }
 
-        public float UpdatePlan(
-            float currentProgress,
-            float baseLateralOffset,
-            float availableHalfWidth,
-            float cornerSeverity,
-            bool passing,
-            AIPlayerResponsePlanner playerResponse)
+        public float UpdatePlan(float currentProgress, float baseLateralOffset, float availableHalfWidth, float cornerSeverity, bool passing, AIPlayerResponsePlanner playerResponse)
         {
             if (!initialized)
                 return 0f;
-
             UpdateEnergyDebug();
-
-            float effectiveSeekThreshold =
-                playerResponse != null
-                    ? playerResponse.EnergySeekThreshold
-                    : beginSeekingEnergyPercent;
-
-            effectiveSeekThreshold =
-                Mathf.Clamp01(
-                    effectiveSeekThreshold);
-
-            bool recoveryPriority =
-                playerResponse != null &&
-                playerResponse.Mode ==
-                    AIPlayerResponseMode.Recover;
-
-            bool suppressOptionalRecovery =
-                playerResponse != null &&
-                playerResponse
-                    .SuppressOptionalEnergyRecovery;
-
-            debugEffectiveSeekThreshold =
-                effectiveSeekThreshold;
-
-            debugRecoveryPriority =
-                recoveryPriority;
-
-            debugSuppressOptionalRecovery =
-                suppressOptionalRecovery;
-
-            if (!RaceIsActive() ||
-                participant.Vehicle.IsDestroyed)
+            float effectiveSeekThreshold = playerResponse != null ? playerResponse.EnergySeekThreshold : beginSeekingEnergyPercent;
+            effectiveSeekThreshold = Mathf.Clamp01(effectiveSeekThreshold);
+            bool recoveryPriority = playerResponse != null && playerResponse.Mode == AIPlayerResponseMode.Recover;
+            bool suppressOptionalRecovery = playerResponse != null && playerResponse.SuppressOptionalEnergyRecovery;
+            debugEffectiveSeekThreshold = effectiveSeekThreshold;
+            debugRecoveryPriority = recoveryPriority;
+            debugSuppressOptionalRecovery = suppressOptionalRecovery;
+            if (!RaceIsActive() || participant.Vehicle.IsDestroyed)
             {
                 ClearTarget("Race Inactive");
-
                 return ReturnOffsetToZero();
             }
 
             if (targetStrip != null)
             {
-                if (!targetStrip.isActiveAndEnabled ||
-                    !targetStrip.TryGetTrackData(
-                        progressPath,
-                        out targetProgress,
-                        out targetLateralOffset))
+                if (!targetStrip.isActiveAndEnabled || !targetStrip.TryGetTrackData(progressPath, out targetProgress, out targetLateralOffset))
                 {
                     ClearTarget("Target Lost");
-
                     return ReturnOffsetToZero();
                 }
 
-                float signedDistance =
-                    GetSignedDistance(
-                        currentProgress,
-                        targetProgress);
-
-                debugTargetDistance =
-                    signedDistance;
-
-                if (signedDistance <
-                    -completionDistance)
+                float signedDistance = GetSignedDistance(currentProgress, targetProgress);
+                debugTargetDistance = signedDistance;
+                if (signedDistance < -completionDistance)
                 {
                     ClearTarget("Strip Passed");
-
                     return ReturnOffsetToZero();
                 }
 
-                if (suppressOptionalRecovery &&
-                    debugEnergyPercent >
-                        effectiveSeekThreshold)
+                if (suppressOptionalRecovery && debugEnergyPercent > effectiveSeekThreshold)
                 {
-                    ClearTarget(
-                        "Player Pursuit Priority");
-
+                    ClearTarget("Player Pursuit Priority");
                     return ReturnOffsetToZero();
                 }
 
-                if (!recoveryPriority &&
-                    debugEnergyPercent >
-                        effectiveSeekThreshold +
-                        0.05f)
+                if (!recoveryPriority && debugEnergyPercent > effectiveSeekThreshold + 0.05f)
                 {
-                    ClearTarget(
-                        "Energy Recovered");
-
+                    ClearTarget("Energy Recovered");
                     return ReturnOffsetToZero();
                 }
 
-                if (passing &&
-                    !recoveryPriority)
+                if (passing && !recoveryPriority)
                 {
-                    ClearTarget(
-                        "Overtake Priority");
-
+                    ClearTarget("Overtake Priority");
                     return ReturnOffsetToZero();
                 }
 
-                return UpdateTargetOffset(
-                    baseLateralOffset,
-                    availableHalfWidth);
+                return UpdateTargetOffset(baseLateralOffset, availableHalfWidth);
             }
 
-            if (passing &&
-                !recoveryPriority)
+            if (passing && !recoveryPriority)
             {
-                debugDecision =
-                    "Passing";
-
+                debugDecision = "Passing";
                 return ReturnOffsetToZero();
             }
 
-            if (debugEnergyPercent >
-                effectiveSeekThreshold)
+            if (debugEnergyPercent > effectiveSeekThreshold)
             {
-                debugDecision =
-                    "Energy Sufficient";
-
+                debugDecision = "Energy Sufficient";
                 return ReturnOffsetToZero();
             }
 
-            /*
-             * During emergency recovery we allow the AI to begin
-             * considering strips even on relatively severe corners.
-             */
-            float effectiveCornerLimit =
-                recoveryPriority
-                    ? Mathf.Max(
-                        maximumCornerSeverityForNewTarget,
-                        0.70f)
-                    : maximumCornerSeverityForNewTarget;
-
-            if (cornerSeverity >
-                effectiveCornerLimit)
+            float effectiveCornerLimit = recoveryPriority ? Mathf.Max(maximumCornerSeverityForNewTarget, 0.70f) : maximumCornerSeverityForNewTarget;
+            if (cornerSeverity > effectiveCornerLimit)
             {
-                debugDecision =
-                    "Corner / Wait";
-
+                debugDecision = "Corner / Wait";
                 return ReturnOffsetToZero();
             }
 
-            float effectiveUrgentPercent =
-                Mathf.Min(
-                    urgentEnergyPercent,
-                    effectiveSeekThreshold *
-                    0.60f);
-
-            float energyRange =
-                Mathf.Max(
-                    0.001f,
-                    effectiveSeekThreshold -
-                    effectiveUrgentPercent);
-
-            debugUrgency =
-                Mathf.Clamp01(
-                    (effectiveSeekThreshold -
-                     debugEnergyPercent) /
-                    energyRange);
-
+            float effectiveUrgentPercent = Mathf.Min(urgentEnergyPercent, effectiveSeekThreshold * 0.60f);
+            float energyRange = Mathf.Max(0.001f, effectiveSeekThreshold - effectiveUrgentPercent);
+            debugUrgency = Mathf.Clamp01((effectiveSeekThreshold - debugEnergyPercent) / energyRange);
             if (recoveryPriority)
             {
-                debugUrgency =
-                    Mathf.Max(
-                        debugUrgency,
-                        0.75f);
+                debugUrgency = Mathf.Max(debugUrgency, 0.75f);
             }
 
-            debugSearchDistance =
-                Mathf.Lerp(
-                    normalSearchDistance,
-                    urgentSearchDistance,
-                    debugUrgency);
-
-            float minimumDistance =
-                Mathf.Lerp(
-                    minimumApproachDistance,
-                    urgentMinimumApproachDistance,
-                    debugUrgency);
-
-            FindBestStrip(
-                currentProgress,
-                baseLateralOffset,
-                availableHalfWidth,
-                minimumDistance,
-                debugSearchDistance);
-
+            debugSearchDistance = Mathf.Lerp(normalSearchDistance, urgentSearchDistance, debugUrgency);
+            float minimumDistance = Mathf.Lerp(minimumApproachDistance, urgentMinimumApproachDistance, debugUrgency);
+            FindBestStrip(currentProgress, baseLateralOffset, availableHalfWidth, minimumDistance, debugSearchDistance);
             if (targetStrip == null)
             {
-                debugDecision =
-                    recoveryPriority
-                        ? "Recover / No Strip Ahead"
-                        : "No Strip Ahead";
-
+                debugDecision = recoveryPriority ? "Recover / No Strip Ahead" : "No Strip Ahead";
                 return ReturnOffsetToZero();
             }
 
-            debugDecision =
-                recoveryPriority
-                    ? "Recover / Strip Target Acquired"
-                    : "Strip Target Acquired";
-
-            return UpdateTargetOffset(
-                baseLateralOffset,
-                availableHalfWidth);
+            debugDecision = recoveryPriority ? "Recover / Strip Target Acquired" : "Strip Target Acquired";
+            return UpdateTargetOffset(baseLateralOffset, availableHalfWidth);
         }
 
-        private void FindBestStrip(
-            float currentProgress,
-            float baseLateralOffset,
-            float availableHalfWidth,
-            float minimumDistance,
-            float maximumDistance)
+        private void FindBestStrip(float currentProgress, float baseLateralOffset, float availableHalfWidth, float minimumDistance, float maximumDistance)
         {
-            EnergyStripAIAnchor bestStrip =
-                null;
-
+            EnergyStripAIAnchor bestStrip = null;
             float bestProgress = 0f;
             float bestLateralOffset = 0f;
-            float bestScore =
-                float.PositiveInfinity;
-
-            IReadOnlyList<EnergyStripAIAnchor> strips =
-                EnergyStripAIAnchor.ActiveAnchors;
-
-            for (int i = 0;
-                 i < strips.Count;
-                 i++)
+            float bestScore = float.PositiveInfinity;
+            IReadOnlyList<EnergyStripAIAnchor> strips = EnergyStripAIAnchor.ActiveAnchors;
+            for (int i = 0; i < strips.Count; i++)
             {
-                EnergyStripAIAnchor strip =
-                    strips[i];
-
-                if (strip == null ||
-                    !strip.isActiveAndEnabled)
+                EnergyStripAIAnchor strip = strips[i];
+                if (strip == null || !strip.isActiveAndEnabled)
                 {
                     continue;
                 }
 
-                if (!strip.TryGetTrackData(
-                        progressPath,
-                        out float stripProgress,
-                        out float stripLateralOffset))
+                if (!strip.TryGetTrackData(progressPath, out float stripProgress, out float stripLateralOffset))
                 {
                     continue;
                 }
 
-                float forwardDistance =
-                    GetForwardDistance(
-                        currentProgress,
-                        stripProgress);
-
-                if (forwardDistance <
-                        minimumDistance ||
-                    forwardDistance >
-                        maximumDistance)
+                float forwardDistance = GetForwardDistance(currentProgress, stripProgress);
+                if (forwardDistance < minimumDistance || forwardDistance > maximumDistance)
                 {
                     continue;
                 }
 
-                float clampedLateral =
-                    Mathf.Clamp(
-                        stripLateralOffset,
-                        -availableHalfWidth,
-                        availableHalfWidth);
-
-                float lateralTravel =
-                    Mathf.Abs(
-                        clampedLateral -
-                        baseLateralOffset);
-
-                float score =
-                    forwardDistance +
-                    lateralTravel *
-                    lateralTravelPenalty;
-
-                if (score >=
-                    bestScore)
+                float clampedLateral = Mathf.Clamp(stripLateralOffset, -availableHalfWidth, availableHalfWidth);
+                float lateralTravel = Mathf.Abs(clampedLateral - baseLateralOffset);
+                float score = forwardDistance + lateralTravel * lateralTravelPenalty;
+                if (score >= bestScore)
                 {
                     continue;
                 }
 
                 bestScore = score;
-
                 bestStrip = strip;
                 bestProgress = stripProgress;
                 bestLateralOffset = clampedLateral;
@@ -408,96 +220,44 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (bestStrip == null)
                 return;
-
-            targetStrip =
-                bestStrip;
-
-            targetProgress =
-                bestProgress;
-
-            targetLateralOffset =
-                bestLateralOffset;
-
-            debugTargetingStrip =
-                true;
-
-            debugTargetName =
-                bestStrip.name;
+            targetStrip = bestStrip;
+            targetProgress = bestProgress;
+            targetLateralOffset = bestLateralOffset;
+            debugTargetingStrip = true;
+            debugTargetName = bestStrip.name;
         }
 
-        private float UpdateTargetOffset(
-            float baseLateralOffset,
-            float availableHalfWidth)
+        private float UpdateTargetOffset(float baseLateralOffset, float availableHalfWidth)
         {
-            float desiredStripOffset =
-                Mathf.Clamp(
-                    targetLateralOffset,
-                    -availableHalfWidth,
-                    availableHalfWidth);
-
-            float desiredTacticalOffset =
-                desiredStripOffset -
-                baseLateralOffset;
-
-            currentTacticalOffset =
-                Mathf.MoveTowards(
-                    currentTacticalOffset,
-                    desiredTacticalOffset,
-                    lateralShiftSpeed *
-                    Time.fixedDeltaTime);
-
-            debugTargetingStrip =
-                true;
-
-            debugTargetName =
-                targetStrip != null
-                    ? targetStrip.name
-                    : string.Empty;
-
-            debugTargetLateralOffset =
-                desiredStripOffset;
-
-            debugTacticalOffset =
-                currentTacticalOffset;
-
-            debugDecision =
-                debugRecoveryPriority
-                    ? "Recover / Seeking Strip"
-                    : "Seeking Strip";
-
+            float desiredStripOffset = Mathf.Clamp(targetLateralOffset, -availableHalfWidth, availableHalfWidth);
+            float desiredTacticalOffset = desiredStripOffset - baseLateralOffset;
+            currentTacticalOffset = Mathf.MoveTowards(currentTacticalOffset, desiredTacticalOffset, lateralShiftSpeed * Time.fixedDeltaTime);
+            debugTargetingStrip = true;
+            debugTargetName = targetStrip != null ? targetStrip.name : string.Empty;
+            debugTargetLateralOffset = desiredStripOffset;
+            debugTacticalOffset = currentTacticalOffset;
+            debugDecision = debugRecoveryPriority ? "Recover / Seeking Strip" : "Seeking Strip";
             return currentTacticalOffset;
         }
 
         private float ReturnOffsetToZero()
         {
-            currentTacticalOffset =
-                Mathf.MoveTowards(
-                    currentTacticalOffset,
-                    0f,
-                    lateralShiftSpeed *
-                    Time.fixedDeltaTime);
-
-            debugTacticalOffset =
-                currentTacticalOffset;
-
+            currentTacticalOffset = Mathf.MoveTowards(currentTacticalOffset, 0f, lateralShiftSpeed * Time.fixedDeltaTime);
+            debugTacticalOffset = currentTacticalOffset;
             return currentTacticalOffset;
         }
 
         public void ResetPlanning()
         {
             ClearTarget("Reset");
-
-            currentTacticalOffset =
-                0f;
+            currentTacticalOffset = 0f;
         }
 
-        private void ClearTarget(
-            string reason)
+        private void ClearTarget(string reason)
         {
             targetStrip = null;
             targetProgress = 0f;
             targetLateralOffset = 0f;
-
             debugTargetingStrip = false;
             debugTargetName = string.Empty;
             debugTargetDistance = 0f;
@@ -505,69 +265,40 @@ namespace RaceFatal.Presentation.Vehicles
             debugDecision = reason;
         }
 
-        private float GetForwardDistance(
-            float fromProgress,
-            float toProgress)
+        private float GetForwardDistance(float fromProgress, float toProgress)
         {
-            float delta =
-                toProgress -
-                fromProgress;
-
+            float delta = toProgress - fromProgress;
             if (delta < 0f)
                 delta += 1f;
-
-            return delta *
-                   progressPath.TotalLength;
+            return delta * progressPath.TotalLength;
         }
 
-        private float GetSignedDistance(
-            float fromProgress,
-            float toProgress)
+        private float GetSignedDistance(float fromProgress, float toProgress)
         {
-            float delta =
-                toProgress -
-                fromProgress;
-
+            float delta = toProgress - fromProgress;
             if (delta > 0.5f)
                 delta -= 1f;
             else if (delta < -0.5f)
                 delta += 1f;
-
-            return delta *
-                   progressPath.TotalLength;
+            return delta * progressPath.TotalLength;
         }
 
         private void UpdateEnergyDebug()
         {
-            float maximum =
-                participant.Vehicle
-                    .EnergyPool
-                    .MaxEnergy;
-
-            debugEnergyPercent =
-                maximum > 0f
-                    ? participant.Vehicle
-                        .EnergyPool
-                        .CurrentEnergy /
-                      maximum
-                    : 0f;
+            float maximum = participant.Vehicle.EnergyPool.MaxEnergy;
+            debugEnergyPercent = maximum > 0f ? participant.Vehicle.EnergyPool.CurrentEnergy / maximum : 0f;
         }
 
         private bool RaceIsActive()
         {
-            if (raceRuntime == null ||
-                !raceRuntime.HasStarted)
+            if (raceRuntime == null || !raceRuntime.HasStarted)
             {
                 return false;
             }
 
             if (raceRuntime.Director?.State == null)
                 return false;
-
-            return !raceRuntime
-                .Director
-                .State
-                .IsFinished;
+            return !raceRuntime.Director.State.IsFinished;
         }
     }
 }

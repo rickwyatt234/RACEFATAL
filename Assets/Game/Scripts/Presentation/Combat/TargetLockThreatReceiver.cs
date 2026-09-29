@@ -3,29 +3,18 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
-    public class TargetLockThreatReceiver :
-        MonoBehaviour
+    public class TargetLockThreatReceiver : MonoBehaviour
     {
-        [Header("Runtime Debug")]
-        [SerializeField]
-        private int debugThreatCount;
-
-        [SerializeField]
-        private bool debugHardLock;
-
-        private readonly Dictionary<string, bool>
-            threats =
-                new Dictionary<string, bool>();
-
-        public bool HasLockThreat =>
-            threats.Count > 0;
+        [Header("Runtime Debug")] [SerializeField] private int debugThreatCount;
+        [SerializeField] private bool debugHardLock;
+        private readonly Dictionary<string, bool> threats = new Dictionary<string, bool>();
+        public bool HasLockThreat => threats.Count > 0;
 
         public bool HasHardLock
         {
             get
             {
-                foreach (bool locked
-                         in threats.Values)
+                foreach (bool locked in threats.Values)
                 {
                     if (locked)
                         return true;
@@ -35,34 +24,25 @@ namespace RaceFatal.Presentation.Combat
             }
         }
 
-        public void SetThreat(
-            string sourceRacerId,
-            bool locked)
+        public void SetThreat(string sourceRacerId, bool locked)
         {
-            if (string.IsNullOrWhiteSpace(
-                    sourceRacerId))
+            if (string.IsNullOrWhiteSpace(sourceRacerId))
             {
                 return;
             }
 
-            threats[sourceRacerId] =
-                locked;
-
+            threats[sourceRacerId] = locked;
             UpdateDebug();
         }
 
-        public void ClearThreat(
-            string sourceRacerId)
+        public void ClearThreat(string sourceRacerId)
         {
-            if (string.IsNullOrWhiteSpace(
-                    sourceRacerId))
+            if (string.IsNullOrWhiteSpace(sourceRacerId))
             {
                 return;
             }
 
-            threats.Remove(
-                sourceRacerId);
-
+            threats.Remove(sourceRacerId);
             UpdateDebug();
         }
 
@@ -74,11 +54,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void UpdateDebug()
         {
-            debugThreatCount =
-                threats.Count;
-
-            debugHardLock =
-                HasHardLock;
+            debugThreatCount = threats.Count;
+            debugHardLock = HasHardLock;
         }
     }
 }

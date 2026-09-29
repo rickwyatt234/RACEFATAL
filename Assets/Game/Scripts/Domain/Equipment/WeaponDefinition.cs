@@ -7,22 +7,13 @@ namespace RaceFatal.Equipment
     {
         public WeaponAimMode AimMode { get; }
         public WeaponDeliveryMode DeliveryMode { get; }
-
         public float Range { get; }
         public float ProjectileSpeed { get; }
         public float Damage { get; }
-
         public int StartingAmmo { get; }
-
-        // Seconds between shots for Hold and Passive weapons.
         public float FireInterval { get; }
-
-        // Seconds required to fully charge a ChargeRelease weapon.
         public float ChargeDuration { get; }
         public float TargetLockDuration { get; }
-
-        // Shared special-weapon authoring values. Weapons ignore fields that
-        // do not apply to their delivery mode.
         public int ProjectileCount { get; }
         public float SpreadAngle { get; }
         public float ExplosionRadius { get; }
@@ -36,72 +27,27 @@ namespace RaceFatal.Equipment
         public float ImpactPush { get; }
         public float TargetingHalfAngle { get; }
 
-        public WeaponDefinition(
-            string id,
-            string displayName,
-            NodeSize requiredNodeSize,
-            EquipmentActivationMode activationMode,
-            WeaponAimMode aimMode,
-            WeaponDeliveryMode deliveryMode,
-            float range,
-            float projectileSpeed,
-            float damage,
-            int startingAmmo,
-            float fireInterval,
-            float chargeDuration,
-            float targetLockDuration,
-            int creditCost,
-            string requiredTechnologyId,
-            int projectileCount = 1,
-            float spreadAngle = 0f,
-            float explosionRadius = 0f,
-            float armingDelay = 0f,
-            float lifetime = 0f,
-            float exposureDuration = 0f,
-            float effectDuration = 0f,
-            float statusDamagePerSecond = 0f,
-            float lateralDistance = 0f,
-            float dashDuration = 0f,
-            float impactPush = 0f,
-            float targetingHalfAngle = 0f)
-            : base(
-                id,
-                displayName,
-                EquipmentCategory.Weapon,
-                requiredNodeSize,
-                activationMode,
-                creditCost,
-                requiredTechnologyId)
+        public WeaponDefinition(string id, string displayName, NodeSize requiredNodeSize, EquipmentActivationMode activationMode, WeaponAimMode aimMode, WeaponDeliveryMode deliveryMode, float range, float projectileSpeed, float damage, int startingAmmo, float fireInterval, float chargeDuration, float targetLockDuration, int creditCost, string requiredTechnologyId, int projectileCount = 1, float spreadAngle = 0f, float explosionRadius = 0f, float armingDelay = 0f, float lifetime = 0f, float exposureDuration = 0f, float effectDuration = 0f, float statusDamagePerSecond = 0f, float lateralDistance = 0f, float dashDuration = 0f, float impactPush = 0f, float targetingHalfAngle = 0f) : base(id, displayName, EquipmentCategory.Weapon, requiredNodeSize, activationMode, creditCost, requiredTechnologyId)
         {
-            if (activationMode != EquipmentActivationMode.Passive &&
-                activationMode != EquipmentActivationMode.Press &&
-                activationMode != EquipmentActivationMode.Hold &&
-                activationMode != EquipmentActivationMode.ChargeRelease)
+            if (activationMode != EquipmentActivationMode.Passive && activationMode != EquipmentActivationMode.Press && activationMode != EquipmentActivationMode.Hold && activationMode != EquipmentActivationMode.ChargeRelease)
             {
-                throw new ArgumentException(
-                    "Weapons must use Passive, Press, Hold, or ChargeRelease.");
+                throw new ArgumentException("Weapons must use Passive, Press, Hold, or ChargeRelease.");
             }
 
             if (startingAmmo <= 0)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(startingAmmo),
-                    "Weapons must begin a race with at least one round of ammunition.");
+                throw new ArgumentOutOfRangeException(nameof(startingAmmo), "Weapons must begin a race with at least one round of ammunition.");
             }
 
             AimMode = aimMode;
             DeliveryMode = deliveryMode;
-
             Range = Math.Max(0f, range);
             ProjectileSpeed = Math.Max(0f, projectileSpeed);
             Damage = Math.Max(0f, damage);
-
             StartingAmmo = startingAmmo;
-
             FireInterval = Math.Max(0f, fireInterval);
             ChargeDuration = Math.Max(0f, chargeDuration);
             TargetLockDuration = Math.Max(0f, targetLockDuration);
-
             ProjectileCount = Math.Max(1, projectileCount);
             SpreadAngle = Math.Max(0f, spreadAngle);
             ExplosionRadius = Math.Max(0f, explosionRadius);

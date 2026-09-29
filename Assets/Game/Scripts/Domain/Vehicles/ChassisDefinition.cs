@@ -12,16 +12,11 @@ namespace RaceFatal.Vehicles
         public float SteeringResponseMultiplier { get; }
         public float LeanResponseMultiplier { get; }
         public float StabilityMultiplier { get; }
-        // Fraction of structural collision damage prevented; excludes weapons and fatal hazards.
         public float ImpactResistance { get; }
         public int CreditCost { get; }
         public string RequiredTechnologyId { get; }
 
-        public ChassisDefinition(string id, string displayName, float mass,
-            float handlingMultiplier, int creditCost, string requiredTechnologyId,
-            float maxIntegrity = 100f, float steeringResponseMultiplier = 1f,
-            float leanResponseMultiplier = 1f, float stabilityMultiplier = 1f,
-            float impactResistance = 0f)
+        public ChassisDefinition(string id, string displayName, float mass, float handlingMultiplier, int creditCost, string requiredTechnologyId, float maxIntegrity = 100f, float steeringResponseMultiplier = 1f, float leanResponseMultiplier = 1f, float stabilityMultiplier = 1f, float impactResistance = 0f)
         {
             Id = id;
             DisplayName = displayName;

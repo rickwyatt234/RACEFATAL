@@ -7,11 +7,7 @@ namespace RaceFatal.Career
         public int ResearchPoints { get; }
         public int CharacterFame { get; }
 
-        public RaceReward(
-            int credits,
-            int teamFame,
-            int researchPoints,
-            int characterFame)
+        public RaceReward(int credits, int teamFame, int researchPoints, int characterFame)
         {
             Credits = credits;
             TeamFame = teamFame;

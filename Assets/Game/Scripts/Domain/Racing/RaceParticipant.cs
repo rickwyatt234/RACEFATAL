@@ -10,9 +10,7 @@ namespace RaceFatal.Racing
         public RacerPerkBonuses Perks { get; }
         public RaceVehicleState Vehicle { get; }
         public BikeState Bike => Vehicle.Bike;
-
         public RaceParticipantRole Role { get; }
-
         public string RacerId => Racer.RacerId;
         public string TeamId => Racer.TeamId;
         public string TeamName { get; }
@@ -21,12 +19,10 @@ namespace RaceFatal.Racing
         private float lastAudienceCourseSample;
         internal bool HasCourseSample => hasCourseSample;
         internal double AudienceCourseProgress { get; private set; }
+
         private float lapTraversalProgress;
-
         public float LapTraversalProgress => lapTraversalProgress;
-
         public RaceParticipantStatus Status { get; private set; }
-
         public int CompletedLaps { get; private set; }
         public int Eliminations { get; internal set; }
         public float EliminationTime { get; internal set; }
@@ -35,47 +31,19 @@ namespace RaceFatal.Racing
         public string EliminationReason { get; internal set; }
         public bool DeathmatchWinner { get; internal set; }
         public int DeathmatchPosition { get; internal set; }
-
         public float CourseProgress { get; private set; }
-
         public int FinishPosition { get; private set; }
-
-        /// <summary>
-        /// Actual elapsed race time when this racer physically
-        /// completed the race. Null means no physical finish time
-        /// exists.
-        /// </summary>
         public float? FinishTimeSeconds { get; private set; }
-
-        /// <summary>
-        /// True when the final position was assigned by the
-        /// remaining-race resolver rather than a physical finish.
-        /// </summary>
         public bool WasFastResolved { get; private set; }
 
-        public RaceParticipant(
-            RacerState racer,
-            RaceVehicleState vehicle,
-            RaceParticipantRole role,
-            string teamName = null,
-            RacerPerkBonuses perks = null)
+        public RaceParticipant(RacerState racer, RaceVehicleState vehicle, RaceParticipantRole role, string teamName = null, RacerPerkBonuses perks = null)
         {
-            Racer = racer
-                ?? throw new ArgumentNullException(nameof(racer));
-
-            Vehicle = vehicle
-                ?? throw new ArgumentNullException(nameof(vehicle));
-
+            Racer = racer ?? throw new ArgumentNullException(nameof(racer));
+            Vehicle = vehicle ?? throw new ArgumentNullException(nameof(vehicle));
             Role = role;
             Perks = perks ?? new RacerPerkBonuses();
-
-            TeamName =
-                string.IsNullOrWhiteSpace(teamName)
-                    ? racer.TeamId
-                    : teamName;
-
-            Status =
-                RaceParticipantStatus.Ready;
+            TeamName = string.IsNullOrWhiteSpace(teamName) ? racer.TeamId : teamName;
+            Status = RaceParticipantStatus.Ready;
         }
 
         internal void Start()
@@ -88,15 +56,12 @@ namespace RaceFatal.Racing
         {
             if (Status != RaceParticipantStatus.Racing)
                 return;
-
-            if (float.IsNaN(progress) || float.IsInfinity(progress)) return;
-
+            if (float.IsNaN(progress) || float.IsInfinity(progress))
+                return;
             if (progress < 0f)
                 progress = 0f;
-
             if (progress > 1f)
                 progress = 1f;
-
             if (!hasCourseSample)
             {
                 CourseProgress = progress;
@@ -106,29 +71,25 @@ namespace RaceFatal.Racing
                 return;
             }
 
-            float delta =
-                progress - CourseProgress;
-
+            float delta = progress - CourseProgress;
             if (delta < -0.5f)
                 delta += 1f;
             else if (delta > 0.5f)
                 delta -= 1f;
-
             const float maximumAcceptedDelta = 0.15f;
             float audienceDelta = progress - lastAudienceCourseSample;
-            if (audienceDelta < -0.5f) audienceDelta += 1f;
-            else if (audienceDelta > 0.5f) audienceDelta -= 1f;
-            if (Math.Abs(audienceDelta) <= maximumAcceptedDelta) AudienceCourseProgress += audienceDelta;
+            if (audienceDelta < -0.5f)
+                audienceDelta += 1f;
+            else if (audienceDelta > 0.5f)
+                audienceDelta -= 1f;
+            if (Math.Abs(audienceDelta) <= maximumAcceptedDelta)
+                AudienceCourseProgress += audienceDelta;
             lastAudienceCourseSample = progress;
-
             if (Math.Abs(delta) <= maximumAcceptedDelta)
             {
-
                 lapTraversalProgress += delta;
-
                 if (lapTraversalProgress < 0f)
                     lapTraversalProgress = 0f;
-
                 if (lapTraversalProgress > 1.25f)
                     lapTraversalProgress = 1.25f;
             }
@@ -139,7 +100,6 @@ namespace RaceFatal.Racing
         internal void ConfirmLapTraversal()
         {
             lapTraversalProgress -= 1f;
-
             if (lapTraversalProgress < 0f)
                 lapTraversalProgress = 0f;
         }
@@ -153,30 +113,18 @@ namespace RaceFatal.Racing
         {
             if (Status != RaceParticipantStatus.Racing)
                 return;
-
             CompletedLaps++;
             CourseProgress = 0f;
         }
 
-        internal void Finish(
-            int position,
-            float? finishTimeSeconds,
-            bool wasFastResolved)
+        internal void Finish(int position, float? finishTimeSeconds, bool wasFastResolved)
         {
             if (Status != RaceParticipantStatus.Racing)
                 return;
-
             FinishPosition = position;
-
-            FinishTimeSeconds =
-                finishTimeSeconds.HasValue
-                    ? Math.Max(0f, finishTimeSeconds.Value)
-                    : null;
-
+            FinishTimeSeconds = finishTimeSeconds.HasValue ? Math.Max(0f, finishTimeSeconds.Value) : null;
             WasFastResolved = wasFastResolved;
-
-            Status =
-                RaceParticipantStatus.Finished;
+            Status = RaceParticipantStatus.Finished;
         }
 
         internal void Retire()
@@ -189,7 +137,6 @@ namespace RaceFatal.Racing
         {
             if (Status == RaceParticipantStatus.Finished)
                 return;
-
             Status = RaceParticipantStatus.Destroyed;
         }
     }

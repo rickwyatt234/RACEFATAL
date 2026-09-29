@@ -8,83 +8,59 @@ namespace RaceFatal.Vehicles
     public sealed class BikePerformanceCalculator
     {
         private readonly GameDatabase database;
-
-        public BikePerformanceCalculator(
-            GameDatabase database)
+        public BikePerformanceCalculator(GameDatabase database)
         {
-            this.database = database
-                ?? throw new ArgumentNullException(
-                    nameof(database));
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
-        public Result<BikePerformance> Calculate(
-            BikeState bike)
+        public Result<BikePerformance> Calculate(BikeState bike)
         {
             if (bike == null)
             {
-                return Result<BikePerformance>.Failure(
-                    "Bike is required.");
+                return Result<BikePerformance>.Failure("Bike is required.");
             }
 
             if (bike.IsDestroyed)
             {
-                return Result<BikePerformance>.Failure(
-                    "Cannot calculate performance for a destroyed bike.");
+                return Result<BikePerformance>.Failure("Cannot calculate performance for a destroyed bike.");
             }
 
-            BikeDefinition bikeDefinition =
-                database.GetBikeDefinition(
-                    bike.BikeDefinitionId);
-
+            BikeDefinition bikeDefinition = database.GetBikeDefinition(bike.BikeDefinitionId);
             if (bikeDefinition == null)
             {
-                return Result<BikePerformance>.Failure(
-                    $"Bike definition '{bike.BikeDefinitionId}' was not found.");
+                return Result<BikePerformance>.Failure($"Bike definition '{bike.BikeDefinitionId}' was not found.");
             }
 
-            EngineState engineState =
-                bike.Loadout.Engine;
-
+            EngineState engineState = bike.Loadout.Engine;
             if (engineState == null)
             {
-                return Result<BikePerformance>.Failure(
-                    "Bike does not have an engine.");
+                return Result<BikePerformance>.Failure("Bike does not have an engine.");
             }
 
-            EngineDefinition engineDefinition =
-                database.GetEngineDefinition(
-                    engineState.EngineDefinitionId);
-
+            EngineDefinition engineDefinition = database.GetEngineDefinition(engineState.EngineDefinitionId);
             if (engineDefinition == null)
             {
-                return Result<BikePerformance>.Failure(
-                    $"Engine definition '{engineState.EngineDefinitionId}' was not found.");
+                return Result<BikePerformance>.Failure($"Engine definition '{engineState.EngineDefinitionId}' was not found.");
             }
 
-            ChassisState chassisState =
-                bike.Loadout.Chassis;
-
+            ChassisState chassisState = bike.Loadout.Chassis;
             if (chassisState == null)
             {
-                return Result<BikePerformance>.Failure(
-                    "Bike does not have a chassis.");
+                return Result<BikePerformance>.Failure("Bike does not have a chassis.");
             }
 
-            ChassisDefinition chassisDefinition =
-                database.GetChassisDefinition(
-                    chassisState.ChassisDefinitionId);
-
+            ChassisDefinition chassisDefinition = database.GetChassisDefinition(chassisState.ChassisDefinitionId);
             if (chassisDefinition == null)
             {
-                return Result<BikePerformance>.Failure(
-                    $"Chassis definition '{chassisState.ChassisDefinitionId}' was not found.");
+                return Result<BikePerformance>.Failure($"Chassis definition '{chassisState.ChassisDefinitionId}' was not found.");
             }
 
             float passiveHandling = 1f;
             float energyCapacity = 0f;
             foreach (var node in bike.Loadout.Nodes)
             {
-                if (!node.IsOccupied) continue;
+                if (!node.IsOccupied)
+                    continue;
                 var definition = database.GetEquipmentDefinition(node.InstalledEquipment.EquipmentDefinitionId);
                 if (definition == null)
                     return Result<BikePerformance>.Failure("Installed equipment definition was not found.");
@@ -94,15 +70,8 @@ namespace RaceFatal.Vehicles
                     energyCapacity += booster.EnergyCapacity;
             }
 
-            var performance = new BikePerformance(
-                engineDefinition.TopSpeed, engineDefinition.Acceleration,
-                chassisDefinition.HandlingMultiplier, chassisDefinition.Mass,
-                chassisDefinition.MaxIntegrity, chassisDefinition.SteeringResponseMultiplier,
-                chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier,
-                chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
-
-            return Result<BikePerformance>.Success(
-                performance);
+            var performance = new BikePerformance(engineDefinition.TopSpeed, engineDefinition.Acceleration, chassisDefinition.HandlingMultiplier, chassisDefinition.Mass, chassisDefinition.MaxIntegrity, chassisDefinition.SteeringResponseMultiplier, chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier, chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
+            return Result<BikePerformance>.Success(performance);
         }
     }
 }

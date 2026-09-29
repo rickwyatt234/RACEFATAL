@@ -12,7 +12,6 @@ namespace RaceFatal.Presentation.Vehicles
         private RaceDirector director;
         private RaceParticipant participant;
         private float shownFavor = 100f, masterVolume;
-
         public void Initialize(RaceDirector raceDirector, RaceParticipant player, TMP_FontAsset font, AudioClip cheering, AudioClip booing, float volume)
         {
             director = raceDirector;
@@ -27,6 +26,7 @@ namespace RaceFatal.Presentation.Vehicles
                 cheers = CreateAudio(cheering);
                 boos = CreateAudio(booing);
             }
+
             Refresh(0f);
         }
 
@@ -35,7 +35,8 @@ namespace RaceFatal.Presentation.Vehicles
             var rect = new GameObject(objectName, typeof(RectTransform)).GetComponent<RectTransform>();
             rect.SetParent(transform, false);
             rect.gameObject.layer = gameObject.layer;
-            rect.anchorMin = minimum; rect.anchorMax = maximum;
+            rect.anchorMin = minimum;
+            rect.anchorMax = maximum;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             return rect;
         }
@@ -43,7 +44,8 @@ namespace RaceFatal.Presentation.Vehicles
         private TextMeshProUGUI CreateText(string objectName, Vector2 minimum, Vector2 maximum, TMP_FontAsset font, float size)
         {
             var label = CreateRect(objectName, minimum, maximum).gameObject.AddComponent<TextMeshProUGUI>();
-            if (font != null) label.font = font;
+            if (font != null)
+                label.font = font;
             label.fontSize = size;
             label.color = new Color(0.65f, 0.95f, 1f);
             label.alignment = TextAlignmentOptions.Center;
@@ -53,24 +55,31 @@ namespace RaceFatal.Presentation.Vehicles
 
         private AudioSource CreateAudio(AudioClip clip)
         {
-            if (clip == null) return null;
+            if (clip == null)
+                return null;
             var source = gameObject.AddComponent<AudioSource>();
-            source.clip = clip; source.loop = true; source.playOnAwake = false;
-            source.spatialBlend = 0f; source.volume = 0f;
+            source.clip = clip;
+            source.loop = true;
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.volume = 0f;
             return source;
         }
 
         private void Update() => Refresh(Time.deltaTime);
-
         private void Refresh(float deltaTime)
         {
-            if (director == null || equalizer == null) return;
+            if (director == null || equalizer == null)
+                return;
             if (Time.timeScale <= 0f)
             {
-                if (cheers != null) cheers.Pause();
-                if (boos != null) boos.Pause();
+                if (cheers != null)
+                    cheers.Pause();
+                if (boos != null)
+                    boos.Pause();
                 return;
             }
+
             RaceAudience audience = director.Audience;
             bool active = director.State.IsStarted && !director.State.IsFinished && participant?.Status == RaceParticipantStatus.Racing;
             shownFavor = Mathf.Lerp(shownFavor, audience.Favor, 1f - Mathf.Exp(-8f * deltaTime));
@@ -83,20 +92,33 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void UpdateAudio(AudioSource source, float amount, bool active, float deltaTime)
         {
-            if (source == null) return;
+            if (source == null)
+                return;
             if (active && !source.isPlaying)
             {
                 source.UnPause();
-                if (!source.isPlaying) source.Play();
+                if (!source.isPlaying)
+                    source.Play();
             }
+
             source.volume = Mathf.MoveTowards(source.volume, amount * masterVolume, deltaTime * 0.5f);
-            if (!active && source.volume <= 0f) source.Stop();
+            if (!active && source.volume <= 0f)
+                source.Stop();
         }
 
         private void OnDisable()
         {
-            if (cheers != null) { cheers.Stop(); cheers.volume = 0f; }
-            if (boos != null) { boos.Stop(); boos.volume = 0f; }
+            if (cheers != null)
+            {
+                cheers.Stop();
+                cheers.volume = 0f;
+            }
+
+            if (boos != null)
+            {
+                boos.Stop();
+                boos.volume = 0f;
+            }
         }
     }
 }

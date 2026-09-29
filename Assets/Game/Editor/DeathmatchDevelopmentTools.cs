@@ -11,13 +11,19 @@ public static class DeathmatchDevelopmentTools
     [MenuItem("RACE//FATAL/Career/Create Deathmatch Development Events")]
     public static void Create()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
         var catalog = Selection.activeObject as GameContentCatalogSO;
         var template = catalog?.RaceDefinitions.FirstOrDefault(r => r != null);
         if (template == null)
-        { EditorUtility.DisplayDialog("Deathmatch", "Select the Bootstrap GameContentCatalog with a configured circuit race.", "OK"); return; }
+        {
+            EditorUtility.DisplayDialog("Deathmatch", "Select the Bootstrap GameContentCatalog with a configured circuit race.", "OK");
+            return;
+        }
+
         const string folder = "Assets/Game/DeathmatchDevelopment";
-        if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder("Assets/Game", "DeathmatchDevelopment");
+        if (!AssetDatabase.IsValidFolder(folder))
+            AssetDatabase.CreateFolder("Assets/Game", "DeathmatchDevelopment");
         var content = new SerializedObject(catalog);
         for (int i = 0; i < 2; i++)
         {
@@ -44,6 +50,7 @@ public static class DeathmatchDevelopmentTools
                 data.ApplyModifiedPropertiesWithoutUndo();
                 AssetDatabase.CreateAsset(race, racePath);
             }
+
             string eventPath = folder + "/" + id + ".asset";
             var entry = AssetDatabase.LoadAssetAtPath<CareerEventDefinitionSO>(eventPath);
             if (entry == null)
@@ -54,20 +61,28 @@ public static class DeathmatchDevelopmentTools
                 data.FindProperty("displayName").stringValue = name;
                 data.FindProperty("description").stringValue = "Survive while circulating. Falling below the speed limit causes disqualification, not permanent death.";
                 data.FindProperty("kind").intValue = (int)CareerEventKind.Deathmatch;
-                var rounds = data.FindProperty("rounds"); rounds.arraySize = 1;
+                var rounds = data.FindProperty("rounds");
+                rounds.arraySize = 1;
                 rounds.GetArrayElementAtIndex(0).objectReferenceValue = race;
                 data.ApplyModifiedPropertiesWithoutUndo();
                 AssetDatabase.CreateAsset(entry, eventPath);
             }
+
             Register(content.FindProperty("raceDefinitions"), race);
             Register(content.FindProperty("careerEventDefinitions"), entry);
         }
-        content.ApplyModifiedProperties(); AssetDatabase.SaveAssets();
+
+        content.ApplyModifiedProperties();
+        AssetDatabase.SaveAssets();
         Debug.Log("Deathmatch assets registered; existing assets preserved. Tune race rules and event fees/Fame/payouts in the Inspector. Restart Bootstrap, then advance a week for a new draw.");
     }
+
     private static void Register(SerializedProperty list, Object asset)
     {
-        for (int i = 0; i < list.arraySize; i++) if (list.GetArrayElementAtIndex(i).objectReferenceValue == asset) return;
-        list.arraySize++; list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = asset;
+        for (int i = 0; i < list.arraySize; i++)
+            if (list.GetArrayElementAtIndex(i).objectReferenceValue == asset)
+                return;
+        list.arraySize++;
+        list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = asset;
     }
 }

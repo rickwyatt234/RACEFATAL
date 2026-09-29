@@ -4,60 +4,42 @@ namespace RaceFatal.Presentation.Combat
 {
     public class ShieldImpactEffectView : MonoBehaviour
     {
-        #region Settings
-
+#region Settings
         [Header("Effect")]
         [Tooltip("The child object containing vfx_SciFiShield01 and its particle systems.")]
-        [SerializeField] private GameObject effectRoot;
-
-        [Header("Pulse")]
-        [Tooltip("How long the shield effect is allowed to remain active after the most recent hit.")]
-        [Min(0.01f)][SerializeField] private float visibleDuration = 0.35f;
-
-        [Tooltip("If enabled, every incoming hit restarts the particle systems from the beginning.")]
-        [SerializeField] private bool restartOnEveryHit = true;
-
-        #endregion
-
-        #region Debug
-
+        [SerializeField]
+        private GameObject effectRoot;
+        [Header("Pulse")] [Tooltip("How long the shield effect is allowed to remain active after the most recent hit.")] [Min(0.01f)] [SerializeField] private float visibleDuration =
+            0.35f;
+        [Tooltip("If enabled, every incoming hit restarts the particle systems from the beginning.")] [SerializeField] private bool restartOnEveryHit = true;
+#endregion
+#region Debug
         [Header("Runtime Debug")]
-        [SerializeField] private bool debugPlaying;
+        [SerializeField]
+        private bool debugPlaying;
         [SerializeField] private float debugRemainingTime;
         [SerializeField] private int debugPulseCount;
         [SerializeField] private int debugParticleSystemCount;
         [SerializeField] private string debugLastPulse = "Never";
-
-        #endregion
-
+#endregion
         private ParticleSystem[] particles;
         private float remainingTime;
-
         private void Awake()
         {
             if (effectRoot == null)
             {
                 if (transform.childCount > 0)
                 {
-                    effectRoot =
-                        transform.GetChild(0).gameObject;
+                    effectRoot = transform.GetChild(0).gameObject;
                 }
                 else
                 {
-                    Debug.LogError(
-                        $"ShieldImpactEffectView on '{name}' has no Effect Root.",
-                        this);
-
+                    Debug.LogError($"ShieldImpactEffectView on '{name}' has no Effect Root.", this);
                     return;
                 }
             }
 
-            /*
-             * Keep the hierarchy active. Visibility is controlled
-             * entirely by the ParticleSystems.
-             */
             effectRoot.SetActive(true);
-
             CacheParticles();
             ClearParticles();
         }
@@ -66,18 +48,10 @@ namespace RaceFatal.Presentation.Combat
         {
             if (remainingTime <= 0f)
                 return;
-
-            remainingTime =
-                Mathf.Max(
-                    0f,
-                    remainingTime - Time.deltaTime);
-
-            debugRemainingTime =
-                remainingTime;
-
+            remainingTime = Mathf.Max(0f, remainingTime - Time.deltaTime);
+            debugRemainingTime = remainingTime;
             if (remainingTime > 0f)
                 return;
-
             ClearParticles();
             debugPlaying = false;
         }
@@ -86,31 +60,18 @@ namespace RaceFatal.Presentation.Combat
         {
             if (effectRoot == null)
                 return;
-
-            if (particles == null ||
-                particles.Length == 0)
+            if (particles == null || particles.Length == 0)
             {
-                Debug.LogWarning(
-                    $"ShieldImpactEffectView '{name}' found no ParticleSystems.",
-                    this);
-
+                Debug.LogWarning($"ShieldImpactEffectView '{name}' found no ParticleSystems.", this);
                 return;
             }
 
             if (!effectRoot.activeSelf)
                 effectRoot.SetActive(true);
-
-            remainingTime =
-                visibleDuration;
-
-            debugRemainingTime =
-                remainingTime;
-
+            remainingTime = visibleDuration;
+            debugRemainingTime = remainingTime;
             debugPulseCount++;
-
-            debugLastPulse =
-                Time.time.ToString("F2");
-
+            debugLastPulse = Time.time.ToString("F2");
             if (restartOnEveryHit)
             {
                 RestartParticles();
@@ -128,10 +89,7 @@ namespace RaceFatal.Presentation.Combat
         {
             if (!Application.isPlaying)
             {
-                Debug.LogWarning(
-                    "Test Shield Pulse must be used during Play Mode.",
-                    this);
-
+                Debug.LogWarning("Test Shield Pulse must be used during Play Mode.", this);
                 return;
             }
 
@@ -142,7 +100,6 @@ namespace RaceFatal.Presentation.Combat
         private void TestClear()
         {
             ClearParticles();
-
             remainingTime = 0f;
             debugRemainingTime = 0f;
             debugPlaying = false;
@@ -151,7 +108,6 @@ namespace RaceFatal.Presentation.Combat
         public void HideImmediate()
         {
             ClearParticles();
-
             remainingTime = 0f;
             debugRemainingTime = 0f;
             debugPlaying = false;
@@ -159,26 +115,13 @@ namespace RaceFatal.Presentation.Combat
 
         private void CacheParticles()
         {
-            particles =
-                effectRoot.GetComponentsInChildren<ParticleSystem>(
-                    true);
-
-            debugParticleSystemCount =
-                particles != null
-                    ? particles.Length
-                    : 0;
+            particles = effectRoot.GetComponentsInChildren<ParticleSystem>(true);
+            debugParticleSystemCount = particles != null ? particles.Length : 0;
         }
 
         private void RestartParticles()
         {
-            /*
-             * Clear every system independently.
-             *
-             * We deliberately use withChildren = false because
-             * each cached system will be handled explicitly.
-             */
             ClearParticles();
-
             PlayParticles();
         }
 
@@ -186,22 +129,11 @@ namespace RaceFatal.Presentation.Combat
         {
             if (particles == null)
                 return;
-
-            for (int i = 0;
-                 i < particles.Length;
-                 i++)
+            for (int i = 0; i < particles.Length; i++)
             {
-                ParticleSystem particle =
-                    particles[i];
-
+                ParticleSystem particle = particles[i];
                 if (particle == null)
                     continue;
-
-                /*
-                 * Explicitly restart this exact particle system.
-                 * This avoids depending on the root system to
-                 * propagate playback correctly to purchased VFX.
-                 */
                 particle.Play(false);
             }
         }
@@ -210,22 +142,12 @@ namespace RaceFatal.Presentation.Combat
         {
             if (particles == null)
                 return;
-
-            for (int i = 0;
-                 i < particles.Length;
-                 i++)
+            for (int i = 0; i < particles.Length; i++)
             {
-                ParticleSystem particle =
-                    particles[i];
-
+                ParticleSystem particle = particles[i];
                 if (particle == null)
                     continue;
-
-                particle.Stop(
-                    false,
-                    ParticleSystemStopBehavior
-                        .StopEmittingAndClear);
-
+                particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                 particle.Clear(false);
             }
         }
@@ -234,16 +156,10 @@ namespace RaceFatal.Presentation.Combat
         {
             if (particles == null)
                 return false;
-
-            for (int i = 0;
-                 i < particles.Length;
-                 i++)
+            for (int i = 0; i < particles.Length; i++)
             {
-                ParticleSystem particle =
-                    particles[i];
-
-                if (particle != null &&
-                    particle.isPlaying)
+                ParticleSystem particle = particles[i];
+                if (particle != null && particle.isPlaying)
                 {
                     return true;
                 }

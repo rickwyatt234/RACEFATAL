@@ -7,31 +7,19 @@ namespace RaceFatal.Presentation.Racing
 {
     public class RaceStandingsView : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private TextMeshProUGUI headingText;
-
-        [Tooltip("Parent containing Row01 through Row12.")]
-        [SerializeField] private Transform rowsRoot;
-
-        [SerializeField] private List<RaceStandingsRowView> rows =
-            new List<RaceStandingsRowView>();
-
-        [Header("Live Refresh")]
-        [Min(0.02f)][SerializeField] private float refreshInterval = 0.1f;
-
-        [Header("Runtime Debug")]
-        [SerializeField] private bool debugInitialized;
+        [Header("References")] [SerializeField] private TextMeshProUGUI headingText;
+        [Tooltip("Parent containing Row01 through Row12.")] [SerializeField] private Transform rowsRoot;
+        [SerializeField] private List<RaceStandingsRowView> rows = new List<RaceStandingsRowView>();
+        [Header("Live Refresh")] [Min(0.02f)] [SerializeField] private float refreshInterval = 0.1f;
+        [Header("Runtime Debug")] [SerializeField] private bool debugInitialized;
         [SerializeField] private bool debugLiveMode;
         [SerializeField] private int debugCachedRows;
         [SerializeField] private int debugVisibleRows;
         [SerializeField] private int debugParticipantCount;
         [SerializeField] private int debugResultCount;
-
         private RaceRuntimeController raceRuntime;
-
         private float refreshTimer;
         private bool liveMode;
-
         private void Awake()
         {
             CacheRows();
@@ -46,121 +34,77 @@ namespace RaceFatal.Presentation.Racing
 
         private void Update()
         {
-            if (!liveMode ||
-                raceRuntime == null ||
-                raceRuntime.Director == null)
+            if (!liveMode || raceRuntime == null || raceRuntime.Director == null)
             {
                 return;
             }
 
-            refreshTimer -=
-                Time.deltaTime;
-
+            refreshTimer -= Time.deltaTime;
             if (refreshTimer > 0f)
                 return;
-
-            refreshTimer =
-                refreshInterval;
-
+            refreshTimer = refreshInterval;
             RefreshLive();
         }
 
-        public void Initialize(
-            RaceRuntimeController runtime)
+        public void Initialize(RaceRuntimeController runtime)
         {
             raceRuntime = runtime;
-
             if (rows.Count == 0)
                 CacheRows();
-
-            debugInitialized =
-                raceRuntime != null &&
-                raceRuntime.Director != null;
+            debugInitialized = raceRuntime != null && raceRuntime.Director != null;
         }
 
         public void ShowLive()
         {
             if (rows.Count == 0)
                 CacheRows();
-
-            if (raceRuntime == null ||
-                raceRuntime.Director == null)
+            if (raceRuntime == null || raceRuntime.Director == null)
             {
-                Debug.LogWarning(
-                    "RaceStandingsView cannot show live standings because it has not been initialized.",
-                    this);
-
+                Debug.LogWarning("RaceStandingsView cannot show live standings because it has not been initialized.", this);
                 return;
             }
 
             if (rows.Count == 0)
             {
-                Debug.LogError(
-                    "RaceStandingsView has no RaceStandingsRowView rows.",
-                    this);
-
+                Debug.LogError("RaceStandingsView has no RaceStandingsRowView rows.", this);
                 return;
             }
 
             liveMode = true;
             debugLiveMode = true;
-
             refreshTimer = 0f;
-
             if (headingText != null)
                 headingText.text = raceRuntime.Director.State.Deathmatch != null ? "DEATHMATCH — LIVE SURVIVAL" : "LIVE RACE STANDINGS";
-
             RefreshLive();
         }
 
-        public void ShowFinal(
-            RaceResult result)
+        public void ShowFinal(RaceResult result)
         {
             if (rows.Count == 0)
                 CacheRows();
-
             liveMode = false;
             debugLiveMode = false;
-
             if (headingText != null)
                 headingText.text = "FINAL RESULTS";
-
             if (rows.Count == 0)
             {
-                Debug.LogError(
-                    "RaceStandingsView has no RaceStandingsRowView rows.",
-                    this);
-
+                Debug.LogError("RaceStandingsView has no RaceStandingsRowView rows.", this);
                 return;
             }
 
-            RefreshFinal(
-                result);
+            RefreshFinal(result);
         }
 
         private void CacheRows()
         {
             rows.Clear();
-
-            Transform searchRoot =
-                rowsRoot != null
-                    ? rowsRoot
-                    : transform;
-
-            RaceStandingsRowView[] foundRows =
-                searchRoot.GetComponentsInChildren<RaceStandingsRowView>(true);
-
-            rows.AddRange(
-                foundRows);
-
-            debugCachedRows =
-                rows.Count;
-
+            Transform searchRoot = rowsRoot != null ? rowsRoot : transform;
+            RaceStandingsRowView[] foundRows = searchRoot.GetComponentsInChildren<RaceStandingsRowView>(true);
+            rows.AddRange(foundRows);
+            debugCachedRows = rows.Count;
             if (rows.Count == 0)
             {
-                Debug.LogWarning(
-                    "RaceStandingsView found no standings rows. Assign Rows Root or add RaceStandingsRowView components beneath it.",
-                    this);
+                Debug.LogWarning("RaceStandingsView found no standings rows. Assign Rows Root or add RaceStandingsRowView components beneath it.", this);
             }
         }
 
@@ -168,50 +112,25 @@ namespace RaceFatal.Presentation.Racing
         {
             if (raceRuntime?.Director?.State == null)
                 return;
-
-            RaceState state =
-                raceRuntime.Director.State;
-
-            IReadOnlyList<RaceParticipant> order =
-                state.GetCurrentOrder();
-
+            RaceState state = raceRuntime.Director.State;
+            IReadOnlyList<RaceParticipant> order = state.GetCurrentOrder();
             if (state.Deathmatch != null && headingText != null)
-                headingText.text = $"SURVIVORS {state.SurvivingContenders} / WINNER SLOTS {state.Deathmatch.AllowedWinners} — " +
-                    $"{Mathf.Max(0, state.Deathmatch.TimeLimitSeconds - raceRuntime.Director.ElapsedRaceTime):0}s";
-            debugParticipantCount =
-                order.Count;
-
-            int visible =
-                Mathf.Min(
-                    rows.Count,
-                    order.Count);
-
-            for (int i = 0;
-                 i < visible;
-                 i++)
+                headingText.text = $"SURVIVORS {state.SurvivingContenders} / WINNER SLOTS {state.Deathmatch.AllowedWinners} — " + $"{Mathf.Max(0, state.Deathmatch.TimeLimitSeconds - raceRuntime.Director.ElapsedRaceTime):0}s";
+            debugParticipantCount = order.Count;
+            int visible = Mathf.Min(rows.Count, order.Count);
+            for (int i = 0; i < visible; i++)
             {
-                RaceParticipant participant =
-                    order[i];
-
+                RaceParticipant participant = order[i];
                 if (rows[i] == null)
                     continue;
-
-                rows[i].Render(
-                    state.Deathmatch != null ? state.DeathmatchRank(participant) : i + 1,
-                    participant.Racer.Name,
-                    participant.TeamName,
-                    state.Deathmatch != null ? $"{(participant.Status == RaceParticipantStatus.Racing ? "ALIVE" : "OUT")} / {participant.Eliminations} K" : GetLiveRaceTimeText(participant), state.Deathmatch != null);
+                rows[i].Render(state.Deathmatch != null ? state.DeathmatchRank(participant) : i + 1, participant.Racer.Name, participant.TeamName, state.Deathmatch != null ? $"{(participant.Status == RaceParticipantStatus.Racing ? "ALIVE" : "OUT")} / {participant.Eliminations} K" : GetLiveRaceTimeText(participant), state.Deathmatch != null);
             }
 
-            HideRowsAfter(
-                visible);
-
-            debugVisibleRows =
-                visible;
+            HideRowsAfter(visible);
+            debugVisibleRows = visible;
         }
 
-        private void RefreshFinal(
-            RaceResult result)
+        private void RefreshFinal(RaceResult result)
         {
             if (result == null)
             {
@@ -220,68 +139,39 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
-            debugResultCount =
-                result.Standings.Count;
-
-            int visible =
-                Mathf.Min(
-                    rows.Count,
-                    result.Standings.Count);
-
-            for (int i = 0;
-                 i < visible;
-                 i++)
+            debugResultCount = result.Standings.Count;
+            int visible = Mathf.Min(rows.Count, result.Standings.Count);
+            for (int i = 0; i < visible; i++)
             {
-                RaceResultEntry entry =
-                    result.Standings[i];
-
+                RaceResultEntry entry = result.Standings[i];
                 if (rows[i] == null)
                     continue;
-
-                rows[i].Render(
-                    entry.Position,
-                    entry.RacerName,
-                    entry.TeamName,
-                    result.Deathmatch != null ? $"{(entry.IsWinner ? "WIN" : "OUT")} / {entry.Eliminations} K\n{ShortReason(entry.EliminationReason)}" : GetFinalRaceTimeText(entry), result.Deathmatch != null);
+                rows[i].Render(entry.Position, entry.RacerName, entry.TeamName, result.Deathmatch != null ? $"{(entry.IsWinner ? "WIN" : "OUT")} / {entry.Eliminations} K\n{ShortReason(entry.EliminationReason)}" : GetFinalRaceTimeText(entry), result.Deathmatch != null);
             }
 
-            HideRowsAfter(
-                visible);
-
-            debugVisibleRows =
-                visible;
+            HideRowsAfter(visible);
+            debugVisibleRows = visible;
         }
 
-        private static string ShortReason(string reason) => reason == "BELOW MINIMUM SPEED" ? "SPEED DQ" :
-            reason == "TIME LIMIT" ? "TIME LIMIT" : string.IsNullOrEmpty(reason) ? "SURVIVED" : reason;
-
-        private string GetLiveRaceTimeText(
-            RaceParticipant participant)
+        private static string ShortReason(string reason) => reason == "BELOW MINIMUM SPEED" ? "SPEED DQ" : reason == "TIME LIMIT" ? "TIME LIMIT" : string.IsNullOrEmpty(reason) ? "SURVIVED" : reason;
+        private string GetLiveRaceTimeText(RaceParticipant participant)
         {
             if (participant.FinishTimeSeconds.HasValue)
             {
-                return FormatRaceTime(
-                    participant.FinishTimeSeconds.Value);
+                return FormatRaceTime(participant.FinishTimeSeconds.Value);
             }
 
-            if (participant.Status ==
-                RaceParticipantStatus.Finished)
+            if (participant.Status == RaceParticipantStatus.Finished)
             {
-                return participant.WasFastResolved
-                    ? "RESOLVED"
-                    : "--:--.---";
+                return participant.WasFastResolved ? "RESOLVED" : "--:--.---";
             }
 
-            if (participant.Status ==
-                    RaceParticipantStatus.Destroyed ||
-                participant.Status ==
-                    RaceParticipantStatus.Retired)
+            if (participant.Status == RaceParticipantStatus.Destroyed || participant.Status == RaceParticipantStatus.Retired)
             {
                 return "DNF";
             }
 
-            if (participant.Status ==
-                RaceParticipantStatus.Racing)
+            if (participant.Status == RaceParticipantStatus.Racing)
             {
                 return "RACING";
             }
@@ -289,22 +179,16 @@ namespace RaceFatal.Presentation.Racing
             return "--:--.---";
         }
 
-        private string GetFinalRaceTimeText(
-            RaceResultEntry entry)
+        private string GetFinalRaceTimeText(RaceResultEntry entry)
         {
             if (entry.RaceTimeSeconds.HasValue)
             {
-                return FormatRaceTime(
-                    entry.RaceTimeSeconds.Value);
+                return FormatRaceTime(entry.RaceTimeSeconds.Value);
             }
 
             if (entry.WasFastResolved)
                 return "RESOLVED";
-
-            if (entry.Status ==
-                    RaceParticipantStatus.Destroyed ||
-                entry.Status ==
-                    RaceParticipantStatus.Retired)
+            if (entry.Status == RaceParticipantStatus.Destroyed || entry.Status == RaceParticipantStatus.Retired)
             {
                 return "DNF";
             }
@@ -312,34 +196,18 @@ namespace RaceFatal.Presentation.Racing
             return "--:--.---";
         }
 
-        private string FormatRaceTime(
-            float totalSeconds)
+        private string FormatRaceTime(float totalSeconds)
         {
-            int totalMilliseconds =
-                Mathf.Max(
-                    0,
-                    Mathf.RoundToInt(
-                        totalSeconds * 1000f));
-
-            int minutes =
-                totalMilliseconds / 60000;
-
-            int seconds =
-                totalMilliseconds / 1000 % 60;
-
-            int milliseconds =
-                totalMilliseconds % 1000;
-
-            return
-                $"{minutes:00}:{seconds:00}.{milliseconds:000}";
+            int totalMilliseconds = Mathf.Max(0, Mathf.RoundToInt(totalSeconds * 1000f));
+            int minutes = totalMilliseconds / 60000;
+            int seconds = totalMilliseconds / 1000 % 60;
+            int milliseconds = totalMilliseconds % 1000;
+            return $"{minutes:00}:{seconds:00}.{milliseconds:000}";
         }
 
-        private void HideRowsAfter(
-            int firstHiddenIndex)
+        private void HideRowsAfter(int firstHiddenIndex)
         {
-            for (int i = firstHiddenIndex;
-                 i < rows.Count;
-                 i++)
+            for (int i = firstHiddenIndex; i < rows.Count; i++)
             {
                 if (rows[i] != null)
                     rows[i].Hide();
@@ -349,7 +217,6 @@ namespace RaceFatal.Presentation.Racing
         private void HideAllRows()
         {
             HideRowsAfter(0);
-
             debugVisibleRows = 0;
         }
     }

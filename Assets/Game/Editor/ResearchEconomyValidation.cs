@@ -28,10 +28,16 @@ public static class ResearchEconomyValidation
         Require(team.ResearchOutputPerRace == 10, "Forecast output");
         var resolver = new PostRaceResolutionService(new RaceRewardPolicy());
         bool invalidIdentity = false;
-        try { resolver.Resolve(MakeResult("", RaceParticipantStatus.Finished), team, player); }
-        catch (InvalidOperationException) { invalidIdentity = true; }
-        Require(invalidIdentity && team.Credits == 0 && team.ResearchPoints == 0 && team.ResearchContracts[0].RacesRemaining == 2,
-            "Missing settlement identity must fail before any mutation");
+        try
+        {
+            resolver.Resolve(MakeResult("", RaceParticipantStatus.Finished), team, player);
+        }
+        catch (InvalidOperationException)
+        {
+            invalidIdentity = true;
+        }
+
+        Require(invalidIdentity && team.Credits == 0 && team.ResearchPoints == 0 && team.ResearchContracts[0].RacesRemaining == 2, "Missing settlement identity must fail before any mutation");
         var race = MakeResult("first", RaceParticipantStatus.Finished);
         var payout = resolver.Resolve(race, team, player);
         Require(payout.RaceResearchPoints == 50 && payout.EventResearchPoints == 7 && payout.ResearcherPoints == 10, "Separate reward sources");
@@ -49,8 +55,15 @@ public static class ResearchEconomyValidation
         var replay = resolver.Resolve(MakeResult("first", RaceParticipantStatus.Finished), team, player);
         Require(team.ResearchPoints == 67 && replay.ResearcherPoints == 10 && team.ResearchContracts[0].RacesRemaining == 1, "Receipt prevents duplicate payout after reload");
         bool rejected = false;
-        try { resolver.Resolve(MakeResult("abandoned", RaceParticipantStatus.Retired, false), team, player); }
-        catch (InvalidOperationException) { rejected = true; }
+        try
+        {
+            resolver.Resolve(MakeResult("abandoned", RaceParticipantStatus.Retired, false), team, player);
+        }
+        catch (InvalidOperationException)
+        {
+            rejected = true;
+        }
+
         Require(rejected && team.ResearchContracts[0].RacesRemaining == 1, "Abandoned race cannot advance contract");
         var dnf = resolver.Resolve(MakeResult("second", RaceParticipantStatus.Retired), team, player);
         Require(dnf.RaceResearchPoints == 25 && dnf.EventResearchPoints == 7 && dnf.ResearcherPoints == 10, "Resolved DNF earns contractual and event RP");
@@ -70,11 +83,16 @@ public static class ResearchEconomyValidation
         data.playerTeam.settledRaceResults.RemoveAt(1);
         data.playerTeam.researchContracts[0].racesRemaining = -1;
         Require(!mapper.Restore(data).IsSuccess, "Corrupt contract rejected");
-        data.playerTeam.researchContracts = null; data.playerTeam.settledRaceResults = null;
+        data.playerTeam.researchContracts = null;
+        data.playerTeam.settledRaceResults = null;
         Require(mapper.Restore(data).IsSuccess, "Old saves without contracts/receipts remain compatible");
         Debug.Log("Research economy passed: hiring, renewal, expiry, DNF, abandonment, duplicate payouts, save/reload and legacy saves.");
     }
-    private static RaceResult MakeResult(string instance, RaceParticipantStatus status, bool final = true) => new RaceResult("same-event",
-        new[] { new RaceResultEntry("player", "team", 1, 3, status) }, instance, 7, final);
-    private static void Require(bool value, string message) { if (!value) throw new InvalidOperationException(message); }
+
+    private static RaceResult MakeResult(string instance, RaceParticipantStatus status, bool final = true) => new RaceResult("same-event", new[] { new RaceResultEntry("player", "team", 1, 3, status) }, instance, 7, final);
+    private static void Require(bool value, string message)
+    {
+        if (!value)
+            throw new InvalidOperationException(message);
+    }
 }
