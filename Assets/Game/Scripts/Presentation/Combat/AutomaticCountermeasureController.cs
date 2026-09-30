@@ -70,6 +70,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (!resolved)
             {
                 TryResolve();

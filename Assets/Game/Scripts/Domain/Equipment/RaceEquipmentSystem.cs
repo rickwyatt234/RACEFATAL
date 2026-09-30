@@ -367,6 +367,17 @@ namespace RaceFatal.Equipment
 
 #endregion
 #region Weapon Activation
+        // Cancel input without firing a charged shot or resetting the weapon's cooldown.
+        public void CancelSelectedActivation()
+        {
+            WeaponState weapon = GetSelectedWeapon();
+            if (weapon == null)
+                return;
+            weapon.IsHeld = false;
+            weapon.IsCharging = false;
+            weapon.ChargeTime = 0f;
+        }
+
         public bool BeginSelectedActivation()
         {
             if (!weaponsAllowed)
@@ -442,6 +453,8 @@ namespace RaceFatal.Equipment
                     return true;
                 case EquipmentActivationMode.ChargeRelease:
                 {
+                    if (!weapon.IsCharging)
+                        return false;
                     bool fullyCharged = weapon.ChargeTime >= weapon.Definition.ChargeDuration;
                     weapon.IsCharging = false;
                     float chargeRatio = weapon.Definition.ChargeDuration <= 0f ? 1f : Math.Min(1f, weapon.ChargeTime / weapon.Definition.ChargeDuration);

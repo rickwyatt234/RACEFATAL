@@ -57,6 +57,8 @@ namespace RaceFatal.Presentation.Combat
 
         protected virtual void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (!initialized || resolved)
                 return;
             MoveProjectile(Time.deltaTime);

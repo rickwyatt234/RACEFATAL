@@ -29,6 +29,12 @@ namespace RaceFatal.Presentation.Racing
         public bool HasStarted => raceDirector != null && raceDirector.State.IsStarted;
         public bool IsRaceActive => raceDirector != null && raceDirector.State.IsStarted && !raceDirector.State.IsFinished;
 
+        private void Awake()
+        {
+            if (GetComponent<RacePauseController>() == null)
+                gameObject.AddComponent<RacePauseController>();
+        }
+
         public void Initialize(RaceDirector director, string playerId, TrackRuntimeController track)
         {
             raceDirector = director ?? throw new ArgumentNullException(nameof(director));
@@ -61,6 +67,8 @@ namespace RaceFatal.Presentation.Racing
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (raceDirector == null)
                 return;
             HandlePlayerEquipmentInput();

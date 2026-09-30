@@ -1,3 +1,4 @@
+using RaceFatal.Presentation.Racing;
 using UnityEngine;
 
 namespace RaceFatal.Presentation.Vehicles
@@ -35,6 +36,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void LateUpdate()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (motor == null)
                 return;
             float steering = motor.SteeringInput;

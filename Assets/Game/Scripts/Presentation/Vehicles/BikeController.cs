@@ -26,6 +26,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (input == null)
             {
                 ResolveInput();

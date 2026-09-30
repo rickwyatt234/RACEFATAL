@@ -80,6 +80,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             UpdateDebugState();
             if (!resolved)
                 TryResolvePlayer();
@@ -95,6 +97,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void LateUpdate()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (deathViewActive || !activePlayerView || cockpitCamera == null || cameraAnchor == null)
             {
                 return;

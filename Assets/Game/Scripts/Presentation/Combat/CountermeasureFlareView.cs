@@ -1,3 +1,4 @@
+using RaceFatal.Presentation.Racing;
 using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
@@ -19,6 +20,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (!initialized)
                 return;
             float deltaTime = Time.deltaTime;

@@ -48,6 +48,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (runtime == null || runtime.Director == null || !runtime.IsRaceActive)
             {
                 return;

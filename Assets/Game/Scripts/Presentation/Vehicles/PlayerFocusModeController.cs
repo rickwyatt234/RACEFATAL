@@ -1,5 +1,6 @@
 using RaceFatal.Infrastructure.Input;
 using RaceFatal.Presentation.Bootstrap;
+using RaceFatal.Presentation.Racing;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -32,6 +33,8 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void Update()
         {
+            if (RacePauseController.IsGameplayBlocked)
+                return;
             if (input == null)
             {
                 ResolveInput();
@@ -80,8 +83,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void RestoreNormalTime()
         {
-            Time.timeScale = 1f;
-            Time.fixedDeltaTime = originalFixedDeltaTime;
+            RacePauseController.RestoreGameplayTime(1f, originalFixedDeltaTime);
             currentTimeScale = 1f;
             focusActive = false;
             ApplyAudioPitch(1f);
