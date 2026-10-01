@@ -50,7 +50,9 @@ namespace RaceFatal.Presentation.Combat
         [Min(0.1f)] [SerializeField] private float particleLifetimeFallback = 3f;
 #endregion
 #region Shield Feedback
-        [Header("Directional Shield Effects")]
+        [Header("Bubble Shield")]
+        [SerializeField] private ShieldBubbleEffectView bubbleShield;
+        [Header("Legacy Directional Shield Effects")]
         [SerializeField]
         private ShieldImpactEffectView frontShieldEffect;
         [SerializeField] private ShieldImpactEffectView rearShieldEffect;
@@ -137,6 +139,8 @@ namespace RaceFatal.Presentation.Combat
         private void Awake()
         {
             racerView = GetComponent<RacerViewController>();
+            if (bubbleShield == null)
+                bubbleShield = GetComponent<ShieldBubbleEffectView>();
             cockpitView = GetComponentInChildren<PlayerCockpitView>(true);
             if (shieldBreakOrigin == null)
                 shieldBreakOrigin = transform;
@@ -164,6 +168,7 @@ namespace RaceFatal.Presentation.Combat
         private void OnDisable()
         {
             Unbind();
+            bubbleShield?.HideImmediate();
             HideDirectionalShields();
             if (impactFlashGroup != null)
                 impactFlashGroup.alpha = 0f;
@@ -262,10 +267,19 @@ namespace RaceFatal.Presentation.Combat
         private void PlayShieldHit(DamageEvent damageEvent)
         {
             float intensity = CalculateDamageIntensity(damageEvent.ShieldAbsorbed);
+            bool useBubble = bubbleShield != null && bubbleShield.isActiveAndEnabled && bubbleShield.IsConfigured;
+            if (useBubble)
+            {
+                HideDirectionalShields();
+                bubbleShield.Pulse(damageEvent.ShieldDepleted);
+            }
             if (!damageEvent.ShieldDepleted || playDirectionalPulseOnBreak)
             {
-                ShieldImpactEffectView effect = GetDirectionalShield(damageEvent.ImpactSide);
-                effect?.Pulse();
+                if (!useBubble)
+                {
+                    ShieldImpactEffectView effect = GetDirectionalShield(damageEvent.ImpactSide);
+                    effect?.Pulse();
+                }
                 PlayRandomDamageClip(shieldHitClips, ref lastShieldHitClip, shieldHitVolume * intensity);
             }
 

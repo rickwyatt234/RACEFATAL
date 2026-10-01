@@ -9,7 +9,9 @@ namespace RaceFatal.Presentation.Combat
     [RequireComponent(typeof(RacerViewController))]
     public class BikeCombatFeedback : MonoBehaviour
     {
-        [Header("Directional Shield Effects")] [SerializeField] private ShieldImpactEffectView frontShieldEffect;
+        [Header("Bubble Shield")]
+        [SerializeField] private ShieldBubbleEffectView bubbleShield;
+        [Header("Legacy Directional Shield Effects")] [SerializeField] private ShieldImpactEffectView frontShieldEffect;
         [SerializeField] private ShieldImpactEffectView rearShieldEffect;
         [SerializeField] private ShieldImpactEffectView leftShieldEffect;
         [SerializeField] private ShieldImpactEffectView rightShieldEffect;
@@ -44,6 +46,7 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private float debugLastHullDamage;
         [SerializeField] private bool debugLastShieldDepleted;
         [SerializeField] private bool debugLastDestroyed;
+        private CollisionFeedbackView collisionFeedback;
         private RacerViewController racerView;
         private RaceRuntimeController runtime;
         private bool bound;
@@ -53,7 +56,10 @@ namespace RaceFatal.Presentation.Combat
         private int lastHullHitClip = -1;
         private void Awake()
         {
+            collisionFeedback = GetComponent<CollisionFeedbackView>();
             racerView = GetComponent<RacerViewController>();
+            if (bubbleShield == null)
+                bubbleShield = GetComponent<ShieldBubbleEffectView>();
             if (shieldBreakOrigin == null)
                 shieldBreakOrigin = transform;
             if (hullEffectOrigin == null)
@@ -79,6 +85,7 @@ namespace RaceFatal.Presentation.Combat
         private void OnDisable()
         {
             Unbind();
+            bubbleShield?.HideImmediate();
             HideDirectionalShields();
         }
 
@@ -127,6 +134,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void OnDamageApplied(DamageEvent damageEvent)
         {
+            if (collisionFeedback != null && collisionFeedback.isActiveAndEnabled)
+                return;
             if (racerView == null || racerView.Participant == null || damageEvent.VictimRacerId != racerView.RacerId)
             {
                 return;
@@ -153,10 +162,19 @@ namespace RaceFatal.Presentation.Combat
         private void PlayShieldHit(DamageEvent damageEvent)
         {
             float intensity = CalculateIntensity(damageEvent.ShieldAbsorbed);
+            bool useBubble = bubbleShield != null && bubbleShield.isActiveAndEnabled && bubbleShield.IsConfigured;
+            if (useBubble)
+            {
+                HideDirectionalShields();
+                bubbleShield.Pulse(damageEvent.ShieldDepleted);
+            }
             if (!damageEvent.ShieldDepleted || playDirectionalPulseOnBreak)
             {
-                ShieldImpactEffectView effect = GetDirectionalShield(damageEvent.ImpactSide);
-                effect?.Pulse();
+                if (!useBubble)
+                {
+                    ShieldImpactEffectView effect = GetDirectionalShield(damageEvent.ImpactSide);
+                    effect?.Pulse();
+                }
                 PlayRandomClip(shieldHitClips, ref lastShieldHitClip, shieldHitVolume * intensity);
             }
 

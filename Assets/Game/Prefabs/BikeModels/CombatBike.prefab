@@ -57518,6 +57518,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 8247032219078165312}
   - component: {fileID: 5165787137820851431}
   - component: {fileID: 5525498538130191237}
   - component: {fileID: 7476916405008039680}
@@ -57936,6 +57937,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c85bcf959627cf43868bdc6ae07e078, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.CollisionFeedbackView
+  bubbleShield: {fileID: 8247032219078165312}
   impactAudioSource: {fileID: 4199775553047604825}
   impactGroup: {fileID: -2996404484304245581, guid: 232784f586cdd3a4990d1783e8879944, type: 2}
   wallLightClips:
@@ -104627,3 +104629,27 @@ RectTransform:
   m_AnchoredPosition: {x: 196, y: -88.00001}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &8247032219078165312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4961257482573651834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5125dd6e7f142b9850dfc800bde4121, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.ShieldBubbleEffectView
+  bluePrefab: {fileID: 7027792228641376122, guid: f48559b3e298e8440a586de0e9b2acc8, type: 3}
+  tealPrefab: {fileID: 7526737493612890662, guid: d2fa96b63babbe24da7bb841b540e6e0, type: 3}
+  purplePrefab: {fileID: 1080973486921471499, guid: 2fe8405227f2ca544b6300b2a00e6ac0, type: 3}
+  redPrefab: {fileID: 3712629308867296807, guid: cff3fdf3ad422384aad8643aa06bfd52, type: 3}
+  blueThreshold: 0.75
+  tealThreshold: 0.5
+  purpleThreshold: 0.25
+  bubbleOrigin: {fileID: 0}
+  localOffset: {x: 0, y: 0, z: 0}
+  localScale: {x: 1, y: 1, z: 1}
+  visibleDuration: 0.4
+  breakDuration: 0.25
