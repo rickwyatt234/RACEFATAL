@@ -30,3 +30,9 @@ MonoBehaviour:
   - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
     nodeSize: 1
     nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 49380ec564638b5458e951a9350f1fe3, type: 2}
+    nodeSize: 2
+    nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 4365eae4d206dd3448e2cb7576eaa371, type: 2}
+    nodeSize: 2
+    nodeIndex: 1

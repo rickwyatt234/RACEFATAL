@@ -165,7 +165,7 @@ AudioMixerController:
   - guid: 8be15eab8459e604bb3945366365c0b2
     name: PlayerWeaponVolume
   - guid: 9ecfc0b3b40d4524f90cbc04e4b639d3
-    name: PlayerWeaponsPitch
+    name: PlayerWeaponPitch
   - guid: f84557119b58eb2449668817dbd0a2da
     name: UIVolume
   m_AudioMixerGroupViews:
