@@ -84,6 +84,48 @@ class CombatBikeAudit(unittest.TestCase):
         self.assertTrue(any("Rigidbody" in c for c in components))
         self.assertTrue(any("BoxCollider" in c for c in components))
 
+    def test_transform_first_and_connected_hierarchy(self):
+        roots = []
+        for d in self.objects:
+            if "GameObject" in d:
+                first = d["GameObject"]["m_Component"][0]["component"]["fileID"]
+                self.assertIn(first, self.transforms, d["GameObject"]["m_Name"])
+        for i, t in self.transforms.items():
+            parent = t["m_Father"]["fileID"]
+            if not parent:
+                roots.append(i)
+            else:
+                self.assertIn(parent, self.transforms)
+                children = [c["fileID"] for c in self.transforms[parent]["m_Children"]]
+                self.assertEqual(children.count(i), 1)
+            for c in t["m_Children"]:
+                self.assertEqual(self.transforms[c["fileID"]]["m_Father"]["fileID"], i)
+            visited = set()
+            current = i
+            while current:
+                self.assertNotIn(current, visited, "Transform hierarchy cycle")
+                visited.add(current)
+                current = self.transforms[current]["m_Father"]["fileID"]
+        self.assertEqual(len(roots), 1)
+
+    def test_motorbike_model_and_hud_projection_survive(self):
+        model = [d for d in self.objects if d.get("GameObject", {}).get("m_Name") == "Motorbike_ LOD_0"]
+        self.assertEqual(len(model), 1)
+        go = model[0]["GameObject"]
+        self.assertEqual(go["m_IsActive"], 1)
+        parts = [self.ids[c["component"]["fileID"]] for c in go["m_Component"]]
+        mesh = next(c["MeshFilter"] for c in parts if "MeshFilter" in c)["m_Mesh"]
+        meta = Path("Assets/Game/Meshes/Motorbike_ LOD_0.fbx.meta")
+        self.assertEqual(mesh["guid"], yaml.safe_load(meta.read_text())["guid"])
+        self.assertEqual(mesh["fileID"], 5424314829789568572)
+        renderer = next(c["MeshRenderer"] for c in parts if "MeshRenderer" in c)
+        self.assertEqual(renderer["m_Enabled"], 1)
+        self.assertEqual(len(renderer["m_Materials"]), 3)
+        for b in [self.one("PlayerCockpitTargetingHUD")]:
+            for field in ["hudProjectionPlane", "hudProjectionMesh"]:
+                self.assertNotEqual(b[field]["fileID"], 0)
+                self.assertIn(b[field]["fileID"], self.ids)
+
     def test_audio_owners_have_independent_sources(self):
         refs = []
         mounts = self.scripts("WeaponMountFeedbackView")

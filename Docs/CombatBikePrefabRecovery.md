@@ -1,0 +1,11 @@
+# CombatBike recovery (2026-10-02)
+
+Based on main `7396c944ff098346c222b6240b81d69deb7332a1`.
+
+The asset and Motorbike_ LOD_0 FBX were still tracked. Commit `80af39d` replaced the old bike geometry but also removed the cockpit anchor, HUD projection plane/anchor, camera lean pivot, and rear-view rig/cameras, clearing their controller references. Merge `7396c94` then combined a Unity-reserialized shield component with the audit branch's copy, producing two YAML objects with fileID `8247032219078165312`. The audit branch also prepended AudioSources before Transform in eight GameObject component lists. These are asset serialization defects; the exact Unity import error was not available in this environment.
+
+The repair removes the duplicate shield record, puts Transform first, restores the missing support hierarchy and five controller references from `ff422eb`, and reconnects the existing rear cameras. CameraLeanPivot is attached directly under Meshes: its removed WindShield_Glass parent had an identity local transform, so this preserves the historical pose without adding obsolete glass geometry. All current Motorbike_ LOD_0 objects, mesh references, transforms, and material assignments remain intact. The prefab .meta/GUID is unchanged, preserving callers' existing references. Current gameplay scripts, equipment mounts, HUD, shield bubbles and independent audio sources remain attached.
+
+Validation: nine Python structural tests pass, including hierarchy reciprocity/cycle/root checks, Transform-first ordering, unique object IDs, internal references, core systems, audio, lap indicators, camera ownership, bubble assignments, and model/projection bindings. `git diff --check` passes. Unity was not available: import and Play Mode validation remain required. Imported FBX subasset IDs and visual cockpit alignment need checking in Unity.
+
+After merging/pulling, let Unity reimport CombatBike.prefab (right-click > Reimport if necessary). Open the prefab and confirm Motorbike_ LOD_0 is visible. Run a player/AI race and check camera position against the new mesh, targeting, rear views, weapons, damage, shield bubbles, audio and destruction. Historical camera/HUD positions were recovered; final fit to the new model may require visual adjustment. Do not delete the prefab .meta to force a reimport.
