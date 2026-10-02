@@ -294,6 +294,17 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
+            var team = context.Sessions.Current.PlayerTeam;
+            var before = team.Calendar.Export();
+            if (new RaceFatal.Career.CareerCalendarService(context.Database).Refresh(team))
+            {
+                var saved = context.Saves.SaveCurrentCampaign();
+                if (!saved.IsSuccess)
+                {
+                    team.RestoreCalendar(before);
+                    ShowError("CALENDAR SAVE FAILED: " + saved.ErrorMessage);
+                }
+            }
             homeView?.Bind(context.Sessions.Current, context.Database);
         }
 

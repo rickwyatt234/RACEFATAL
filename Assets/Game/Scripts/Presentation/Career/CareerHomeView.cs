@@ -16,6 +16,7 @@ namespace RaceFatal.Presentation.Career
         [Header("Current Setup")] [SerializeField] private TMP_Text currentBikeText;
         [SerializeField] private TMP_Text currentPartnerText;
         [Header("Career")] [SerializeField] private TMP_Text careerStatusText;
+        private CareerHomeCalendarView calendarView;
         public void Bind(GameSessionState session, GameDatabase database)
         {
             if (session == null)
@@ -24,6 +25,21 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
+            if (calendarView == null)
+            {
+                calendarView = CareerHomeCalendarView.Create(transform);
+                var labels = new[] { teamNameText, racerNameText, creditsText, fameText, researchPointsText, currentBikeText, currentPartnerText, careerStatusText };
+                for (int i=0;i<labels.Length;i++)
+                {
+                    if (labels[i] == null) continue;
+                    var rect = labels[i].rectTransform;
+                    rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0,1);
+                    rect.anchoredPosition = new Vector2(410+(i%3)*470,-195-(i/3)*55);
+                    rect.sizeDelta = new Vector2(450,48);
+                    labels[i].fontSize = 24; labels[i].enableAutoSizing=true; labels[i].fontSizeMin=17;
+                }
+            }
+            calendarView.Bind(session.PlayerTeam, database);
             TeamState team = session.PlayerTeam;
             CareerRun run = session.CareerRun;
             RacerState player = ResolvePlayer(session);

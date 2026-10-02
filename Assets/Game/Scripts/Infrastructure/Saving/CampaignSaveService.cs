@@ -133,6 +133,34 @@ namespace RaceFatal.Infrastructure.Saving
             return Result<GameSessionState>.Success(createResult.Value);
         }
 
+        public Result<GameSessionState> CommitPreparedCampaign(int slotIndex, GameSessionState prepared)
+        {
+            var valid = ValidateSlot(slotIndex);
+            if (!valid.IsSuccess) return Result<GameSessionState>.Failure(valid.ErrorMessage);
+            if (prepared == null || sessions.HasSession || repository.Exists(slotIndex))
+                return Result<GameSessionState>.Failure("The draft cannot be saved to this slot.");
+            var restored = sessions.RestoreSession(prepared);
+            if (!restored.IsSuccess) return Result<GameSessionState>.Failure(restored.ErrorMessage);
+            Result saved;
+            try
+            {
+                prepared.CareerRun.AcknowledgeIntroduction();
+                var captured = mapper.Capture(prepared);
+                saved = captured.IsSuccess ? repository.Save(slotIndex, captured.Value) : Result.Failure(captured.ErrorMessage);
+            }
+            catch (Exception exception)
+            {
+                saved = Result.Failure(exception.Message);
+            }
+            if (!saved.IsSuccess)
+            {
+                sessions.ClearSession();
+                return Result<GameSessionState>.Failure(saved.ErrorMessage);
+            }
+            ActiveSlotIndex = slotIndex;
+            return Result<GameSessionState>.Success(prepared);
+        }
+
         public Result<GameSessionState> LoadCampaign(int slotIndex)
         {
             Result slotResult = ValidateSlot(slotIndex);

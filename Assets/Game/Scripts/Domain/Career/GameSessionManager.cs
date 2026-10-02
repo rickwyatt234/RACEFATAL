@@ -26,6 +26,15 @@ namespace RaceFatal.Career
 
         public Result<GameSessionState> CreateNewSession(NewGameRequest request)
         {
+            var prepared = PrepareNewSession(request);
+            if (!prepared.IsSuccess) return prepared;
+            var restored = RestoreSession(prepared.Value);
+            return restored.IsSuccess ? prepared : Result<GameSessionState>.Failure(restored.ErrorMessage);
+        }
+
+        // Builds an isolated draft: no active session or save slot is changed.
+        public Result<GameSessionState> PrepareNewSession(NewGameRequest request)
+        {
             if (request == null)
             {
                 return Result<GameSessionState>.Failure("New game request is required.");
@@ -100,9 +109,8 @@ namespace RaceFatal.Career
 
             CareerRun careerRun = new CareerRun(Guid.NewGuid().ToString("N"), team, player);
             careerRun.PrepareIntroduction("NEW CAMPAIGN STARTER BIKE", GrantStartingPerk(player));
-            careerManager.InitializeNewGame(team, careerRun);
-            Current = new GameSessionState(team, careerRun, worldResult.Value, partner.RacerId, playerBikeResult.Value.BikeId, partnerBikeResult.Value.BikeId, successorStarterBuildId: request.PlayerStarterBuildId);
-            return Result<GameSessionState>.Success(Current);
+            var prepared = new GameSessionState(team, careerRun, worldResult.Value, partner.RacerId, playerBikeResult.Value.BikeId, partnerBikeResult.Value.BikeId, successorStarterBuildId: request.PlayerStarterBuildId);
+            return Result<GameSessionState>.Success(prepared);
         }
 
         public Result RestoreSession(GameSessionState session)

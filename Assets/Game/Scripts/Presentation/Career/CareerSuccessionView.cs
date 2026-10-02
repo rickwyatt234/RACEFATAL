@@ -25,7 +25,7 @@ namespace RaceFatal.Presentation.Career
 
         public static void Create(CareerController owner, GameContext context, Transform home)
         {
-            var root = Rect(home, "CareerSuccession", new Vector2(410, -650), new Vector2(1380, 320));
+            var root = Rect(home, "CareerSuccession", new Vector2(410, -855), new Vector2(1380, 170));
             var view = root.gameObject.AddComponent<CareerSuccessionView>();
             view.owner = owner;
             view.context = context;
@@ -39,8 +39,8 @@ namespace RaceFatal.Presentation.Career
 
         private void Build(Transform canvas)
         {
-            homeLabel = Text(transform, "Summary", "", 23, Vector2.zero, new Vector2(1380, 160));
-            homeAction = Button(transform, "CareerAction", "", new Vector2(0, -175), new Vector2(430, 58), out var actionLabel);
+            homeLabel = Text(transform, "Summary", "", 23, Vector2.zero, new Vector2(1380, 85));
+            homeAction = Button(transform, "CareerAction", "", new Vector2(0, -92), new Vector2(430, 58), out var actionLabel);
             homeAction.onClick.AddListener(() => Show(Session?.CareerRun?.IsActive == true ? 2 : 0));
             homeActionLabel = actionLabel;
             var overlay = Rect(canvas, "CareerSuccessionModal", Vector2.zero, Vector2.zero);
@@ -246,10 +246,13 @@ namespace RaceFatal.Presentation.Career
 
         private string BuildIntroduction()
         {
-            var session = Session;
+            return BuildStartingSummary(Session, context.Database);
+        }
+
+        public static string BuildStartingSummary(GameSessionState session, RaceFatal.Data.GameDatabase db)
+        {
             var run = session.CareerRun;
             var team = session.PlayerTeam;
-            var db = context.Database;
             var bike = team.Garage.FindBike(session.SelectedPlayerBikeId);
             var partner = team.Roster.FindRacer(session.SelectedPartnerRacerId);
             var partnerBike = team.Garage.FindBike(session.SelectedPartnerBikeId);
@@ -281,6 +284,14 @@ namespace RaceFatal.Presentation.Career
             }
 
             text.AppendLine($"\nPARTNER  {partner?.Name ?? "NONE"} — {(partner?.CanRace == true ? "ACTIVE" : "UNAVAILABLE")}");
+            if (partnerBike != null)
+            {
+                text.AppendLine("PARTNER BIKE  " + (db.GetBikeDefinition(partnerBike.BikeDefinitionId)?.DisplayName ?? partnerBike.BikeDefinitionId));
+                text.AppendLine("ENGINE  " + (partnerBike.Loadout.Engine == null ? "NONE" : db.GetEngineDefinition(partnerBike.Loadout.Engine.EngineDefinitionId)?.DisplayName ?? partnerBike.Loadout.Engine.EngineDefinitionId));
+                text.AppendLine("CHASSIS  " + (partnerBike.Loadout.Chassis == null ? "NONE" : db.GetChassisDefinition(partnerBike.Loadout.Chassis.ChassisDefinitionId)?.DisplayName ?? partnerBike.Loadout.Chassis.ChassisDefinitionId));
+                foreach (var node in partnerBike.Loadout.Nodes)
+                    text.AppendLine($"{node.NodeSize} {node.Index+1}: " + (node.InstalledEquipment == null ? "EMPTY" : db.GetEquipmentDefinition(node.InstalledEquipment.EquipmentDefinitionId)?.DisplayName ?? node.InstalledEquipment.EquipmentDefinitionId));
+            }
             if (partner?.CanRace != true)
                 text.AppendLine("Choose or recruit an active partner in Roster.");
             if (partnerBike?.IsRaceReady != true)

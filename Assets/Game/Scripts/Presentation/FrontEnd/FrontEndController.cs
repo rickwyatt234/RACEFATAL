@@ -198,10 +198,10 @@ namespace RaceFatal.Presentation.FrontEnd
                 return;
             }
 
-            var request = new NewGameRequest(draft.TeamName, draft.PrimaryColor, draft.SecondaryColor, draft.PlayerName, partnerDefinitionId, playerStarterBuildId, partnerStarterBuildId);
+            if (!PrepareCampaignReview()) return;
             campaignReviewController?.SetBusy(true);
             campaignReviewController?.SetStatus("CREATING CAMPAIGN...");
-            Result<GameSessionState> result = saves.CreateCampaign(draft.SlotIndex, request);
+            Result<GameSessionState> result = saves.CommitPreparedCampaign(draft.SlotIndex, draft.PreparedSession);
             if (!result.IsSuccess)
             {
                 campaignReviewController?.SetBusy(false);
@@ -293,8 +293,29 @@ namespace RaceFatal.Presentation.FrontEnd
                     break;
                 case FrontEndScreen.CampaignReview:
                     campaignReviewController?.Present(pendingCampaign);
+                    if (PrepareCampaignReview()) campaignReviewController?.PresentStartingInfo(pendingCampaign.PreparedSession, BootstrapController.Context.Database);
                     break;
             }
+        }
+
+        private bool PrepareCampaignReview()
+        {
+            if (pendingCampaign?.PreparedSession != null) return true;
+            if (pendingCampaign == null || newCampaignDefaults == null)
+            {
+                ShowCampaignReviewError("New campaign defaults are unavailable.");
+                return false;
+            }
+            if (!newCampaignDefaults.TryGetDefinitionIds(out var partner, out var playerBuild, out var partnerBuild, out var error))
+            {
+                ShowCampaignReviewError(error);
+                return false;
+            }
+            var draft = pendingCampaign;
+            var result = BootstrapController.Context.Sessions.PrepareNewSession(new NewGameRequest(draft.TeamName, draft.PrimaryColor, draft.SecondaryColor, draft.PlayerName, partner, playerBuild, partnerBuild));
+            if (!result.IsSuccess) { ShowCampaignReviewError(result.ErrorMessage); return false; }
+            draft.PreparedSession = result.Value;
+            return true;
         }
 
         public void ShowError(string message)

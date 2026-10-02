@@ -15,8 +15,23 @@ namespace RaceFatal.Presentation.FrontEnd
         [SerializeField] private Button backButton;
         [Header("Feedback")] [SerializeField] private TMP_Text statusText;
         private FrontEndController frontEnd;
+        private TeamColorPicker picker;
+        private void BindPicker(Image preview, TMP_InputField input)
+        {
+            if (preview == null || input == null) return;
+            preview.raycastTarget = true;
+            var button = preview.GetComponent<Button>() ?? preview.gameObject.AddComponent<Button>();
+            button.targetGraphic = preview;
+            button.onClick.AddListener(() => {
+                if (picker == null) picker = TeamColorPicker.Create(preview.canvas.transform);
+                picker.Open(preview.color, color => input.text = "#" + ColorUtility.ToHtmlStringRGB(color), button);
+            });
+        }
+        private void OnDestroy() { if (picker != null) Destroy(picker.gameObject); }
+
         public void Initialize(FrontEndController owner)
         {
+            if (frontEnd == null) { BindPicker(primaryColorPreview, primaryColorInput); BindPicker(secondaryColorPreview, secondaryColorInput); }
             frontEnd = owner;
             if (continueButton != null)
             {
@@ -101,6 +116,7 @@ namespace RaceFatal.Presentation.FrontEnd
 
         private void Back()
         {
+            picker?.Close();
             frontEnd?.CancelNewCampaign();
         }
 

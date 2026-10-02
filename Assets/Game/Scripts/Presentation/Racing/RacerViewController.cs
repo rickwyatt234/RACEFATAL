@@ -31,6 +31,8 @@ namespace RaceFatal.Presentation.Racing
                 equipmentLayout = GetComponentInChildren<BikeEquipmentLayoutView>(true);
             }
 
+            var paint = GetComponent<RaceFatal.Presentation.Vehicles.BikeTeamPaint>() ?? gameObject.AddComponent<RaceFatal.Presentation.Vehicles.BikeTeamPaint>();
+            paint.Apply(participant.Bike);
             BindEquipmentMounts();
         }
 
