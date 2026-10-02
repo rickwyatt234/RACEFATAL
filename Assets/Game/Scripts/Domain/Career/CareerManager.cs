@@ -84,13 +84,10 @@ namespace RaceFatal.Career
                 throw new InvalidOperationException("Finish or withdraw from the paid race in Races before retiring.");
             if (calendar.active != null)
             {
-                if (calendar.week >= int.MaxValue - 1)
-                    throw new InvalidOperationException("Calendar week limit reached.");
                 calendar.active.withdrawn = true;
                 calendar.active.completed = true;
                 calendar.lastEvent = calendar.active;
                 calendar.active = null;
-                calendar.week++;
                 calendar.drawWeek = 0;
                 calendar.draw.Clear();
             }

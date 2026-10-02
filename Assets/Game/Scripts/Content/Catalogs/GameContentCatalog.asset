@@ -147,6 +147,14 @@ MonoBehaviour:
   trackDefinitions:
   - {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
   raceDefinitions:
+  - {fileID: 11400000, guid: 2a7012a00f8b45e888576fdb33200962, type: 2}
+  - {fileID: 11400000, guid: 73f06ba519ed49a68195fd2f942f85fc, type: 2}
+  - {fileID: 11400000, guid: 89301c9de90a40f3a1d28d2b1e786962, type: 2}
+  - {fileID: 11400000, guid: 6670a6cc7eb044648217597b2f6f2a68, type: 2}
+  - {fileID: 11400000, guid: 5cb2a0a589e44daca350f0a8f4c17c96, type: 2}
+  - {fileID: 11400000, guid: be913a47c3cc45908a054a315a6d5ff4, type: 2}
+  - {fileID: 11400000, guid: 2f65b07632df46d5b8c1df0de0a8a603, type: 2}
+  - {fileID: 11400000, guid: 390192fb3ae44854bdb670880b09c61b, type: 2}
   - {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}
   - {fileID: 11400000, guid: b09c7e038e410c64089f561889fc948b, type: 2}
   - {fileID: 11400000, guid: d293c2f4b62c5b343bde851099c26150, type: 2}

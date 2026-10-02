@@ -43,27 +43,19 @@ namespace RaceFatal.Presentation.Career
         private CareerCalendarService calendar;
         private string selectedEventId, pendingEventId;
         private bool busy, calendarSaved, pendingAdvance;
-        private int mode;
+        private int mode, selectedOccurrenceDay, pendingOccurrenceDay;
         private GameSessionState Session => context?.Sessions?.Current;
         private TeamState Team => Session?.PlayerTeam;
         public string SelectedEventId => selectedEventId;
 
-        public RaceDefinition SelectedRaceDefinition
-        {
-            get
-            {
-                if (Team == null || selectedEventId == null || calendar == null)
-                    return null;
-                string id = calendar.NextRaceId(Team, selectedEventId);
-                return string.IsNullOrEmpty(id) ? null : context.Database.GetRaceDefinition(id);
-            }
-        }
+        public RaceDefinition SelectedRaceDefinition { get; private set; }
 
         public void Initialize(CareerController controller, GameContext gameContext)
         {
             owner = controller;
             context = gameContext;
             calendar = new CareerCalendarService(context.Database);
+            if (calendarButton != null) Set(calendarButton.GetComponentInChildren<TMP_Text>(), "UPCOMING EVENTS");
             Bind(enterRaceButton, ConfirmEntry);
             Bind(calendarButton, ShowCalendar);
             Bind(unlockedButton, ShowUnlocked);
@@ -109,6 +101,7 @@ namespace RaceFatal.Presentation.Career
                 enterRaceButton.interactable = false;
             if (advanceButton != null)
                 advanceButton.interactable = false;
+            SelectedRaceDefinition = null;
             Set(selectedRaceNameText, "SELECT AN EVENT");
             Set(selectedTrackText, "");
             Set(selectedRequirementsText, "");
@@ -132,10 +125,10 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            SetFeedback(saved.IsSuccess ? "ONE RACE ADVANCES ONE WEEK. FAME UNLOCKS ARE PERMANENT." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
-            Set(weekText, $"WEEK {Team.Calendar.Week}  //  {Team.Credits:N0} CREDITS  //  TEAM FAME {Team.Fame:N0}");
+            SetFeedback(saved.IsSuccess ? "ENTERING AN EVENT MOVES TODAY TO ITS DATE. FINISHING DOES NOT SKIP THE WEEK." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
+            Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  TEAM FAME {Team.Fame:N0}");
             var active = Team.Calendar.Active;
-            Set(advanceLabel, active == null ? "SKIP WEEK" : "WITHDRAW EVENT");
+            Set(advanceLabel, active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
             if (advanceButton != null)
                 advanceButton.interactable = calendarSaved && Session.CareerRun?.IsActive == true;
             if (mode == 3)
@@ -149,17 +142,17 @@ namespace RaceFatal.Presentation.Career
                 definitions = definitions.Where(d => Team.Calendar.DrawIds.Contains(d.Id) && active == null);
             else if (mode == 1)
                 definitions = definitions.Where(d => Team.Calendar.UnlockedIds.Contains(d.Id));
-            foreach (var definition in definitions.OrderBy(d => d.RequiredFame).ThenBy(d => d.DisplayName))
+            foreach (var definition in definitions.OrderBy(d => mode == 2 ? d.RequiredFame : calendar.NextOccurrenceDay(Team, d.Id) ?? int.MaxValue).ThenBy(d => d.DisplayName))
             {
                 bool unlocked = Team.Calendar.UnlockedIds.Contains(definition.Id);
-                string status = !unlocked ? $"UNLOCKS AT {definition.RequiredFame:N0} FAME" : active?.eventId == definition.Id ? "ENTERED" : Team.Calendar.DrawIds.Contains(definition.Id) && active == null ? "THIS WEEK" : "UNLOCKED · NOT THIS WEEK";
-                AddCard(definition.Id, definition.DisplayName, definition.Kind.ToString().ToUpperInvariant(), $"FEE {definition.EntryFee:N0}  //  {definition.RaceIds.Count} ROUND(S)", status);
+                string status = !unlocked ? $"UNLOCKS AT {definition.RequiredFame:N0} FAME" : active?.eventId == definition.Id ? "ENTERED" : Team.Calendar.DrawIds.Contains(definition.Id) && active == null ? "UPCOMING" : "UNLOCKED";
+                AddCard(definition.Id, definition.DisplayName, definition.Kind.ToString().ToUpperInvariant() + " // " + (calendar.NextOccurrenceDay(Team, definition.Id) is int day ? CareerCalendarState.FormatDay(day) : "NOT SCHEDULED"), $"FEE {definition.EntryFee:N0}  //  {definition.RaceIds.Count} ROUND(S)", status);
             }
 
             if (mode == 0 && active != null)
                 AddCard(active.eventId, active.displayName, active.kind.ToString().ToUpperInvariant(), $"ROUND {active.roundIndex + 1}/{active.raceIds.Count}  //  ENTRY PAID", "CONTINUE EVENT");
             if (cards.Count == 0)
-                SetFeedback("NO EVENTS IN THIS VIEW. CHECK FAME MILESTONES OR SKIP TO NEXT WEEK.");
+                SetFeedback("NO EVENTS IN THIS VIEW. CHECK FAME MILESTONES OR THE HOME CALENDAR.");
             if (!cards.Any(c => c.RaceId == selectedEventId))
                 selectedEventId = cards.FirstOrDefault()?.RaceId;
             if (selectedEventId != null)
@@ -176,15 +169,23 @@ namespace RaceFatal.Presentation.Career
             cards.Add(card);
         }
 
-        private void SelectEvent(string id)
+        public void FocusOccurrence(string id, int day)
+        {
+            SelectEvent(id, day);
+        }
+
+        private void SelectEvent(string id) => SelectEvent(id, calendar.NextOccurrenceDay(Team, id) ?? 0);
+        private void SelectEvent(string id, int occurrenceDay)
         {
             if (busy)
                 return;
             selectedEventId = id;
+            selectedOccurrenceDay = occurrenceDay;
             foreach (var card in cards)
                 card.SetSelected(card.RaceId == id);
             var active = Team.Calendar.Active;
-            var entry = active?.eventId == id ? active : null;
+            var occurrence = selectedOccurrenceDay > 0 ? calendar.GetOccurrences(Team, selectedOccurrenceDay, selectedOccurrenceDay).FirstOrDefault(e => e.EventId == id) : null;
+            var entry = active?.eventId == id && (occurrence?.IsActiveRound == true || selectedOccurrenceDay == active.scheduledDay) ? active : null;
             var definition = context.Database.GetCareerEventDefinition(id);
             if (entry == null && definition == null)
                 return;
@@ -193,11 +194,16 @@ namespace RaceFatal.Presentation.Career
             var prizes = entry?.prizes ?? definition.ChampionshipPrizes.ToList();
             var points = entry?.points ?? definition.PositionPoints.ToList();
             var kind = entry?.kind ?? definition.Kind;
-            var raceId = rounds[entry?.roundIndex ?? 0];
+            int displayRound = Math.Min(rounds.Count - 1, occurrence?.RoundIndex ?? entry?.roundIndex ?? 0);
+            var raceId = rounds[displayRound];
             var race = context.Database.GetRaceDefinition(raceId);
+            SelectedRaceDefinition = race;
             Set(selectedRaceNameText, entry?.displayName ?? definition.DisplayName);
             Set(selectedTrackText, race == null ? "MISSING RACE CONTENT" : context.Database.GetTrackDefinition(race.TrackId)?.DisplayName ?? race.TrackId);
             var text = new StringBuilder();
+            text.AppendLine(selectedOccurrenceDay > 0 ? CareerCalendarState.FormatDay(selectedOccurrenceDay) : "NOT SCHEDULED");
+            var schedule = Team.Calendar.Schedules.FirstOrDefault(e => e.eventId == id);
+            if (schedule != null) text.AppendLine($"REPEATS EVERY {schedule.repeatEveryWeeks} WEEKS");
             text.AppendLine(entry?.description ?? definition.Description);
             text.AppendLine($"\nFORMAT  {kind.ToString().ToUpperInvariant()}\nENTRY FEE  {entry?.entryFee ?? definition.EntryFee:N0} CREDITS{(entry != null ? " (PAID)" : "")}");
             if (race != null)
@@ -214,7 +220,8 @@ namespace RaceFatal.Presentation.Career
             {
                 text.AppendLine("\nCHAMPIONSHIP ROUNDS");
                 for (int i = 0; i < rounds.Count; i++)
-                    text.AppendLine($"{i + 1}. {context.Database.GetRaceDefinition(rounds[i])?.DisplayName ?? rounds[i]}");
+                    text.AppendLine($"{i + 1}. {context.Database.GetRaceDefinition(rounds[i])?.DisplayName ?? rounds[i]}" +
+                        (schedule != null ? $" // {CareerCalendarState.FormatDay((entry?.occurrenceDay ?? occurrence?.OccurrenceDay ?? selectedOccurrenceDay) + i * schedule.roundSpacingDays)}" : ""));
                 text.AppendLine("\nFINAL TEAM PRIZES");
                 for (int i = 0; i < prizes.Count; i++)
                     text.AppendLine($"RANK {i + 1}: {prizes[i]:N0} CREDITS");
@@ -240,7 +247,7 @@ namespace RaceFatal.Presentation.Career
         {
             if (!calendarSaved || Session?.CareerRun?.IsActive != true)
                 return Result<RaceDirector>.Failure("CREATE A NEW RACER FROM CAREER HOME TO ENTER EVENTS.");
-            var allowed = calendar.CanEnter(Team, id);
+            var allowed = calendar.CanEnter(Team, id, id == selectedEventId ? selectedOccurrenceDay : 0);
             if (!allowed.IsSuccess)
                 return Result<RaceDirector>.Failure(allowed.ErrorMessage);
             var raceId = calendar.NextRaceId(Team, id);
@@ -268,6 +275,7 @@ namespace RaceFatal.Presentation.Career
             }
 
             selectedEventId = entry.eventId;
+            selectedOccurrenceDay = entry.scheduledDay;
             Set(selectedRaceNameText, entry.displayName);
             Set(selectedTrackText, entry.withdrawn ? "WITHDRAWN" : entry.completed ? "COMPLETED" : $"ROUND {entry.roundIndex + 1}/{entry.raceIds.Count}");
             if (entry.kind == CareerEventKind.Deathmatch)
@@ -326,10 +334,11 @@ namespace RaceFatal.Presentation.Career
             if (busy || selectedEventId == null || !Preview(selectedEventId).IsSuccess)
                 return;
             pendingEventId = selectedEventId;
+            pendingOccurrenceDay = selectedOccurrenceDay;
             pendingAdvance = false;
             int fee = Team.Calendar.Active == null ? context.Database.GetCareerEventDefinition(selectedEventId).EntryFee : 0;
             string name = Team.Calendar.Active?.displayName ?? context.Database.GetCareerEventDefinition(selectedEventId).DisplayName;
-            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS\nREMAINING: {Team.Credits - fee:N0} CREDITS\n\nONE COMPLETED ROUND ADVANCES ONE WEEK. ENTRY FEES ARE FORFEITED IF YOU WITHDRAW.");
+            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS\nREMAINING: {Team.Credits - fee:N0} CREDITS\n\nTODAY WILL MOVE TO {CareerCalendarState.FormatDay(selectedOccurrenceDay)}. EARLIER EVENTS WILL BE MISSED. FINISHING KEEPS THAT DATE. ENTRY FEES ARE FORFEITED IF YOU WITHDRAW.");
         }
 
         private void ConfirmAdvance()
@@ -338,7 +347,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             pendingAdvance = true;
             pendingEventId = null;
-            ShowConfirmation(Team.Calendar.Active == null ? "SKIP THIS WEEK?\n\nA NEW DRAW WILL BE SAVED. RESEARCH STAFF DO NOT EARN POINTS FOR SKIPPED WEEKS." : "WITHDRAW FROM THIS EVENT?\n\nTHE ENTRY FEE IS NOT REFUNDED. NO COMPLETION PRIZE IS AWARDED. THE CALENDAR ADVANCES ONE WEEK.");
+            ShowConfirmation(Team.Calendar.Active == null ? "ADVANCE TO THE NEXT UNLOCKED EVENT DATE?\n\nEVENTS ON EARLIER DATES WILL BE MISSED. RESEARCH STAFF DO NOT EARN POINTS FOR SKIPPED DAYS." : "WITHDRAW FROM THIS EVENT?\n\nTHE ENTRY FEE IS NOT REFUNDED. NO COMPLETION PRIZE IS AWARDED. TODAY DOES NOT CHANGE. THIS OCCURRENCE CANNOT BE ENTERED AGAIN.");
         }
 
         private void ShowConfirmation(string message)
@@ -367,6 +376,7 @@ namespace RaceFatal.Presentation.Career
         {
             bool advance = pendingAdvance;
             string id = pendingEventId;
+            int day = pendingOccurrenceDay;
             Cancel();
             if (advance)
             {
@@ -394,7 +404,7 @@ namespace RaceFatal.Presentation.Career
                 Refresh();
             }
             else if (id != null)
-                owner?.LaunchCalendarEvent(id);
+                owner?.LaunchCalendarEvent(id, day);
         }
 
         private void Cancel()

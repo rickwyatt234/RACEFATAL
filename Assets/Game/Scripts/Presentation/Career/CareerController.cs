@@ -157,7 +157,13 @@ namespace RaceFatal.Presentation.Career
             }
         }
 
-        public void LaunchCalendarEvent(string eventId)
+        public void ShowCalendarEvent(string eventId, int day)
+        {
+            ShowRaces();
+            racesView?.FocusOccurrence(eventId, day);
+        }
+
+        public void LaunchCalendarEvent(string eventId, int occurrenceDay = 0)
         {
             if (raceLaunchInProgress)
                 return;
@@ -174,7 +180,7 @@ namespace RaceFatal.Presentation.Career
             }
 
             var calendar = new RaceFatal.Career.CareerCalendarService(context.Database);
-            var allowed = calendar.CanEnter(context.Sessions.Current.PlayerTeam, eventId);
+            var allowed = calendar.CanEnter(context.Sessions.Current.PlayerTeam, eventId, occurrenceDay);
             if (!allowed.IsSuccess)
             {
                 ShowError(allowed.ErrorMessage);
@@ -225,7 +231,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            var registration = calendar.Register(context.Sessions.Current, eventId, prepared.Value);
+            var registration = calendar.Register(context.Sessions.Current, eventId, prepared.Value, occurrenceDay);
             if (!registration.IsSuccess)
             {
                 ShowError(registration.ErrorMessage);
@@ -305,7 +311,7 @@ namespace RaceFatal.Presentation.Career
                     ShowError("CALENDAR SAVE FAILED: " + saved.ErrorMessage);
                 }
             }
-            homeView?.Bind(context.Sessions.Current, context.Database);
+            homeView?.Bind(context.Sessions.Current, context.Database, this);
         }
 
         private void ShowError(string message)

@@ -36,7 +36,7 @@ public static class CareerRacesScaffoldBuilder
             view = root.gameObject.AddComponent<CareerRacesView>();
         ClearChildren(root);
         CreateText(root, "Title", "RACES // CHAMPIONSHIPS", 40, new Vector2(410, -85), new Vector2(1300, 62));
-        var calendar = CreateButton(root, "Calendar", "THIS WEEK", new Vector2(410, -165), new Vector2(300, 52));
+        var calendar = CreateButton(root, "Calendar", "UPCOMING EVENTS", new Vector2(410, -165), new Vector2(300, 52));
         var unlocked = CreateButton(root, "Unlocked", "UNLOCKED EVENTS", new Vector2(740, -165), new Vector2(340, 52));
         var fame = CreateButton(root, "Fame", "FAME MILESTONES", new Vector2(1110, -165), new Vector2(340, 52));
         var standings = CreateButton(root, "Standings", "STANDINGS", new Vector2(1480, -165), new Vector2(340, 52));
@@ -70,7 +70,7 @@ public static class CareerRacesScaffoldBuilder
         scroll.movementType = ScrollRect.MovementType.Clamped;
         scroll.scrollSensitivity = 30;
         var status = CreateText(details, "Status", "", 21, new Vector2(20, -515), new Vector2(700, 80));
-        var advance = CreateButton(root, "AdvanceWeek", "SKIP WEEK", new Vector2(410, -915), new Vector2(645, 65));
+        var advance = CreateButton(root, "AdvanceWeek", "NEXT EVENT DATE", new Vector2(410, -915), new Vector2(645, 65));
         var enter = CreateButton(root, "EnterEvent", "ENTER / CONTINUE", new Vector2(1080, -915), new Vector2(740, 65));
         var feedback = CreateText(root, "Feedback", "", 21, new Vector2(410, -998), new Vector2(1410, 75));
         var modal = CreatePanel(root, "EventConfirmation", Vector2.zero, Vector2.zero);

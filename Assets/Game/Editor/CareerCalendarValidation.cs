@@ -38,7 +38,7 @@ public static class CareerCalendarValidation
         AddBikes(team, db);
         AddBikes(opponent, db);
         var session = new GameSessionState(team, new CareerRun("career", team, player), WorldState.Restore(new[] { opponent }).Value, "partner", team.Garage.Bikes[0].BikeId, team.Garage.Bikes[1].BikeId);
-        Require(service.Refresh(team), "First draw generated");
+        Require(service.Refresh(team), "Fixed schedule captured");
         string draw = string.Join(",", team.Calendar.DrawIds);
         Require(team.Calendar.DrawIds.Count == 3 && !team.Calendar.DrawIds.Contains("locked") && !team.Calendar.DrawIds.Contains("future"), "Only unlocked valid events appear; deathmatch without survival rules is rejected");
         Require(!service.Refresh(team) && string.Join(",", team.Calendar.DrawIds) == draw, "Refresh never rerolls");
@@ -47,7 +47,7 @@ public static class CareerCalendarValidation
         session = Reload(session, mapper);
         team = session.PlayerTeam;
         player = session.CareerRun.Player;
-        Require(string.Join(",", team.Calendar.DrawIds) == draw, "Weekly draw survives JSON reload");
+        Require(string.Join(",", team.Calendar.DrawIds) == draw, "Upcoming event list survives JSON reload");
         var prepared = Prepare(session, db);
         var transaction = service.Register(session, "paid", prepared);
         Require(transaction.IsSuccess && team.Credits == 1800, "Charge entry once");
@@ -75,15 +75,15 @@ public static class CareerCalendarValidation
         Require(mismatch && team.Credits == 1800 && team.Calendar.Week == 1, "Unmatched result cannot mutate campaign");
         var race = Result(attempt);
         resolver.Resolve(race, team, player);
-        Require(team.Credits == 2800 && team.Calendar.Week == 2 && team.Calendar.Active == null, "Payout and week advancement");
+        Require(team.Credits == 2800 && team.Calendar.AbsoluteDay == 1 && team.Calendar.Active == null, "Payout preserves the event date");
         Require(team.ResearchPoints == 67 && team.ResearchContracts[0].RacesRemaining == 9, "Event RP and researchers settle together");
         resolver.Resolve(race, team, player);
-        Require(team.Credits == 2800 && team.Calendar.Week == 2, "Duplicate result cannot pay or advance twice");
+        Require(team.Credits == 2800 && team.Calendar.AbsoluteDay == 1, "Duplicate result cannot pay or advance twice");
         session = Reload(session, mapper);
         team = session.PlayerTeam;
         player = session.CareerRun.Player;
         resolver.Resolve(race, team, player);
-        Require(team.Calendar.Week == 2 && team.Credits == 2800, "Receipt prevents replay after reload");
+        Require(team.Calendar.AbsoluteDay == 1 && team.Credits == 2800, "Receipt prevents replay after reload");
         service.Refresh(team);
         int startCredits = team.Credits;
         RaceResult finalRound = null;
@@ -100,11 +100,11 @@ public static class CareerCalendarValidation
             player = session.CareerRun.Player;
         }
 
-        Require(team.Calendar.Week == 5 && team.Calendar.Active == null && team.Calendar.LastEvent.finalRank == 1 && team.Calendar.LastEvent.finalPrize == 5000 && team.Credits == startCredits - 300 + 3000 + 5000, "Three-round standings, one fee and final prize survive reload");
+        Require(team.Calendar.AbsoluteDay == 15 && team.Calendar.Active == null && team.Calendar.LastEvent.finalRank == 1 && team.Calendar.LastEvent.finalPrize == 5000 && team.Credits == startCredits - 300 + 3000 + 5000, "Three-round standings, one fee and final prize survive reload");
         Require(team.Calendar.LastEvent.standings.Single(s => s.teamId == "team").points == 129, "Both teammates contribute points");
         int completionCredits = team.Credits;
         resolver.Resolve(finalRound, team, player);
-        Require(team.Credits == completionCredits && team.Calendar.Week == 5, "Final prize cannot be repeated after reload");
+        Require(team.Credits == completionCredits && team.Calendar.AbsoluteDay == 15, "Final prize cannot be repeated after reload");
         service.Refresh(team);
         Require(team.Calendar.UnlockedIds.Contains("locked"), "Earned Fame permanently unlocks new events");
         var attrition = Reload(session, mapper);
@@ -158,7 +158,7 @@ public static class CareerCalendarValidation
         var legacy = mapper.Capture(session).Value;
         legacy.playerTeam.calendar = null;
         Require(mapper.Restore(legacy).IsSuccess && mapper.Restore(legacy).Value.PlayerTeam.Calendar.Week == 1, "Legacy save starts week one");
-        Debug.Log("Calendar validation passed: draw persistence, Fame gates, fees, rollback, interrupted entry, settlement, championship and save migration.");
+        Debug.Log("Calendar validation passed: dated schedule persistence, Fame gates, fees, rollback, interrupted entry, settlement, championship and save migration.");
     }
 
     private static CareerEventDefinition Event(string id, int fame, int fee, bool championship) => new CareerEventDefinition(id, id, "", championship ? CareerEventKind.Championship : CareerEventKind.Race, fame, fee, championship ? new[] { "race", "race", "race" } : new[] { "race" }, new[] { 1000, 800, 500, 100 }, new[] { 5000, 2500 }, new[] { 25, 18, 15, 12 });

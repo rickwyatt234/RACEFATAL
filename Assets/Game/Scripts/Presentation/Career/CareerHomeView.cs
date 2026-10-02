@@ -17,7 +17,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text currentPartnerText;
         [Header("Career")] [SerializeField] private TMP_Text careerStatusText;
         private CareerHomeCalendarView calendarView;
-        public void Bind(GameSessionState session, GameDatabase database)
+        public void Bind(GameSessionState session, GameDatabase database, CareerController owner = null)
         {
             if (session == null)
             {
@@ -27,7 +27,7 @@ namespace RaceFatal.Presentation.Career
 
             if (calendarView == null)
             {
-                calendarView = CareerHomeCalendarView.Create(transform);
+                calendarView = CareerHomeCalendarView.Create(transform, owner);
                 var labels = new[] { teamNameText, racerNameText, creditsText, fameText, researchPointsText, currentBikeText, currentPartnerText, careerStatusText };
                 for (int i=0;i<labels.Length;i++)
                 {

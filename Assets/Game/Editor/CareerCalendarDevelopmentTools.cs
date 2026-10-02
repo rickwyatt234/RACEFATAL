@@ -14,7 +14,7 @@ public static class CareerCalendarDevelopmentTools
         if (EditorApplication.isPlayingOrWillChangePlaymode)
             return;
         var catalog = Selection.activeObject as GameContentCatalogSO;
-        var races = catalog?.RaceDefinitions.Where(r => r != null).ToList();
+        var races = catalog?.RaceDefinitions.Where(r => r != null && r.CreateRaceDefinition().Deathmatch == null).ToList();
         if (catalog == null || races == null || races.Count == 0)
         {
             EditorUtility.DisplayDialog("Calendar Events", "Select the Bootstrap GameContentCatalog with at least one race.", "OK");
@@ -41,11 +41,38 @@ public static class CareerCalendarDevelopmentTools
                 data.FindProperty("kind").intValue = (int)(championship ? CareerEventKind.Championship : CareerEventKind.Race);
                 data.FindProperty("requiredFame").intValue = i == 4 ? 250 : 0;
                 data.FindProperty("entryFee").intValue = i == 0 ? 0 : championship ? 2000 : 500;
+                int[] days = { 4, 6, 10, 12, 17, 20 };
+                data.FindProperty("firstWeek").intValue = (days[i] - 1) / 7 + 1;
+                data.FindProperty("firstDayOfWeek").intValue = (days[i] - 1) % 7 + 1;
+                data.FindProperty("repeatEveryWeeks").intValue = 4 + i % 3;
                 var rounds = data.FindProperty("rounds");
                 rounds.arraySize = championship ? 3 : 1;
                 RaceDefinitionSO race = races[i % races.Count];
                 for (int round = 0; round < rounds.arraySize; round++)
-                    rounds.GetArrayElementAtIndex(round).objectReferenceValue = race;
+                {
+                    string raceId = id + "_ROUND_" + (round + 1);
+                    string path = folder + "/" + raceId + ".asset";
+                    var authoredRace = AssetDatabase.LoadAssetAtPath<RaceDefinitionSO>(path);
+                    if (authoredRace == null)
+                    {
+                        authoredRace = Object.Instantiate(race);
+                        var raceData = new SerializedObject(authoredRace);
+                        raceData.FindProperty("id").stringValue = raceId;
+                        raceData.FindProperty("displayName").stringValue = data.FindProperty("displayName").stringValue + " - Round " + (round + 1);
+                        raceData.ApplyModifiedPropertiesWithoutUndo();
+                        AssetDatabase.CreateAsset(authoredRace, path);
+                    }
+                    rounds.GetArrayElementAtIndex(round).objectReferenceValue = authoredRace;
+                    var raceList = serialized.FindProperty("raceDefinitions");
+                    bool found = false;
+                    for (int r = 0; r < raceList.arraySize; r++)
+                        if (raceList.GetArrayElementAtIndex(r).objectReferenceValue == authoredRace) found = true;
+                    if (!found)
+                    {
+                        raceList.arraySize++;
+                        raceList.GetArrayElementAtIndex(raceList.arraySize - 1).objectReferenceValue = authoredRace;
+                    }
+                }
                 data.ApplyModifiedPropertiesWithoutUndo();
                 AssetDatabase.CreateAsset(asset, folder + "/" + id + ".asset");
             }
@@ -63,6 +90,6 @@ public static class CareerCalendarDevelopmentTools
 
         serialized.ApplyModifiedProperties();
         AssetDatabase.SaveAssets();
-        Debug.Log("Six calendar events registered; existing assets preserved. Restart from Bootstrap. Skip a week to replace an existing saved draw.");
+        Debug.Log("Six calendar events registered; existing assets preserved. Start a new campaign to capture these authored event schedules. Existing schedules are preserved.");
     }
 }

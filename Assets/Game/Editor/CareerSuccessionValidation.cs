@@ -71,7 +71,7 @@ public static class CareerSuccessionValidation
         player = sessions.Current.CareerRun.Player;
         var fatal = new RaceResult("race", new[] { new RaceResultEntry(player.RacerId, team.TeamId, 1, 1, RaceParticipantStatus.Destroyed), new RaceResultEntry(partner.RacerId, team.TeamId, 2, 2, RaceParticipantStatus.Finished) }, "fatal-attempt", 7);
         manager.ResolvePostRace(fatal, player);
-        Require(team.Calendar.Week == 9 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn, "Fatal results settle before succession and close championship");
+        Require(team.Calendar.Week == 8 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn, "Fatal results settle before succession and close championship");
         Require(saves.SaveCurrentCampaign().IsSuccess, "Save death");
         Reload(saves);
         var summary = saves.GetSlotSummary(TestSlot).Value;
@@ -93,13 +93,13 @@ public static class CareerSuccessionValidation
         string nextId = next.RacerId;
         team = sessions.Current.PlayerTeam;
         Require(next.Name == "Successor" && nextId != "original" && next.Progression.Fame == 0 && next.RacesEntered == 0, "Fresh identity and personal progression");
-        Require(team.Credits == credits && team.ResearchPoints == rp && team.Fame == fame && team.Calendar.Week == 9 && team.HasTechnology("legacy-tech") && team.ResearchContracts[0].RacesRemaining == 4, "Team economy, technology, staff and calendar preserved");
+        Require(team.Credits == credits && team.ResearchPoints == rp && team.Fame == fame && team.Calendar.Week == 8 && team.HasTechnology("legacy-tech") && team.ResearchContracts[0].RacesRemaining == 4, "Team economy, technology, staff and calendar preserved");
         Require(team.Garage.Bikes.Count == 3 && team.Garage.FindBike(wreckId).IsDestroyed && team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).IsRaceReady && sessions.Current.SelectedPartnerRacerId == partner.RacerId && sessions.Current.SelectedPartnerBikeId == partnerBike.BikeId, "Fresh recovery bike assigned; wreck and partner preserved");
         Require(next.Progression.HasPurchasedPerk("starter-perk") && !next.Progression.HasPurchasedPerk("ai-perk") && sessions.Current.CareerRun.NeedsIntroduction, "Player-compatible starter perk and pending summary");
         var old = team.Roster.FindRacer("original");
         Require(old.Status == RacerCareerStatus.Dead && old.RacesWon == 1 && old.RacesEntered == 1, "Previous career history remains permanent");
         manager.ResolvePostRace(fatal, old);
-        Require(team.Credits == credits && team.Calendar.Week == 9, "Old result cannot pay again after succession");
+        Require(team.Credits == credits && team.Calendar.Week == 8, "Old result cannot pay again after succession");
         Require(!saves.StartSuccessor("Duplicate").IsSuccess, "No repeated successor or kit");
         Reload(saves);
         Require(sessions.Current.CareerRun.Player.RacerId == nextId && sessions.Current.PlayerTeam.Garage.Bikes.Count == 3, "Successor and one recovery kit survive reload");
@@ -124,7 +124,7 @@ public static class CareerSuccessionValidation
         calendar.active.pendingRaceId = null;
         calendar.active.roundIndex = 1;
         sessions.Current.PlayerTeam.RestoreCalendar(calendar);
-        Require(saves.RetirePlayer().IsSuccess && sessions.Current.PlayerTeam.Calendar.Active == null && sessions.Current.PlayerTeam.Calendar.LastEvent.withdrawn && sessions.Current.PlayerTeam.Calendar.LastEvent.finalPrize == 0 && sessions.Current.PlayerTeam.Calendar.Week == week + 1, "Mid-championship retirement withdraws and advances exactly once");
+        Require(saves.RetirePlayer().IsSuccess && sessions.Current.PlayerTeam.Calendar.Active == null && sessions.Current.PlayerTeam.Calendar.LastEvent.withdrawn && sessions.Current.PlayerTeam.Calendar.LastEvent.finalPrize == 0 && sessions.Current.PlayerTeam.Calendar.Week == week, "Mid-championship retirement withdraws without changing the date");
         Require(!saves.RetirePlayer().IsSuccess, "Repeated retirement rejected");
         Reload(saves);
         Require(sessions.Current.CareerRun.Player.Status == RacerCareerStatus.Retired, "Retired status survives reload");

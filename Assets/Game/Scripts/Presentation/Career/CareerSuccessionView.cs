@@ -298,7 +298,7 @@ namespace RaceFatal.Presentation.Career
                 text.AppendLine("Assign a ready partner bike in Garage before entering a race.");
             if (partnerBike?.IsRaceReady == true && bike?.IsRaceReady == true && partnerBike.EngineClass != bike.EngineClass)
                 text.AppendLine("Player and partner engines need matching classes for team race entry.");
-            text.AppendLine($"\nTEAM RESOURCES\nCREDITS  {team.Credits:N0}\nTEAM FAME  {team.Fame:N0}\nRESEARCH POINTS  {team.ResearchPoints:N0}\nCALENDAR WEEK  {team.Calendar.Week}");
+            text.AppendLine($"\nTEAM RESOURCES\nCREDITS  {team.Credits:N0}\nTEAM FAME  {team.Fame:N0}\nRESEARCH POINTS  {team.ResearchPoints:N0}\nCALENDAR  {team.Calendar.DateLabel}");
             text.AppendLine("\nTeam resources and owned items remain with this campaign. Previous racers, wrecks and lost upgrades retain their permanent status.");
             return text.ToString();
         }

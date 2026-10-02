@@ -49,6 +49,7 @@ namespace RaceFatal.Presentation.Racing
         private bool playerResolved;
         private bool waitingForContinue;
         private bool finalResults;
+        private bool payoutVisible;
         private bool outcomeActive;
         private bool leavingRace;
         private bool bound;
@@ -217,7 +218,7 @@ namespace RaceFatal.Presentation.Racing
         {
             cachedPostRaceResult = result;
             debugPostRaceResolved = result != null;
-            if (finalResults)
+            if (payoutVisible)
             {
                 RenderPayout(result);
             }
@@ -260,6 +261,7 @@ namespace RaceFatal.Presentation.Racing
             playerCockpitView?.SetReticleVisible(false);
             if (standingsView != null)
             {
+                standingsView.gameObject.SetActive(true);
                 standingsView.ShowLive();
             }
 
@@ -293,7 +295,10 @@ namespace RaceFatal.Presentation.Racing
                 return;
             if (finalResults)
             {
-                ReturnFromRace();
+                if (!payoutVisible && payoutPanel != null)
+                    ShowPayoutPage();
+                else
+                    ReturnFromRace();
                 return;
             }
 
@@ -324,6 +329,9 @@ namespace RaceFatal.Presentation.Racing
 
         private void ShowFinalResults(RaceResult result)
         {
+            if (finalResults) return; // Late completion callbacks must not change pages.
+            payoutVisible = false;
+            if (payoutPanel != null) payoutPanel.SetActive(false);
             playerHud?.SetHudVisible(false);
             playerCockpitView?.SetReticleVisible(false);
             finalResults = true;
@@ -347,11 +355,10 @@ namespace RaceFatal.Presentation.Racing
 
             if (standingsView != null)
             {
+                standingsView.gameObject.SetActive(true);
                 standingsView.ShowFinal(result);
             }
 
-            PostRaceResult payout = cachedPostRaceResult ?? director?.PostRaceResult;
-            RenderPayout(payout);
             if (continueButton != null)
             {
                 continueButton.gameObject.SetActive(true);
@@ -360,7 +367,7 @@ namespace RaceFatal.Presentation.Racing
 
             if (continueButtonText != null)
             {
-                continueButtonText.text = "RETURN TO CAREER";
+                continueButtonText.text = payoutPanel != null ? "VIEW PAYOUT" : "RETURN TO CAREER";
             }
 
             if (releaseCursorOnOutcome)
@@ -369,8 +376,29 @@ namespace RaceFatal.Presentation.Racing
 
 #endregion
 #region Payout
+        private void ShowPayoutPage()
+        {
+            var result = cachedPostRaceResult ?? director?.PostRaceResult;
+            if (result == null)
+            {
+                if (BootstrapController.Context?.Saves?.HasActiveCampaign != true)
+                    ReturnFromRace();
+                else if (outcomeSubtitle != null)
+                    outcomeSubtitle.text = "PAYOUT IS STILL RESOLVING. PLEASE TRY AGAIN.";
+                return;
+            }
+            payoutVisible = true;
+            if (standingsView != null) standingsView.gameObject.SetActive(false);
+            if (outcomeTitle != null) outcomeTitle.text = "EVENT PAYOUT";
+            if (outcomeSubtitle != null) outcomeSubtitle.text = "REWARDS & CAREER STATUS";
+            RenderPayout(result);
+            if (continueButtonText != null) continueButtonText.text = "RETURN TO CAREER";
+            continueButton?.Select();
+        }
+
         private void RenderPayout(PostRaceResult result)
         {
+            if (!payoutVisible) return;
             if (result == null)
             {
                 if (payoutPanel != null)

@@ -109,6 +109,7 @@ namespace RaceFatal.Career
 
             CareerRun careerRun = new CareerRun(Guid.NewGuid().ToString("N"), team, player);
             careerRun.PrepareIntroduction("NEW CAMPAIGN STARTER BIKE", GrantStartingPerk(player));
+            new CareerCalendarService(database).Refresh(team);
             var prepared = new GameSessionState(team, careerRun, worldResult.Value, partner.RacerId, playerBikeResult.Value.BikeId, partnerBikeResult.Value.BikeId, successorStarterBuildId: request.PlayerStarterBuildId);
             return Result<GameSessionState>.Success(prepared);
         }

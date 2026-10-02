@@ -23,8 +23,14 @@ namespace RaceFatal.Content.Career
             new List<int> {  20000,  10000,  5000 };
         [Tooltip("Points by finishing place, summed for both racers on each team. DNF earns zero.")] [SerializeField] private List<int> positionPoints =
             new List<int> {  25,  18,  15,  12,  10,  8,  6,  5,  4,  3,  2,  1 };
+        [Header("Calendar Schedule")]
+        [Min(1)] [SerializeField] private int firstWeek = 1;
+        [Range(1, 7)] [SerializeField] private int firstDayOfWeek = 1;
+        [Range(4, 6)] [SerializeField] private int repeatEveryWeeks = 5;
+        [Tooltip("Days between championship rounds. Each round advances to its own date when entered.")]
+        [Min(1)] [SerializeField] private int roundSpacingDays = 7;
         public string Id => id;
 
-        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints);
+        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints, firstWeek, firstDayOfWeek, repeatEveryWeeks, roundSpacingDays);
     }
 }
