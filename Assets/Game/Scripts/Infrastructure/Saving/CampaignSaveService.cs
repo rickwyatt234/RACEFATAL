@@ -144,7 +144,12 @@ namespace RaceFatal.Infrastructure.Saving
             Result saved;
             try
             {
-                prepared.CareerRun.AcknowledgeIntroduction();
+                var acknowledged = sessions.AcknowledgeNewRacer();
+                if (!acknowledged.IsSuccess)
+                {
+                    sessions.ClearSession();
+                    return Result<GameSessionState>.Failure(acknowledged.ErrorMessage);
+                }
                 var captured = mapper.Capture(prepared);
                 saved = captured.IsSuccess ? repository.Save(slotIndex, captured.Value) : Result.Failure(captured.ErrorMessage);
             }
