@@ -37,10 +37,13 @@ MonoBehaviour:
   maximumFirePitch: 0.72
   impactPrefab: {fileID: 843707215034721197, guid: cd0f666efc0f05242a04a3d319095738, type: 3}
   impactFallbackLifetime: 2
-  impactClips: []
+  impactClips:
+  - {fileID: 8300000, guid: 2564223722afd45109d55470248299ae, type: 3}
+  - {fileID: 8300000, guid: 7d3eb433a43c34986a5f3c448ceb2379, type: 3}
+  - {fileID: 8300000, guid: 997bcc89a007c4b6aba6b35c40cf99e5, type: 3}
   impactVolume: 0.8
   fireSpatialBlend: 1
-  fireMinDistance: 3
-  fireMaxDistance: 120
+  fireMinDistance: 15
+  fireMaxDistance: 180
   fireRolloffMode: 0
   fireDopplerLevel: 0.1

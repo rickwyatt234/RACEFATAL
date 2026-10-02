@@ -50649,8 +50649,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 12
+  MaxDistance: 180
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -51394,8 +51394,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 12
+  MaxDistance: 180
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -57867,8 +57867,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 0.1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 30
+  MaxDistance: 300
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -58315,7 +58315,10 @@ MonoBehaviour:
   residualEffectDelay: 0.1
   residualEffectLifetime: 6
   audioSource: {fileID: 8100000000000000008}
-  explosionClips: []
+  explosionClips:
+  - {fileID: 8300000, guid: 2564223722afd45109d55470248299ae, type: 3}
+  - {fileID: 8300000, guid: 7d3eb433a43c34986a5f3c448ceb2379, type: 3}
+  - {fileID: 8300000, guid: 997bcc89a007c4b6aba6b35c40cf99e5, type: 3}
   secondaryExplosionClips: []
   explosionVolume: 1
   pitchVariation: 0.04
@@ -58387,15 +58390,15 @@ MonoBehaviour:
   boostLoopClip: {fileID: 8300000, guid: 11953590146464e0fbe761898f9e8a1c, type: 3}
   boostStopClip: {fileID: 8300000, guid: 10bafd346cc9c4e629395c5fed65eb8f, type: 3}
   playerEngineVolumeMultiplier: 1.15
-  opponentEngineVolumeMultiplier: 0.5
+  opponentEngineVolumeMultiplier: 0.8
   playerEngineSpatialBlend: 0.2
   opponentEngineSpatialBlend: 1
   playerBoostVolumeMultiplier: 0.9
-  opponentBoostVolumeMultiplier: 0.5
+  opponentBoostVolumeMultiplier: 0.75
   playerBoostSpatialBlend: 0.35
   opponentBoostSpatialBlend: 1
   playerOneShotVolumeMultiplier: 1
-  opponentOneShotVolumeMultiplier: 0.45
+  opponentOneShotVolumeMultiplier: 0.7
   idleEngineVolume: 0.2
   maximumEngineVolume: 0.85
   coastingVolumeMultiplier: 0.55
@@ -105609,8 +105612,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 12
+  MaxDistance: 180
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0

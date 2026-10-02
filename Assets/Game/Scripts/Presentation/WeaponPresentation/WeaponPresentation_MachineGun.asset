@@ -28,7 +28,7 @@ MonoBehaviour:
   minimumFirePitch: 0.9
   maximumFirePitch: 1.5
   fireSpatialBlend: 1
-  fireMinDistance: 3
-  fireMaxDistance: 120
+  fireMinDistance: 15
+  fireMaxDistance: 180
   fireRolloffMode: 0
   fireDopplerLevel: 0.1
