@@ -26,7 +26,9 @@ Damage, shield break and destruction can stack. Pellets and damage-over-time tic
 
 **PlayerCockpitHUD → Audience** creates a child display under the existing HUD Root automatically. It contains a segmented equalizer, current favor out of 200, average favor, and the projected fame percentage. It inherits the HUD layer for the existing render-texture camera.
 
-Set Audience Anchor, Position and Size for the final layout. The default is bottom-center, 100 pixels up, 260 × 96 canvas units. Alternatively, assign an empty RectTransform to Audience Root for an authored location. The runtime adds its own graphic and labels to that rectangle. The panel inherits the speed label's font when available.
+CombatBike assigns an authored **HUD_Root → HUD_Audience** rectangle beneath the speed readout (top-center anchor, position −272 / −260, size 260 × 96). Move/resize this RectTransform in Prefab Mode to tune its windshield placement. Its equalizer and labels are populated at runtime. The previous generated bottom placement can fall outside the visible projection after cockpit reframing.
+
+For prefabs without an assigned Audience Root, set Audience Anchor, Position and Size for the final layout. The default is bottom-center, 100 pixels up, 260 × 96 canvas units. Alternatively, assign an empty RectTransform to Audience Root for an authored location. The runtime adds its own graphic and labels to that rectangle. The panel inherits the speed label's font when available.
 
 Assign optional **Crowd Cheering Loop** and **Crowd Booing Loop** clips and set Crowd Volume. The sources crossfade with crowd favor, pause with gameplay and stop when the panel is disabled. No crowd recording is bundled; the visual meter works without clips. The equalizer is a stylized favor visualization, not an audio spectrum analyzer.
 
