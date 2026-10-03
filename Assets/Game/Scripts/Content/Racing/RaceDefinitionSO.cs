@@ -1,3 +1,4 @@
+using System;
 using RaceFatal.Content.Tracks;
 using RaceFatal.Racing;
 using RaceFatal.Shared;
@@ -30,7 +31,36 @@ namespace RaceFatal.Content.Racing
         [Min(0.1f)] [SerializeField] private float belowSpeedGraceSeconds = 8;
         public RaceDefinition CreateRaceDefinition()
         {
-            return new RaceDefinition(id, displayName, track.CreateTrackDefinition().Id, engineClass, lapCount, entrantCount, teamSize, researchPointBonus, deathmatch ? new DeathmatchRules(victoryMode, allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies) : null);
+            if (!TryCreateRaceDefinition(out var definition, out var error))
+                throw new InvalidOperationException(error);
+            return definition;
+        }
+
+        public bool TryCreateRaceDefinition(out RaceDefinition definition, out string error)
+        {
+            definition = null;
+            string asset = $"Race asset '{name}' (ID '{id}')";
+            if (track == null)
+            {
+                error = $"{asset} has no resolved Track reference. Assign a TrackDefinition asset in its Track field.";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(track.Id))
+            {
+                error = $"{asset} needs a non-empty race ID and track ID.";
+                return false;
+            }
+            try
+            {
+                definition = new RaceDefinition(id, displayName, track.Id, engineClass, lapCount, entrantCount, teamSize, researchPointBonus, deathmatch ? new DeathmatchRules(victoryMode, allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies) : null);
+                error = null;
+                return true;
+            }
+            catch (ArgumentException exception)
+            {
+                error = $"{asset} has invalid race rules: {exception.Message}";
+                return false;
+            }
         }
     }
 }

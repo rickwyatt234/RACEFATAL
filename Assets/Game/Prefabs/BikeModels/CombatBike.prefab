@@ -58110,8 +58110,9 @@ MonoBehaviour:
   bubbleOrigin: {fileID: 4685531942012092665}
   localOffset: {x: 0, y: -2, z: 0}
   localScale: {x: 1, y: 1.5, z: 2.5}
-  visibleDuration: 0.4
-  breakDuration: 0.25
+  visibleDuration: 0.65
+  breakDuration: 0.45
+  brightnessMultiplier: 3
 --- !u!114 &2802809087904197918
 MonoBehaviour:
   m_ObjectHideFlags: 0

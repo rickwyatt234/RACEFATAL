@@ -136,6 +136,17 @@ namespace RaceFatal.Career
             return items.OrderBy(e => e.Day).ThenBy(e => e.EventId, StringComparer.Ordinal).ToList().AsReadOnly();
         }
 
+        public IReadOnlyList<CareerEventOccurrence> GetAvailableEventsForWeek(TeamState team, int week)
+        {
+            if (team == null || week < 1 || week > CareerCalendarState.MaxDay / 7)
+                return Array.Empty<CareerEventOccurrence>();
+            int start = (week - 1) * 7 + 1;
+            return GetOccurrences(team, start, start + 6)
+                .Where(e => e.RoundIndex == 0 && e.Day >= team.Calendar.AbsoluteDay &&
+                    !team.Calendar.IsConsumed(e.EventId, e.OccurrenceDay) && team.Calendar.UnlockedIds.Contains(e.EventId))
+                .ToList().AsReadOnly();
+        }
+
         public Result CanEnter(TeamState team, string eventId, int occurrenceDay = 0)
         {
             if (team == null)
@@ -143,7 +154,7 @@ namespace RaceFatal.Career
             var active = team.Calendar.Data.active;
             if (active != null)
                 return active.eventId == eventId && (occurrenceDay == 0 || occurrenceDay == active.scheduledDay)
-                    ? Result.Success() : Result.Failure("FINISH OR WITHDRAW FROM YOUR CURRENT EVENT; only its next round is enterable.");
+                    ? Result.Success() : Result.Failure("FINISH YOUR CURRENT EVENT; only its next round is enterable.");
             var definition = database.GetCareerEventDefinition(eventId);
             var valid = Validate(definition);
             if (!valid.IsSuccess)
@@ -240,6 +251,8 @@ namespace RaceFatal.Career
             if (session?.CareerRun == null || !session.CareerRun.IsActive)
                 return Result.Failure("NO ACTIVE CAREER.");
             var data = session.PlayerTeam.Calendar.Data;
+            if (data.active?.kind == CareerEventKind.Championship)
+                return Result.Failure("COMPLETE YOUR CHAMPIONSHIP BEFORE ADVANCING THE CALENDAR OR ENTERING ANOTHER EVENT.");
             if (data.active == null)
             {
                 int? next = data.schedules.Where(e => data.unlocked.Contains(e.eventId))

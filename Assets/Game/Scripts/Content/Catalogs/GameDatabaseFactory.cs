@@ -1,4 +1,6 @@
+using System;
 using RaceFatal.Data;
+using UnityEngine;
 
 namespace RaceFatal.Content
 {
@@ -6,6 +8,7 @@ namespace RaceFatal.Content
     {
         public static GameDatabase CreateGameDatabase(GameContentCatalogSO catalog)
         {
+            if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             GameDatabase database = new GameDatabase();
             foreach (var bike in catalog.BikeDefinitions)
             {
@@ -29,12 +32,32 @@ namespace RaceFatal.Content
 
             foreach (var track in catalog.TrackDefinitions)
             {
+                if (track == null)
+                {
+                    Debug.LogWarning($"Content catalog '{catalog.name}' contains a missing Track asset. Remove the missing entry from Track Definitions.", catalog);
+                    continue;
+                }
                 database.AddTrackDefinition(track.CreateTrackDefinition());
             }
 
             foreach (var race in catalog.RaceDefinitions)
             {
-                database.AddRaceDefinition(race.CreateRaceDefinition());
+                if (race == null)
+                {
+                    Debug.LogWarning($"Content catalog '{catalog.name}' contains a missing Race asset. Remove the missing entry from Race Definitions.", catalog);
+                    continue;
+                }
+                if (!race.TryCreateRaceDefinition(out var definition, out var error))
+                {
+                    Debug.LogError($"{error} This race is excluded from the database until corrected.", race);
+                    continue;
+                }
+                if (database.GetTrackDefinition(definition.TrackId) == null)
+                {
+                    Debug.LogError($"Race asset '{race.name}' (ID '{race.Id}') references track '{definition.TrackId}', which is not registered in catalog '{catalog.name}'. Add it to Track Definitions. This race is excluded until corrected.", race);
+                    continue;
+                }
+                database.AddRaceDefinition(definition);
             }
 
             foreach (var bikeBuild in catalog.BikeBuildDefinitions)

@@ -36,10 +36,9 @@ public static class CareerRacesScaffoldBuilder
             view = root.gameObject.AddComponent<CareerRacesView>();
         ClearChildren(root);
         CreateText(root, "Title", "RACES // CHAMPIONSHIPS", 40, new Vector2(410, -85), new Vector2(1300, 62));
-        var calendar = CreateButton(root, "Calendar", "UPCOMING EVENTS", new Vector2(410, -165), new Vector2(300, 52));
-        var unlocked = CreateButton(root, "Unlocked", "UNLOCKED EVENTS", new Vector2(740, -165), new Vector2(340, 52));
-        var fame = CreateButton(root, "Fame", "FAME MILESTONES", new Vector2(1110, -165), new Vector2(340, 52));
-        var standings = CreateButton(root, "Standings", "STANDINGS", new Vector2(1480, -165), new Vector2(340, 52));
+        var calendar = CreateButton(root, "Calendar", "THIS WEEK", new Vector2(410, -165), new Vector2(300, 52));
+        var unlocked = CreateButton(root, "Upcoming", "UPCOMING EVENTS", new Vector2(740, -165), new Vector2(340, 52));
+        var standings = CreateButton(root, "Standings", "STANDINGS", new Vector2(1110, -165), new Vector2(340, 52));
         var week = CreateText(root, "Week", "WEEK --", 24, new Vector2(410, -232), new Vector2(1400, 40));
         var listPanel = CreatePanel(root, "EventList", new Vector2(410, -280), new Vector2(645, 610));
         var content = CreateScrollList(listPanel);
@@ -93,7 +92,6 @@ public static class CareerRacesScaffoldBuilder
         SetReference(view, "enterRaceButton", enter);
         SetReference(view, "calendarButton", calendar);
         SetReference(view, "unlockedButton", unlocked);
-        SetReference(view, "fameButton", fame);
         SetReference(view, "standingsButton", standings);
         SetReference(view, "advanceButton", advance);
         SetReference(view, "advanceLabel", advance.GetComponentInChildren<TMP_Text>());
