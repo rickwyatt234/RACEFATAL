@@ -44,6 +44,21 @@ static class Program
         RaceDirector Prepare(string eventId) => Ok(prep.PrepareSelectedRace(service.NextRaceId(team,eventId)));
         RaceResult ResultFor(RaceDirector director) => new RaceResult(director.State.RaceDefinition.Id,new[]{new RaceResultEntry(session.CareerRun.Player.RacerId,team.TeamId,1,3,RaceParticipantStatus.Finished),new RaceResultEntry(session.SelectedPartnerRacerId,team.TeamId,2,3,RaceParticipantStatus.Finished)},director.InstanceId,director.State.RaceDefinition.ResearchPointBonus);
         void Finish(RaceDirector director) => resolver.Resolve(ResultFor(director),team,session.CareerRun.Player);
+        WeeklyChecks.Run(team, db);
+        var weeklyStart = service.NextOccurrenceDay(team,"champ").Value;
+        var weeklyRace = Prepare("champ");
+        var weeklyEntry = Ok(service.Register(session,"champ",weeklyRace,weeklyStart));
+        Check(team.Calendar.AbsoluteDay == weeklyStart && team.Calendar.Active.roundSpacingDays == 1, "Weekly registration jumps to generated date and uses consecutive rounds");
+        var weeklyReload = Ok(mapper.Restore(UnityEngine.JsonUtility.FromJson<CampaignSaveData>(UnityEngine.JsonUtility.ToJson(Ok(mapper.Capture(session))))));
+        Check(weeklyReload.PlayerTeam.Calendar.Active.scheduledDay == weeklyStart && weeklyReload.PlayerTeam.Calendar.Export().scheduleVersion == 2, "Weekly active entry survives JSON save/load");
+        var weeklySettlement = CareerCalendarService.PreviewSettlement(team, ResultFor(weeklyRace));
+        Check(weeklySettlement.Calendar.active.scheduledDay == weeklyStart+1 && weeklySettlement.Calendar.week == team.Calendar.Week && weeklySettlement.Calendar.dayOfWeek == team.Calendar.DayOfWeek, "Weekly settlement schedules tomorrow without advancing today");
+        weeklyEntry.Rollback();
+        Check(team.Calendar.AbsoluteDay == 1 && team.Calendar.Active == null, "Weekly launch rollback restores date");
+        // Retain coverage of the version-1 save format and its recurring dates.
+        var legacySchedule = team.Calendar.Export(); legacySchedule.scheduleVersion = 1;
+        foreach (var item in legacySchedule.schedules) { item.roundSpacingDays = db.GetCareerEventDefinition(item.eventId).RoundSpacingDays; item.repeatEveryWeeks = db.GetCareerEventDefinition(item.eventId).RepeatEveryWeeks; }
+        Check(team.RestoreCalendar(legacySchedule).IsSuccess, "Legacy fixture restores");
         Check(team.Calendar.AbsoluteDay==1 && team.Calendar.Schedules.Count==6,"New game captures entire event bank including locked events");
         var dates=service.GetOccurrences(team,1,85);
         Check(dates.Where(e=>e.EventId=="day4").Select(e=>e.Day).SequenceEqual(new[]{4,32,60}),"Four-week repeat dates");

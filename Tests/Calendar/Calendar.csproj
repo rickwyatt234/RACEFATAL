@@ -2,6 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="WeeklyChecks.cs" />
     <Compile Include="SerializationShim.cs" />
     <ProjectReference Include="../CampaignCreation/Domain/Domain.csproj" />
     <Compile Include="../../Assets/Game/Scripts/Infrastructure/Saving/*.cs" Exclude="../../Assets/Game/Scripts/Infrastructure/Saving/JsonCampaignSaveRepository.cs" />

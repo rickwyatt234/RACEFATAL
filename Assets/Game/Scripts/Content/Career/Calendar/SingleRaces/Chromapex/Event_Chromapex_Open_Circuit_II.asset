@@ -17,14 +17,15 @@ MonoBehaviour:
   description: Development event. Tune the entry fee, Fame threshold and position
     payouts in this asset.
   kind: 0
-  requiredFame: 250
+  requiredFame: 0
   entryFee: 0
   rounds:
   - {fileID: 11400000, guid: 5cb2a0a589e44daca350f0a8f4c17c96, type: 2}
   racePayouts: b80b0000dc050000ee020000770100000000000000000000000000000000000000000000000000000000000000000000
   championshipPrizes: 
   positionPoints: 
-  firstWeek: 3
-  firstDayOfWeek: 3
+  firstWeek: 1
+  firstDayOfWeek: 6
   repeatEveryWeeks: 5
   roundSpacingDays: 7
+  starterOrder: 3

@@ -39,6 +39,13 @@ public static class CareerCalendarValidation
         AddBikes(opponent, db);
         var session = new GameSessionState(team, new CareerRun("career", team, player), WorldState.Restore(new[] { opponent }).Value, "partner", team.Garage.Bikes[0].BikeId, team.Garage.Bikes[1].BikeId);
         Require(service.Refresh(team), "Fixed schedule captured");
+        // This suite also exercises historical recurring saves. Weekly allocation has
+        // separate coverage in Tests/Calendar/WeeklyChecks.cs.
+        var legacySchedule = team.Calendar.Export();
+        legacySchedule.scheduleVersion = 1;
+        foreach (var item in legacySchedule.schedules) item.roundSpacingDays = db.GetCareerEventDefinition(item.eventId).RoundSpacingDays;
+        Require(team.RestoreCalendar(legacySchedule).IsSuccess, "Legacy schedule fixture");
+        service.Refresh(team);
         string draw = string.Join(",", team.Calendar.DrawIds);
         Require(team.Calendar.DrawIds.Count == 3 && !team.Calendar.DrawIds.Contains("locked") && !team.Calendar.DrawIds.Contains("future"), "Only unlocked valid events appear; deathmatch without survival rules is rejected");
         Require(!service.Refresh(team) && string.Join(",", team.Calendar.DrawIds) == draw, "Refresh never rerolls");

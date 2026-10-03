@@ -21,8 +21,10 @@ namespace RaceFatal.Career
                 return Result.Failure("EVENT FORMAT IS NOT AVAILABLE.");
             if (definition.RequiredFame < 0 || definition.EntryFee < 0 || definition.RaceIds.Count == 0 || (definition.Kind != CareerEventKind.Championship && definition.RaceIds.Count != 1) || (definition.Kind == CareerEventKind.Championship && definition.RaceIds.Count < 2) || definition.RacePayouts.Concat(definition.ChampionshipPrizes).Concat(definition.PositionPoints).Any(p => p < 0))
                 return Result.Failure("INVALID EVENT RULES.");
-            if (definition.FirstWeek < 1 || definition.FirstWeek > CareerCalendarState.MaxDay / 7 || definition.FirstDayOfWeek < 1 || definition.FirstDayOfWeek > 7 || definition.RepeatEveryWeeks < 4 || definition.RepeatEveryWeeks > 6 || definition.RoundSpacingDays < 1 || (long)(definition.RaceIds.Count - 1) * definition.RoundSpacingDays >= definition.RepeatEveryWeeks * 7)
-                return Result.Failure("INVALID EVENT DATES: rounds must finish before the next occurrence.");
+            if (definition.FirstWeek < 1 || definition.FirstWeek > CareerCalendarState.MaxDay / 7 || definition.FirstDayOfWeek < 1 || definition.FirstDayOfWeek > 7 || definition.RaceIds.Count > 5)
+                return Result.Failure("INVALID EVENT DATES: use a valid week/day and at most five consecutive rounds.");
+            if (definition.StarterOrder < 0 || definition.StarterOrder > 3 || (definition.StarterOrder > 0 && (definition.Kind != CareerEventKind.Race || definition.RequiredFame != 0)))
+                return Result.Failure("STARTER EVENTS MUST BE SINGLE RACES WITH NO FAME REQUIREMENT AND ORDER 1–3.");
             RaceDefinition first = null;
             foreach (string id in definition.RaceIds)
             {
@@ -52,10 +54,11 @@ namespace RaceFatal.Career
 
             if (data.scheduleVersion == 0)
             {
+                bool legacyProgress = data.active != null || data.week > 1;
                 data.schedules = database.CareerEventDefinitions.Values.Where(d => Validate(d).IsSuccess)
                     .OrderBy(d => d.Id, StringComparer.Ordinal)
-                    .Select(d => new CareerEventScheduleData { eventId = d.Id, firstDay = d.FirstAbsoluteDay, repeatEveryWeeks = d.RepeatEveryWeeks, roundSpacingDays = d.RoundSpacingDays, roundCount = d.RaceIds.Count }).ToList();
-                data.scheduleVersion = 1;
+                    .Select(d => new CareerEventScheduleData { eventId = d.Id, firstDay = d.FirstAbsoluteDay, repeatEveryWeeks = legacyProgress ? d.RepeatEveryWeeks : 5, roundSpacingDays = legacyProgress ? d.RoundSpacingDays : 1, roundCount = d.RaceIds.Count, starterOrder = d.StarterOrder }).ToList();
+                data.scheduleVersion = legacyProgress ? 1 : 2;
                 if (data.active != null)
                 {
                     string key = CareerCalendarState.OccurrenceKey(data.active.eventId, data.active.occurrenceDay);
@@ -76,6 +79,17 @@ namespace RaceFatal.Career
             if (team == null || string.IsNullOrWhiteSpace(eventId)) return null;
             var active = team.Calendar.Data.active;
             if (active?.eventId == eventId && (!fromDay.HasValue || active.scheduledDay >= fromDay.Value)) return active.scheduledDay;
+            if (team.Calendar.Data.scheduleVersion == 2)
+            {
+                int start = Math.Max(team.Calendar.AbsoluteDay, fromDay ?? team.Calendar.AbsoluteDay);
+                var pooledEvent = team.Calendar.Data.schedules.FirstOrDefault(e => e.eventId == eventId);
+                if (pooledEvent == null) return null;
+                int firstWeek = Math.Max((start - 1) / 7 + 1, pooledEvent.starterOrder > 0 ? 1 : (pooledEvent.firstDay - 1) / 7 + 1);
+                for (int week = firstWeek; week < firstWeek + 104 && week <= CareerCalendarState.MaxDay / 7; week++)
+                    foreach (var item in WeeklyCareerSchedule.Generate(team.Calendar.Data, week))
+                        if (item.EventId == eventId && item.RoundIndex == 0 && item.Day >= start && !team.Calendar.IsConsumed(eventId, item.Day)) return item.Day;
+                return null;
+            }
             var schedule = team.Calendar.Data.schedules.FirstOrDefault(e => e.eventId == eventId);
             if (schedule == null) return null;
             long from = Math.Max(team.Calendar.AbsoluteDay, fromDay ?? team.Calendar.AbsoluteDay);
@@ -90,7 +104,12 @@ namespace RaceFatal.Career
             var items = new List<CareerEventOccurrence>();
             if (team == null || fromDay < 1 || throughDay < fromDay || (long)throughDay - fromDay > 366)
                 return items;
-            foreach (var schedule in team.Calendar.Data.schedules)
+            if (team.Calendar.Data.scheduleVersion == 2)
+            {
+                for (int week = (fromDay - 1) / 7 + 1; week <= (throughDay - 1) / 7 + 1; week++)
+                    items.AddRange(WeeklyCareerSchedule.Generate(team.Calendar.Data, week).Where(e => e.Day >= fromDay && e.Day <= throughDay));
+            }
+            else foreach (var schedule in team.Calendar.Data.schedules)
             {
                 long period = schedule.repeatEveryWeeks * 7;
                 long earliestStart = (long)fromDay - (long)(schedule.roundCount - 1) * schedule.roundSpacingDays;
@@ -134,7 +153,7 @@ namespace RaceFatal.Career
             var schedule = team.Calendar.Data.schedules.FirstOrDefault(e => e.eventId == eventId);
             var next = NextOccurrenceDay(team, eventId);
             int day = occurrenceDay == 0 ? next ?? 0 : occurrenceDay;
-            if (schedule == null || day < team.Calendar.AbsoluteDay || day < schedule.firstDay || day > CareerCalendarState.MaxDay || (day - schedule.firstDay) % (schedule.repeatEveryWeeks * 7) != 0)
+            if (schedule == null || day < team.Calendar.AbsoluteDay || (team.Calendar.Data.scheduleVersion != 2 && day < schedule.firstDay) || day > CareerCalendarState.MaxDay || (team.Calendar.Data.scheduleVersion == 2 ? !WeeklyCareerSchedule.Generate(team.Calendar.Data, (day - 1) / 7 + 1).Any(e => e.EventId == eventId && e.Day == day && e.RoundIndex == 0) : (day - schedule.firstDay) % (schedule.repeatEveryWeeks * 7) != 0))
                 return Result.Failure("EVENT IS NOT SCHEDULED ON THAT DATE, OR ITS DATE HAS PASSED.");
             if (definition.RaceIds.Count != schedule.roundCount)
                 return Result.Failure("THE EVENT ROUND COUNT HAS CHANGED SINCE THIS CAMPAIGN WAS CREATED.");

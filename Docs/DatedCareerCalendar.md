@@ -1,40 +1,39 @@
-# Dated recurring events and post-race pages
+# Weekly career calendar
 
-The campaign calendar is fixed from the event bank at campaign creation. It stores each event's first date, repeat interval, championship round spacing, and round count. Calendar pages expand these saved recurrence rules; there is no random weekly draw and no reshuffling when browsing or loading. Locked events are included and remain visible with their fame requirements.
+New campaigns capture the event pool and a random seed. Week 1 always contains Chromapex Open Circuit on day 2, Chromapex Closed Circuit on day 4, and Chromapex Open Circuit II on day 6. All three have zero Fame requirements. From week 2, each week selects three distinct events from the pool, respecting each event's earliest week. The same event may appear again in later weeks; there is no fixed repeat interval.
 
-## Time and entry
+Every week is determined at campaign creation by the saved seed and captured pool. Weeks are calculated on demand without changing random state, so browsing order, reloads and later authoring edits cannot reroll the schedule. Existing Fame gates still apply to non-starter events and locked events remain visible on the calendar.
 
-- Entering a race on Week 1 / Day 4 moves a brand-new campaign from Day 1 to Day 4 when the entry is saved. Completing the race leaves today on Day 4.
-- A later event on Day 6 is still enterable in the same week. A different event on the same day is also allowed. Earlier dates are unavailable.
-- An occurrence is consumed on registration. It cannot be entered again after completion or withdrawal, but the same named event's later repeats remain available.
-- Failed registration-save rollback restores the previous date, fee, active entry, and consumed-occurrence list. Resuming a pending race retains its attempt ID and does not charge again. Existing result receipts still prevent duplicate rewards.
-- Championships have ordered, dated rounds. Entering each round advances to its date; completing it does not advance time. An active championship must be completed or withdrawn before entering another event.
-- Withdrawal and retirement no longer add a week. The optional Next Event Date action skips to the next unlocked start date after today and awards no research.
+## Dates and conflicts
+
+Each race takes one day. A three-round championship reserves three consecutive days and counts as one of the three weekly events. All events and rounds have exclusive day slots. Events try their preferred start day, then the nearest free block; equal distances prefer later. A block may not cross the end of the week, so it moves earlier when necessary. Selection and placement backtrack when needed to fit three events rather than leaving an avoidable gap.
+
+Entering an event advances today to that event's date. Completing it leaves today on that date, allowing another later event in the same week. Past and consumed occurrences cannot be entered. A paid championship must be completed or withdrawn from before another event can be entered. Failed launch/save rollback restores date, fee and registration; interrupted races retain their attempt IDs. Withdrawal does not advance time.
 
 ## Authoring
 
-Select an event asset and set First Week, First Day Of Week (1–7), Repeat Every Weeks (4–6), and Round Spacing Days. A repeat interval is fixed per event: a Week 1 / Day 4 event repeating every five weeks returns on Week 6 / Day 4, Week 11 / Day 4, etc. Championship rounds must finish before the next repeat.
+The reorganized assets remain under `Assets/Game/Scripts/Content/Career/Calendar`, grouped by type and venue. On each Calendar Event asset:
 
-The event's Rounds references determine its actual race(s), including track venue, laps, grid, engine class, deathmatch rules, and research bonus. Its payout/prize tables remain event-specific. `Other` is an additional calendar category for an authored single standard race; it does not introduce new gameplay rules.
+- **Starter Order**: 1, 2 and 3 identify the fixed opening races; 0 means random pool only. Starters must be ordinary single races with no Fame requirement. Use exactly three unique starter orders.
+- **First Week**: earliest eligible week for random selection.
+- **First Day Of Week**: preferred start day, 1–7.
+- **Rounds**: the event's own race/venue references. Championships support 2–5 consecutive rounds, leaving space for two other weekly events.
+- Fees, rewards, engine class and Fame requirements still belong to each event/race asset.
 
-The six development events now reference independent race assets, all retaining the original prototype venue/settings until authored otherwise. Their starting days are 4, 6, 10, 12, 17, and 20, with intervals of 4, 5, 6, 4, 5, and 6 weeks respectively. Deathmatch events already have dedicated race assets and retain their default start dates unless edited. The development builder also creates independent round assets for future generated events.
+Keep at least three eligible events whose combined round counts fit seven days. Small/incomplete development catalogs show as many fitting events as possible; catalogs without explicit starters fall back to three single races sorted by ID. The shipping catalog has three explicit starters and enough events for three every week. The renamed Chromapex solo deathmatch currently uses team size 1 (career requires 2), and its team deathmatch race has no enabled deathmatch rules. Existing validation excludes these two assets until those content/format issues are resolved.
 
-Timing edits or newly added events apply to new campaigns. Saved campaigns keep their captured event bank and dates. Race/reward content is still resolved from the event definition when entering; active entries retain their saved round IDs, rules, and payout tables. Changing an event's round count is rejected for an existing campaign; use a new campaign after structural schedule changes. Keep referenced event/race assets available for old saves.
+Legacy repeat/spacing fields remain serialized but are hidden in the Inspector and do not control new campaigns.
 
-## Save compatibility
+The pool and timing are captured when creating the campaign. Start a new campaign to pick up pool changes. Entry still snapshots rules and rewards; referenced event and race assets must remain available for existing saves.
 
-Week-only saves retain their week and migrate to Day 1. Existing active entries retain paid fees, standings, pending attempts and race IDs; remaining legacy championship rounds use seven-day spacing. The first refresh captures the event bank for migrated saves. No save deletion or scene rebuild is required.
+## Save compatibility and UI
 
-## UI
+Existing version-1 recurring calendars retain their dates, including paid championship rounds. Older week-only saves with progress retain legacy spacing. New campaigns use calendar version 2. No scene rebuild is required.
 
-Home displays day-specific event symbols (R race, C championship, ! deathmatch, O other), today's exact day, locked/past/entered states, and paged event lists for busy dates. Selecting an event opens its race details and exact occurrence date, including future championship rounds. Entry confirmation states the destination date and warns that earlier events will be missed.
+Home shows a symbol on each occupied date, including every championship round. Selecting a symbol opens details for that exact date and venue. Post-race pages remain separate: standings, final classification, payout, then career.
 
-The post-race UI now uses separate pages: live standings → final classification → payout → return to career. Payout callbacks cache rewards until the payout page is selected; late callbacks cannot reopen standings on top of it.
+## Verification
 
-## Validation
+`Tests/Calendar/Calendar.csproj` checks fixed starters, seed variation, weekly counts, collision direction, week boundaries, consecutive rounds, calendar/entry agreement and saved-pool stability over many seeds and weeks. It also retains version-1 entry, rollback, rewards, migration and championship regression coverage, plus the editor calendar/deathmatch/succession suites. `Tests/CampaignCreation` verifies campaign preparation and save boundaries; `Tests/OutcomePages` verifies exclusive result/payout transitions.
 
-- `dotnet run --project Tests/Calendar/Calendar.csproj`: dated entry, same-week events, fixed repeats, venue/reward identity, bank persistence, migration, rollback, championship dates, and existing calendar/deathmatch/succession validations. Domain is a separate assembly; a fields-only System.Text.Json shim runs the editor validations headlessly.
-- `dotnet run --project Tests/CampaignCreation/CampaignCreation.csproj`: campaign preparation and save regressions.
-- `dotnet run --project Tests/OutcomePages/OutcomePages.csproj`: production outcome-controller transitions with presentation doubles, including early/late callbacks.
-
-Unity editor compilation and visual play-mode checks remain necessary, particularly calendar layout, event selection, and final-results/payout navigation. The headless JSON shim and presentation doubles do not replace Unity runtime verification.
+Unity compilation and visual play-mode checks are still required. Headless tests use a System.Text.Json substitute for Unity serialization.

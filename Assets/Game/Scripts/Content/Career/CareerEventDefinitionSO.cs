@@ -23,14 +23,18 @@ namespace RaceFatal.Content.Career
             new List<int> {  20000,  10000,  5000 };
         [Tooltip("Points by finishing place, summed for both racers on each team. DNF earns zero.")] [SerializeField] private List<int> positionPoints =
             new List<int> {  25,  18,  15,  12,  10,  8,  6,  5,  4,  3,  2,  1 };
-        [Header("Calendar Schedule")]
+        [Header("Weekly Event Pool")]
+        [Tooltip("1, 2, 3 designate the fixed opening races. Zero means the random pool only.")]
+        [Range(0, 3)] [SerializeField] private int starterOrder;
+        [Tooltip("Earliest week this event can join the random pool.")]
         [Min(1)] [SerializeField] private int firstWeek = 1;
+        [Tooltip("Preferred start day. Conflicts shift to the nearest free block within the week, preferring later on ties.")]
         [Range(1, 7)] [SerializeField] private int firstDayOfWeek = 1;
-        [Range(4, 6)] [SerializeField] private int repeatEveryWeeks = 5;
-        [Tooltip("Days between championship rounds. Each round advances to its own date when entered.")]
-        [Min(1)] [SerializeField] private int roundSpacingDays = 7;
+        [HideInInspector] [SerializeField] private int repeatEveryWeeks = 5;
+        // Legacy serialized timing is retained for compatibility; weekly rounds are consecutive.
+        [HideInInspector] [SerializeField] private int roundSpacingDays = 1;
         public string Id => id;
 
-        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints, firstWeek, firstDayOfWeek, repeatEveryWeeks, roundSpacingDays);
+        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints, firstWeek, firstDayOfWeek, repeatEveryWeeks, roundSpacingDays, starterOrder);
     }
 }

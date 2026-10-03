@@ -203,7 +203,7 @@ namespace RaceFatal.Presentation.Career
             var text = new StringBuilder();
             text.AppendLine(selectedOccurrenceDay > 0 ? CareerCalendarState.FormatDay(selectedOccurrenceDay) : "NOT SCHEDULED");
             var schedule = Team.Calendar.Schedules.FirstOrDefault(e => e.eventId == id);
-            if (schedule != null) text.AppendLine($"REPEATS EVERY {schedule.repeatEveryWeeks} WEEKS");
+            if (schedule != null) text.AppendLine(Team.Calendar.Export().scheduleVersion == 2 ? "WEEKLY EVENT POOL • 3 EVENTS PER WEEK" : $"REPEATS EVERY {schedule.repeatEveryWeeks} WEEKS");
             text.AppendLine(entry?.description ?? definition.Description);
             text.AppendLine($"\nFORMAT  {kind.ToString().ToUpperInvariant()}\nENTRY FEE  {entry?.entryFee ?? definition.EntryFee:N0} CREDITS{(entry != null ? " (PAID)" : "")}");
             if (race != null)

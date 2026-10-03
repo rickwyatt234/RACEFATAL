@@ -24,7 +24,8 @@ MonoBehaviour:
   racePayouts: c4090000e8030000f4010000fa0000000000000000000000000000000000000000000000000000000000000000000000
   championshipPrizes: 
   positionPoints: 
-  firstWeek: 2
-  firstDayOfWeek: 2
+  firstWeek: 1
+  firstDayOfWeek: 4
   repeatEveryWeeks: 4
   roundSpacingDays: 1
+  starterOrder: 2

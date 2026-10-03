@@ -27,3 +27,4 @@ MonoBehaviour:
   firstDayOfWeek: 2
   repeatEveryWeeks: 4
   roundSpacingDays: 1
+  starterOrder: 1

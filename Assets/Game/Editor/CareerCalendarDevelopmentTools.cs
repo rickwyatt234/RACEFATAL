@@ -21,9 +21,9 @@ public static class CareerCalendarDevelopmentTools
             return;
         }
 
-        const string folder = "Assets/Game/CalendarDevelopment";
+        const string folder = "Assets/Game/Scripts/Content/Career/Calendar/Development";
         if (!AssetDatabase.IsValidFolder(folder))
-            AssetDatabase.CreateFolder("Assets/Game", "CalendarDevelopment");
+            AssetDatabase.CreateFolder("Assets/Game/Scripts/Content/Career/Calendar", "Development");
         var serialized = new SerializedObject(catalog);
         var list = serialized.FindProperty("careerEventDefinitions");
         for (int i = 0; i < 6; i++)
@@ -41,7 +41,9 @@ public static class CareerCalendarDevelopmentTools
                 data.FindProperty("kind").intValue = (int)(championship ? CareerEventKind.Championship : CareerEventKind.Race);
                 data.FindProperty("requiredFame").intValue = i == 4 ? 250 : 0;
                 data.FindProperty("entryFee").intValue = i == 0 ? 0 : championship ? 2000 : 500;
-                int[] days = { 4, 6, 10, 12, 17, 20 };
+                int[] days = { 2, 4, 6, 11, 17, 13 };
+                data.FindProperty("starterOrder").intValue = i < 3 ? i + 1 : 0;
+                data.FindProperty("roundSpacingDays").intValue = 1;
                 data.FindProperty("firstWeek").intValue = (days[i] - 1) / 7 + 1;
                 data.FindProperty("firstDayOfWeek").intValue = (days[i] - 1) % 7 + 1;
                 data.FindProperty("repeatEveryWeeks").intValue = 4 + i % 3;
