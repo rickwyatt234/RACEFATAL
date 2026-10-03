@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: Event_Chromapex_Closed_Circuit
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: event_chromapex_closed_circuit
+  displayName: Event_Chromapex_Closed_Circuit
+  description: Entry Fee required // Chromapex Circuit // 3 Lap Race // Engine Class
+    1
+  kind: 0
+  requiredFame: 0
+  entryFee: 500
+  rounds:
+  - {fileID: 11400000, guid: 73f06ba519ed49a68195fd2f942f85fc, type: 2}
+  racePayouts: c4090000e8030000f4010000fa0000000000000000000000000000000000000000000000000000000000000000000000
+  championshipPrizes: 
+  positionPoints: 
+  firstWeek: 2
+  firstDayOfWeek: 2
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1

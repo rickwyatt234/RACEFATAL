@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
-  m_Name: Event_Chromapex_Open_Deathmatch
+  m_Name: Event_Chromapex_Open_Team_Deathmatch
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
-  id: event_chromapex_open_deathmatch
-  displayName: Event_Chromapex_Open_Deathmatch
-  description: Chromapex Circuit // Single Deathmatch // Engine Class 1 // 3 Winners
+  id: event_chromapex_open_team_deathmatch
+  displayName: Event_Chromapex_Open_Team_Deathmatch
+  description: Chromapex Circuit // Team Deathmatch // Engine Class 1 // 2 Winning
+    Teams
   kind: 2
   requiredFame: 0
-  entryFee: 0
+  entryFee: 500
   rounds:
-  - {fileID: 11400000, guid: 89301c9de90a40f3a1d28d2b1e786962, type: 2}
-  racePayouts: c4090000e8030000f4010000000000000000000000000000000000000000000000000000000000000000000000000000
+  - {fileID: 11400000, guid: 6670a6cc7eb044648217597b2f6f2a68, type: 2}
+  racePayouts: a00f0000d0070000
   championshipPrizes: 
   positionPoints: 
-  firstWeek: 2
-  firstDayOfWeek: 1
-  repeatEveryWeeks: 6
-  roundSpacingDays: 7
+  firstWeek: 1
+  firstDayOfWeek: 4
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1

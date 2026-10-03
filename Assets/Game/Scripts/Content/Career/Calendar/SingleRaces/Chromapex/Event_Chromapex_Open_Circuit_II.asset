@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
-  m_Name: Event_Chromapex_Closed_Circuit
+  m_Name: Event_Chromapex_Open_Circuit_II
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
-  id: event_chromapex_closed_circuit
-  displayName: Event_Chromapex_Closed_Circuit
-  description: Entry Fee required // Chromapex Circuit // 3 Lap Race // Engine Class
-    1
+  id: event_chromapex_open_circuit_ii
+  displayName: Event_Chromapex_Open_Circuit_II
+  description: Development event. Tune the entry fee, Fame threshold and position
+    payouts in this asset.
   kind: 0
-  requiredFame: 0
-  entryFee: 500
+  requiredFame: 250
+  entryFee: 0
   rounds:
-  - {fileID: 11400000, guid: 73f06ba519ed49a68195fd2f942f85fc, type: 2}
-  racePayouts: c4090000e8030000f4010000fa0000000000000000000000000000000000000000000000000000000000000000000000
+  - {fileID: 11400000, guid: 5cb2a0a589e44daca350f0a8f4c17c96, type: 2}
+  racePayouts: b80b0000dc050000ee020000770100000000000000000000000000000000000000000000000000000000000000000000
   championshipPrizes: 
   positionPoints: 
-  firstWeek: 1
-  firstDayOfWeek: 5
-  repeatEveryWeeks: 4
+  firstWeek: 3
+  firstDayOfWeek: 3
+  repeatEveryWeeks: 5
   roundSpacingDays: 7
