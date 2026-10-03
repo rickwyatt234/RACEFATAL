@@ -14,6 +14,12 @@ namespace RaceFatal.Presentation.Vehicles
         [Tooltip("Audio listener belonging to the cockpit camera.")] [SerializeField] private AudioListener audioListener;
         [Tooltip("Optional player-only reticle canvas.")] [SerializeField] private Canvas reticleCanvas;
         [Tooltip("Player-only diegetic windshield HUD.")] [SerializeField] private Canvas windshieldHudCanvas;
+        [Header("HUD Stabilization")]
+        [Tooltip("Offscreen HUD camera/canvas rig. Its world pose is held at the origin to prevent bike movement and distant coordinates from jittering the UI texture.")]
+        [SerializeField] private Transform windshieldHudRenderRig;
+        [Tooltip("Projection anchor positioned relative to Camera Anchor. Follows the final cockpit camera pose, including camera kick.")]
+        [SerializeField] private Transform hudProjectionAnchor;
+        [SerializeField] private bool stabilizeHudProjection = true;
         [Header("View")] [Min(1f)] [SerializeField] private float normalFieldOfView = 75f;
         [Min(1f)] [SerializeField] private float boostedFieldOfView = 82f;
         [Min(0f)] [SerializeField] private float fieldOfViewResponse = 8f;
@@ -54,6 +60,8 @@ namespace RaceFatal.Presentation.Vehicles
         private Vector3 collisionPositionVelocity;
         private Vector3 collisionRotationOffset;
         private Vector3 collisionRotationVelocity;
+        private Vector3 hudProjectionPosition;
+        private Quaternion hudProjectionRotation;
         public Canvas ReticleCanvas => reticleCanvas;
         public Camera CockpitCamera => cockpitCamera;
         public bool IsActivePlayerView => activePlayerView;
@@ -76,6 +84,12 @@ namespace RaceFatal.Presentation.Vehicles
                 cameraRigRoot = cockpitCamera.transform;
             }
 
+            if (hudProjectionAnchor != null && cameraAnchor != null)
+            {
+                hudProjectionPosition = cameraAnchor.InverseTransformPoint(hudProjectionAnchor.position);
+                hudProjectionRotation = Quaternion.Inverse(cameraAnchor.rotation) * hudProjectionAnchor.rotation;
+            }
+            StabilizeHudSource();
             SetViewActive(false);
         }
 
@@ -107,6 +121,22 @@ namespace RaceFatal.Presentation.Vehicles
 
             UpdateCollisionKick(Time.deltaTime);
             ApplyCameraPose();
+            StabilizeHudSource();
+            if (stabilizeHudProjection && hudProjectionAnchor != null)
+            {
+                hudProjectionAnchor.SetPositionAndRotation(
+                    cockpitCamera.transform.TransformPoint(hudProjectionPosition),
+                    cockpitCamera.transform.rotation * hudProjectionRotation);
+            }
+        }
+
+        private void StabilizeHudSource()
+        {
+            // Retain the bike hierarchy for visibility/lifetime ownership, but
+            // render its UI in stationary, small coordinates rather than on a
+            // moving bike or a camera parked 100,000 units from the origin.
+            if (windshieldHudRenderRig != null)
+                windshieldHudRenderRig.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         }
 
         private void OnDestroy()
