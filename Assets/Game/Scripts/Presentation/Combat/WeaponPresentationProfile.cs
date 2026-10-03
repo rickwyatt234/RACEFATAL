@@ -2,10 +2,23 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
+    public enum WeaponReticlePlacement { BikeForward, FixedViewport }
+
     [CreateAssetMenu(fileName = "WeaponPresentation_", menuName = "RACE FATAL/Presentation/Weapon Presentation")]
     public class WeaponPresentationProfile : ScriptableObject
     {
         [Header("Identity")] [Tooltip("Must exactly match the corresponding WeaponDefinition ID.")] [SerializeField] private string weaponDefinitionId;
+        [Header("Gun Reticle")]
+        [Tooltip("Optional UI sprite for forward guns. Empty uses a built-in crosshair. Locking weapons keep their targeting HUD.")]
+        [SerializeField] private Sprite reticleSprite;
+        [SerializeField] private Vector2 reticleSize = new Vector2(36f, 36f);
+        [SerializeField] private Color reticleColor = new Color(0.4f, 1f, 1f, 0.9f);
+        [Tooltip("Bike Forward keeps camera framing independent of gun aim. Fixed Viewport aims at an absolute screen position.")]
+        [SerializeField] private WeaponReticlePlacement reticlePlacement;
+        [Tooltip("Normalized screen position for Fixed Viewport: (0.5, 0.5) is the center.")]
+        [SerializeField] private Vector2 reticleViewportPosition = new Vector2(0.5f, 0.5f);
+        [Tooltip("Normalized screen offset applied to either placement mode. Positive Y moves the reticle and aim upward.")]
+        [SerializeField] private Vector2 reticleViewportOffset;
         [Header("Projectile")] [Tooltip("Projectile prefab used by this weapon. May be empty for hitscan or area weapons.")] [SerializeField] private
             ProjectileView projectilePrefab;
         [Header("Muzzle")] [Tooltip("VFX prefab spawned at the physical weapon origin whenever this weapon fires.")] [SerializeField] private
@@ -41,6 +54,12 @@ namespace RaceFatal.Presentation.Combat
         [Min(0.1f)] [SerializeField] private float fireMaxDistance = 120f;
         [SerializeField] private AudioRolloffMode fireRolloffMode = AudioRolloffMode.Logarithmic;
         [Range(0f, 1f)] [SerializeField] private float fireDopplerLevel = 0.1f;
+        public Sprite ReticleSprite => reticleSprite;
+        public Vector2 ReticleSize => reticleSize;
+        public Color ReticleColor => reticleColor;
+        public WeaponReticlePlacement ReticlePlacement => reticlePlacement;
+        public Vector2 ReticleViewportPosition => reticleViewportPosition;
+        public Vector2 ReticleViewportOffset => reticleViewportOffset;
         public string WeaponDefinitionId => weaponDefinitionId;
         public ProjectileView ProjectilePrefab => projectilePrefab;
         public GameObject MuzzlePrefab => muzzlePrefab;
@@ -72,6 +91,8 @@ namespace RaceFatal.Presentation.Combat
 
         private void OnValidate()
         {
+            reticleSize = new Vector2(Mathf.Max(1f, reticleSize.x), Mathf.Max(1f, reticleSize.y));
+            reticleViewportPosition = new Vector2(Mathf.Clamp01(reticleViewportPosition.x), Mathf.Clamp01(reticleViewportPosition.y));
             maximumFirePitch = Mathf.Max(minimumFirePitch, maximumFirePitch);
             maximumChargePitch = Mathf.Max(minimumChargePitch, maximumChargePitch);
             maximumChargeVolume = Mathf.Max(minimumChargeVolume, maximumChargeVolume);

@@ -149,7 +149,7 @@ namespace RaceFatal.Presentation.Combat
             debugGuidedTarget = "None";
             debugGuidedTargetDistance = 0f;
             debugGuidedTargetAngle = 0f;
-            Vector3 fireDirection = ResolveFireDirection(racer, origin, fireEvent);
+            Vector3 fireDirection = ResolveFireDirection(racer, origin, fireEvent, profile);
             debugLastFireDirection = fireDirection;
             debugLastShotHit = false;
             debugLastVictim = "None";
@@ -225,7 +225,7 @@ namespace RaceFatal.Presentation.Combat
 
 #endregion
 #region Aim
-        private Vector3 ResolveFireDirection(RacerViewController racer, Transform origin, WeaponFireEvent fireEvent)
+        private Vector3 ResolveFireDirection(RacerViewController racer, Transform origin, WeaponFireEvent fireEvent, WeaponPresentationProfile profile)
         {
             debugUsedPlayerAim = false;
             if (origin == null)
@@ -251,10 +251,18 @@ namespace RaceFatal.Presentation.Combat
             }
 
             PlayerWeaponAim playerAim = racer.GetComponentInChildren<PlayerWeaponAim>(true);
-            if (playerAim != null && playerAim.TryGetAimDirection(origin, fireEvent.Range, hitMask, out Vector3 aimDirection))
+            if (playerAim != null)
             {
-                debugUsedPlayerAim = true;
-                return aimDirection;
+                bool usesReticle = PlayerWeaponAim.UsesGunReticle(fireEvent.AimMode, fireEvent.DeliveryMode);
+                Vector3 aimDirection;
+                bool aimed = usesReticle
+                    ? playerAim.TryGetReticleAimDirection(origin, fireEvent.Range, hitMask, profile, out aimDirection)
+                    : playerAim.TryGetAimDirection(origin, fireEvent.Range, hitMask, out aimDirection);
+                if (aimed)
+                {
+                    debugUsedPlayerAim = true;
+                    return aimDirection;
+                }
             }
 
             return origin.forward;

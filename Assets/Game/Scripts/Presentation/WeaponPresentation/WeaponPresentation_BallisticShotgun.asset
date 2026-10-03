@@ -44,3 +44,9 @@ MonoBehaviour:
   fireMaxDistance: 180
   fireRolloffMode: 0
   fireDopplerLevel: 0.1
+  reticleSprite: {fileID: 0}
+  reticleSize: {x: 56, y: 56}
+  reticleColor: {r: 0.4, g: 1, b: 1, a: 0.9}
+  reticlePlacement: 0
+  reticleViewportPosition: {x: 0.5, y: 0.5}
+  reticleViewportOffset: {x: 0, y: 0}

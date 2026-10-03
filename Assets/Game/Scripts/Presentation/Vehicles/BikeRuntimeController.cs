@@ -79,6 +79,8 @@ namespace RaceFatal.Presentation.Vehicles
             if (!ValidateDriverHierarchy())
                 return false;
             racerView.Initialize(raceParticipant);
+            var playerAim = GetComponentInChildren<PlayerWeaponAim>(true);
+            if (playerAim != null) playerAim.Initialize(weaponPresenter);
             if (weaponChargePresentation != null)
             {
                 weaponChargePresentation.Initialize(weaponPresenter);

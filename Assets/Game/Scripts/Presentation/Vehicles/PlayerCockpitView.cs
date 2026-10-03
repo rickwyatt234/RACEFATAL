@@ -54,6 +54,7 @@ namespace RaceFatal.Presentation.Vehicles
         private Vector3 collisionPositionVelocity;
         private Vector3 collisionRotationOffset;
         private Vector3 collisionRotationVelocity;
+        public Canvas ReticleCanvas => reticleCanvas;
         public Camera CockpitCamera => cockpitCamera;
         public bool IsActivePlayerView => activePlayerView;
         public bool IsDeathViewActive => deathViewActive;

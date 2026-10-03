@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CampaignCreation/Domain/Domain.csproj" />
+    <Compile Include="Program.cs" /><Compile Include="PresentationDoubles.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Presentation/Combat/PlayerWeaponAim.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Presentation/Combat/WeaponPresentationProfile.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Presentation/Vehicles/BikeLeanController.cs" />
+  </ItemGroup>
+</Project>
