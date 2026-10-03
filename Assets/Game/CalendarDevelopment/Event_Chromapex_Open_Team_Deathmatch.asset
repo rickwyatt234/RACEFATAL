@@ -10,17 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
-  m_Name: DEV_DM_INDIVIDUAL
+  m_Name: Event_Chromapex_Open_Team_Deathmatch
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
-  id: DEV_DM_INDIVIDUAL
-  displayName: Last Racer Standing
-  description: Survive while circulating. Falling below the speed limit causes disqualification,
-    not permanent death.
-  kind: 2
+  id: event_chromapex_open_team_deathmatch
+  displayName: Event_Chromapex_Open_Team_Deathmatch
+  description: Development event. Tune the entry fee, Fame threshold and position
+    payouts in this asset.
+  kind: 0
   requiredFame: 0
-  entryFee: 0
+  entryFee: 500
   rounds:
-  - {fileID: 11400000, guid: d293c2f4b62c5b343bde851099c26150, type: 2}
+  - {fileID: 11400000, guid: 6670a6cc7eb044648217597b2f6f2a68, type: 2}
   racePayouts: 10270000401f000064190000881300008813000088130000ac0d0000ac0d0000ac0d0000c4090000c4090000c4090000
   championshipPrizes: 204e00001027000088130000
   positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000
+  firstWeek: 2
+  firstDayOfWeek: 5
+  repeatEveryWeeks: 4
+  roundSpacingDays: 7

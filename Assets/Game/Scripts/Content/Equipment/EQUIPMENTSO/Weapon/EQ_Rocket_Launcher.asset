@@ -22,8 +22,20 @@ MonoBehaviour:
   deliveryMode: 2
   range: 500
   projectileSpeed: 165
-  damage: 30
-  startingAmmo: 6
-  fireInterval: 0
+  damage: 80
+  startingAmmo: 8
+  fireInterval: 1
   chargeDuration: 0
   targetLockDuration: 3
+  projectileCount: 1
+  spreadAngle: 0
+  explosionRadius: 0
+  armingDelay: 0
+  lifetime: 0
+  exposureDuration: 0
+  effectDuration: 0
+  statusDamagePerSecond: 0
+  lateralDistance: 0
+  dashDuration: 0
+  impactPush: 0
+  targetingHalfAngle: 0

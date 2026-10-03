@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 149e94461610df34e8f10762bcdd98c5, type: 3}
-  m_Name: DEV_DM_INDIVIDUAL_RACE
+  m_Name: Event_Chromapex_Open_Circuit_ROUND_1
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Racing.RaceDefinitionSO
-  id: DEV_DM_INDIVIDUAL_RACE
-  displayName: Last Racer Standing
+  id: event_chromapex_open_circuit_round_1
+  displayName: Chromapex Open Circuit
   track: {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
   engineClass: 0
-  lapCount: 1
+  lapCount: 3
   entrantCount: 12
   teamSize: 2
   researchPointBonus: 0
-  deathmatch: 1
-  victoryMode: 0
+  deathmatch: 0
+  victoryMode: 1
   allowedWinners: 1
   shareTimeoutTies: 0
   timeLimitSeconds: 300

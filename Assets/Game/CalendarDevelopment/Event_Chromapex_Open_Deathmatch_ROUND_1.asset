@@ -10,12 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 149e94461610df34e8f10762bcdd98c5, type: 3}
-  m_Name: DEV_EVENT_4_ROUND_1
+  m_Name: Event_Chromapex_Open_Deathmatch_ROUND_1
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Racing.RaceDefinitionSO
-  id: DEV_EVENT_4_ROUND_1
-  displayName: Open Circuit 4 - Round 1
+  id: event_chromapex_open_deathmatch
+  displayName: Event_Chromapex_Open_Deathmatch
   track: {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
   engineClass: 0
   lapCount: 1
-  entrantCount: 12
-  teamSize: 2
+  entrantCount: 8
+  teamSize: 1
+  researchPointBonus: 0
+  deathmatch: 1
+  victoryMode: 0
+  allowedWinners: 3
+  shareTimeoutTies: 0
+  timeLimitSeconds: 600
+  minimumSpeedKph: 100
+  startGraceSeconds: 15
+  belowSpeedGraceSeconds: 8
