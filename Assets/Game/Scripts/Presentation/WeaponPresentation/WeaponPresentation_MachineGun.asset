@@ -13,9 +13,25 @@ MonoBehaviour:
   m_Name: WeaponPresentation_MachineGun
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
   weaponDefinitionId: weapon_machine_gun
+  reticleSprite: {fileID: 3286163911610860551, guid: 93f80eb8475f38d4a8d44834a74fc35e, type: 3}
+  reticleSize: {x: 50, y: 50}
+  reticleColor: {r: 1, g: 1, b: 1, a: 0.9}
+  reticlePlacement: 0
+  reticleViewportPosition: {x: 0.5, y: 0.5}
+  reticleViewportOffset: {x: 0, y: 0}
   projectilePrefab: {fileID: 6749031316144475914, guid: a4beae9e51354a94e9f3120afaf2a558, type: 3}
   muzzlePrefab: {fileID: 69906001918393858, guid: b22b69954001e8744aca69ba32078637, type: 3}
   muzzleFallbackLifetime: 2
+  chargePrefab: {fileID: 0}
+  fullChargePrefab: {fileID: 0}
+  fullChargeFallbackLifetime: 2
+  chargeLoopClip: {fileID: 0}
+  fullChargeClip: {fileID: 0}
+  minimumChargeVolume: 0.2
+  maximumChargeVolume: 0.8
+  minimumChargePitch: 0.7
+  maximumChargePitch: 1.25
+  fullChargeVolume: 1
   fireClips:
   - {fileID: 8300000, guid: 715ae2cab2b764ebdace4410bc395d62, type: 3}
   - {fileID: 8300000, guid: c09f6b5f566384684b34ea7b63c898d5, type: 3}
@@ -27,14 +43,12 @@ MonoBehaviour:
   fireVolumeVariation: 0.04
   minimumFirePitch: 0.9
   maximumFirePitch: 1.5
+  impactPrefab: {fileID: 0}
+  impactFallbackLifetime: 2
+  impactClips: []
+  impactVolume: 1
   fireSpatialBlend: 1
   fireMinDistance: 15
   fireMaxDistance: 180
   fireRolloffMode: 0
   fireDopplerLevel: 0.1
-  reticleSprite: {fileID: 0}
-  reticleSize: {x: 32, y: 32}
-  reticleColor: {r: 0.4, g: 1, b: 1, a: 0.9}
-  reticlePlacement: 0
-  reticleViewportPosition: {x: 0.5, y: 0.5}
-  reticleViewportOffset: {x: 0, y: 0}

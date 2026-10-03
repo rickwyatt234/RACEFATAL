@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: WeaponPresentation_Ballistic_Railgun
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
   weaponDefinitionId: weapon_ballistic_railgun
+  reticleSprite: {fileID: 3286163911610860551, guid: 61b16ad806e7c38418d7d94493a0267e, type: 3}
+  reticleSize: {x: 24, y: 24}
+  reticleColor: {r: 1, g: 1, b: 1, a: 0.9}
+  reticlePlacement: 0
+  reticleViewportPosition: {x: 0.5, y: 0.5}
+  reticleViewportOffset: {x: 0, y: 0}
   projectilePrefab: {fileID: 7690832473685224879, guid: 2471c629cedfade46aafe41fb76c0e94, type: 3}
   muzzlePrefab: {fileID: 4117298910186226353, guid: 1afdc2131fd2e9f44aeac1227aad646f, type: 3}
   muzzleFallbackLifetime: 2
@@ -38,14 +44,12 @@ MonoBehaviour:
   fireVolumeVariation: 0.04
   minimumFirePitch: 0.9
   maximumFirePitch: 1.05
+  impactPrefab: {fileID: 0}
+  impactFallbackLifetime: 2
+  impactClips: []
+  impactVolume: 1
   fireSpatialBlend: 1
   fireMinDistance: 15
   fireMaxDistance: 180
   fireRolloffMode: 0
   fireDopplerLevel: 0.1
-  reticleSprite: {fileID: 0}
-  reticleSize: {x: 24, y: 24}
-  reticleColor: {r: 0.4, g: 1, b: 1, a: 0.9}
-  reticlePlacement: 0
-  reticleViewportPosition: {x: 0.5, y: 0.5}
-  reticleViewportOffset: {x: 0, y: 0}
