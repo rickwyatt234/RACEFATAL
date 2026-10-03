@@ -57283,6 +57283,7 @@ RectTransform:
   - {fileID: 8159477327074784440}
   - {fileID: 7678083510401095054}
   - {fileID: 3620430148891944155}
+  - {fileID: 8247100000000000002}
   m_Father: {fileID: 8776867152583777556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -105231,7 +105232,7 @@ MonoBehaviour:
   lapText: {fileID: 0}
   damageFlash: {fileID: 892047612772162345}
   showAudience: 1
-  audienceRoot: {fileID: 0}
+  audienceRoot: {fileID: 8247100000000000002}
   audienceAnchor: {x: 0.5, y: 0}
   audiencePosition: {x: 0, y: 100}
   audienceSize: {x: 260, y: 96}
@@ -105724,4 +105725,39 @@ RectTransform:
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 196, y: -88.00001}
   m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &8247100000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8247100000000000002}
+  m_Layer: 7
+  m_Name: HUD_Audience
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &8247100000000000002
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8247100000000000001}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5954090499375895000}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -272, y: -260}
+  m_SizeDelta: {x: 260, y: 96}
   m_Pivot: {x: 0.5, y: 0.5}
