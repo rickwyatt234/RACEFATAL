@@ -87,8 +87,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b74ea2b96cbc3e54488a71a523b9b1d4, type: 2}
   - {fileID: 11400000, guid: 36d76e1ddf38232498ea4100b82a45ae, type: 2}
   - {fileID: 11400000, guid: c873cb906cc613a4496f3f2f5d9ca0b2, type: 2}
-  - {fileID: 11400000, guid: 941f660dfce297d4a871c091b3f8f0ae, type: 2}
-  - {fileID: 11400000, guid: 589fa2f1f963d2f4880f6ae34f22f478, type: 2}
   racerPerkDefinitions:
   - {fileID: 11400000, guid: aff4d65e188359b4c864d87a9e1fc40d, type: 2}
   - {fileID: 11400000, guid: d1842b0939a4264489791cc12dffb049, type: 2}
@@ -156,5 +154,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2f65b07632df46d5b8c1df0de0a8a603, type: 2}
   - {fileID: 11400000, guid: 390192fb3ae44854bdb670880b09c61b, type: 2}
   - {fileID: 11400000, guid: 386cf143b63d56e45a15347c6791f1de, type: 2}
-  - {fileID: 11400000, guid: b09c7e038e410c64089f561889fc948b, type: 2}
-  - {fileID: 11400000, guid: d293c2f4b62c5b343bde851099c26150, type: 2}

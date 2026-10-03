@@ -49,6 +49,7 @@ static class Program
         var weeklyRace = Prepare("champ");
         var weeklyEntry = Ok(service.Register(session,"champ",weeklyRace,weeklyStart));
         Check(team.Calendar.AbsoluteDay == weeklyStart && team.Calendar.Active.roundSpacingDays == 1, "Weekly registration jumps to generated date and uses consecutive rounds");
+        Check(!service.SkipOrWithdraw(session).IsSuccess && team.Calendar.Active != null && team.Calendar.AbsoluteDay == weeklyStart, "Championship cannot withdraw or skip dates");
         var weeklyReload = Ok(mapper.Restore(UnityEngine.JsonUtility.FromJson<CampaignSaveData>(UnityEngine.JsonUtility.ToJson(Ok(mapper.Capture(session))))));
         Check(weeklyReload.PlayerTeam.Calendar.Active.scheduledDay == weeklyStart && weeklyReload.PlayerTeam.Calendar.Export().scheduleVersion == 2, "Weekly active entry survives JSON save/load");
         var weeklySettlement = CareerCalendarService.PreviewSettlement(team, ResultFor(weeklyRace));
@@ -82,6 +83,8 @@ static class Program
         resolver.Resolve(ResultFor(first),team,session.CareerRun.Player);
         Check(team.Credits==credits+100 && team.Calendar.AbsoluteDay==4,"Result replay cannot pay or advance date");
         Check(!service.CanEnter(team,"day4",4).IsSuccess && !service.CanEnter(team,"day2",2).IsSuccess,"Consumed and past occurrences are blocked");
+        Check(service.GetAvailableEventsForWeek(team,1).Select(e=>e.EventId).SequenceEqual(new[]{"day6","other"}), "This week list excludes past, consumed and locked events");
+        Check(service.GetAvailableEventsForWeek(team,2).All(e=>e.RoundIndex==0 && e.Day>=8 && e.Day<=14), "Upcoming list only contains next-week event starts");
         Check(service.NextOccurrenceDay(team,"day4")==32,"Next repeat remains available");
         var second=Prepare("day6");Ok(service.Register(session,"day6",second,6));Finish(second);
         Check(team.Calendar.Week==1 && team.Calendar.DayOfWeek==6 && team.Credits==credits+350,"Two distinct venues/rewards in the same week");
@@ -92,6 +95,7 @@ static class Program
         Check(team.Calendar.AbsoluteDay==9 && team.Calendar.Active.scheduledDay==12,"Next championship round is dated but does not auto-advance time");
         Check(!service.CanEnter(team,"day4",32).IsSuccess,"Active championship prevents switching events");
         Check(service.GetOccurrences(team,9,20).Any(e=>e.IsActiveRound && e.Day==12 && e.RoundIndex==1),"Calendar shows active round symbol");
+        Check(!service.SkipOrWithdraw(session).IsSuccess && team.Calendar.Active.scheduledDay == 12, "Championship lock persists between rounds");
         var next=Prepare("champ");Ok(service.Register(session,"champ",next,12));Finish(next);
         Check(team.Calendar.AbsoluteDay==12 && team.Calendar.Active==null && team.Calendar.LastEvent.finalPrize==1000,"Championship completes at last round date with final prize");
         var before=Ok(mapper.Capture(session));

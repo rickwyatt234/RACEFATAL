@@ -37,6 +37,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
         private readonly List<CareerRaceCardView> cards = new List<CareerRaceCardView>();
+        private readonly Dictionary<string, int> cardDays = new Dictionary<string, int>();
         private readonly List<Selectable> blocked = new List<Selectable>();
         private CareerController owner;
         private GameContext context;
@@ -55,11 +56,16 @@ namespace RaceFatal.Presentation.Career
             owner = controller;
             context = gameContext;
             calendar = new CareerCalendarService(context.Database);
-            if (calendarButton != null) Set(calendarButton.GetComponentInChildren<TMP_Text>(), "UPCOMING EVENTS");
+            if (calendarButton != null) Set(calendarButton.GetComponentInChildren<TMP_Text>(), "THIS WEEK");
+            if (unlockedButton != null) Set(unlockedButton.GetComponentInChildren<TMP_Text>(), "UPCOMING EVENTS");
+            if (fameButton != null)
+            {
+                fameButton.gameObject.SetActive(false);
+                if (standingsButton != null) standingsButton.transform.localPosition = fameButton.transform.localPosition;
+            }
             Bind(enterRaceButton, ConfirmEntry);
             Bind(calendarButton, ShowCalendar);
-            Bind(unlockedButton, ShowUnlocked);
-            Bind(fameButton, ShowFame);
+            Bind(unlockedButton, ShowUpcoming);
             Bind(standingsButton, ShowStandings);
             Bind(advanceButton, ConfirmAdvance);
             Bind(confirmButton, Confirm);
@@ -73,15 +79,9 @@ namespace RaceFatal.Presentation.Career
             Refresh();
         }
 
-        private void ShowUnlocked()
+        private void ShowUpcoming()
         {
             mode = 1;
-            Refresh();
-        }
-
-        private void ShowFame()
-        {
-            mode = 2;
             Refresh();
         }
 
@@ -128,43 +128,52 @@ namespace RaceFatal.Presentation.Career
             SetFeedback(saved.IsSuccess ? "ENTERING AN EVENT MOVES TODAY TO ITS DATE. FINISHING DOES NOT SKIP THE WEEK." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
             Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  TEAM FAME {Team.Fame:N0}");
             var active = Team.Calendar.Active;
-            Set(advanceLabel, active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
+            bool championshipLocked = active?.kind == CareerEventKind.Championship;
+            Set(advanceLabel, championshipLocked ? "CHAMPIONSHIP IN PROGRESS" : active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
             if (advanceButton != null)
-                advanceButton.interactable = calendarSaved && Session.CareerRun?.IsActive == true;
+                advanceButton.interactable = calendarSaved && Session.CareerRun?.IsActive == true && !championshipLocked;
             if (mode == 3)
             {
                 DisplayStandings();
                 return;
             }
 
-            IEnumerable<CareerEventDefinition> definitions = context.Database.CareerEventDefinitions.Values.Where(d => calendar.Validate(d).IsSuccess);
-            if (mode == 0)
-                definitions = definitions.Where(d => Team.Calendar.DrawIds.Contains(d.Id) && active == null);
-            else if (mode == 1)
-                definitions = definitions.Where(d => Team.Calendar.UnlockedIds.Contains(d.Id));
-            foreach (var definition in definitions.OrderBy(d => mode == 2 ? d.RequiredFame : calendar.NextOccurrenceDay(Team, d.Id) ?? int.MaxValue).ThenBy(d => d.DisplayName))
+            if (mode == 0 && active != null)
             {
-                bool unlocked = Team.Calendar.UnlockedIds.Contains(definition.Id);
-                string status = !unlocked ? $"UNLOCKS AT {definition.RequiredFame:N0} FAME" : active?.eventId == definition.Id ? "ENTERED" : Team.Calendar.DrawIds.Contains(definition.Id) && active == null ? "UPCOMING" : "UNLOCKED";
-                AddCard(definition.Id, definition.DisplayName, definition.Kind.ToString().ToUpperInvariant() + " // " + (calendar.NextOccurrenceDay(Team, definition.Id) is int day ? CareerCalendarState.FormatDay(day) : "NOT SCHEDULED"), $"FEE {definition.EntryFee:N0}  //  {definition.RaceIds.Count} ROUND(S)", status);
+                AddCard(active.eventId, active.displayName, CareerCalendarState.FormatDay(active.scheduledDay),
+                    $"ROUND {active.roundIndex + 1}/{active.raceIds.Count}  //  ENTRY PAID", "CONTINUE EVENT", active.scheduledDay);
+                SetFeedback(championshipLocked ? "COMPLETE YOUR CHAMPIONSHIP BEFORE ENTERING ANOTHER EVENT." : "CONTINUE YOUR ENTERED EVENT.");
+            }
+            else
+            {
+                int week = Team.Calendar.Week + (mode == 1 ? 1 : 0);
+                Set(weekText, $"{(mode == 1 ? "NEXT WEEK" : "THIS WEEK")} {week}  //  TODAY: {Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS");
+                foreach (var occurrence in calendar.GetAvailableEventsForWeek(Team, week))
+                {
+                    var definition = context.Database.GetCareerEventDefinition(occurrence.EventId);
+                    if (!calendar.Validate(definition).IsSuccess) continue;
+                    AddCard(definition.Id, definition.DisplayName,
+                        definition.Kind.ToString().ToUpperInvariant() + " // " + CareerCalendarState.FormatDay(occurrence.Day),
+                        $"FEE {definition.EntryFee:N0}  //  {definition.RaceIds.Count} ROUND(S)",
+                        active != null ? "CURRENT EVENT MUST FINISH FIRST" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
+                }
+                if (cards.Count == 0)
+                    SetFeedback(mode == 1 ? "NO AVAILABLE EVENTS NEXT WEEK." : "NO REMAINING EVENTS THIS WEEK. VIEW UPCOMING EVENTS OR THE HOME CALENDAR.");
             }
 
-            if (mode == 0 && active != null)
-                AddCard(active.eventId, active.displayName, active.kind.ToString().ToUpperInvariant(), $"ROUND {active.roundIndex + 1}/{active.raceIds.Count}  //  ENTRY PAID", "CONTINUE EVENT");
-            if (cards.Count == 0)
-                SetFeedback("NO EVENTS IN THIS VIEW. CHECK FAME MILESTONES OR THE HOME CALENDAR.");
             if (!cards.Any(c => c.RaceId == selectedEventId))
                 selectedEventId = cards.FirstOrDefault()?.RaceId;
             if (selectedEventId != null)
                 SelectEvent(selectedEventId);
         }
 
-        private void AddCard(string id, string name, string type, string requirements, string status)
+        private void AddCard(string id, string name, string type, string requirements, string status, int day)
         {
             if (cardTemplate == null || cardContainer == null)
                 return;
             var card = Instantiate(cardTemplate, cardContainer);
             card.gameObject.SetActive(true);
+            cardDays[id] = day;
             card.BindEvent(id, name, type, requirements, status, SelectEvent);
             cards.Add(card);
         }
@@ -174,7 +183,7 @@ namespace RaceFatal.Presentation.Career
             SelectEvent(id, day);
         }
 
-        private void SelectEvent(string id) => SelectEvent(id, calendar.NextOccurrenceDay(Team, id) ?? 0);
+        private void SelectEvent(string id) => SelectEvent(id, cardDays.TryGetValue(id, out int day) ? day : calendar.NextOccurrenceDay(Team, id) ?? 0);
         private void SelectEvent(string id, int occurrenceDay)
         {
             if (busy)
@@ -229,8 +238,6 @@ namespace RaceFatal.Presentation.Career
                 text.AppendLine("BOTH RACERS SCORE FOR THE TEAM. DNF SCORES ZERO. TIED POINTS SHARE FINAL RANK AND PRIZE.");
             }
 
-            if (mode == 2 && definition != null)
-                text.AppendLine($"\nFAME MILESTONE  {definition.RequiredFame:N0}\n{Math.Max(0, definition.RequiredFame - Team.Fame):N0} MORE FAME NEEDED. FAME IS NOT SPENT.");
             text.AppendLine("\nPREPARATION CHECKLIST");
             foreach (var check in TeamPreparationService.Inspect(Session, race))
                 text.AppendLine(check.ToString());
@@ -338,12 +345,12 @@ namespace RaceFatal.Presentation.Career
             pendingAdvance = false;
             int fee = Team.Calendar.Active == null ? context.Database.GetCareerEventDefinition(selectedEventId).EntryFee : 0;
             string name = Team.Calendar.Active?.displayName ?? context.Database.GetCareerEventDefinition(selectedEventId).DisplayName;
-            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS\nREMAINING: {Team.Credits - fee:N0} CREDITS\n\nTODAY WILL MOVE TO {CareerCalendarState.FormatDay(selectedOccurrenceDay)}. EARLIER EVENTS WILL BE MISSED. FINISHING KEEPS THAT DATE. ENTRY FEES ARE FORFEITED IF YOU WITHDRAW.");
+            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS\nREMAINING: {Team.Credits - fee:N0} CREDITS\n\nTODAY WILL MOVE TO {CareerCalendarState.FormatDay(selectedOccurrenceDay)}. EARLIER EVENTS WILL BE MISSED. FINISHING KEEPS THAT DATE. CHAMPIONSHIP ENTRY COMMITS YOU TO ALL ROUNDS. OTHER EVENT FEES ARE FORFEITED IF YOU WITHDRAW.");
         }
 
         private void ConfirmAdvance()
         {
-            if (busy || !calendarSaved)
+            if (busy || !calendarSaved || Team.Calendar.Active?.kind == CareerEventKind.Championship)
                 return;
             pendingAdvance = true;
             pendingEventId = null;
@@ -441,6 +448,7 @@ namespace RaceFatal.Presentation.Career
                 }
 
             cards.Clear();
+            cardDays.Clear();
         }
 
         private void OnDisable()
@@ -452,8 +460,7 @@ namespace RaceFatal.Presentation.Career
         {
             Unbind(enterRaceButton, ConfirmEntry);
             Unbind(calendarButton, ShowCalendar);
-            Unbind(unlockedButton, ShowUnlocked);
-            Unbind(fameButton, ShowFame);
+            Unbind(unlockedButton, ShowUpcoming);
             Unbind(standingsButton, ShowStandings);
             Unbind(advanceButton, ConfirmAdvance);
             Unbind(confirmButton, Confirm);

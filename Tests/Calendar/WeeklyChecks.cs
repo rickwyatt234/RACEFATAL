@@ -44,6 +44,8 @@ static class WeeklyChecks
         Check(block.Select(e=>e.Day).Distinct().Count()==5, "Other events avoid all championship slots");
         Check(team.RestoreCalendar(data).IsSuccess, "Weekly state restores");
         var service = new CareerCalendarService(db);
+        Check(service.GetAvailableEventsForWeek(team,1).Count==3, "This week lists exactly the three available starters");
+        Check(service.GetAvailableEventsForWeek(team,2).Count==3 && service.GetAvailableEventsForWeek(team,2).All(e=>e.Day>=8 && e.Day<=14), "Upcoming events are confined to next week");
         var scheduled=service.GetOccurrences(team,8,364).First(e=>e.EventId=="champ" && e.RoundIndex==0);
         Check(service.CanEnter(team,"champ",scheduled.Day).IsSuccess, "Generated championship start is enterable");
         Check(!service.CanEnter(team,"champ",scheduled.Day+1).IsSuccess, "Unentered championship cannot start at round two");

@@ -8,7 +8,7 @@ Every week is determined at campaign creation by the saved seed and captured poo
 
 Each race takes one day. A three-round championship reserves three consecutive days and counts as one of the three weekly events. All events and rounds have exclusive day slots. Events try their preferred start day, then the nearest free block; equal distances prefer later. A block may not cross the end of the week, so it moves earlier when necessary. Selection and placement backtrack when needed to fit three events rather than leaving an avoidable gap.
 
-Entering an event advances today to that event's date. Completing it leaves today on that date, allowing another later event in the same week. Past and consumed occurrences cannot be entered. A paid championship must be completed or withdrawn from before another event can be entered. Failed launch/save rollback restores date, fee and registration; interrupted races retain their attempt IDs. Withdrawal does not advance time.
+Entering an event advances today to that event's date. Completing it leaves today on that date, allowing another later event in the same week. Past and consumed occurrences cannot be entered. A paid championship locks the player into its rounds until completion. Voluntary withdrawal and calendar skipping are blocked during a championship; permanent player death still ends an unfinished championship. Single events retain their withdrawal option. Failed launch/save rollback restores date, fee and registration; interrupted races retain their attempt IDs. Withdrawal does not advance time.
 
 ## Authoring
 
@@ -30,7 +30,7 @@ The pool and timing are captured when creating the campaign. Start a new campaig
 
 Existing version-1 recurring calendars retain their dates, including paid championship rounds. Older week-only saves with progress retain legacy spacing. New campaigns use calendar version 2. No scene rebuild is required.
 
-Home shows a symbol on each occupied date, including every championship round. Selecting a symbol opens details for that exact date and venue. Post-race pages remain separate: standings, final classification, payout, then career.
+Races shows only remaining unlocked event starts this week; Upcoming Events shows next week. Active events always have a Continue card in This Week. The redundant Unlocked Events and Fame Milestones views are removed. Home shows a symbol on each occupied date, including every championship round. Selecting a symbol opens details for that exact date and venue. Post-race pages remain separate: standings, final classification, payout, then career.
 
 ## Verification
 

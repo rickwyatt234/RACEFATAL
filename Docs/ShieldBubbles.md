@@ -10,7 +10,7 @@ CombatBike now has a ShieldBubbleEffectView connected to CollisionFeedbackView, 
 | > 0%, <= 25% | Red |
 | Depleting hit | Red break pulse |
 
-Thresholds, visible duration (0.4 seconds), break duration (0.25 seconds), origin, local offset and scale are editable on ShieldBubbleEffectView. Capacity means BaseMaximum: energy loss must not make a weak shield appear healthy just because its current maximum has shrunk.
+Thresholds, visible duration (0.65 seconds), break duration (0.45 seconds), Brightness Multiplier (3 by default), origin, local offset and scale are editable on ShieldBubbleEffectView. Capacity means BaseMaximum: energy loss must not make a weak shield appear healthy just because its current maximum has shrunk.
 
 ## Behavior
 
@@ -37,3 +37,7 @@ For additional bike prefabs, add ShieldBubbleEffectView beside RacerViewControll
 8. Check player and AI bikes and cockpit visibility. Tune placement/size in the Inspector if necessary.
 
 Repository wiring and serialized references were checked outside Unity. Unity compilation and visual Play Mode checks still need to run in the editor.
+
+## Brightness
+
+Bubble instances now multiply the material HDR tint/emission by 3 and raise dark constant particle colors to full value while preserving hue and alpha. Material property blocks leave the shared source materials intact. Adjust **Brightness Multiplier** on CombatBike → ShieldBubbleEffectView for further tuning. Hit and break flashes last 0.65 and 0.45 seconds respectively. Verify all four shield health colors from the cockpit and chase camera in Play Mode; final perceived brightness depends on exposure and bloom.

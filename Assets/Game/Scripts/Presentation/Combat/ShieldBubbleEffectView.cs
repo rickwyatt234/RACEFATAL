@@ -23,8 +23,11 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private Vector3 localOffset;
         [SerializeField] private Vector3 localScale = Vector3.one;
         [Header("Pulse Timing")]
-        [Min(0.01f)] [SerializeField] private float visibleDuration = 0.4f;
-        [Min(0.01f)] [SerializeField] private float breakDuration = 0.25f;
+        [Min(0.01f)] [SerializeField] private float visibleDuration = 0.65f;
+        [Min(0.01f)] [SerializeField] private float breakDuration = 0.45f;
+        [Header("Visibility")]
+        [Tooltip("Multiplies the shield material's HDR tint/emission. Applied to runtime instances only; alpha stays unchanged.")]
+        [Min(1f)] [SerializeField] private float brightnessMultiplier = 3f;
 
         private readonly GameObject[] instances = new GameObject[4];
         private readonly ParticleSystem[][] systems = new ParticleSystem[4][];
@@ -49,6 +52,7 @@ namespace RaceFatal.Presentation.Combat
             blueThreshold = Mathf.Clamp(blueThreshold, tealThreshold, 1f);
             visibleDuration = Mathf.Max(0.01f, visibleDuration);
             breakDuration = Mathf.Max(0.01f, breakDuration);
+            brightnessMultiplier = Mathf.Max(1f, brightnessMultiplier);
         }
 
         public void Pulse(bool depleted)
@@ -139,8 +143,51 @@ namespace RaceFatal.Presentation.Combat
                 main.useUnscaledTime = false;
                 particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
+            ApplyBrightness(instance);
             instance.SetActive(false);
             instanceRoot.gameObject.SetActive(true);
+        }
+
+        private void ApplyBrightness(GameObject instance)
+        {
+            // Tint is the HDR emission input on the authored Magic Shield shader.
+            // Property blocks keep vendor materials and other effects sharing them intact.
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var materials = renderer.sharedMaterials;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    var material = materials[i];
+                    if (material == null) continue;
+                    string property = material.HasProperty("_TintColor") ? "_TintColor" :
+                        material.HasProperty("_EmissiveColor") ? "_EmissiveColor" :
+                        material.HasProperty("_EmissionColor") ? "_EmissionColor" : null;
+                    if (property == null) continue;
+                    var color = material.GetColor(property);
+                    color.r *= brightnessMultiplier;
+                    color.g *= brightnessMultiplier;
+                    color.b *= brightnessMultiplier;
+                    var properties = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(properties, i);
+                    properties.SetColor(property, color);
+                    renderer.SetPropertyBlock(properties, i);
+                }
+            }
+            foreach (var particle in instance.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var main = particle.main;
+                var colors = main.startColor;
+                // These prefabs use constant colors. Bring dark health-band colors
+                // to full value without changing hue, alpha or authored gradients.
+                if (colors.mode != ParticleSystemGradientMode.Color) continue;
+                var color = colors.color;
+                float value = Mathf.Max(color.r, Mathf.Max(color.g, color.b));
+                if (value <= 0f || value >= 1f) continue;
+                color.r /= value;
+                color.g /= value;
+                color.b /= value;
+                main.startColor = color;
+            }
         }
 
         private void StopActiveBand()

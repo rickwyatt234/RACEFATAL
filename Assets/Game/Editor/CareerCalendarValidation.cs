@@ -132,8 +132,8 @@ public static class CareerCalendarValidation
         service.Refresh(team);
         int beforeWithdrawal = team.Credits;
         var withdrawnRace = Prepare(session, db);
-        Require(service.Register(session, "champ", withdrawnRace).IsSuccess, "Enter championship for withdrawal");
-        Require(service.SkipOrWithdraw(session).IsSuccess && team.Credits == beforeWithdrawal - 300 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn && team.Calendar.LastEvent.finalPrize == 0, "Withdrawal forfeits fee without awarding completion prize");
+        Require(service.Register(session, "paid", withdrawnRace).IsSuccess, "Enter single race for withdrawal");
+        Require(service.SkipOrWithdraw(session).IsSuccess && team.Credits == beforeWithdrawal - 200 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn && team.Calendar.LastEvent.finalPrize == 0, "Withdrawal forfeits fee without awarding completion prize");
         bool withdrew = false;
         try
         {
@@ -144,7 +144,7 @@ public static class CareerCalendarValidation
             withdrew = true;
         }
 
-        Require(withdrew && team.Credits == beforeWithdrawal - 300, "Withdrawn attempts cannot award late rewards");
+        Require(withdrew && team.Credits == beforeWithdrawal - 200, "Withdrawn attempts cannot award late rewards");
         service.Refresh(team);
         var dnfDirector = Prepare(session, db);
         Require(service.Register(session, "free", dnfDirector).IsSuccess, "Enter free race");
