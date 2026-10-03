@@ -58276,12 +58276,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.RacerCollisionDamage
   minimumRacerImpactSpeed: 5
   racerDamageMultiplier: 0.5
-  maximumRacerCollisionDamage: 20
+  maximumRacerCollisionDamage: 1000
   racerCollisionCooldown: 0.15
   minimumWallImpactSpeed: 5
   wallDamageMultiplier: 0.15
   maximumWallCollisionDamage: 10
-  wallReboundMultiplier: 0.5
+  wallReboundMultiplier: 3
   maximumWallRebound: 10
   wallCollisionCooldown: 0.15
   enableFatalWallImpacts: 1
@@ -58363,6 +58363,8 @@ MonoBehaviour:
   minimumLeanSpeed: 3
   leanResponse: 5
   uprightResponse: 10
+  maximumAILeanAngle: 16
+  aiTurnResponse: 6
   cameraLeanMultiplier: 1
   debugSteering: 0
   debugSpeedKph: 0
@@ -78913,6 +78915,41 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!1 &8247100000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8247100000000000002}
+  m_Layer: 7
+  m_Name: HUD_Audience
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &8247100000000000002
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8247100000000000001}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5954090499375895000}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -0.3125, y: -864.125}
+  m_SizeDelta: {x: 260, y: 96}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8277039908824789582
 GameObject:
   m_ObjectHideFlags: 0
@@ -105725,39 +105762,4 @@ RectTransform:
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 196, y: -88.00001}
   m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &8247100000000000001
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8247100000000000002}
-  m_Layer: 7
-  m_Name: HUD_Audience
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &8247100000000000002
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8247100000000000001}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5954090499375895000}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -272, y: -260}
-  m_SizeDelta: {x: 260, y: 96}
   m_Pivot: {x: 0.5, y: 0.5}
