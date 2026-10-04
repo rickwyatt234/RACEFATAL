@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
   weaponDefinitionId: weapon_ballistic_railgun
   reticleSprite: {fileID: 3286163911610860551, guid: 61b16ad806e7c38418d7d94493a0267e, type: 3}
-  reticleSize: {x: 24, y: 24}
+  reticleSize: {x: 52, y: 52}
   reticleColor: {r: 1, g: 1, b: 1, a: 0.9}
   reticlePlacement: 0
   reticleViewportPosition: {x: 0.5, y: 0.5}

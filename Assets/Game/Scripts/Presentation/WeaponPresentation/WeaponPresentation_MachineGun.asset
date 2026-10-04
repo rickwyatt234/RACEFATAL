@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
   weaponDefinitionId: weapon_machine_gun
   reticleSprite: {fileID: 3286163911610860551, guid: 93f80eb8475f38d4a8d44834a74fc35e, type: 3}
-  reticleSize: {x: 50, y: 50}
+  reticleSize: {x: 356, y: 356}
   reticleColor: {r: 1, g: 1, b: 1, a: 0.9}
   reticlePlacement: 0
   reticleViewportPosition: {x: 0.5, y: 0.5}

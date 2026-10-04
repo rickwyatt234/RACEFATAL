@@ -57383,7 +57383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &872395682279358036
 Transform:
   m_ObjectHideFlags: 0
@@ -57723,7 +57723,7 @@ GameObject:
   - component: {fileID: 5871991580624933924}
   - component: {fileID: 8806149293100050475}
   m_Layer: 0
-  m_Name: CombatBike
+  m_Name: Bike_Model_HARBINGER
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62252,7 +62252,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5900764092805569136
 Transform:
   m_ObjectHideFlags: 0
@@ -105457,8 +105457,8 @@ MonoBehaviour:
   rearLeftCamera: {fileID: 3594408657685748473}
   rearRightCamera: {fileID: 1145131238085773260}
   cockpitView: {fileID: 5895909304970813349}
-  refreshRate: 24
-  staggerCameraUpdates: 1
+  refreshRate: 60
+  staggerCameraUpdates: 0
   renderImmediately: 1
   debugPlayerViewActive: 0
   debugLeftRenderCount: 0
