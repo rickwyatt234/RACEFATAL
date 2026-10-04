@@ -76,6 +76,7 @@ namespace RaceFatal.Equipment
         }
 
         public bool SelectedWeaponIsEmpty => SelectedWeaponDefinition != null && SelectedWeaponAmmo <= 0;
+        public float SelectedWeaponCooldownRemaining => Math.Max(0f, GetSelectedWeapon()?.FireTimer ?? 0f);
 
         public bool SelectedWeaponIsCharging
         {
@@ -409,13 +410,7 @@ namespace RaceFatal.Equipment
                 return false;
             }
 
-            bool fired = TryFire(weapon, 1f);
-            if (fired)
-            {
-                weapon.FireTimer = Math.Max(0.01f, weapon.Definition.FireInterval);
-            }
-
-            return fired;
+            return TryFire(weapon, 1f);
         }
 
         private bool BeginWeapon(WeaponState weapon)
@@ -430,10 +425,13 @@ namespace RaceFatal.Equipment
                 case EquipmentActivationMode.Press:
                     return TryFire(weapon, 1f);
                 case EquipmentActivationMode.Hold:
+                    if (weapon.IsHeld)
+                        return false;
                     weapon.IsHeld = true;
-                    weapon.FireTimer = 0f;
                     return true;
                 case EquipmentActivationMode.ChargeRelease:
+                    if (weapon.IsCharging || weapon.FireTimer > 0f)
+                        return false;
                     weapon.IsCharging = true;
                     weapon.ChargeTime = 0f;
                     return true;
@@ -521,6 +519,11 @@ namespace RaceFatal.Equipment
 
         private void TickWeapon(WeaponState weapon, float deltaTime)
         {
+            // Idle, unselected and released weapons still recover. Only held
+            // fire retains overshoot so its automatic cadence is frame-rate independent.
+            weapon.FireTimer = weapon.IsHeld && weaponsAllowed && weapon.CurrentAmmo > 0
+                ? weapon.FireTimer - deltaTime
+                : Math.Max(0f, weapon.FireTimer - deltaTime);
             if (!weaponsAllowed)
             {
                 StopWeaponActivation(weapon);
@@ -529,7 +532,6 @@ namespace RaceFatal.Equipment
 
             if (weapon.Definition.ActivationMode == EquipmentActivationMode.Passive)
             {
-                weapon.FireTimer = Math.Max(0f, weapon.FireTimer - deltaTime);
                 return;
             }
 
@@ -550,11 +552,9 @@ namespace RaceFatal.Equipment
                 return;
             }
 
-            weapon.FireTimer -= deltaTime;
-            while (weapon.FireTimer <= 0f)
+            while (weapon.IsHeld && weapon.FireTimer <= 0f)
             {
                 bool fired = TryFire(weapon, 1f);
-                weapon.FireTimer += Math.Max(0.01f, weapon.Definition.FireInterval);
                 if (!fired)
                 {
                     if (weapon.CurrentAmmo <= 0)
@@ -594,12 +594,15 @@ namespace RaceFatal.Equipment
 
         private bool TryFire(WeaponState weapon, float chargeRatio)
         {
-            if (!weaponsAllowed || weapon.CurrentAmmo <= 0)
+            if (!weaponsAllowed || weapon.CurrentAmmo <= 0 || weapon.FireTimer > 0f)
             {
                 return false;
             }
 
             weapon.CurrentAmmo--;
+            // Reserve the next shot before publishing the event, so another
+            // activation in an event callback cannot bypass the interval.
+            weapon.FireTimer += Math.Max(0.01f, weapon.Definition.FireInterval);
             WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, weapon.Definition.Damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration, weapon.Definition.StatusDamagePerSecond, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
             return true;
         }
@@ -785,7 +788,6 @@ namespace RaceFatal.Equipment
                 return;
             weapon.IsHeld = false;
             weapon.IsCharging = false;
-            weapon.FireTimer = 0f;
             weapon.ChargeTime = 0f;
         }
 

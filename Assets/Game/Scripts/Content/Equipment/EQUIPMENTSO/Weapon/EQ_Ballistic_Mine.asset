@@ -24,7 +24,7 @@ MonoBehaviour:
   projectileSpeed: 0
   damage: 38
   startingAmmo: 8
-  fireInterval: 0
+  fireInterval: 0.75
   chargeDuration: 0
   targetLockDuration: 0
   projectileCount: 1

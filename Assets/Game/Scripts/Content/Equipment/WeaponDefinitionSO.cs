@@ -15,7 +15,7 @@ namespace RaceFatal.Content.Equipment
         [Min(0f)] [SerializeField] private float damage;
         [Header("Ammunition")] [Tooltip("Amount of ammunition this weapon receives at the beginning of each race.")] [Min(1)] [SerializeField] private int startingAmmo =
             100;
-        [Header("Timing")] [Min(0f)] [SerializeField] private float fireInterval;
+        [Header("Timing")] [Tooltip("Minimum seconds between shots/activations. Applies to press, hold, charged and passive weapons; releasing or switching weapons does not reset it.")] [Min(0f)] [SerializeField] private float fireInterval;
         [Min(0f)] [SerializeField] private float chargeDuration;
         [Header("Target Lock")] [Tooltip("Seconds a targeted guided weapon must maintain a valid target before achieving lock.")] [Min(0f)] [SerializeField] private
             float targetLockDuration;

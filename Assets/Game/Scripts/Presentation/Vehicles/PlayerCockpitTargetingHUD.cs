@@ -99,6 +99,8 @@ namespace RaceFatal.Presentation.Vehicles
         private RaceRuntimeController raceRuntime;
         private IRaceInputService input;
         private RacerViewController selectedTarget;
+        private RacerViewController focusedRacer;
+        private readonly List<TargetCandidate> focusCandidates = new List<TargetCandidate>();
         private bool wasTargetLocked;
 #endregion
 #region Unity
@@ -146,6 +148,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
             else
             {
+                focusedRacer = null;
                 HideAllIdBoxes();
             }
 
@@ -155,6 +158,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void OnDisable()
         {
+            focusedRacer = null;
             ClearSelectedTarget();
             HideAllIdBoxes();
             SetWarning(null);
@@ -317,8 +321,14 @@ namespace RaceFatal.Presentation.Vehicles
                 HideTargeting();
             }
 
-            bool cyclePressed = input != null && input.NextTargetPressed;
-            if (cyclePressed)
+            bool cyclePressed = input != null && input.NextTargetPressed && !input.FocusHeld;
+            if (input != null && input.FocusHeld)
+            {
+                // Inspect and lock the same racer in focus mode. A teammate or
+                // an out-of-range inspection target must not create a lock.
+                SelectTarget(TryGetCandidate(focusedRacer, out _) ? focusedRacer : null);
+            }
+            else if (cyclePressed)
             {
                 CycleTarget();
             }
@@ -651,19 +661,9 @@ namespace RaceFatal.Presentation.Vehicles
         private void UpdateIdBoxes()
         {
             HideAllIdBoxes();
-            int boxIndex = 0;
-            if (selectedTarget != null && TryShowIdBoxForView(selectedTarget, boxIndex))
-            {
-                boxIndex++;
-            }
-
+            focusCandidates.Clear();
             foreach (RaceParticipant participant in raceRuntime.Director.State.Participants)
             {
-                if (boxIndex >= idBoxes.Count)
-                {
-                    break;
-                }
-
                 if (participant == null || participant == racerView.Participant)
                 {
                     continue;
@@ -680,17 +680,34 @@ namespace RaceFatal.Presentation.Vehicles
                 }
 
                 if (view == null)
-                    continue;
-                if (view == selectedTarget)
                 {
                     continue;
                 }
-
-                if (TryShowIdBoxForView(view, boxIndex))
+                Vector3 point = view.transform.TransformPoint(targetLocalOffset);
+                if (!TryProjectToHud(point, out Vector2 uv) || (requireLineOfSight && !HasLineOfSight(view, point)))
+                    continue;
+                focusCandidates.Add(new TargetCandidate { View = view, HudUv = uv,
+                    CenterScore = (uv - new Vector2(0.5f, 0.5f)).sqrMagnitude });
+            }
+            // Stable roster order makes Tab predictable even when racers cross
+            // each other on screen. Keep the current focus until it leaves view.
+            focusCandidates.Sort((a, b) => string.CompareOrdinal(a.View.Participant.RacerId, b.View.Participant.RacerId));
+            int index = focusCandidates.FindIndex(candidate => candidate.View == focusedRacer);
+            if (index < 0 && focusCandidates.Count > 0)
+            {
+                index = focusCandidates.FindIndex(candidate => candidate.View == selectedTarget);
+                if (index < 0)
                 {
-                    boxIndex++;
+                    index = 0;
+                    for (int i = 1; i < focusCandidates.Count; i++)
+                        if (focusCandidates[i].CenterScore < focusCandidates[index].CenterScore) index = i;
                 }
             }
+            else if (index >= 0 && input != null && input.NextTargetPressed)
+                index = (index + 1) % focusCandidates.Count;
+            focusedRacer = index >= 0 ? focusCandidates[index].View : null;
+            if (focusedRacer != null)
+                TryShowIdBoxForView(focusedRacer, 0);
         }
 
         private bool TryShowIdBoxForView(RacerViewController view, int boxIndex)

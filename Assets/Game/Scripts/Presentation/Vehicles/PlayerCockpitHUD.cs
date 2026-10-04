@@ -18,6 +18,13 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private TextMeshProUGUI energyText;
         [Header("Damage")] [SerializeField] private Image damageFill;
         [SerializeField] private TextMeshProUGUI damageText;
+        [Header("Integrity Display")] [SerializeField] private bool showIntegrity = true;
+        [SerializeField] private RectTransform integrityRoot;
+        [SerializeField] private Vector2 integrityAnchor = new Vector2(0.5f, 1f);
+        [SerializeField] private Vector2 integrityPosition = new Vector2(0f, -260f);
+        [SerializeField] private Vector2 integritySize = new Vector2(220f, 70f);
+        private Image integrityBar;
+        private TextMeshProUGUI integrityLabel;
         [Header("Shield")] [SerializeField] private GameObject shieldGroup;
         [SerializeField] private Image shieldFill;
         [SerializeField] private TextMeshProUGUI shieldText;
@@ -212,6 +219,58 @@ namespace RaceFatal.Presentation.Vehicles
             if (damageText != null)
                 damageText.text = $"{damage:0}%";
             debugDamagePercent = damage;
+            if (showIntegrity && integrityBar == null)
+                TryCreateIntegrityHUD();
+            if (integrityRoot != null)
+                integrityRoot.gameObject.SetActive(showIntegrity);
+            if (showIntegrity && integrityBar != null)
+            {
+                float remaining = Mathf.Clamp01(1f - normalized);
+                integrityBar.rectTransform.anchorMax = new Vector2(remaining, 1f);
+                integrityBar.color = Color.Lerp(new Color(1f, 0.18f, 0.25f), new Color(0.2f, 0.9f, 1f), remaining);
+                integrityLabel.text = $"INTEGRITY // {vehicle.Damage.CurrentIntegrity:0}/{vehicle.Damage.MaxIntegrity:0}  {remaining * 100f:0}%";
+            }
+        }
+
+        private void TryCreateIntegrityHUD()
+        {
+            if (integrityRoot == null)
+            {
+                Transform parent = hudRoot != null ? hudRoot.transform : speedText != null ? speedText.canvas?.transform : null;
+                if (parent == null) return;
+                integrityRoot = CreateIntegrityRect("HUD_Integrity", parent, integrityAnchor, integrityAnchor);
+                integrityRoot.pivot = new Vector2(0.5f, 0.5f);
+                integrityRoot.anchoredPosition = integrityPosition;
+                integrityRoot.sizeDelta = integritySize;
+            }
+            var background = CreateIntegrityRect("Integrity Bar Background", integrityRoot,
+                new Vector2(0f, 0.1f), new Vector2(1f, 0.38f));
+            var backgroundImage = background.gameObject.AddComponent<Image>();
+            backgroundImage.color = new Color(0.25f, 0.05f, 0.08f, 0.8f);
+            backgroundImage.raycastTarget = false;
+            integrityBar = CreateIntegrityRect("Integrity Remaining", background, Vector2.zero, Vector2.one).gameObject.AddComponent<Image>();
+            integrityBar.raycastTarget = false;
+            integrityLabel = CreateIntegrityRect("Integrity Label", integrityRoot,
+                new Vector2(0f, 0.45f), Vector2.one).gameObject.AddComponent<TextMeshProUGUI>();
+            if (speedText != null && speedText.font != null) integrityLabel.font = speedText.font;
+            integrityLabel.fontSize = 15f;
+            integrityLabel.enableAutoSizing = true;
+            integrityLabel.fontSizeMin = 10f;
+            integrityLabel.fontSizeMax = 15f;
+            integrityLabel.color = new Color(0.65f, 0.95f, 1f);
+            integrityLabel.alignment = TextAlignmentOptions.Center;
+            integrityLabel.raycastTarget = false;
+        }
+
+        private RectTransform CreateIntegrityRect(string name, Transform parent, Vector2 minimum, Vector2 maximum)
+        {
+            var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.gameObject.layer = parent.gameObject.layer;
+            rect.anchorMin = minimum;
+            rect.anchorMax = maximum;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            return rect;
         }
 
         private void UpdateShield(RaceVehicleState vehicle)
