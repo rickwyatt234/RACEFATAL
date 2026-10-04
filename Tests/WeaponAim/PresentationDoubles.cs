@@ -58,6 +58,7 @@ namespace UnityEngine
     public struct Vector3
     {
         public float x,y,z;public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;}
+        public static Vector3 one=>new Vector3(1,1,1);
         public static Vector3 forward=>new Vector3(0,0,1);public static Vector3 up=>new Vector3(0,1,0);
         public float sqrMagnitude=>x*x+y*y+z*z;public float magnitude=>MathF.Sqrt(sqrMagnitude);
         public Vector3 normalized=>this/MathF.Max(.000001f,magnitude);

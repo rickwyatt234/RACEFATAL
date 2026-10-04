@@ -23,6 +23,9 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("View")] [Min(1f)] [SerializeField] private float normalFieldOfView = 75f;
         [Min(1f)] [SerializeField] private float boostedFieldOfView = 82f;
         [Min(0f)] [SerializeField] private float fieldOfViewResponse = 8f;
+        [Header("Focus View")]
+        [Range(15f, 90f)] [SerializeField] private float focusFieldOfView = 45f;
+        [Min(0f)] [SerializeField] private float focusLookResponse = 7f;
         [Header("Death View")] [Min(1f)] [SerializeField] private float deathFieldOfView = 80f;
         [Min(0f)] [SerializeField] private float deathHoldDuration = 0.2f;
         [Min(0.1f)] [SerializeField] private float deathDriftDuration = 2.5f;
@@ -62,6 +65,10 @@ namespace RaceFatal.Presentation.Vehicles
         private Vector3 collisionRotationVelocity;
         private Vector3 hudProjectionPosition;
         private Quaternion hudProjectionRotation;
+        private Vector3 hudProjectionScale;
+        private Transform focusTarget;
+        private Vector3 focusTargetOffset;
+        private Quaternion focusLookRotation = Quaternion.identity;
         public Canvas ReticleCanvas => reticleCanvas;
         public Camera CockpitCamera => cockpitCamera;
         public bool IsActivePlayerView => activePlayerView;
@@ -88,6 +95,7 @@ namespace RaceFatal.Presentation.Vehicles
             {
                 hudProjectionPosition = cameraAnchor.InverseTransformPoint(hudProjectionAnchor.position);
                 hudProjectionRotation = Quaternion.Inverse(cameraAnchor.rotation) * hudProjectionAnchor.rotation;
+                hudProjectionScale = hudProjectionAnchor.localScale;
             }
             StabilizeHudSource();
             SetViewActive(false);
@@ -124,8 +132,15 @@ namespace RaceFatal.Presentation.Vehicles
             StabilizeHudSource();
             if (stabilizeHudProjection && hudProjectionAnchor != null)
             {
+                float regularFov = debugBoosting ? boostedFieldOfView : normalFieldOfView;
+                float zoomScale = Mathf.Tan(cockpitCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) /
+                    Mathf.Tan(regularFov * 0.5f * Mathf.Deg2Rad);
+                Vector3 position = new Vector3(hudProjectionPosition.x * zoomScale,
+                    hudProjectionPosition.y * zoomScale, hudProjectionPosition.z);
+                hudProjectionAnchor.localScale = new Vector3(hudProjectionScale.x * zoomScale,
+                    hudProjectionScale.y * zoomScale, hudProjectionScale.z);
                 hudProjectionAnchor.SetPositionAndRotation(
-                    cockpitCamera.transform.TransformPoint(hudProjectionPosition),
+                    cockpitCamera.transform.TransformPoint(position),
                     cockpitCamera.transform.rotation * hudProjectionRotation);
             }
         }
@@ -184,8 +199,17 @@ namespace RaceFatal.Presentation.Vehicles
         {
             Vector3 basePosition = cameraAnchor.position;
             Quaternion baseRotation = cameraAnchor.rotation;
+            Quaternion desiredFocus = Quaternion.identity;
+            if (focusTarget != null)
+            {
+                Vector3 direction = focusTarget.TransformPoint(focusTargetOffset) - basePosition;
+                if (direction.sqrMagnitude > 0.001f)
+                    desiredFocus = Quaternion.Inverse(baseRotation) * Quaternion.LookRotation(direction, baseRotation * Vector3.up);
+            }
+            float focusFactor = focusLookResponse <= 0f ? 1f : 1f - Mathf.Exp(-focusLookResponse * Time.deltaTime);
+            focusLookRotation = Quaternion.Slerp(focusLookRotation, desiredFocus, focusFactor);
             Vector3 finalPosition = basePosition + baseRotation * collisionPositionOffset;
-            Quaternion finalRotation = baseRotation * Quaternion.Euler(collisionRotationOffset);
+            Quaternion finalRotation = baseRotation * focusLookRotation * Quaternion.Euler(collisionRotationOffset);
             cockpitCamera.transform.SetPositionAndRotation(finalPosition, finalRotation);
         }
 
@@ -197,6 +221,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             ClearCollisionImpulse();
+            focusLookRotation = Quaternion.identity;
             cockpitCamera.transform.SetPositionAndRotation(cameraAnchor.position, cameraAnchor.rotation);
         }
 
@@ -258,6 +283,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             deathViewActive = true;
+            focusTarget = null;
+            focusLookRotation = Quaternion.identity;
             debugDeathView = true;
             ClearCollisionImpulse();
             if (cockpitCamera != null && cameraAnchor != null)
@@ -308,6 +335,7 @@ namespace RaceFatal.Presentation.Vehicles
             bool boosting = racerView.Participant.Vehicle.EquipmentSystem.IsBoosterActive;
             debugBoosting = boosting;
             float targetFov = boosting ? boostedFieldOfView : normalFieldOfView;
+            if (focusTarget != null) targetFov = Mathf.Min(targetFov, focusFieldOfView);
             if (fieldOfViewResponse <= 0f)
             {
                 cockpitCamera.fieldOfView = targetFov;
@@ -323,6 +351,12 @@ namespace RaceFatal.Presentation.Vehicles
 
 #endregion
 #region View
+        public void SetFocusTarget(Transform target, Vector3 localOffset)
+        {
+            focusTarget = target;
+            focusTargetOffset = localOffset;
+        }
+
         private void SetViewActive(bool active)
         {
             if (cockpitCamera != null)

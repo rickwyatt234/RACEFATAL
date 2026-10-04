@@ -19,6 +19,7 @@ namespace RaceFatal.Presentation.Combat
         private float expireTime;
         private SphereCollider trigger;
         private Light warningLight;
+        private Material visualMaterial;
         private bool initialized;
         private bool detonated;
         public void Initialize(RaceRuntimeController raceRuntime, WeaponPresentationProfile presentation, string attackerId, float mineDamage, float radius, float armingDelay, float lifetime)
@@ -156,7 +157,9 @@ namespace RaceFatal.Presentation.Combat
             Renderer renderer = visual.GetComponent<Renderer>();
             if (renderer != null)
             {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                Shader shader = Shader.Find("HDRP/Unlit");
+                if (shader == null)
+                    shader = Shader.Find("Universal Render Pipeline/Lit");
                 if (shader == null)
                     shader = Shader.Find("Standard");
                 if (shader != null)
@@ -165,10 +168,25 @@ namespace RaceFatal.Presentation.Combat
                     Color baseColor = new Color(0.08f, 0.12f, 0.15f, 1f);
                     Color emission = new Color(0.05f, 0.4f, 0.7f, 1f);
                     material.color = baseColor;
+                    if (material.HasProperty("_UnlitColor")) material.SetColor("_UnlitColor", baseColor);
+                    if (material.HasProperty("_EmissiveColor")) material.SetColor("_EmissiveColor", emission * 2f);
                     material.EnableKeyword("_EMISSION");
-                    material.SetColor("_EmissionColor", emission);
-                    renderer.material = material;
+                    if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", emission);
+                    visualMaterial = material;
+                    renderer.sharedMaterial = material;
                 }
+            }
+
+            if (profile != null && profile.DeployedMineVfxPrefab != null)
+            {
+                GameObject marker = Instantiate(profile.DeployedMineVfxPrefab, transform, false);
+                marker.name = "Deployed Mine Marker";
+                marker.transform.localPosition = profile.DeployedMineVfxOffset;
+                marker.transform.localScale = profile.DeployedMineVfxScale;
+                marker.SetActive(true);
+                foreach (ParticleSystem particles in marker.GetComponentsInChildren<ParticleSystem>(true))
+                    if (particles.gameObject.activeInHierarchy) particles.Play();
+                return;
             }
 
             GameObject lightObject = new GameObject("Mine Indicator");
@@ -179,6 +197,11 @@ namespace RaceFatal.Presentation.Combat
             warningLight.range = 1.1f;
             warningLight.intensity = 0.35f;
             warningLight.color = new Color(0.2f, 0.7f, 1f, 1f);
+        }
+
+        private void OnDestroy()
+        {
+            if (visualMaterial != null) Destroy(visualMaterial);
         }
     }
 }

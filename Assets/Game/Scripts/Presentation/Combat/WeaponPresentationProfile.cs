@@ -19,6 +19,11 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private Vector2 reticleViewportPosition = new Vector2(0.5f, 0.5f);
         [Tooltip("Normalized screen offset applied to either placement mode. Positive Y moves the reticle and aim upward.")]
         [SerializeField] private Vector2 reticleViewportOffset;
+        [Header("Deployed Mine Marker")]
+        [Tooltip("Looping location marker attached to a deployed mine until it detonates or expires. Separate from Impact Prefab, which plays on detonation.")]
+        [SerializeField] private GameObject deployedMineVfxPrefab;
+        [SerializeField] private Vector3 deployedMineVfxOffset = new Vector3(0f, 0.05f, 0f);
+        [SerializeField] private Vector3 deployedMineVfxScale = Vector3.one;
         [Header("Projectile")] [Tooltip("Projectile prefab used by this weapon. May be empty for hitscan or area weapons.")] [SerializeField] private
             ProjectileView projectilePrefab;
         [Header("Muzzle")] [Tooltip("VFX prefab spawned at the physical weapon origin whenever this weapon fires.")] [SerializeField] private
@@ -55,6 +60,9 @@ namespace RaceFatal.Presentation.Combat
         [SerializeField] private AudioRolloffMode fireRolloffMode = AudioRolloffMode.Logarithmic;
         [Range(0f, 1f)] [SerializeField] private float fireDopplerLevel = 0.1f;
         public Sprite ReticleSprite => reticleSprite;
+        public GameObject DeployedMineVfxPrefab => deployedMineVfxPrefab;
+        public Vector3 DeployedMineVfxOffset => deployedMineVfxOffset;
+        public Vector3 DeployedMineVfxScale => deployedMineVfxScale;
         public Vector2 ReticleSize => reticleSize;
         public Color ReticleColor => reticleColor;
         public WeaponReticlePlacement ReticlePlacement => reticlePlacement;

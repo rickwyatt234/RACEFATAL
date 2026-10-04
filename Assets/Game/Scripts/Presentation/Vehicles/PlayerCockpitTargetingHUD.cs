@@ -13,6 +13,7 @@ using UnityEngine.UI;
 
 namespace RaceFatal.Presentation.Vehicles
 {
+    [DefaultExecutionOrder(1200)]
     public class PlayerCockpitTargetingHUD : MonoBehaviour
     {
         [System.Serializable]
@@ -65,6 +66,9 @@ namespace RaceFatal.Presentation.Vehicles
         [Range(0.1f, 3f)] [SerializeField] private float acquireEndPitch = 1.15f;
         [Header("ID Boxes")] [SerializeField] private List<IdBoxView> idBoxes = new List<IdBoxView>();
         [SerializeField] private Vector2 idBoxOffset = new Vector2(80f, 35f);
+        [Header("Focus Highlight")]
+        [SerializeField] private Color focusHighlightColor = new Color(0.2f, 1f, 1f, 0.95f);
+        [SerializeField] private Vector2 focusHighlightSize = new Vector2(120f, 90f);
         [Header("Warning")] [SerializeField] private GameObject warningRoot;
         [SerializeField] private TextMeshProUGUI warningText;
         [Header("Target Visibility")] [Tooltip("Local point on another bike used for targeting and ID positioning.")] [SerializeField] private Vector3 targetLocalOffset =
@@ -101,6 +105,7 @@ namespace RaceFatal.Presentation.Vehicles
         private RacerViewController selectedTarget;
         private RacerViewController focusedRacer;
         private readonly List<TargetCandidate> focusCandidates = new List<TargetCandidate>();
+        private RectTransform focusHighlight;
         private bool wasTargetLocked;
 #endregion
 #region Unity
@@ -136,6 +141,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             if (!TryResolve())
             {
+                ClearFocus();
                 ClearSelectedTarget();
                 HideAllIdBoxes();
                 SetWarning(null);
@@ -148,17 +154,87 @@ namespace RaceFatal.Presentation.Vehicles
             }
             else
             {
-                focusedRacer = null;
+                ClearFocus();
                 HideAllIdBoxes();
             }
+
+            if (cockpitView != null)
+                cockpitView.SetFocusTarget(focusedRacer != null ? focusedRacer.transform : null, targetLocalOffset);
 
             UpdateGuidedTargeting();
             UpdateWarning();
         }
 
-        private void OnDisable()
+        private void LateUpdate()
+        {
+            if (RacePauseController.IsGameplayBlocked) return;
+            if (input == null || !input.FocusHeld || focusedRacer == null ||
+                focusedRacer.Participant == null || focusedRacer.Participant.Status != RaceParticipantStatus.Racing ||
+                focusedRacer.Participant.Vehicle == null || focusedRacer.Participant.Vehicle.IsDestroyed)
+            {
+                ClearFocus();
+                return;
+            }
+            // Project after the camera has moved so the bracket and ID track the zoomed view.
+            HideAllIdBoxes();
+            Vector3 point = focusedRacer.transform.TransformPoint(targetLocalOffset);
+            if (!TryProjectToHud(point, out Vector2 uv) || (requireLineOfSight && !HasLineOfSight(focusedRacer, point)))
+            {
+                if (focusHighlight != null) focusHighlight.gameObject.SetActive(false);
+                return;
+            }
+            EnsureFocusHighlight();
+            if (focusHighlight != null)
+            {
+                PositionAtHudUv(focusHighlight, uv, Vector2.zero);
+                focusHighlight.gameObject.SetActive(true);
+            }
+            TryShowIdBoxForView(focusedRacer, 0);
+        }
+
+        private void ClearFocus()
         {
             focusedRacer = null;
+            if (cockpitView != null) cockpitView.SetFocusTarget(null, targetLocalOffset);
+            if (focusHighlight != null) focusHighlight.gameObject.SetActive(false);
+        }
+
+        private void EnsureFocusHighlight()
+        {
+            if (focusHighlight != null) return;
+            RectTransform reference = idBoxes.Count > 0 ? idBoxes[0]?.root : null;
+            if (reference == null) reference = rocketReticle;
+            if (reference == null || reference.parent == null) return;
+            GameObject root = new GameObject("Focused Racer Highlight", typeof(RectTransform));
+            root.layer = reference.gameObject.layer;
+            focusHighlight = root.GetComponent<RectTransform>();
+            focusHighlight.SetParent(reference.parent, false);
+            focusHighlight.sizeDelta = focusHighlightSize;
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    for (int axis = 0; axis < 2; axis++)
+                    {
+                        GameObject bar = new GameObject("Focus Bracket", typeof(RectTransform), typeof(Image));
+                        bar.layer = root.layer;
+                        RectTransform rect = bar.GetComponent<RectTransform>();
+                        rect.SetParent(focusHighlight, false);
+                        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(x, y);
+                        rect.anchoredPosition = Vector2.zero;
+                        rect.sizeDelta = axis == 0 ? new Vector2(16f, 2f) : new Vector2(2f, 16f);
+                        Image graphic = bar.GetComponent<Image>();
+                        graphic.color = focusHighlightColor;
+                        graphic.raycastTarget = false;
+                    }
+        }
+
+        private void OnDestroy()
+        {
+            if (focusHighlight != null) Destroy(focusHighlight.gameObject);
+        }
+
+        private void OnDisable()
+        {
+            ClearFocus();
             ClearSelectedTarget();
             HideAllIdBoxes();
             SetWarning(null);
@@ -684,13 +760,16 @@ namespace RaceFatal.Presentation.Vehicles
                     continue;
                 }
                 Vector3 point = view.transform.TransformPoint(targetLocalOffset);
-                if (!TryProjectToHud(point, out Vector2 uv) || (requireLineOfSight && !HasLineOfSight(view, point)))
+                bool projected = TryProjectToHud(point, out Vector2 uv);
+                // Zoom can temporarily push the selected bike outside the HUD. Keep it
+                // selected while the camera settles, rather than jumping to another racer.
+                if ((!projected && view != focusedRacer) || (requireLineOfSight && !HasLineOfSight(view, point)))
                     continue;
                 focusCandidates.Add(new TargetCandidate { View = view, HudUv = uv,
                     CenterScore = (uv - new Vector2(0.5f, 0.5f)).sqrMagnitude });
             }
             // Stable roster order makes Tab predictable even when racers cross
-            // each other on screen. Keep the current focus until it leaves view.
+            // each other on screen. Keep the current focus while it remains valid.
             focusCandidates.Sort((a, b) => string.CompareOrdinal(a.View.Participant.RacerId, b.View.Participant.RacerId));
             int index = focusCandidates.FindIndex(candidate => candidate.View == focusedRacer);
             if (index < 0 && focusCandidates.Count > 0)
