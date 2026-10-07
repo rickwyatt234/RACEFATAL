@@ -4,6 +4,7 @@ namespace RaceFatal.Presentation.Bootstrap
     {
         FrontEnd,
         PrototypeRace,
-        StayInBootstrap
+        StayInBootstrap,
+        PublisherBuild
     }
 }
