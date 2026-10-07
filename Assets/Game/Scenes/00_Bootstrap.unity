@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Bootstrap.BootstrapController
   contentCatalog: {fileID: 11400000, guid: 918b4b43a805dd44587e8bf1b2582efe, type: 2}
-  startupMode: 0
+  startupMode: 3
   frontEndSceneName: 03_MainMenu
 --- !u!4 &1077839326
 Transform:
