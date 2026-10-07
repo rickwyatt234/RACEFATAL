@@ -367,7 +367,9 @@ namespace RaceFatal.Presentation.Racing
 
             if (continueButtonText != null)
             {
-                continueButtonText.text = payoutPanel != null ? "VIEW PAYOUT" : "RETURN TO CAREER";
+                continueButtonText.text = payoutPanel != null
+                    ? "VIEW PAYOUT"
+                    : PublisherBuildController.IsActive ? "PUBLISHER OPTIONS" : "RETURN TO CAREER";
             }
 
             if (releaseCursorOnOutcome)
@@ -392,7 +394,8 @@ namespace RaceFatal.Presentation.Racing
             if (outcomeTitle != null) outcomeTitle.text = "EVENT PAYOUT";
             if (outcomeSubtitle != null) outcomeSubtitle.text = "REWARDS & CAREER STATUS";
             RenderPayout(result);
-            if (continueButtonText != null) continueButtonText.text = "RETURN TO CAREER";
+            if (continueButtonText != null)
+                continueButtonText.text = PublisherBuildController.IsActive ? "PUBLISHER OPTIONS" : "RETURN TO CAREER";
             continueButton?.Select();
         }
 
@@ -462,6 +465,17 @@ namespace RaceFatal.Presentation.Racing
         {
             if (leavingRace)
                 return;
+
+            if (PublisherBuildController.TryReturnToPublisherMenu())
+            {
+                leavingRace = true;
+                debugLeavingRace = true;
+                if (continueButton != null)
+                    continueButton.interactable = false;
+                if (continueButtonText != null)
+                    continueButtonText.text = "LOADING...";
+                return;
+            }
             if (string.IsNullOrWhiteSpace(postRaceSceneName))
             {
                 Debug.LogError("RaceOutcomeController has no Post Race Scene Name assigned.", this);
