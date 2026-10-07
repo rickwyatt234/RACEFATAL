@@ -23,6 +23,9 @@ namespace RaceFatal.Presentation.Racing
         [Header("Race")] [SerializeField] private RaceDefinitionSO race;
         [SerializeField] private string raceSceneName = "10_Race";
         [Header("Launch")] [SerializeField] private bool launchOnStart = true;
+
+        public BikeBuildDefinitionSO DefaultPlayerBuild => playerStarterBuild;
+
         private void Start()
         {
             RaceStartupTrace.Mark("PrototypeRaceLauncher.Start() " + $"LaunchOnStart={launchOnStart}", this);
@@ -38,7 +41,17 @@ namespace RaceFatal.Presentation.Racing
         [ContextMenu("Launch Prototype Race")]
         public void Launch()
         {
-            RaceStartupTrace.Mark("Prototype race launch requested.", this);
+            LaunchInternal(playerStarterBuild, false);
+        }
+
+        public void LaunchPublisherRace(BikeBuildDefinitionSO selectedPlayerBuild)
+        {
+            LaunchInternal(selectedPlayerBuild != null ? selectedPlayerBuild : playerStarterBuild, true);
+        }
+
+        private void LaunchInternal(BikeBuildDefinitionSO selectedPlayerBuild, bool recreateSession)
+        {
+            RaceStartupTrace.Mark(recreateSession ? "Publisher race launch requested." : "Prototype race launch requested.", this);
             GameContext context = BootstrapController.Context;
             if (context == null)
             {
@@ -53,7 +66,7 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
-            if (playerStarterBuild == null)
+            if (selectedPlayerBuild == null)
             {
                 RaceStartupTrace.Fail("Player starter build is not assigned.", this);
                 return;
@@ -77,9 +90,9 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(playerStarterBuild.Id))
+            if (string.IsNullOrWhiteSpace(selectedPlayerBuild.Id))
             {
-                RaceStartupTrace.Fail("Player starter bike build " + "has no ID.", playerStarterBuild);
+                RaceStartupTrace.Fail("Player starter bike build " + "has no ID.", selectedPlayerBuild);
                 return;
             }
 
@@ -96,10 +109,17 @@ namespace RaceFatal.Presentation.Racing
             }
 
             RaceStartupTrace.Mark($"Prototype content validated. " + $"Race='{race.Id}'.");
+            if (recreateSession && context.Sessions.HasSession)
+            {
+                context.RaceLaunch.Clear();
+                context.Sessions.ClearSession();
+                RaceStartupTrace.Mark("Publisher session reset for selected loadout.");
+            }
+
             if (!context.Sessions.HasSession)
             {
                 RaceStartupTrace.Mark("Creating new game session...");
-                var request = new NewGameRequest(teamName, primaryColor, secondaryColor, playerName, partner.Id, playerStarterBuild.Id, partnerStarterBuild.Id);
+                var request = new NewGameRequest(teamName, primaryColor, secondaryColor, playerName, partner.Id, selectedPlayerBuild.Id, partnerStarterBuild.Id);
                 Result<GameSessionState> sessionResult = context.Sessions.CreateNewSession(request);
                 if (!sessionResult.IsSuccess)
                 {
