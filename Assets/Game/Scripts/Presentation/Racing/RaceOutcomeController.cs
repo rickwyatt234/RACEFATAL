@@ -295,6 +295,12 @@ namespace RaceFatal.Presentation.Racing
                 return;
             if (finalResults)
             {
+                if (PublisherBuildController.IsActive)
+                {
+                    ReturnFromRace();
+                    return;
+                }
+
                 if (!payoutVisible && payoutPanel != null)
                     ShowPayoutPage();
                 else
@@ -367,9 +373,9 @@ namespace RaceFatal.Presentation.Racing
 
             if (continueButtonText != null)
             {
-                continueButtonText.text = payoutPanel != null
-                    ? "VIEW PAYOUT"
-                    : PublisherBuildController.IsActive ? "PUBLISHER OPTIONS" : "RETURN TO CAREER";
+                continueButtonText.text = PublisherBuildController.IsActive
+                    ? "PUBLISHER OPTIONS"
+                    : payoutPanel != null ? "VIEW PAYOUT" : "RETURN TO CAREER";
             }
 
             if (releaseCursorOnOutcome)
