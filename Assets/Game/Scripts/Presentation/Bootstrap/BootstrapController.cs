@@ -74,6 +74,9 @@ namespace RaceFatal.Presentation.Bootstrap
                 case BootstrapStartupMode.StayInBootstrap:
                     RaceStartupTrace.Mark("Bootstrap startup mode is StayInBootstrap.", this);
                     break;
+                case BootstrapStartupMode.PublisherBuild:
+                    LaunchPublisherBuild();
+                    break;
             }
         }
 
@@ -105,6 +108,14 @@ namespace RaceFatal.Presentation.Bootstrap
             }
 
             launcher.Launch();
+        }
+
+        private void LaunchPublisherBuild()
+        {
+            PublisherBuildController publisher = GetComponent<PublisherBuildController>();
+            if (publisher == null)
+                publisher = gameObject.AddComponent<PublisherBuildController>();
+            publisher.Begin();
         }
 
         private GameContext InitializeGameContext()
