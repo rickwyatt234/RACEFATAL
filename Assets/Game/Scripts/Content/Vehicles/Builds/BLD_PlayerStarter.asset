@@ -27,12 +27,15 @@ MonoBehaviour:
   - equipment: {fileID: 11400000, guid: 463ff824628f33a4d82909b70c48124c, type: 2}
     nodeSize: 0
     nodeIndex: 1
-  - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+  - equipment: {fileID: 11400000, guid: 2a4cb5c0ce7a48a38861324ba3f0b3c1, type: 2}
     nodeSize: 1
     nodeIndex: 0
-  - equipment: {fileID: 11400000, guid: 49380ec564638b5458e951a9350f1fe3, type: 2}
+  - equipment: {fileID: 11400000, guid: d10e34f76d9b410b9b3b62808aed54aa, type: 2}
+    nodeSize: 1
+    nodeIndex: 1
+  - equipment: {fileID: 11400000, guid: e5ac5a5ba3574e47aaaeb580c62a5ec4, type: 2}
     nodeSize: 2
     nodeIndex: 0
-  - equipment: {fileID: 11400000, guid: 4365eae4d206dd3448e2cb7576eaa371, type: 2}
+  - equipment: {fileID: 11400000, guid: 73b137646cbb4b598221f98d6634ce3b, type: 2}
     nodeSize: 2
     nodeIndex: 1

@@ -678,10 +678,10 @@ namespace RaceFatal.Presentation.Combat
                 position = groundHit.point + groundHit.normal * 0.08f;
             }
 
-            GameObject mineObject = new GameObject("Ballistic Mine");
+            GameObject mineObject = profile != null && profile.DeployedMineVfxPrefab != null ? Instantiate(profile.DeployedMineVfxPrefab) : new GameObject("Ballistic Mine");
             mineObject.transform.position = position;
             mineObject.transform.rotation = racer.transform.rotation;
-            BallisticMineView mine = mineObject.AddComponent<BallisticMineView>();
+            BallisticMineView mine = mineObject.GetComponent<BallisticMineView>();
             mine.Initialize(runtime, profile, fireEvent.RacerId, fireEvent.Damage, fireEvent.ExplosionRadius, fireEvent.ArmingDelay, fireEvent.Lifetime);
         }
 

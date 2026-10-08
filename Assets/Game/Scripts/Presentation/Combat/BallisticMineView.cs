@@ -17,7 +17,7 @@ namespace RaceFatal.Presentation.Combat
         private float explosionRadius;
         private float armedTime;
         private float expireTime;
-        private SphereCollider trigger;
+        private BoxCollider trigger;
         private Light warningLight;
         private Material visualMaterial;
         private bool initialized;
@@ -85,7 +85,7 @@ namespace RaceFatal.Presentation.Combat
                 return;
             detonated = true;
             damagedRacerIds.Clear();
-            Collider[] overlaps = Physics.OverlapSphere(transform.position, explosionRadius, ~0, QueryTriggerInteraction.Collide);
+            Collider[] overlaps = Physics.OverlapBox(transform.position, trigger.size * 0.5f, transform.rotation, ~0, QueryTriggerInteraction.Collide);
             for (int i = 0; i < overlaps.Length; i++)
             {
                 Collider hit = overlaps[i];
@@ -131,19 +131,20 @@ namespace RaceFatal.Presentation.Combat
 
         private void EnsureTrigger()
         {
-            trigger = GetComponent<SphereCollider>();
+            trigger = GetComponent<BoxCollider>();
             if (trigger == null)
             {
-                trigger = gameObject.AddComponent<SphereCollider>();
+                trigger = gameObject.AddComponent<BoxCollider>();
             }
 
             trigger.isTrigger = true;
-            trigger.radius = Mathf.Max(0.65f, explosionRadius * 0.45f);
+            trigger.size = Vector3.one * Mathf.Max(0.65f, explosionRadius * 0.45f);
         }
 
         private void BuildVisual()
         {
-            GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            // Use the prefab for the visual representation of the mine if available
+            GameObject visual = profile != null && profile.DeployedMineVfxPrefab != null ? Instantiate(profile.DeployedMineVfxPrefab) : new GameObject(GameObject.CreatePrimitive(PrimitiveType.Sphere).name);
             visual.name = "Mine Visual";
             visual.transform.SetParent(transform, false);
             visual.transform.localScale = Vector3.one * 0.22f;
@@ -184,8 +185,13 @@ namespace RaceFatal.Presentation.Combat
                 marker.transform.localPosition = profile.DeployedMineVfxOffset;
                 marker.transform.localScale = profile.DeployedMineVfxScale;
                 marker.SetActive(true);
+                // Loop all particle systems in the marker to ensure they play over and over again
                 foreach (ParticleSystem particles in marker.GetComponentsInChildren<ParticleSystem>(true))
-                    if (particles.gameObject.activeInHierarchy) particles.Play();
+                {
+                    if (particles.main.loop)
+                        particles.Play();
+                }
+
                 return;
             }
 

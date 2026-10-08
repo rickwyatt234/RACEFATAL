@@ -13,7 +13,16 @@ MonoBehaviour:
   m_Name: WeaponPresentation_BallisticMine
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Combat.WeaponPresentationProfile
   weaponDefinitionId: weapon_ballistic_mine
-  projectilePrefab: {fileID: 0}
+  reticleSprite: {fileID: 0}
+  reticleSize: {x: 36, y: 36}
+  reticleColor: {r: 0.4, g: 1, b: 1, a: 0.9}
+  reticlePlacement: 0
+  reticleViewportPosition: {x: 0.5, y: 0.5}
+  reticleViewportOffset: {x: 0, y: 0}
+  deployedMineVfxPrefab: {fileID: 5365641046489203602, guid: 1db149e4f369066499c2ec0a0bcc98c5, type: 3}
+  deployedMineVfxOffset: {x: 0, y: 0.05, z: 0}
+  deployedMineVfxScale: {x: 1, y: 1, z: 1}
+  projectilePrefab: {fileID: 6063185291627648028, guid: 1db149e4f369066499c2ec0a0bcc98c5, type: 3}
   muzzlePrefab: {fileID: 0}
   muzzleFallbackLifetime: 1
   chargePrefab: {fileID: 0}
@@ -31,7 +40,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 74c06e118e36c4d17be16348a39e10c0, type: 3}
   - {fileID: 8300000, guid: d237fed0d3c184243814277808c0f833, type: 3}
   - {fileID: 8300000, guid: 349670ad0d46e49b7a8c2020d7f570d1, type: 3}
-  fireVolume: 0.28
+  fireVolume: 0.45
   fireVolumeVariation: 0.04
   minimumFirePitch: 0.55
   maximumFirePitch: 0.72

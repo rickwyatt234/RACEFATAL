@@ -31,7 +31,7 @@ MonoBehaviour:
   spreadAngle: 0
   explosionRadius: 8
   armingDelay: 0.45
-  lifetime: 60
+  lifetime: 300
   exposureDuration: 0
   effectDuration: 0
   statusDamagePerSecond: 0

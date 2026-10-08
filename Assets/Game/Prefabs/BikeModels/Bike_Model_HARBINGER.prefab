@@ -105262,6 +105262,11 @@ MonoBehaviour:
   energyText: {fileID: 6469815529070420796}
   damageFill: {fileID: 0}
   damageText: {fileID: 0}
+  showIntegrity: 1
+  integrityRoot: {fileID: 0}
+  integrityAnchor: {x: 0.5, y: 1}
+  integrityPosition: {x: 0, y: 3}
+  integritySize: {x: 220, y: 70}
   shieldGroup: {fileID: 2338797702251032180}
   shieldFill: {fileID: 5365567628836125030}
   shieldText: {fileID: 7012328041243727913}
