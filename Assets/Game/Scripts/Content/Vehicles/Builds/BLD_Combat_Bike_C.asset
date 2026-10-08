@@ -10,29 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ddc41656e53c7d4aac70a9c6915810f, type: 3}
-  m_Name: BLD_Opponent_A
+  m_Name: BLD_Combat_Bike_C
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.BikeBuildDefinitionSO
-  id: opponent_a
-  displayName: BLD_Opponent_A
+  id: bld_c
+  displayName: Combat Bike C
+  availableInShop: 1
+  creditCost: 12000
+  requiredTechnologyId: 
   bike: {fileID: 11400000, guid: 4f3d9767807c9614d964baf02830c080, type: 2}
   engine: {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
-  chassis: {fileID: 11400000, guid: 408f002c587274c429a431047d3cc38e, type: 2}
+  chassis: {fileID: 11400000, guid: 4c511b224c454ee43b47968518978ad7, type: 2}
   equipment:
   - equipment: {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
     nodeSize: 0
     nodeIndex: 0
-  - equipment: {fileID: 11400000, guid: f7d70ce11d6673c439b1a91745b3d660, type: 2}
+  - equipment: {fileID: 0}
     nodeSize: 0
     nodeIndex: 1
-  - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+  - equipment: {fileID: 11400000, guid: 2a4cb5c0ce7a48a38861324ba3f0b3c1, type: 2}
     nodeSize: 1
     nodeIndex: 0
-  - equipment: {fileID: 11400000, guid: 463ff824628f33a4d82909b70c48124c, type: 2}
+  - equipment: {fileID: 0}
     nodeSize: 1
     nodeIndex: 1
-  - equipment: {fileID: 11400000, guid: 49380ec564638b5458e951a9350f1fe3, type: 2}
+  - equipment: {fileID: 11400000, guid: 7bbec5421f8697e45872468c62eae825, type: 2}
     nodeSize: 2
     nodeIndex: 0
-  - equipment: {fileID: 11400000, guid: 4365eae4d206dd3448e2cb7576eaa371, type: 2}
+  - equipment: {fileID: 11400000, guid: 73b137646cbb4b598221f98d6634ce3b, type: 2}
     nodeSize: 2
     nodeIndex: 1

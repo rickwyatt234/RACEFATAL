@@ -27,8 +27,8 @@ MonoBehaviour:
   fireInterval: 0.8
   chargeDuration: 0
   targetLockDuration: 0
-  projectileCount: 18
-  spreadAngle: 34
+  projectileCount: 22
+  spreadAngle: 15
   explosionRadius: 0
   armingDelay: 0
   lifetime: 0

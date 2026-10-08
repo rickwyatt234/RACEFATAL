@@ -28,6 +28,7 @@ namespace RaceFatal.Content.Vehicles
         [SerializeField] private ChassisDefinitionSO chassis;
         [Header("Equipment")] [SerializeField] private List<EquipmentMount> equipment = new List<EquipmentMount>();
         public string Id => id;
+        public string DisplayName => displayName;
 
         public BikeBuildDefinition CreateDefinition()
         {

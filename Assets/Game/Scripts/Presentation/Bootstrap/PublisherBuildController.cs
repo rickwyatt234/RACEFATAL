@@ -156,7 +156,7 @@ namespace RaceFatal.Presentation.Bootstrap
             GUILayout.Label("CONTROLS", headingStyle);
             GUILayout.Space(8f);
             GUILayout.Label(
-                "W / RT — Accelerate\nS / LT — Brake\nA / D / Left Stick — Steer\nShift / A — Boost\nMouse 1 / RB — Activate selected equipment\nQ / E — Cycle equipment\nTab — Cycle focus target",
+                "W — Accelerate\nS — Brake  A / D — Steer\nShift — Boost\nMouse 1 — Activate selected equipment\nQ / E — Cycle equipment\nCtrl — Enter Focus Mode\nTab — Cycle focus target",
                 bodyStyle);
             GUILayout.FlexibleSpace();
 
