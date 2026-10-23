@@ -26,3 +26,4 @@ MonoBehaviour:
   startingAmmo: 10
   fireInterval: 0.75
   chargeDuration: 3
+  energyPerActivation: 85

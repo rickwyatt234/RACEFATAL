@@ -48,6 +48,20 @@ namespace RaceFatal.Presentation.Vehicles
 
             motor.SetPerformance(participant.Vehicle.Performance);
             motor.SetRuntimeModifiers(participant.Vehicle.EquipmentSystem.SpeedMultiplier, participant.Vehicle.EquipmentSystem.AccelerationMultiplier, participant.Vehicle.TemporaryHandlingMultiplier);
+            if (RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive)
+            {
+                var path = FindFirstObjectByType<RaceFatal.Presentation.Tracks.TrackProgressPath>();
+                if (path != null && path.TotalLength > 0f)
+                {
+                    int segment;
+                    float progress = path.GetProgress(motor.transform.position,-1,path.SegmentCount,out segment);
+                    float look = path.AdvanceProgressByDistance(progress,Mathf.Max(15f,motor.SpeedMetersPerSecond*0.5f));
+                    Vector3 direction = path.GetPositionAtProgress(look)-motor.transform.position;
+                    float angle = Vector3.SignedAngle(motor.transform.forward,Vector3.ProjectOnPlane(direction,motor.transform.up),motor.transform.up);
+                    motor.SetControls(0.35f,Mathf.Abs(angle)>30f?0.5f:0f,Mathf.Clamp(angle/30f,-1f,1f));
+                    return;
+                }
+            }
             motor.SetControls(input.Throttle, input.Brake, input.Steering);
         }
 

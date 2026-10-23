@@ -148,7 +148,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (input != null && input.FocusHeld)
+            if (!RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive && input != null && input.FocusHeld)
             {
                 UpdateIdBoxes();
             }
@@ -397,7 +397,7 @@ namespace RaceFatal.Presentation.Vehicles
                 HideTargeting();
             }
 
-            bool cyclePressed = input != null && input.NextTargetPressed && !input.FocusHeld;
+            bool cyclePressed = input != null && !RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive && input.NextTargetPressed && !input.FocusHeld;
             if (input != null && input.FocusHeld)
             {
                 // Inspect and lock the same racer in focus mode. A teammate or
@@ -782,7 +782,7 @@ namespace RaceFatal.Presentation.Vehicles
                         if (focusCandidates[i].CenterScore < focusCandidates[index].CenterScore) index = i;
                 }
             }
-            else if (index >= 0 && input != null && input.NextTargetPressed)
+            else if (index >= 0 && input != null && !RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive && input.NextTargetPressed)
                 index = (index + 1) % focusCandidates.Count;
             focusedRacer = index >= 0 ? focusCandidates[index].View : null;
             if (focusedRacer != null)

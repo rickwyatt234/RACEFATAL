@@ -5,7 +5,19 @@ namespace RaceFatal.Energy
     public class EnergyPool
     {
         public float CurrentEnergy { get; private set; }
-        public float MaxEnergy { get; }
+        public float StartingCapacity { get; }
+        public float MaxEnergy { get; private set; }
+        public float LostCapacity => StartingCapacity - MaxEnergy;
+
+        public float ApplyBoostStrain(float amount)
+        {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount <= 0f) return 0f;
+            float lost = Math.Min(MaxEnergy, amount);
+            MaxEnergy -= lost;
+            CurrentEnergy = Math.Min(CurrentEnergy, MaxEnergy);
+            OnEnergyChanged?.Invoke(CurrentEnergy, MaxEnergy);
+            return lost;
+        }
         public bool IsEmpty => CurrentEnergy <= 0f;
         public float EnergyRatio => MaxEnergy > 0f ? CurrentEnergy / MaxEnergy : 0f;
 
@@ -17,13 +29,14 @@ namespace RaceFatal.Energy
                 throw new ArgumentOutOfRangeException(nameof(maxEnergy), "Max energy must be finite and nonnegative.");
             }
 
+            StartingCapacity = maxEnergy;
             MaxEnergy = maxEnergy;
             CurrentEnergy = maxEnergy;
         }
 
         public bool CanSpend(float amount)
         {
-            return amount >= 0f && CurrentEnergy >= amount;
+            return !float.IsNaN(amount) && !float.IsInfinity(amount) && amount >= 0f && CurrentEnergy >= amount;
         }
 
         public bool TrySpend(float amount)
@@ -37,7 +50,7 @@ namespace RaceFatal.Energy
 
         public float SpendUpTo(float amount)
         {
-            if (amount <= 0f || CurrentEnergy <= 0f)
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount <= 0f || CurrentEnergy <= 0f)
             {
                 return 0f;
             }
@@ -50,7 +63,7 @@ namespace RaceFatal.Energy
 
         public float Recharge(float amount)
         {
-            if (amount <= 0f)
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount <= 0f)
                 return 0f;
             float previous = CurrentEnergy;
             CurrentEnergy = Math.Min(MaxEnergy, CurrentEnergy + amount);

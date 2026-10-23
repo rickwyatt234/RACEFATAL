@@ -18,7 +18,7 @@ static class Program
     {
         var database = new GameDatabase();
         var definition = new WeaponDefinition("weapon", "Test", NodeSize.Small, mode,
-            default, default, 100, 100, 10, 100, .2f, chargeDuration, 0, 0, null);
+            default, default, 100, 100, 10, 100, .2f, chargeDuration, 0, 0, null, energyPerActivation: 1f);
         database.AddEquipmentDefinition(definition);
         var loadout = new BikeLoadout(1, 0, 0);
         Check(loadout.InstallEquipment(new EquipmentFactory().Create(definition), NodeSize.Small, 0).IsSuccess, "Install failed");

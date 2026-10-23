@@ -197,19 +197,43 @@ namespace RaceFatal.Presentation.Vehicles
             speedText.text = speedKph.ToString("000");
         }
 
+        private UnityEngine.UI.Image boostCostPreview;
+        private UnityEngine.UI.Image capacityUnavailable;
         private void UpdateEnergy(RaceVehicleState vehicle)
         {
-            float maximum = vehicle.EnergyPool.MaxEnergy;
+            float maximum = vehicle.EnergyPool.StartingCapacity;
             float current = vehicle.EnergyPool.CurrentEnergy;
             float normalized = maximum > 0f ? current / maximum : 0f;
             normalized = Mathf.Clamp01(normalized);
             if (energyFill != null)
                 energyFill.fillAmount = normalized;
             if (energyText != null)
-                energyText.text = $"{normalized * 100f:0}%";
+                energyText.text = $"{current:0} / {vehicle.EnergyPool.MaxEnergy:0}  [BOOST {vehicle.EquipmentSystem.BoostEnergyPerSecond:0}/s | STRAIN {vehicle.EquipmentSystem.BoostStrainPerSecond:0}/s]";
+            if (energyFill != null)
+            {
+                if (boostCostPreview == null) boostCostPreview = MakeEnergyOverlay("OneSecondBoostPreview",new Color(1f,0.65f,0.1f,0.85f));
+                if (capacityUnavailable == null) capacityUnavailable = MakeEnergyOverlay("LostCapacity",new Color(0.6f,0.05f,0.2f,0.8f));
+                float capacityRatio = maximum > 0f ? vehicle.EnergyPool.MaxEnergy / maximum : 0f;
+                SetEnergyRegion(capacityUnavailable,capacityRatio,1f);
+                float costRatio = maximum > 0f ? vehicle.EquipmentSystem.BoostEnergyPerSecond / maximum : 0f;
+                SetEnergyRegion(boostCostPreview,Mathf.Max(0f,normalized-costRatio),normalized);
+            }
             debugEnergyPercent = normalized * 100f;
         }
 
+        private UnityEngine.UI.Image MakeEnergyOverlay(string name, Color color)
+        {
+            var go = new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(UnityEngine.UI.Image));
+            go.layer = energyFill.gameObject.layer;
+            go.transform.SetParent(energyFill.transform,false);
+            var image = go.GetComponent<UnityEngine.UI.Image>(); image.color=color; image.raycastTarget=false;
+            return image;
+        }
+        private static void SetEnergyRegion(UnityEngine.UI.Image image,float start,float end)
+        {
+            var rect=image.rectTransform; rect.anchorMin=new Vector2(Mathf.Clamp01(start),0f);rect.anchorMax=new Vector2(Mathf.Clamp01(end),1f);rect.offsetMin=rect.offsetMax=Vector2.zero;
+            image.enabled=end-start>0.0001f;
+        }
         private void UpdateDamage(RaceVehicleState vehicle)
         {
             float damage = vehicle.Damage.Percent;
@@ -324,7 +348,7 @@ namespace RaceFatal.Presentation.Vehicles
             if (weaponText != null)
                 weaponText.text = $"WEAPON  {weapon.DisplayName.ToUpperInvariant()}";
             if (ammoText != null)
-                ammoText.text = $"AMMO  {currentAmmo} / {maximumAmmo}";
+                ammoText.text = $"ENERGY / SHOT  {equipment.SelectedWeaponDefinition.EnergyPerActivation:0.#}";
             debugWeapon = weapon.DisplayName;
             debugWeaponAmmo = currentAmmo;
             debugWeaponMaximumAmmo = maximumAmmo;
@@ -358,7 +382,7 @@ namespace RaceFatal.Presentation.Vehicles
 
                 if (slot.ammoText != null)
                 {
-                    slot.ammoText.text = $"{snapshot.CurrentAmmo}";
+                    slot.ammoText.text = $"{snapshot.Definition.EnergyPerActivation:0.#} E";
                     slot.ammoText.color = color;
                 }
             }

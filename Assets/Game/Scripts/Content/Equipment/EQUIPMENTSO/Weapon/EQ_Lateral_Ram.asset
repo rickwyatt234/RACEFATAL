@@ -39,3 +39,4 @@ MonoBehaviour:
   dashDuration: 0.16
   impactPush: 7.5
   targetingHalfAngle: 42
+  energyPerActivation: 65

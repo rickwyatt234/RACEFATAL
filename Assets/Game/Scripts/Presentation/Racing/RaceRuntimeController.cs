@@ -31,6 +31,8 @@ namespace RaceFatal.Presentation.Racing
 
         private void Awake()
         {
+            if (GetComponent<RaceFatal.Presentation.Tactics.TacticalRaceController>() == null)
+                gameObject.AddComponent<RaceFatal.Presentation.Tactics.TacticalRaceController>();
             if (GetComponent<RacePauseController>() == null)
                 gameObject.AddComponent<RacePauseController>();
         }
@@ -168,6 +170,12 @@ namespace RaceFatal.Presentation.Racing
             RaceParticipant participant = playerView.Participant;
             if (participant?.Vehicle?.EquipmentSystem == null)
                 return;
+            if (RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive)
+            {
+                participant.Vehicle.EquipmentSystem.SetBoostActive(false);
+                participant.Vehicle.EquipmentSystem.CancelSelectedActivation();
+                return;
+            }
             bool raceActive = IsRaceActive && participant.Status == RaceParticipantStatus.Racing && !participant.Vehicle.IsDestroyed;
             participant.Vehicle.EquipmentSystem.SetBoostActive(raceActive && input.BoostHeld);
             if (!raceActive)
@@ -187,6 +195,11 @@ namespace RaceFatal.Presentation.Racing
                 RaceEquipmentSystem equipment = participant.Vehicle.EquipmentSystem;
                 WeaponDefinition weapon = equipment.SelectedWeaponDefinition;
                 bool canActivate = true;
+                if (weapon != null && weapon.DeliveryMode == WeaponDeliveryMode.Ram)
+                {
+                    var motor = playerView.GetComponent<BikeMotor>();
+                    canActivate = motor != null && Mathf.Abs(motor.SteeringInput) >= 0.05f;
+                }
                 if (weapon != null && weapon.AimMode == WeaponAimMode.Targeted && weapon.DeliveryMode == WeaponDeliveryMode.GuidedProjectile)
                 {
                     GuidedTargetLockState lockState = playerView.GetComponent<GuidedTargetLockState>();
@@ -206,9 +219,14 @@ namespace RaceFatal.Presentation.Racing
         }
 
         private void OnRacerRetired(RaceParticipant participant) => StopRacerControl(participant.RacerId);
-        private void OnRaceCompleted(RaceResult result) => StopAllVehicleControl();
+        private void OnRaceCompleted(RaceResult result)
+        {
+            GetComponent<RaceFatal.Presentation.Tactics.TacticalRaceController>()?.Close();
+            StopAllVehicleControl();
+        }
         private void OnRacerDestroyed(RaceParticipant participant)
         {
+            if (participant.RacerId == playerRacerId) GetComponent<RaceFatal.Presentation.Tactics.TacticalRaceController>()?.Close();
             participant.Vehicle.EquipmentSystem.SetBoostActive(false);
             if (!TryGetRacerView(participant.RacerId, out RacerViewController view))
             {

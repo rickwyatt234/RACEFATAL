@@ -87,6 +87,11 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (!initialized)
                 return 0f;
+            if (participant.Vehicle.EnergyPool.MaxEnergy <= 0f)
+            {
+                ClearTarget("Capacity exhausted");
+                return ReturnOffsetToZero();
+            }
             UpdateEnergyDebug();
             float effectiveSeekThreshold = playerResponse != null ? playerResponse.EnergySeekThreshold : beginSeekingEnergyPercent;
             effectiveSeekThreshold = Mathf.Clamp01(effectiveSeekThreshold);

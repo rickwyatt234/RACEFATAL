@@ -9,7 +9,7 @@ namespace RaceFatal.Presentation.Tracks
     public class EnergyStripTrigger : MonoBehaviour
     {
         [Header("Recharge")] [Tooltip("Amount of Energy restored per second while a racer remains on the strip.")] [Min(0f)] [SerializeField] private float rechargePerSecond =
-            20f;
+            200f;
         [Header("Runtime Debug")] [SerializeField] private int debugRacersOnStrip;
         [SerializeField] private float debugEnergyRestoredThisFrame;
         [SerializeField] private float debugTotalEnergyRestored;

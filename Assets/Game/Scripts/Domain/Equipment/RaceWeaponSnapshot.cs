@@ -4,6 +4,8 @@ namespace RaceFatal.Equipment
     {
         public string EquipmentId { get; }
         public WeaponDefinition Definition { get; }
+        // Legacy names expose affordable activations for existing targeting integrations.
+        public float EnergyPerActivation => Definition?.EnergyPerActivation ?? 0f;
         public int CurrentAmmo { get; }
         public int MaximumAmmo { get; }
         public bool IsSelected { get; }

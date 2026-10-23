@@ -18,6 +18,7 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("Runtime Debug")] [SerializeField] private bool focusActive;
         [SerializeField] private float currentTimeScale = 1f;
         private IRaceInputService input;
+        private RaceRuntimeController runtime;
         private float originalFixedDeltaTime;
         public bool IsFocusActive => focusActive;
 
@@ -28,6 +29,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void Start()
         {
+            runtime = FindFirstObjectByType<RaceRuntimeController>();
             ResolveInput();
         }
 
@@ -40,8 +42,8 @@ namespace RaceFatal.Presentation.Vehicles
                 ResolveInput();
             }
 
-            focusActive = input != null && input.FocusHeld;
-            float targetScale = focusActive ? focusTimeScale : 1f;
+            focusActive = runtime != null && runtime.IsRaceActive && input != null && input.FocusHeld;
+            float targetScale = RaceFatal.Presentation.Tactics.TacticalRaceController.IsActive ? RaceFatal.Presentation.Tactics.TacticalRaceController.Active.tacticalTimeScale : focusActive ? focusTimeScale : 1f;
             float speed = focusActive ? enterSpeed : exitSpeed;
             currentTimeScale = Mathf.MoveTowards(Time.timeScale, targetScale, speed * Time.unscaledDeltaTime);
             ApplyTimeScale(currentTimeScale);
@@ -76,7 +78,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void ApplyTimeScale(float scale)
         {
-            scale = Mathf.Clamp(scale, 0.01f, 1f);
+            scale = Mathf.Clamp(scale, 0.001f, 1f);
             Time.timeScale = scale;
             Time.fixedDeltaTime = originalFixedDeltaTime * scale;
         }

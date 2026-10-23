@@ -21,7 +21,7 @@ static class Program
         for (int i = 0; i < count; i++)
         {
             var definition = new WeaponDefinition("weapon" + i, "Test", NodeSize.Small, mode,
-                default, default, 100, 100, 10, 100, interval, .25f, 0, 0, null);
+                default, default, 100, 100, 10, 100, interval, .25f, 0, 0, null, energyPerActivation: 1f);
             db.AddEquipmentDefinition(definition);
             if (!loadout.InstallEquipment(new EquipmentFactory().Create(definition), NodeSize.Small, i).IsSuccess)
                 throw new Exception("Install failed");

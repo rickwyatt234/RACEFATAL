@@ -116,6 +116,9 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private float debugEffectiveCornerAcceleration;
         [SerializeField] private float debugEffectiveBrakeDeceleration;
         [Header("Debug Drawing")] [SerializeField] private bool drawDebugTarget = true;
+        private RaceFatal.Presentation.Tactics.PartnerOrderController partnerOrders;
+        private float energyReserve = 0.2f;
+        private float capacityReserve = 0.2f;
         private BikeMotor motor;
         private TrackSurfaceProbe surfaceProbe;
         private AIRacerSensor racerSensor;
@@ -187,6 +190,9 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             UpdatePathState();
+            if (partnerOrders != null && !partnerOrders.HasPlayer && raceRuntime.TryGetRacerView(raceRuntime.PlayerRacerId,out var partnerPlayer))
+                partnerOrders.Initialize(racerView,partnerPlayer,progressPath);
+            partnerOrders?.UpdateIntent();
             racePressurePlanner.UpdatePlan();
             playerResponsePlanner.UpdatePlan(racePressurePlanner.GapToPlayerMeters, racePressurePlanner.Role, Time.fixedDeltaTime);
             UpdateRacingLine();
@@ -197,6 +203,17 @@ namespace RaceFatal.Presentation.Vehicles
             CalculateSpeedControl();
             bool trafficLimited = !float.IsPositiveInfinity(overtakePlanner.TrafficSpeedLimitMetersPerSecond);
             bool boostChanged = boostPlanner.UpdatePlan(debugCornerSeverity, currentBrake, motor.SpeedMetersPerSecond, trafficLimited, IsOvertaking, energyStripPlanner.IsTargetingStrip, racePressurePlanner.Pressure, racePressurePlanner.Role, playerResponsePlanner);
+            var pool = participant.Vehicle.EnergyPool;
+            bool critical = participant.Vehicle.Damage.DamageRatio > 0.8f;
+            float distanceToStrip = progressPath.TotalLength;
+            foreach (var strip in EnergyStripAIAnchor.ActiveAnchors)
+                if (strip.TryGetTrackData(progressPath,out float stripProgress,out float stripLane)) distanceToStrip = Mathf.Min(distanceToStrip,Mathf.Repeat(stripProgress-currentProgress,1f)*progressPath.TotalLength);
+            float stripReserve = Mathf.Lerp(0.02f,energyReserve,Mathf.Clamp01(distanceToStrip/500f));
+            bool finalLap = participant.CompletedLaps >= raceRuntime.Director.State.RaceDefinition.LapCount-1;
+            float capacityThreshold = finalLap ? capacityReserve*0.2f : capacityReserve;
+            bool preserve = pool.EnergyRatio < stripReserve || pool.MaxEnergy < pool.StartingCapacity * capacityThreshold;
+            if (preserve || (partnerOrders != null && !partnerOrders.AllowBoost)) boostPlanner.StopBoost();
+            participant.Vehicle.EquipmentSystem.WeaponReserveRatio = partnerOrders != null && partnerOrders.Aggression == RaceFatal.Presentation.Tactics.PartnerAggression.Aggressive ? 0f : stripReserve;
             ApplyEquipmentModifiers();
             if (boostChanged)
             {
@@ -204,7 +221,13 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             string preferredCombatTarget = playerResponsePlanner.PreferPlayerTarget || racePressurePlanner.IsPriorityPursuit ? raceRuntime.PlayerRacerId : null;
-            combatPlanner.Tick(debugCornerSeverity, boostPlanner.IsBoosting, racePressurePlanner.Pressure, preferredCombatTarget, playerResponsePlanner.PlayerTargetBonus, playerResponsePlanner.CombatUrgency);
+            participant.Vehicle.EquipmentSystem.AutomaticWeaponsAllowed = !critical && (partnerOrders == null || partnerOrders.AllowAttack);
+            combatPlanner.CommandTargetId = partnerOrders?.CombatTargetId;
+            combatPlanner.RamOnly = partnerOrders != null && partnerOrders.Order == RaceFatal.Presentation.Tactics.PartnerOrder.Ram;
+            if (critical || (partnerOrders != null && !partnerOrders.AllowAttack)) combatPlanner.Stop();
+            else combatPlanner.Tick(debugCornerSeverity, boostPlanner.IsBoosting, racePressurePlanner.Pressure, partnerOrders?.CombatTargetId ?? preferredCombatTarget, playerResponsePlanner.PlayerTargetBonus, playerResponsePlanner.CombatUrgency);
+            if (partnerOrders != null && partnerOrders.TryGetRamSteering(out float ramSteering) && debugCornerSeverity < 0.25f && !defensiveControlActive)
+                currentSteering = ramSteering;
             motor.SetControls(currentThrottle, currentBrake, currentSteering);
         }
 
@@ -242,6 +265,23 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             participant = raceParticipant;
+            var philosophy = RaceFatal.Presentation.Bootstrap.BootstrapController.Context?.Database.GetOpponentTeamDefinition(participant.TeamId)?.Philosophy ?? RaceFatal.Shared.TeamPhilosophy.Balanced;
+            switch (philosophy)
+            {
+                case RaceFatal.Shared.TeamPhilosophy.Risk: energyReserve = 0.03f; capacityReserve = 0.02f; break;
+                case RaceFatal.Shared.TeamPhilosophy.Aggressive: energyReserve = 0.08f; capacityReserve = 0.12f; break;
+                case RaceFatal.Shared.TeamPhilosophy.Speed: energyReserve = 0.12f; capacityReserve = 0.08f; break;
+                case RaceFatal.Shared.TeamPhilosophy.Defensive: energyReserve = 0.35f; capacityReserve = 0.4f; break;
+                case RaceFatal.Shared.TeamPhilosophy.Opportunistic: energyReserve = 0.28f; capacityReserve = 0.3f; break;
+                case RaceFatal.Shared.TeamPhilosophy.Teamwork: energyReserve = 0.25f; capacityReserve = 0.25f; break;
+            }
+            if (participant.Role == RaceParticipantRole.PlayerPartner)
+            {
+                partnerOrders = GetComponent<RaceFatal.Presentation.Tactics.PartnerOrderController>() ?? gameObject.AddComponent<RaceFatal.Presentation.Tactics.PartnerOrderController>();
+                runtime.TryGetRacerView(runtime.PlayerRacerId, out var playerView);
+                partnerOrders.Initialize(racerView, playerView, path);
+                participant.Vehicle.EquipmentSystem.AutomaticWeaponsAllowed = false;
+            }
             raceRuntime = runtime;
             progressPath = path;
             currentSegment = -1;
@@ -433,6 +473,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             finalLateralOffset = Mathf.Clamp(desiredLateralOffset + tacticalOffset, -availableHalfWidth, availableHalfWidth);
+            if (!defensiveControlActive && !energyStripPlanner.IsTargetingStrip && Mathf.Abs(debugCrossTrackError) <= availableHalfWidth && partnerOrders != null && partnerOrders.TryGetLane(currentProgress, GetSurfaceNormal(), availableHalfWidth, out float orderLane))
+                finalLateralOffset = Mathf.MoveTowards(debugFinalLateralOffset, orderLane, maximumLateralShiftSpeed * Time.fixedDeltaTime);
             debugOvertakeOffset = overtakeOffset;
             debugEnergyStripOffset = energyOffset;
             debugDefensiveOffset = defensiveOffset;
@@ -554,6 +596,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             targetSpeed = Mathf.Clamp(targetSpeed, minimumCornerSpeedKph / 3.6f, desiredMaximumSpeed);
+            if (partnerOrders != null) targetSpeed = partnerOrders.LimitSpeed(currentProgress, targetSpeed);
             debugTargetSpeedKph = targetSpeed * 3.6f;
             float speedDifference = targetSpeed - motor.SpeedMetersPerSecond;
             if (speedDifference >= -brakeSpeedTolerance)

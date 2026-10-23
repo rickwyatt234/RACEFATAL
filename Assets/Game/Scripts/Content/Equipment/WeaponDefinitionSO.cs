@@ -13,7 +13,8 @@ namespace RaceFatal.Content.Equipment
         [SerializeField] private float range = 100f;
         [SerializeField] private float projectileSpeed = 100f;
         [Min(0f)] [SerializeField] private float damage;
-        [Header("Ammunition")] [Tooltip("Amount of ammunition this weapon receives at the beginning of each race.")] [Min(1)] [SerializeField] private int startingAmmo =
+        [Header("Energy")] [Min(0.01f)] [SerializeField] private float energyPerActivation = 10f;
+        [HideInInspector] [Tooltip("Legacy ammunition metadata retained for asset compatibility. Race weapons now consume energyPerActivation.")] [Min(1)] [SerializeField] private int startingAmmo =
             100;
         [Header("Timing")] [Tooltip("Minimum seconds between shots/activations. Applies to press, hold, charged and passive weapons; releasing or switching weapons does not reset it.")] [Min(0f)] [SerializeField] private float fireInterval;
         [Min(0f)] [SerializeField] private float chargeDuration;
@@ -38,7 +39,7 @@ namespace RaceFatal.Content.Equipment
             180f)] [SerializeField] private float targetingHalfAngle;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new WeaponDefinition(id, displayName, requiredNodeSize, activationMode, aimMode, deliveryMode, range, projectileSpeed, damage, startingAmmo, fireInterval, chargeDuration, targetLockDuration, creditCost, requiredTechnologyId, projectileCount, spreadAngle, explosionRadius, armingDelay, lifetime, exposureDuration, effectDuration, statusDamagePerSecond, lateralDistance, dashDuration, impactPush, targetingHalfAngle);
+            return new WeaponDefinition(id, displayName, requiredNodeSize, activationMode, aimMode, deliveryMode, range, projectileSpeed, damage, startingAmmo, fireInterval, chargeDuration, targetLockDuration, creditCost, requiredTechnologyId, projectileCount, spreadAngle, explosionRadius, armingDelay, lifetime, exposureDuration, effectDuration, statusDamagePerSecond, lateralDistance, dashDuration, impactPush, targetingHalfAngle, energyPerActivation);
         }
     }
 }

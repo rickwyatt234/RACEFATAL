@@ -151,6 +151,8 @@ namespace RaceFatal.Presentation.Vehicles
             public float AmmoFactor;
         }
 
+        public string CommandTargetId { get; set; }
+        public bool RamOnly { get; set; }
         public bool IsInitialized => initialized;
         public float WeaponAggression => weaponAggression;
 
@@ -511,6 +513,10 @@ namespace RaceFatal.Presentation.Vehicles
         private bool TryScoreOpportunity(RaceWeaponSnapshot weapon, Transform origin, RacerViewController target, float cornerSeverity, out TacticalOpportunity opportunity)
         {
             opportunity = default;
+            if (target == null || weapon.Definition == null) return false;
+            if (!string.IsNullOrEmpty(CommandTargetId) && target.RacerId != CommandTargetId) return false;
+            if (RamOnly && weapon.Definition.DeliveryMode != WeaponDeliveryMode.Ram) return false;
+
             WeaponDefinition definition = weapon.Definition;
             if (definition == null || origin == null || target == null)
             {
@@ -532,7 +538,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             float searchRange = Mathf.Min(pressureRange, definition.Range);
-            if (distance < minimumTargetDistance || distance > searchRange)
+            if (distance < (definition.DeliveryMode == WeaponDeliveryMode.Ram ? 0.5f : minimumTargetDistance) || distance > searchRange)
             {
                 return false;
             }
@@ -957,7 +963,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            equipment.EndSelectedActivation();
+            equipment.CancelSelectedActivation();
             weaponActive = false;
             cooldownTimer = runtimeBurstCooldown;
             debugWeaponActive = false;
@@ -1061,7 +1067,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            equipment.EndSelectedActivation();
+            equipment.CancelSelectedActivation();
             weaponActive = false;
             burstTimer = 0f;
             chargeTimer = 0f;

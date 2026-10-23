@@ -5,19 +5,18 @@ namespace RaceFatal.Equipment
 {
     public class RaceShieldState
     {
-        private readonly EnergyPool energy;
         private float timeSinceDamage;
         public ShieldDefinition Definition { get; }
         public float Current { get; private set; }
         public float BaseMaximum => Definition.Capacity;
-        public float Maximum => Definition.Capacity * Math.Clamp(energy.EnergyRatio, 0f, 1f);
+        public float Maximum => Definition.Capacity;
         public bool IsDepleted => Current <= 0f;
         public bool IsFullyCharged => Current >= Maximum;
 
         public RaceShieldState(ShieldDefinition definition, EnergyPool energy)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-            this.energy = energy ?? throw new ArgumentNullException(nameof(energy));
+            if (energy == null) throw new ArgumentNullException(nameof(energy));
             Current = Maximum;
             timeSinceDamage = Definition.RechargeDelay;
         }
@@ -42,13 +41,10 @@ namespace RaceFatal.Equipment
                 return;
             if (IsFullyCharged)
                 return;
+            float previousTime = timeSinceDamage;
             timeSinceDamage += deltaTime;
-            if (timeSinceDamage < Definition.RechargeDelay)
-            {
-                return;
-            }
-
-            Current = Math.Min(Maximum, Current + Definition.RechargePerSecond * deltaTime);
+            float rechargeTime = Math.Max(0f,timeSinceDamage - Math.Max(previousTime,Definition.RechargeDelay));
+            Current = Math.Min(Maximum, Current + Definition.RechargePerSecond * rechargeTime);
         }
 
         private void ClampToMaximum()
