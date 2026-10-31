@@ -18,5 +18,5 @@ MonoBehaviour:
   creditCost: 100
   requiredTechnologyId: DEV_TECH_SHIELD_01
   capacity: 100
-  rechargePerSecond: 10
-  rechargeDelay: 5
+  rechargePerSecond: 40
+  rechargeDelay: 2

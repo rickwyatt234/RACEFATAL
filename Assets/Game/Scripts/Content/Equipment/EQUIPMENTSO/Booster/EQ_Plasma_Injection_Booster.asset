@@ -17,8 +17,8 @@ MonoBehaviour:
   requiredNodeSize: 0
   creditCost: 0
   requiredTechnologyId: 
-  energyCapacity: 1100.0
-  energyPerSecond: 64.0
+  energyCapacity: 1100
+  capacityStrainPerSecond: 8
+  energyPerSecond: 64
   speedMultiplier: 1.25
   accelerationMultiplier: 1.35
-  capacityStrainPerSecond: 8
