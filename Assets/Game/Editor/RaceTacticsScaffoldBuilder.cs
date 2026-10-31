@@ -30,7 +30,7 @@ public static class RaceTacticsScaffoldBuilder
         EditorSceneManager.MarkSceneDirty(runtime.gameObject.scene);
         Undo.CollapseUndoOperations(group);
         Selection.activeGameObject = runtime.gameObject;
-        Debug.Log("Tactical UI ready. Save the scene. Hold Focus + Space; arrows pan, scroll zooms, Tab cycles, Enter opens actions, Home recenters. Resource rebalance is a separate menu action.");
+        Debug.Log("Tactical UI ready. Save the scene. Space toggles tactical; W/S pan, scroll zooms, MMB drag orbits, Q resets top-down, Tab cycles, Enter opens the action list, Home recenters. Resource rebalance is a separate menu action.");
     }
 
     [MenuItem("RACE//FATAL/Racing/Apply Energy and Survivability Rebalance")]

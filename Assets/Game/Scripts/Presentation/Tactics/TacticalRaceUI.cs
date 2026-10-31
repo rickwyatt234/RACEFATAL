@@ -7,25 +7,27 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace RaceFatal.Presentation.Tactics
 {
     public sealed class TacticalRaceUI : MonoBehaviour
     {
         [SerializeField] private Canvas canvas;
-        [SerializeField] private RectTransform radialRoot;
+        [FormerlySerializedAs("radialRoot")] [SerializeField] private RectTransform actionListRoot;
         [SerializeField] private TMP_Text details;
         [SerializeField] private TMP_Text orders;
         private TacticalRaceController controller;
-        private readonly List<GameObject> radialItems = new List<GameObject>();
+        private readonly List<GameObject> actionItems = new List<GameObject>();
         private readonly Dictionary<RacerViewController,Button> markers = new Dictionary<RacerViewController,Button>();
         private readonly Dictionary<EnergyStripAIAnchor,TMP_Text> strips = new Dictionary<EnergyStripAIAnchor,TMP_Text>();
-        private RacerViewController radialSelection;
+        private RacerViewController actionSelection;
         private TMP_Text positionMarker;
         public void Initialize(TacticalRaceController value)
         {
             controller = value;
             if (canvas == null) BuildUI();
+            ConfigureActionList();
             var controls = canvas.transform.Find("ControlsWindow");
             if (controls != null)
             {
@@ -45,10 +47,32 @@ namespace RaceFatal.Presentation.Tactics
             Text("TACTICAL // RACE CONTROL\nSpace: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down | Tab: cycle | Enter: actions | Home: player",Panel("ControlsWindow",root.transform,new Vector2(0,465),new Vector2(1750,95)),Vector2.zero,new Vector2(1700,90),23);
             details = Text("",Panel("ReconWindow",root.transform,new Vector2(-690,80),new Vector2(460,650)),Vector2.zero,new Vector2(430,620),22);
             orders = Text("",Panel("PartnerOrdersWindow",root.transform,new Vector2(0,-450),new Vector2(1650,110)),Vector2.zero,new Vector2(1600,100),23);
-            radialRoot = new GameObject("CommandWheel",typeof(RectTransform)).GetComponent<RectTransform>();
-            radialRoot.SetParent(root.transform,false); radialRoot.anchorMin = radialRoot.anchorMax = new Vector2(0.5f,0.5f); radialRoot.sizeDelta = new Vector2(650,650);
+            ConfigureActionList();
             if (Application.isPlaying && EventSystem.current == null) new GameObject("TacticalEventSystem",typeof(EventSystem),typeof(StandaloneInputModule));
             root.SetActive(false);
+        }
+        private void ConfigureActionList()
+        {
+            // Reuse the serialized wheel root so existing scenes need no UI rebuild.
+            if (actionListRoot == null)
+            {
+                actionListRoot = new GameObject("ActionsWindow", typeof(RectTransform)).GetComponent<RectTransform>();
+                actionListRoot.SetParent(canvas.transform, false);
+            }
+            actionListRoot.name = "ActionsWindow";
+            actionListRoot.anchorMin = actionListRoot.anchorMax = new Vector2(1f, 0.5f);
+            actionListRoot.pivot = new Vector2(1f, 0.5f);
+            actionListRoot.anchoredPosition = new Vector2(-30f, 0f);
+            actionListRoot.sizeDelta = new Vector2(340f, 560f);
+            var background = actionListRoot.GetComponent<Image>() ?? actionListRoot.gameObject.AddComponent<Image>();
+            background.color = new Color(0.02f, 0.03f, 0.06f, 0.96f);
+            background.raycastTarget = true;
+            if (actionListRoot.Find("ActionsHeader") == null)
+            {
+                var header = Text("RACER // ACTIONS", actionListRoot, new Vector2(0f, 245f), new Vector2(300f, 40f), 22f);
+                header.name = "ActionsHeader";
+            }
+            actionListRoot.gameObject.SetActive(false);
         }
         private void Update()
         {
@@ -73,8 +97,11 @@ namespace RaceFatal.Presentation.Tactics
             }
             else details.text = "Select a racer for recon and commands.";
             orders.text = controller.Partner != null ? $"PARTNER // {controller.Partner.Acknowledgment}\n{controller.Partner.Aggression} | {(controller.Partner.ConserveEnergy ? "CONSERVING" : "ENERGY AUTHORIZED")}" : "PARTNER // UNAVAILABLE";
-            if (radialSelection != selected) { radialSelection = selected; RebuildRadial(); }
-            radialRoot.gameObject.SetActive(controller.WheelOpen && selected != null);
+            if (actionSelection != selected) { actionSelection = selected; RebuildActionList(); }
+            actionListRoot.gameObject.SetActive(controller.WheelOpen && selected != null);
+            // World-space racer markers must not intercept clicks on the command list.
+            actionListRoot.SetAsLastSibling();
+            if (!controller.WheelOpen || selected == null) controller.ClearPreview();
         }
         private void UpdateMarkers()
         {
@@ -103,12 +130,13 @@ namespace RaceFatal.Presentation.Tactics
                 label.gameObject.SetActive(screen.z > 0f); label.transform.position = screen;
             }
         }
-        private void RebuildRadial()
+        private void RebuildActionList()
         {
-            foreach (var item in radialItems) Destroy(item); radialItems.Clear();
-            if (radialSelection == null) return;
+            foreach (var item in actionItems) { item.SetActive(false); Destroy(item); } actionItems.Clear();
+            controller.ClearPreview();
+            if (actionSelection == null) return;
             var actions = new List<(string,Action)>();
-            bool partner = radialSelection.Participant.Role == RaceParticipantRole.PlayerPartner;
+            bool partner = actionSelection.Participant.Role == RaceParticipantRole.PlayerPartner;
             if (partner)
             {
                 actions.Add(("FORM UP",() => controller.Command(PartnerOrder.FormUp)));
@@ -130,10 +158,10 @@ namespace RaceFatal.Presentation.Tactics
             }
             for(int i=0;i<actions.Count;i++)
             {
-                var action=actions[i]; float angle=(90f-i*360f/actions.Count)*Mathf.Deg2Rad;
-                var button=Button(action.Item1,radialRoot,new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*225f,new Vector2(175,65),action.Item2);
+                var action=actions[i];
+                var button=Button(action.Item1,actionListRoot,new Vector2(0f, 180f - i * 66f),new Vector2(300f,56f),action.Item2);
                 button.interactable = controller.Partner != null || action.Item1 == "TAG";
-                radialItems.Add(button.gameObject);
+                actionItems.Add(button.gameObject);
                 if(action.Item1.Contains("LEFT") || action.Item1.Contains("RIGHT"))
                 {
                     int side=action.Item1.Contains("LEFT")?-1:1; var trigger=button.gameObject.AddComponent<EventTrigger>();

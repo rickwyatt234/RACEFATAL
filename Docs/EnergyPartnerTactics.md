@@ -21,12 +21,12 @@ Existing 02_Race bindings and help text are updated in this change; no UI rebuil
 | Q | Reset orientation to track-aligned top-down |
 | Mouse wheel | Zoom |
 | Tab | Cycle visible racers and follow the selected racer |
-| Enter | Open/close selected racer's radial |
-| Click racer label | Select and open its radial |
-| Right mouse button | Close radial |
+| Enter | Open/close selected racer's action list |
+| Click racer label | Select and open its action list |
+| Right mouse button | Close action list |
 | Home | Return camera to player |
 
-Your bike remains labeled and cannot be selected. Team commands live on the partner's radial. Opponent radials contain tag, tail/assign, attack, pressure left/right, and ram. Hover a side command for its requested position marker. Zoom levels reveal name/team/speed, then shield/integrity, then energy/capacity/weapons/readiness. Recharge strips are marked in tactical view.
+Your bike remains labeled and cannot be selected. Team commands live on the partner's action list. Opponent action lists contain tag, tail/assign, attack, pressure left/right, and ram. Hover a side command for its requested position marker. Zoom levels reveal name/team/speed, then shield/integrity, then energy/capacity/weapons/readiness. Recharge strips are marked in tactical view.
 
 Tactical use is unlimited. The default timescale is 0.01. Menu/camera input uses unscaled time; race movement, cooldowns, shields, strip recharge, and spending use race time. A conservative centerline assist handles the player's bike while commanding; it does not fire or boost. Pause suspends tactical input and UI. Exiting restores the cockpit camera and cursor state, then eases time through focus speed (0.25 seconds) back to real time (1.1 seconds). Both durations are tunable on PlayerFocusModeController and use unscaled time. Holding normal Focus keeps the return at focus speed until released. Reopening tactical cancels the return; pause suspends it. Race completion/player destruction closes tactical view before outcome/death-camera handling.
 
@@ -66,3 +66,7 @@ Unity Editor and Play Mode are required to validate actual compilation against U
 5. Pause/resume inside tactical view and during the return transition; reopen tactical during the transition; hold/release Focus during the return; finish/die while tactical view is open. Check cursor, camera, time, audio, and weapon cancellation.
 6. Test formation, cover, side pressure, and ram on straights, banks, narrow sections, and near strips. Tune formation spacing/AI driving before judging coordinated attacks.
 7. Run complete 12-bike races and record finishers/deaths, shield breaks, energy droughts, and remaining capacity per lap. Tune weapon costs, shield delay/rate, and strip length/rate together.
+
+### Action list and close zoom
+
+Commands appear in a vertical panel anchored to the right edge. Existing saved wheel references migrate automatically; the UI builder creates the same panel for new scenes. The existing 02_Race scene is updated and needs no rebuild. Tactical camera distance now reaches 5 meters, with proportional scroll increments for finer close-range control. Other saved scenes can set Minimum Height to 5 on TacticalRaceController.

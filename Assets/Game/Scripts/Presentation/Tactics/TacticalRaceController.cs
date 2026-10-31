@@ -27,7 +27,7 @@ namespace RaceFatal.Presentation.Tactics
         private bool orbitDragging;
         [Header("Camera")] [Range(0.001f, 0.1f)] public float tacticalTimeScale = 0.01f;
         [Min(1f)] public float panMetersPerSecond = 150f;
-        [Min(5f)] public float minimumHeight = 18f;
+        [Min(5f)] public float minimumHeight = 5f;
         [Min(10f)] public float maximumHeight = 220f;
         public bool IsOpen { get; private set; }
         public RacerViewController Selected { get; private set; }
@@ -92,7 +92,7 @@ namespace RaceFatal.Presentation.Tactics
             if (UnityEngine.Input.GetMouseButtonDown(1)) WheelOpen = false;
             float pan = (UnityEngine.Input.GetKey(forwardKey) ? 1f : 0f) - (UnityEngine.Input.GetKey(backwardKey) ? 1f : 0f);
             if (pan != 0f) { following = false; Selected = null; WheelOpen = false; PositionPreview = null; progress = path.AdvanceProgressByDistance(progress,pan * panMetersPerSecond * Time.unscaledDeltaTime); }
-            height = Mathf.Clamp(height - UnityEngine.Input.mouseScrollDelta.y * 8f,minimumHeight,maximumHeight);
+            height = Mathf.Clamp(height * Mathf.Exp(-UnityEngine.Input.mouseScrollDelta.y * 0.12f),minimumHeight,maximumHeight);
             if (Selected != null && Selected.Participant.Status != RaceParticipantStatus.Racing) { Selected = null; WheelOpen = false; following = false; }
         }
         private void LateUpdate()
