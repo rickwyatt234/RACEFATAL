@@ -15,9 +15,9 @@ namespace RaceFatal.Presentation.Racing
         [Min(0f)] [SerializeField] private float preCountdownDelay = 0.5f;
         [Min(0.05f)] [SerializeField] private float countdownStepDuration = 1f;
         [Min(0f)] [SerializeField] private float goDisplayDuration = 0.75f;
-        [Header("Post-Start Equipment Locks")] [Tooltip("Time after GO before boosting becomes legal.")] [Min(0f)] [SerializeField] private float boostUnlockDelay =
+        [Header("Post-Start Equipment Locks")] [Tooltip("Race-time seconds after GO before boosting becomes legal. Slows with focus/tactical mode and stops while paused.")] [Min(0f)] [SerializeField] private float boostUnlockDelay =
             1.5f;
-        [Tooltip("Time after GO before weapons become legal.")] [Min(0f)] [SerializeField] private float weaponUnlockDelay = 3f;
+        [Tooltip("Race-time seconds after GO before weapons become legal. Slows with focus/tactical mode and stops while paused.")] [Min(0f)] [SerializeField] private float weaponUnlockDelay = 3f;
         [Header("UI")] [SerializeField] private CanvasGroup countdownGroup;
         [SerializeField] private TMP_Text countdownText;
         [SerializeField] private string goText = "GO!";
@@ -149,16 +149,27 @@ namespace RaceFatal.Presentation.Racing
 
         private IEnumerator UnlockBoostAfterDelay()
         {
-            yield return new WaitForSecondsRealtime(boostUnlockDelay);
-            UnlockBoost();
+            yield return WaitForRaceTime(boostUnlockDelay);
+            if (raceRuntime != null && raceRuntime.IsRaceActive) UnlockBoost();
             boostRoutine = null;
         }
 
         private IEnumerator UnlockWeaponsAfterDelay()
         {
-            yield return new WaitForSecondsRealtime(weaponUnlockDelay);
-            UnlockWeapons();
+            yield return WaitForRaceTime(weaponUnlockDelay);
+            if (raceRuntime != null && raceRuntime.IsRaceActive) UnlockWeapons();
             weaponRoutine = null;
+        }
+
+        private IEnumerator WaitForRaceTime(float secondsAfterGo)
+        {
+            // Use the same clock as vehicle equipment, not wall time. Reading the
+            // absolute time since GO also avoids drift from coroutine/frame timing.
+            while (raceRuntime != null && raceRuntime.IsRaceActive &&
+                (RacePauseController.IsGameplayBlocked || raceRuntime.Director.ElapsedRaceTime < secondsAfterGo))
+            {
+                yield return null;
+            }
         }
 
         private void UnlockBoost()
