@@ -3779,6 +3779,11 @@ MonoBehaviour:
   goClip: {fileID: 0}
   countdownVolume: 1
   goVolume: 1
+  equipmentCueSource: {fileID: 0}
+  boostUnlockedClip: {fileID: 8300000, guid: 8ca709892425d426a8c7105b5793b833, type: 3}
+  weaponsUnlockedClip: {fileID: 8300000, guid: 934259f758ac3468dbc69a1acab5ea0e, type: 3}
+  boostUnlockedVolume: 0.75
+  weaponsUnlockedVolume: 0.75
   debugRunning: 0
   debugRaceStarted: 0
   debugBoostAllowed: 0

@@ -70,3 +70,7 @@ Unity Editor and Play Mode are required to validate actual compilation against U
 ### Action list and close zoom
 
 Commands appear in a vertical panel anchored to the right edge. Existing saved wheel references migrate automatically; the UI builder creates the same panel for new scenes. The existing 02_Race scene is updated and needs no rebuild. Tactical camera distance now reaches 5 meters, with proportional scroll increments for finer close-range control. Other saved scenes can set Minimum Height to 5 on TacticalRaceController.
+
+### Equipment unlock audio
+
+RaceStartSequenceController plays distinct, once-per-race notifications when boosters and weapons become legal. The cues fire at the same race-clock thresholds as the permission changes. The 02_Race scene assigns existing Aeon clips: Activate Hologram Warm Short for boost, FUI Activation Chirp for weapons. Replace these and tune each volume under Equipment Unlock Audio. A dedicated 2D source is created automatically if none is assigned; it keeps normal pitch during slow motion and respects pause. Other scenes can assign the two clips on their start-sequence controller.

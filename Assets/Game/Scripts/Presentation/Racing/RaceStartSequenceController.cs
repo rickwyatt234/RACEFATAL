@@ -26,6 +26,13 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private AudioClip goClip;
         [Range(0f, 1f)] [SerializeField] private float countdownVolume = 1f;
         [Range(0f, 1f)] [SerializeField] private float goVolume = 1f;
+        [Header("Equipment Unlock Audio")]
+        [Tooltip("Optional dedicated 2D notification source. Created automatically when unassigned.")]
+        [SerializeField] private AudioSource equipmentCueSource;
+        [SerializeField] private AudioClip boostUnlockedClip;
+        [SerializeField] private AudioClip weaponsUnlockedClip;
+        [Range(0f, 1f)] [SerializeField] private float boostUnlockedVolume = 0.75f;
+        [Range(0f, 1f)] [SerializeField] private float weaponsUnlockedVolume = 0.75f;
         [Header("Runtime Debug")] [SerializeField] private bool debugRunning;
         [SerializeField] private bool debugRaceStarted;
         [SerializeField] private bool debugBoostAllowed;
@@ -174,15 +181,19 @@ namespace RaceFatal.Presentation.Racing
 
         private void UnlockBoost()
         {
+            if (debugBoostAllowed) return;
             SetBoostPermission(true);
             debugBoostAllowed = true;
+            PlayEquipmentCue(boostUnlockedClip, boostUnlockedVolume);
             OnBoostUnlocked?.Invoke();
         }
 
         private void UnlockWeapons()
         {
+            if (debugWeaponsAllowed) return;
             SetWeaponPermission(true);
             debugWeaponsAllowed = true;
+            PlayEquipmentCue(weaponsUnlockedClip, weaponsUnlockedVolume);
             OnWeaponsUnlocked?.Invoke();
         }
 
@@ -299,6 +310,26 @@ namespace RaceFatal.Presentation.Racing
 
 #endregion
 #region Audio
+        private void PlayEquipmentCue(AudioClip clip, float volume)
+        {
+            if (clip == null || volume <= 0f) return;
+            if (equipmentCueSource == null)
+            {
+                var cueObject = new GameObject("EquipmentUnlockAudio");
+                cueObject.transform.SetParent(transform, false);
+                equipmentCueSource = cueObject.AddComponent<AudioSource>();
+            }
+            // A notification is audible from either camera and keeps its natural
+            // pitch in slow motion. AudioListener.pause still suspends playback.
+            equipmentCueSource.playOnAwake = false;
+            equipmentCueSource.loop = false;
+            equipmentCueSource.spatialBlend = 0f;
+            equipmentCueSource.dopplerLevel = 0f;
+            equipmentCueSource.pitch = 1f;
+            equipmentCueSource.ignoreListenerPause = false;
+            equipmentCueSource.PlayOneShot(clip, Mathf.Clamp01(volume));
+        }
+
         private void PlayClip(AudioClip clip, float volume)
         {
             if (audioSource == null || clip == null)
