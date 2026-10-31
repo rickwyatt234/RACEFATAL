@@ -51,7 +51,6 @@ namespace RaceFatal.Presentation.Tactics
         private void Start()
         {
             runtime = GetComponent<RaceRuntimeController>();
-            path = FindFirstObjectByType<TrackProgressPath>();
             ui = GetComponent<TacticalRaceUI>() ?? gameObject.AddComponent<TacticalRaceUI>();
             ui.Initialize(this);
         }
@@ -111,11 +110,23 @@ namespace RaceFatal.Presentation.Tactics
         private float ProgressOf(RacerViewController view) { int segment; return path.GetProgress(view.transform.position,-1,path.SegmentCount,out segment); }
         public void Open()
         {
+            // The race assembler spawns the track after this component's early Start.
+            // Resolve the initialized race's path on entry, not from the startup scene.
+            if (runtime == null) runtime = GetComponent<RaceRuntimeController>();
+            path = runtime != null ? runtime.ProgressPath : null;
             RefreshRacers();
-            if (Player == null || path == null || path.TotalLength <= 0f) return;
+            if (Player == null || path == null || path.TotalLength <= 0f)
+            {
+                Debug.LogWarning("Cannot open tactical view: the player or initialized race track is unavailable.", this);
+                return;
+            }
             var cockpit = Player.GetComponentInChildren<PlayerCockpitView>(true);
             cockpitCamera = cockpit != null ? cockpit.CockpitCamera : Camera.main;
-            if (cockpitCamera == null) return;
+            if (cockpitCamera == null)
+            {
+                Debug.LogWarning("Cannot open tactical view: no player camera is available.", this);
+                return;
+            }
             if (tacticalCamera == null)
             {
                 var go = new GameObject("TacticalCamera"); go.tag = "MainCamera"; go.transform.SetParent(transform);

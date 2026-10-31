@@ -24,6 +24,7 @@ namespace RaceFatal.Presentation.Racing
         private IRaceInputService input;
         private string playerRacerId;
         public RaceDirector Director => raceDirector;
+        public TrackProgressPath ProgressPath => trackRuntime != null ? trackRuntime.ProgressPath : null;
         public string PlayerRacerId => playerRacerId;
         public bool IsInitialized => raceDirector != null;
         public bool HasStarted => raceDirector != null && raceDirector.State.IsStarted;
