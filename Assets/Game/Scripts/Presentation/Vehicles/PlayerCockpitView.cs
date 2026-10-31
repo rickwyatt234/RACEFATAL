@@ -367,6 +367,12 @@ namespace RaceFatal.Presentation.Vehicles
                 reticleCanvas.enabled = active;
             if (windshieldHudCanvas != null)
                 windshieldHudCanvas.enabled = active;
+            // The windshield display is a mesh showing a render texture. Hiding
+            // its source canvas alone leaves that mesh visible on every AI bike.
+            if (hudProjectionAnchor != null)
+                hudProjectionAnchor.gameObject.SetActive(active);
+            if (windshieldHudRenderRig != null)
+                windshieldHudRenderRig.gameObject.SetActive(active);
         }
 
         public void SetReticleVisible(bool visible)
