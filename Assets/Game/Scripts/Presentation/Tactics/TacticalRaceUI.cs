@@ -26,6 +26,12 @@ namespace RaceFatal.Presentation.Tactics
         {
             controller = value;
             if (canvas == null) BuildUI();
+            var controls = canvas.transform.Find("ControlsWindow");
+            if (controls != null)
+            {
+                var label = controls.GetComponentInChildren<TMP_Text>(true);
+                if (label != null) label.text = "TACTICAL // RACE CONTROL\nSpace: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down | Tab: cycle | Enter: actions | Home: player";
+            }
             if (Application.isPlaying && EventSystem.current == null)
                 new GameObject("TacticalEventSystem",typeof(EventSystem),typeof(StandaloneInputModule));
         }
@@ -36,7 +42,7 @@ namespace RaceFatal.Presentation.Tactics
             root.transform.SetParent(transform,false); canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 100;
             var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920,1080);
-            Text("TACTICAL // RACE CONTROL\nFocus + Space: toggle | Up / Down: track pan | Scroll: zoom | Tab: cycle | Enter: actions | Home: player",Panel("ControlsWindow",root.transform,new Vector2(0,465),new Vector2(1750,95)),Vector2.zero,new Vector2(1700,90),23);
+            Text("TACTICAL // RACE CONTROL\nSpace: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down | Tab: cycle | Enter: actions | Home: player",Panel("ControlsWindow",root.transform,new Vector2(0,465),new Vector2(1750,95)),Vector2.zero,new Vector2(1700,90),23);
             details = Text("",Panel("ReconWindow",root.transform,new Vector2(-690,80),new Vector2(460,650)),Vector2.zero,new Vector2(430,620),22);
             orders = Text("",Panel("PartnerOrdersWindow",root.transform,new Vector2(0,-450),new Vector2(1650,110)),Vector2.zero,new Vector2(1600,100),23);
             radialRoot = new GameObject("CommandWheel",typeof(RectTransform)).GetComponent<RectTransform>();

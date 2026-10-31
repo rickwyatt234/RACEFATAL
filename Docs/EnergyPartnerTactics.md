@@ -10,12 +10,15 @@ The runtime also creates a missing tactical controller/UI so an older scene rema
 
 ## Controls
 
+Existing 02_Race bindings and help text are updated in this change; no UI rebuild is required. For other saved race scenes, set TacticalRaceController Forward Key to W and Backward Key to S. The new orientation reset defaults to Q.
+
 | Input | Action |
 |---|---|
 | Hold existing Focus | Existing focus view |
-| Press Space while holding Focus | Toggle overhead tactical view |
-| Release Focus | Return to racing |
-| Up / Down arrow | Pan forward/backward along the circuit |
+| Space | Toggle tactical view directly from racing; no held modifier |
+| W / S | Clear racer selection and pan forward/backward along the circuit |
+| Middle mouse drag | Orbit selected racer, or current track position when none is selected |
+| Q | Reset orientation to track-aligned top-down |
 | Mouse wheel | Zoom |
 | Tab | Cycle visible racers and follow the selected racer |
 | Enter | Open/close selected racer's radial |
@@ -25,7 +28,7 @@ The runtime also creates a missing tactical controller/UI so an older scene rema
 
 Your bike remains labeled and cannot be selected. Team commands live on the partner's radial. Opponent radials contain tag, tail/assign, attack, pressure left/right, and ram. Hover a side command for its requested position marker. Zoom levels reveal name/team/speed, then shield/integrity, then energy/capacity/weapons/readiness. Recharge strips are marked in tactical view.
 
-Tactical use is unlimited. The default timescale is 0.01. Menu/camera input uses unscaled time; race movement, cooldowns, shields, strip recharge, and spending use race time. A conservative centerline assist handles the player's bike while commanding; it does not fire or boost. Pause suspends tactical input and UI. Exiting restores the cockpit camera and cursor state. Race completion/player destruction closes tactical view before outcome/death-camera handling.
+Tactical use is unlimited. The default timescale is 0.01. Menu/camera input uses unscaled time; race movement, cooldowns, shields, strip recharge, and spending use race time. A conservative centerline assist handles the player's bike while commanding; it does not fire or boost. Pause suspends tactical input and UI. Exiting restores the cockpit camera and cursor state, then eases time through focus speed (0.25 seconds) back to real time (1.1 seconds). Both durations are tunable on PlayerFocusModeController and use unscaled time. Holding normal Focus keeps the return at focus speed until released. Reopening tactical cancels the return; pause suspends it. Race completion/player destruction closes tactical view before outcome/death-camera handling.
 
 ## Resource rules
 
@@ -60,6 +63,6 @@ Unity Editor and Play Mode are required to validate actual compilation against U
 2. Spend energy, cross a strip, boost, and cross again: energy refills only to the reduced ceiling. Exhaust capacity and confirm normal driving and shields still work.
 3. Fire each weapon, including passive turret and charged railgun. Confirm no ammo depletion and no firing without sufficient energy.
 4. Enter tactical mode, pan around the lap, zoom, cycle/select, tag, and issue each partner order. Confirm your own bike never opens a wheel.
-5. Pause/resume inside tactical view; release Focus during pause; finish/die while tactical view is open. Check cursor, camera, time, audio, and weapon cancellation.
+5. Pause/resume inside tactical view and during the return transition; reopen tactical during the transition; hold/release Focus during the return; finish/die while tactical view is open. Check cursor, camera, time, audio, and weapon cancellation.
 6. Test formation, cover, side pressure, and ram on straights, banks, narrow sections, and near strips. Tune formation spacing/AI driving before judging coordinated attacks.
 7. Run complete 12-bike races and record finishers/deaths, shield breaks, energy droughts, and remaining capacity per lap. Tune weapon costs, shield delay/rate, and strip length/rate together.

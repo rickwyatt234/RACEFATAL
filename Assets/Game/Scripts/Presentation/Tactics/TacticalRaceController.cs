@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using RaceFatal.Presentation.Bootstrap;
 using RaceFatal.Presentation.Racing;
 using RaceFatal.Presentation.Tracks;
 using RaceFatal.Presentation.Vehicles;
@@ -14,11 +13,18 @@ namespace RaceFatal.Presentation.Tactics
         public static TacticalRaceController Active { get; private set; }
         public static bool IsActive => Active != null && Active.IsOpen;
         [Header("Input")] public KeyCode toggleKey = KeyCode.Space;
-        public KeyCode forwardKey = KeyCode.UpArrow;
-        public KeyCode backwardKey = KeyCode.DownArrow;
+        public KeyCode forwardKey = KeyCode.W;
+        public KeyCode backwardKey = KeyCode.S;
         public KeyCode cycleKey = KeyCode.Tab;
         public KeyCode selectKey = KeyCode.Return;
         public KeyCode recenterKey = KeyCode.Home;
+        public KeyCode resetOrientationKey = KeyCode.Q;
+        [Header("Orbit")] [Min(0.01f)] public float orbitDegreesPerPixel = 0.2f;
+        [Range(10f, 80f)] public float minimumOrbitElevation = 20f;
+        private float orbitYaw;
+        private float orbitElevation = 90f;
+        private Vector3 previousMousePosition;
+        private bool orbitDragging;
         [Header("Camera")] [Range(0.001f, 0.1f)] public float tacticalTimeScale = 0.01f;
         [Min(1f)] public float panMetersPerSecond = 150f;
         [Min(5f)] public float minimumHeight = 18f;
@@ -69,11 +75,9 @@ namespace RaceFatal.Presentation.Tactics
         }
         private void Update()
         {
-            if (RacePauseController.IsGameplayBlocked) return;
+            if (RacePauseController.IsGameplayBlocked) { orbitDragging = false; return; }
             if (runtime == null || !runtime.IsRaceActive)
             { if (IsOpen) Close(); return; }
-            bool focus = BootstrapController.Context?.Input?.FocusHeld == true;
-            if (!focus) { if (IsOpen) Close(); return; }
             if (UnityEngine.Input.GetKeyDown(toggleKey))
             { if (IsOpen) Close(); else Open(); }
             if (!IsOpen) return;
@@ -82,18 +86,20 @@ namespace RaceFatal.Presentation.Tactics
             { Close(); return; }
             if (UnityEngine.Input.GetKeyDown(cycleKey)) Cycle();
             if (UnityEngine.Input.GetKeyDown(recenterKey)) Recenter();
+            if (UnityEngine.Input.GetKeyDown(resetOrientationKey)) ResetOrientation();
+            UpdateOrbit();
             if (UnityEngine.Input.GetKeyDown(selectKey) && Selected != null) WheelOpen = !WheelOpen;
             if (UnityEngine.Input.GetMouseButtonDown(1)) WheelOpen = false;
             float pan = (UnityEngine.Input.GetKey(forwardKey) ? 1f : 0f) - (UnityEngine.Input.GetKey(backwardKey) ? 1f : 0f);
-            if (pan != 0f) { following = false; WheelOpen = false; progress = path.AdvanceProgressByDistance(progress,pan * panMetersPerSecond * Time.unscaledDeltaTime); }
+            if (pan != 0f) { following = false; Selected = null; WheelOpen = false; PositionPreview = null; progress = path.AdvanceProgressByDistance(progress,pan * panMetersPerSecond * Time.unscaledDeltaTime); }
             height = Mathf.Clamp(height - UnityEngine.Input.mouseScrollDelta.y * 8f,minimumHeight,maximumHeight);
             if (Selected != null && Selected.Participant.Status != RaceParticipantStatus.Racing) { Selected = null; WheelOpen = false; following = false; }
         }
         private void LateUpdate()
         {
-            if (!IsOpen || path == null || tacticalCamera == null) return;
+            if (!IsOpen || RacePauseController.IsGameplayBlocked || path == null || tacticalCamera == null) return;
             if (following && Selected != null) progress = ProgressOf(Selected);
-            Vector3 center = path.GetPositionAtProgress(progress);
+            Vector3 center = following && Selected != null ? Selected.transform.position : path.GetPositionAtProgress(progress);
             Vector3 forward = path.GetForwardAtProgress(progress);
             Vector3 normal = Vector3.up;
             float bestSurfaceDistance = float.PositiveInfinity;
@@ -105,8 +111,25 @@ namespace RaceFatal.Presentation.Tactics
             }
             forward = Vector3.ProjectOnPlane(forward,normal).normalized;
             if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
-            tacticalCamera.transform.SetPositionAndRotation(center + normal * height,Quaternion.LookRotation(-normal,forward));
+            Vector3 heading = Quaternion.AngleAxis(orbitYaw, normal) * forward;
+            float elevation = orbitElevation * Mathf.Deg2Rad;
+            Vector3 offset = normal * Mathf.Sin(elevation) - heading * Mathf.Cos(elevation);
+            tacticalCamera.transform.SetPositionAndRotation(center + offset * height, Quaternion.LookRotation(-offset, heading));
         }
+        private void UpdateOrbit()
+        {
+            if (!UnityEngine.Input.GetMouseButton(2)) { orbitDragging = false; return; }
+            Vector3 mouse = UnityEngine.Input.mousePosition;
+            if (orbitDragging)
+            {
+                Vector3 delta = mouse - previousMousePosition;
+                orbitYaw = Mathf.Repeat(orbitYaw + delta.x * orbitDegreesPerPixel, 360f);
+                orbitElevation = Mathf.Clamp(orbitElevation - delta.y * orbitDegreesPerPixel, minimumOrbitElevation, 90f);
+            }
+            previousMousePosition = mouse;
+            orbitDragging = true;
+        }
+        public void ResetOrientation() { orbitYaw = 0f; orbitElevation = 90f; orbitDragging = false; }
         private float ProgressOf(RacerViewController view) { int segment; return path.GetProgress(view.transform.position,-1,path.SegmentCount,out segment); }
         public void Open()
         {
@@ -139,13 +162,14 @@ namespace RaceFatal.Presentation.Tactics
             tacticalCamera.enabled = true;
             previousCursorLock = Cursor.lockState; previousCursorVisible = Cursor.visible;
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
-            IsOpen = true; Recenter();
+            IsOpen = true; ResetOrientation(); Recenter();
             Player.Participant.Vehicle.EquipmentSystem.CancelSelectedActivation();
             Player.Participant.Vehicle.EquipmentSystem.SetBoostActive(false);
         }
         public void Close()
         {
             if (!IsOpen) return;
+            orbitDragging = false;
             IsOpen = false; WheelOpen = false; PositionPreview = null;
             if (tacticalCamera != null) tacticalCamera.enabled = false;
             if (cockpitCamera != null) cockpitCamera.enabled = cockpitWasEnabled;

@@ -3104,8 +3104,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'TACTICAL // RACE CONTROL
 
-    Focus + Space: toggle | Up / Down: track
-    pan | Scroll: zoom | Tab: cycle | Enter: actions | Home: player'
+    Space: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down
+    | Tab: cycle | Enter: actions | Home: player'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3872,8 +3872,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tactics.TacticalRaceController
   toggleKey: 32
-  forwardKey: 273
-  backwardKey: 274
+  forwardKey: 119
+  backwardKey: 115
   cycleKey: 9
   selectKey: 13
   recenterKey: 278
