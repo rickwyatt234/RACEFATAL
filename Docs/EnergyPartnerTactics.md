@@ -74,3 +74,13 @@ Commands appear in a vertical panel anchored to the right edge. Existing saved w
 ### Equipment unlock audio
 
 RaceStartSequenceController plays distinct, once-per-race notifications when boosters and weapons become legal. The cues fire at the same race-clock thresholds as the permission changes. The 02_Race scene assigns existing Aeon clips: Activate Hologram Warm Short for boost, FUI Activation Chirp for weapons. Replace these and tune each volume under Equipment Unlock Audio. A dedicated 2D source is created automatically if none is assigned; it keeps normal pitch during slow motion and respects pause. Other scenes can assign the two clips on their start-sequence controller.
+
+### Track orientation and tactical camera transitions
+
+The circuit builder now preserves Entry, Exit, and intermediate Path point rotations alongside positions. Tactical view interpolates those frames at the same resampled path progress; it no longer casts toward world-down or chooses normals from nearby scenery. Author Path point up/forward axes to follow the road; use intermediate oriented points for twists of 180 degrees or more so the intended roll direction is unambiguous. Existing modular twist and vertical-turn prefabs already contain oriented anchors. Q means overhead relative to the local road, including inverted sections.
+
+TacticalRaceController exposes Camera Transitions: Enter Blend Duration and Exit Blend Duration (0.5 unscaled seconds each), plus Track Orientation Response (12). Space blends position, rotation, and FOV; exit follows the moving cockpit and keeps the existing gradual speed recovery. Pause freezes blends, rapid reversal starts from the current camera pose, and race-end/death/disable closes immediately. TacticalCameraPoseDriver is added automatically and updates after the cockpit pose; no prefab wiring is required.
+
+Play Mode checks: pan both directions through a vertical loop, a full corkscrew, the finish seam and stacked track crossings; follow a racer through the same sections. Verify Q/orbit, close zoom, entry/exit during focus, rapid Space reversal, pause/resume midway through a blend, and death/race completion during a blend.
+
+An Edit Mode validation command is available at **RACE//FATAL > Validation > Track Camera Frames**. It exercises the production path with a vertical loop and a full corkscrew, checking authored frames, frame-to-frame continuity, lap-seam continuity and rebuild cleanup. Run it in Unity before the Play Mode checks above.

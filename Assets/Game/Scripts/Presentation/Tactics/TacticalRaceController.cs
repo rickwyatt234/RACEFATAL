@@ -29,6 +29,18 @@ namespace RaceFatal.Presentation.Tactics
         [Min(1f)] public float panMetersPerSecond = 150f;
         [Min(5f)] public float minimumHeight = 5f;
         [Min(10f)] public float maximumHeight = 220f;
+        [Header("Camera Transitions")]
+        [Min(0.01f)] public float enterBlendDuration = 0.5f;
+        [Min(0.01f)] public float exitBlendDuration = 0.5f;
+        [Min(0f)] public float trackOrientationResponse = 12f;
+        private Quaternion trackFrame;
+        private bool hasTrackFrame;
+        private bool entering;
+        private bool exiting;
+        private float blendElapsed;
+        private Vector3 blendPosition;
+        private Quaternion blendRotation;
+        private float blendFieldOfView;
         public bool IsOpen { get; private set; }
         public RacerViewController Selected { get; private set; }
         public RacerViewController Player { get; private set; }
@@ -52,7 +64,11 @@ namespace RaceFatal.Presentation.Tactics
         private bool previousCursorVisible;
         private TacticalRaceUI ui;
 
-        private void Awake() { Active = this; }
+        private void Awake()
+        {
+            Active = this;
+            if (GetComponent<TacticalCameraPoseDriver>() == null) gameObject.AddComponent<TacticalCameraPoseDriver>();
+        }
         private void OnEnable() { Active = this; }
         private void Start()
         {
@@ -77,9 +93,9 @@ namespace RaceFatal.Presentation.Tactics
         {
             if (RacePauseController.IsGameplayBlocked) { orbitDragging = false; return; }
             if (runtime == null || !runtime.IsRaceActive)
-            { if (IsOpen) Close(); return; }
+            { if (IsOpen || exiting) Close(); return; }
             if (UnityEngine.Input.GetKeyDown(toggleKey))
-            { if (IsOpen) Close(); else Open(); }
+            { if (IsOpen) Close(false); else Open(); }
             if (!IsOpen) return;
             if (Partner == null) RefreshRacers();
             if (Player == null || Player.Participant.Vehicle.IsDestroyed || Player.Participant.Status != RaceParticipantStatus.Racing)
@@ -95,26 +111,61 @@ namespace RaceFatal.Presentation.Tactics
             height = Mathf.Clamp(height * Mathf.Exp(-UnityEngine.Input.mouseScrollDelta.y * 0.12f),minimumHeight,maximumHeight);
             if (Selected != null && Selected.Participant.Status != RaceParticipantStatus.Racing) { Selected = null; WheelOpen = false; following = false; }
         }
-        private void LateUpdate()
+        internal void UpdateCameraPose()
         {
-            if (!IsOpen || RacePauseController.IsGameplayBlocked || path == null || tacticalCamera == null) return;
+            if (!isActiveAndEnabled || RacePauseController.IsGameplayBlocked || tacticalCamera == null) return;
+            if (exiting)
+            {
+                if (cockpitCamera == null) { FinishCameraExit(); return; }
+                float t = AdvanceBlend(exitBlendDuration);
+                ApplyBlendedPose(cockpitCamera.transform.position, cockpitCamera.transform.rotation, cockpitCamera.fieldOfView, t);
+                if (t >= 1f) FinishCameraExit();
+                return;
+            }
+            if (!IsOpen || path == null) return;
             if (following && Selected != null) progress = ProgressOf(Selected);
             Vector3 center = following && Selected != null ? Selected.transform.position : path.GetPositionAtProgress(progress);
-            Vector3 forward = path.GetForwardAtProgress(progress);
-            Vector3 normal = Vector3.up;
-            float bestSurfaceDistance = float.PositiveInfinity;
-            foreach (var hit in Physics.RaycastAll(center + Vector3.up * 20f,Vector3.down,40f,~0,QueryTriggerInteraction.Ignore))
-            {
-                if (hit.collider.GetComponentInParent<RacerViewController>() != null) continue;
-                float distance = (hit.point-center).sqrMagnitude;
-                if (distance < bestSurfaceDistance) { bestSurfaceDistance=distance;normal=hit.normal; }
-            }
-            forward = Vector3.ProjectOnPlane(forward,normal).normalized;
-            if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
+            Quaternion desiredFrame = path.GetRotationAtProgress(progress);
+            float response = trackOrientationResponse <= 0f ? 1f : 1f - Mathf.Exp(-trackOrientationResponse * Time.unscaledDeltaTime);
+            trackFrame = hasTrackFrame ? Quaternion.Slerp(trackFrame, desiredFrame, response) : desiredFrame;
+            hasTrackFrame = true;
+            Vector3 forward = trackFrame * Vector3.forward;
+            Vector3 normal = trackFrame * Vector3.up;
             Vector3 heading = Quaternion.AngleAxis(orbitYaw, normal) * forward;
             float elevation = orbitElevation * Mathf.Deg2Rad;
             Vector3 offset = normal * Mathf.Sin(elevation) - heading * Mathf.Cos(elevation);
-            tacticalCamera.transform.SetPositionAndRotation(center + offset * height, Quaternion.LookRotation(-offset, heading));
+            Vector3 targetPosition = center + offset * height;
+            Quaternion targetRotation = Quaternion.LookRotation(-offset, heading);
+            if (entering)
+            {
+                float t = AdvanceBlend(enterBlendDuration);
+                ApplyBlendedPose(targetPosition, targetRotation, cockpitCamera.fieldOfView, t);
+                if (t >= 1f) entering = false;
+            }
+            else tacticalCamera.transform.SetPositionAndRotation(targetPosition, targetRotation);
+        }
+        private float AdvanceBlend(float duration)
+        {
+            blendElapsed += Time.unscaledDeltaTime;
+            return Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(blendElapsed / Mathf.Max(0.01f, duration)));
+        }
+        private void CaptureBlendPose(Camera source)
+        {
+            blendElapsed = 0f;
+            blendPosition = source.transform.position;
+            blendRotation = source.transform.rotation;
+            blendFieldOfView = source.fieldOfView;
+        }
+        private void ApplyBlendedPose(Vector3 position, Quaternion rotation, float fieldOfView, float t)
+        {
+            tacticalCamera.transform.SetPositionAndRotation(Vector3.Lerp(blendPosition, position, t), Quaternion.Slerp(blendRotation, rotation, t));
+            tacticalCamera.fieldOfView = Mathf.Lerp(blendFieldOfView, fieldOfView, t);
+        }
+        private void FinishCameraExit()
+        {
+            entering = exiting = false;
+            if (tacticalCamera != null) tacticalCamera.enabled = false;
+            if (cockpitCamera != null) cockpitCamera.enabled = cockpitWasEnabled;
         }
         private void UpdateOrbit()
         {
@@ -130,9 +181,17 @@ namespace RaceFatal.Presentation.Tactics
             orbitDragging = true;
         }
         public void ResetOrientation() { orbitYaw = 0f; orbitElevation = 90f; orbitDragging = false; }
-        private float ProgressOf(RacerViewController view) { int segment; return path.GetProgress(view.transform.position,-1,path.SegmentCount,out segment); }
+        private float ProgressOf(RacerViewController view)
+        {
+            // Seed a local search from the race's tracked segment; a global nearest
+            // search can switch branches where corkscrews/stacked roads cross.
+            int seed = Mathf.FloorToInt(view.Participant.CourseProgress * path.SegmentCount) % path.SegmentCount;
+            int segment;
+            return path.GetProgress(view.transform.position, seed, 3, out segment);
+        }
         public void Open()
         {
+            if (IsOpen) return;
             // The race assembler spawns the track after this component's early Start.
             // Resolve the initialized race's path on entry, not from the startup scene.
             if (runtime == null) runtime = GetComponent<RaceRuntimeController>();
@@ -155,24 +214,36 @@ namespace RaceFatal.Presentation.Tactics
                 var go = new GameObject("TacticalCamera"); go.tag = "MainCamera"; go.transform.SetParent(transform);
                 tacticalCamera = go.AddComponent<Camera>();
             }
+            CaptureBlendPose(exiting ? tacticalCamera : cockpitCamera);
+            bool wasExiting = exiting;
+            exiting = false;
+            entering = true;
+            hasTrackFrame = false;
             tacticalCamera.CopyFrom(cockpitCamera); tacticalCamera.targetTexture = null;
             tacticalCamera.rect = new Rect(0f,0f,1f,1f); tacticalCamera.depth = cockpitCamera.depth + 10f;
             tacticalCamera.nearClipPlane = 0.3f; tacticalCamera.farClipPlane = Mathf.Max(1000f,cockpitCamera.farClipPlane);
-            cockpitWasEnabled = cockpitCamera.enabled; cockpitCamera.enabled = false;
+            if (!wasExiting) cockpitWasEnabled = cockpitCamera.enabled;
+            cockpitCamera.enabled = false;
             tacticalCamera.enabled = true;
+            ApplyBlendedPose(blendPosition, blendRotation, blendFieldOfView, 0f);
             previousCursorLock = Cursor.lockState; previousCursorVisible = Cursor.visible;
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
             IsOpen = true; ResetOrientation(); Recenter();
             Player.Participant.Vehicle.EquipmentSystem.CancelSelectedActivation();
             Player.Participant.Vehicle.EquipmentSystem.SetBoostActive(false);
         }
-        public void Close()
+        public void Close(bool immediate = true)
         {
-            if (!IsOpen) return;
+            if (!IsOpen) { if (immediate && exiting) FinishCameraExit(); return; }
             orbitDragging = false;
             IsOpen = false; WheelOpen = false; PositionPreview = null;
-            if (tacticalCamera != null) tacticalCamera.enabled = false;
-            if (cockpitCamera != null) cockpitCamera.enabled = cockpitWasEnabled;
+            if (!immediate && tacticalCamera != null && cockpitCamera != null)
+            {
+                CaptureBlendPose(tacticalCamera);
+                entering = false;
+                exiting = true;
+            }
+            else FinishCameraExit();
             Cursor.lockState = previousCursorLock; Cursor.visible = previousCursorVisible;
         }
         public void Recenter() { if (Player != null && path != null) progress = ProgressOf(Player); following = false; Selected = null; WheelOpen = false; }
@@ -207,6 +278,6 @@ namespace RaceFatal.Presentation.Tactics
             PositionPreview = Selected != null ? Selected.transform.position + Selected.transform.right * side * 2.5f : (Vector3?)null;
         }
         public void ClearPreview() { PositionPreview = null; }
-        private void OnDisable() { if (IsOpen) Close(); if (Active == this) Active = null; }
+        private void OnDisable() { Close(); if (Active == this) Active = null; }
     }
 }

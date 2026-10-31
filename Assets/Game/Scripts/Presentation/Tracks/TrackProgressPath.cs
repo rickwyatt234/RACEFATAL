@@ -9,6 +9,8 @@ namespace RaceFatal.Presentation.Tracks
             200;
         [Tooltip("Higher values improve even-spacing accuracy.")] [Range(2, 16)] [SerializeField] private int oversampleMultiplier = 8;
         private readonly List<Vector3> controlPoints = new List<Vector3>();
+        private readonly List<Quaternion> controlRotations = new List<Quaternion>();
+        private Quaternion[] sampleRotations;
         private Vector3[] samples;
         private float[] segmentLengths;
         private float[] cumulativeLengths;
@@ -18,14 +20,18 @@ namespace RaceFatal.Presentation.Tracks
         public int SampleCount => samples?.Length ?? 0;
         public int ControlPointCount => controlPoints.Count;
 
-        public void SetControlPoints(IReadOnlyList<Vector3> points)
+        public void SetControlPoints(IReadOnlyList<Vector3> points, IReadOnlyList<Quaternion> rotations = null)
         {
             controlPoints.Clear();
+            controlRotations.Clear();
+            if (rotations != null && (points == null || rotations.Count != points.Count))
+                throw new System.ArgumentException("Track rotations must match control point count.", nameof(rotations));
             if (points == null)
                 return;
             for (int i = 0; i < points.Count; i++)
             {
                 controlPoints.Add(points[i]);
+                if (rotations != null) controlRotations.Add(rotations[i]);
             }
         }
 
@@ -34,6 +40,7 @@ namespace RaceFatal.Presentation.Tracks
             if (controlPoints.Count < 4)
             {
                 samples = null;
+                sampleRotations = null;
                 segmentLengths = null;
                 cumulativeLengths = null;
                 totalLength = 0f;
@@ -63,6 +70,8 @@ namespace RaceFatal.Presentation.Tracks
             }
 
             samples = new Vector3[finalSampleCount];
+            sampleRotations = new Quaternion[finalSampleCount];
+            sampleRotations[0] = EvaluateRotation(0f);
             samples[0] = rawSamples[0];
             int rawIndex = 1;
             for (int i = 1; i < finalSampleCount; i++)
@@ -79,7 +88,26 @@ namespace RaceFatal.Presentation.Tracks
                 float distance = nextDistance - previousDistance;
                 float t = distance <= 0.0001f ? 0f : (targetDistance - previousDistance) / distance;
                 samples[i] = Vector3.Lerp(rawSamples[previous], rawSamples[rawIndex], t);
+                // Share the positional resampling parameter: banking must stay
+                // attached to its section even when control points are uneven.
+                sampleRotations[i] = EvaluateRotation(Mathf.Lerp(previous, rawIndex, t) / rawSampleCount);
             }
+        }
+
+        private Quaternion EvaluateRotation(float normalized)
+        {
+            if (controlRotations.Count == 0) return transform.rotation;
+            float scaled = Mathf.Repeat(normalized, 1f) * controlRotations.Count;
+            int index = Mathf.FloorToInt(scaled);
+            return Quaternion.Slerp(controlRotations[index], controlRotations[(index + 1) % controlRotations.Count], scaled - index);
+        }
+
+        public Quaternion GetRotationAtProgress(float normalizedProgress)
+        {
+            if (sampleRotations == null || sampleRotations.Length == 0) return transform.rotation;
+            float scaled = Mathf.Repeat(normalizedProgress, 1f) * sampleRotations.Length;
+            int index = Mathf.FloorToInt(scaled);
+            return Quaternion.Slerp(sampleRotations[index], sampleRotations[(index + 1) % sampleRotations.Length], scaled - index);
         }
 
         private Vector3 EvaluateSpline(float normalized)

@@ -13,21 +13,25 @@ namespace RaceFatal.Presentation.Tracks
         public Transform Exit => exit;
         public bool IsConfigured => entry != null && exit != null;
 
-        public void GetControlPoints(List<Vector3> destination)
+        public void GetControlPoints(List<Vector3> destination, List<Quaternion> rotations = null)
         {
             destination.Clear();
+            rotations?.Clear();
             if (!IsConfigured)
                 return;
             destination.Add(entry.position);
+            rotations?.Add(entry.rotation);
             if (pathRoot != null)
             {
                 for (int i = 0; i < pathRoot.childCount; i++)
                 {
                     destination.Add(pathRoot.GetChild(i).position);
+                    rotations?.Add(pathRoot.GetChild(i).rotation);
                 }
             }
 
             destination.Add(exit.position);
+            rotations?.Add(exit.rotation);
         }
 
         [ContextMenu("Auto Assign Named Children")]

@@ -16,12 +16,15 @@ namespace RaceFatal.Presentation.Tracks
         [Tooltip("Points this close together are treated " + "as duplicates.")] [Min(0.0001f)] [SerializeField] private float duplicatePointDistance = 0.05f;
         private readonly List<Vector3> generatedControlPoints = new List<Vector3>();
         private readonly List<Vector3> piecePoints = new List<Vector3>();
+        private readonly List<Quaternion> generatedRotations = new List<Quaternion>();
+        private readonly List<Quaternion> pieceRotations = new List<Quaternion>();
         public int GeneratedControlPointCount => generatedControlPoints.Count;
 
         public bool Build()
         {
             RaceStartupTrace.Mark("TrackPathBuilder.Build() started.", this);
             generatedControlPoints.Clear();
+            generatedRotations.Clear();
             if (circuitRoot == null)
             {
                 RaceStartupTrace.Fail("TrackPathBuilder requires " + "a Circuit Root.", this);
@@ -70,10 +73,10 @@ namespace RaceFatal.Presentation.Tracks
 
             foreach (TrackPiece piece in orderedPieces)
             {
-                piece.GetControlPoints(piecePoints);
+                piece.GetControlPoints(piecePoints, pieceRotations);
                 for (int i = 0; i < piecePoints.Count; i++)
                 {
-                    AddPointIfUnique(piecePoints[i]);
+                    AddPointIfUnique(piecePoints[i], pieceRotations[i]);
                 }
             }
 
@@ -85,6 +88,7 @@ namespace RaceFatal.Presentation.Tracks
                 if (Vector3.Distance(first, last) <= duplicatePointDistance)
                 {
                     generatedControlPoints.RemoveAt(finalIndex);
+                    generatedRotations.RemoveAt(finalIndex);
                 }
             }
 
@@ -95,7 +99,7 @@ namespace RaceFatal.Presentation.Tracks
                 return false;
             }
 
-            progressPath.SetControlPoints(generatedControlPoints);
+            progressPath.SetControlPoints(generatedControlPoints, generatedRotations);
             if (!progressPath.Rebuild())
             {
                 RaceStartupTrace.Fail("TrackProgressPath could not " + "generate its progress samples.", this);
@@ -106,11 +110,12 @@ namespace RaceFatal.Presentation.Tracks
             return true;
         }
 
-        private void AddPointIfUnique(Vector3 point)
+        private void AddPointIfUnique(Vector3 point, Quaternion rotation)
         {
             if (generatedControlPoints.Count == 0)
             {
                 generatedControlPoints.Add(point);
+                generatedRotations.Add(rotation);
                 return;
             }
 
@@ -121,6 +126,7 @@ namespace RaceFatal.Presentation.Tracks
             }
 
             generatedControlPoints.Add(point);
+            generatedRotations.Add(rotation);
         }
 
         private void ValidateConnection(TrackPiece current, TrackPiece next)
