@@ -18,5 +18,5 @@ MonoBehaviour:
   creditCost: 1000
   requiredTechnologyId: 
   capacity: 650
-  rechargePerSecond: 260
+  rechargePerSecond: 52
   rechargeDelay: 2

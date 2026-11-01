@@ -361983,7 +361983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02a113b6e75452844a61bb65a66d92c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Tracks.EnergyStripTrigger
-  rechargePerSecond: 25
+  rechargePerSecond: 250
   debugRacersOnStrip: 0
   debugEnergyRestoredThisFrame: 0
   debugTotalEnergyRestored: 0

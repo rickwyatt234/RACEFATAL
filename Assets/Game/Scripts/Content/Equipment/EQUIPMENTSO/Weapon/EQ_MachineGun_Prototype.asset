@@ -23,6 +23,7 @@ MonoBehaviour:
   range: 150
   projectileSpeed: 350
   damage: 3
+  energyPerActivation: 1
   startingAmmo: 250
   fireInterval: 0.1
   chargeDuration: 0
@@ -39,4 +40,3 @@ MonoBehaviour:
   dashDuration: 0
   impactPush: 0
   targetingHalfAngle: 0
-  energyPerActivation: 5

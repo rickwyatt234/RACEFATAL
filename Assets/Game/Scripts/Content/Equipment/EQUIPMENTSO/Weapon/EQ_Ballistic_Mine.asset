@@ -22,7 +22,8 @@ MonoBehaviour:
   deliveryMode: 3
   range: 45
   projectileSpeed: 0
-  damage: 38
+  damage: 40
+  energyPerActivation: 40
   startingAmmo: 8
   fireInterval: 0.75
   chargeDuration: 0
@@ -39,4 +40,3 @@ MonoBehaviour:
   dashDuration: 0
   impactPush: 0
   targetingHalfAngle: 52
-  energyPerActivation: 45
