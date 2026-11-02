@@ -11,13 +11,13 @@ Use the existing Career Hub builder only if the base scene is missing; that tool
 
 ## Behavior
 
-- Stock uses registered GameDatabase engine, chassis and equipment definitions. Categories are generated from available content. Prices and research requirements come from existing definition assets.
+- Stock uses registered GameDatabase engine, chassis and equipment definitions. Categories are generated from available content. Prices come from component assets; purchasing access comes from brand catalogs and earned contract unlocks.
 - Current prototype assets have `creditCost: 0`; they will be free until prices are set on the definition assets. The shop does not introduce arbitrary balance values.
 - Select any item to see its details, price, total owned count (including installed/destroyed instances), and purchase eligibility. Locked and unaffordable items remain inspectable.
-- Buy opens a confirmation showing the cost and remaining credits. Confirmation checks current funds, technology, session and price again. Each confirmation buys one uniquely identified component into owned garage inventory. Repeated clicks on the same confirmation cannot create extra purchases.
+- Buy opens a confirmation showing the cost and remaining credits. Confirmation checks current funds, brand access, session and price again. Each confirmation buys one uniquely identified component into owned garage inventory. Repeated clicks on the same confirmation cannot create extra purchases.
 - Open Garage to install purchased components using the existing garage workflow.
 - Use **SAVE CAMPAIGN** to persist purchases, just as the garage uses an explicit save action. Save failures are reported and leave the in-memory purchase available for a save retry. Save and Return / race launch also use the existing campaign save path.
-- Whole bikes are excluded because BikeDefinition has no shop price or technology requirement. Selling, buyback and rotating stock are not implemented.
+- Complete BikeBuild offers can be registered in the catalog and assigned to brands. Selling, buyback and rotating stock are not implemented.
 
 ## Validation
 

@@ -14,9 +14,8 @@ namespace RaceFatal.Vehicles
         public float StabilityMultiplier { get; }
         public float ImpactResistance { get; }
         public int CreditCost { get; }
-        public string RequiredTechnologyId { get; }
 
-        public ChassisDefinition(string id, string displayName, float mass, float handlingMultiplier, int creditCost, string requiredTechnologyId, float maxIntegrity = 100f, float steeringResponseMultiplier = 1f, float leanResponseMultiplier = 1f, float stabilityMultiplier = 1f, float impactResistance = 0f)
+        public ChassisDefinition(string id, string displayName, float mass, float handlingMultiplier, int creditCost, float maxIntegrity = 100f, float steeringResponseMultiplier = 1f, float leanResponseMultiplier = 1f, float stabilityMultiplier = 1f, float impactResistance = 0f)
         {
             Id = id;
             DisplayName = displayName;
@@ -30,7 +29,6 @@ namespace RaceFatal.Vehicles
                 throw new ArgumentOutOfRangeException(nameof(impactResistance));
             ImpactResistance = impactResistance;
             CreditCost = creditCost;
-            RequiredTechnologyId = requiredTechnologyId;
         }
 
         private static float Positive(float value, string name)

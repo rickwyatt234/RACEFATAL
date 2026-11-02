@@ -15,7 +15,7 @@ No scaffold rebuild is needed.
 
 ## Continuity rules
 
-Team credits, fame, research, technologies, staff contracts, owned inventory, opponent world, event unlocks and calendar survive succession. Character fame/statistics start afresh.
+Team credits, available and lifetime fame, brand relationships, acquired contracts, owned inventory, opponent world, event unlocks and calendar survive succession. Character fame/statistics start afresh.
 
 Death preserves the ended run reference. The race settlement closes an unfinished championship and advances the calendar exactly once. Retirement between championship rounds withdraws the event without a refund or final prize and advances a week. Retirement outside an event does not advance time. An interrupted paid entry must be resolved or explicitly withdrawn from Races before retirement.
 

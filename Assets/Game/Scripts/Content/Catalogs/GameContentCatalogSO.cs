@@ -15,16 +15,10 @@ namespace RaceFatal.Content
         [SerializeField] private List<EngineDefinitionSO> engineDefinitions = new List<EngineDefinitionSO>();
         [SerializeField] private List<ChassisDefinitionSO> chassisDefinitions = new List<ChassisDefinitionSO>();
         [SerializeField] private List<BikeBuildDefinitionSO> bikeBuildDefinitions = new List<BikeBuildDefinitionSO>();
+        [Header("Brands")] [SerializeField] private List<BrandDefinitionSO> brandDefinitions = new List<BrandDefinitionSO>();
+        public IReadOnlyList<BrandDefinitionSO> BrandDefinitions => brandDefinitions;
         [Header("Equipment")] [SerializeField] private List<EquipmentDefinitionSO> equipmentDefinitions = new List<EquipmentDefinitionSO>();
-        [SerializeField] private ResearchProgressionSO researchProgression;
-        [SerializeField] private ResearchTreeLayoutSO researchTreeLayout;
-        [SerializeField] private List<ResearcherDefinitionSO> researcherDefinitions = new List<ResearcherDefinitionSO>();
-        public ResearchProgressionSO ResearchProgression => researchProgression;
-        public ResearchTreeLayoutSO ResearchTreeLayout => researchTreeLayout;
-        public IReadOnlyList<ResearcherDefinitionSO> ResearcherDefinitions => researcherDefinitions;
 
-        [Header("Research")] [SerializeField] private List<TechnologyDefinitionSO> technologyDefinitions = new List<TechnologyDefinitionSO>();
-        public IReadOnlyList<TechnologyDefinitionSO> TechnologyDefinitions => technologyDefinitions;
 
         [Header("Calendar Events")] [SerializeField] private List<CareerEventDefinitionSO> careerEventDefinitions = new List<CareerEventDefinitionSO>();
         public IReadOnlyList<CareerEventDefinitionSO> CareerEventDefinitions => careerEventDefinitions;

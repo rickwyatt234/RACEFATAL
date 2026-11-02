@@ -23,7 +23,7 @@ namespace RaceFatal.Career
         public bool RecruitPartner => PartnerRacerId == null;
         public string Signature { get; internal set; }
         public string SetupSummary { get; internal set; }
-        public string Description => $"{SetupSummary}\n\nREADY BIKES TO SUPPLY  {NewBikes}\nPARTNER  {(RecruitPartner ? "NEW REPLACEMENT RACER" : "EXISTING TEAM RACER")}\n\nREPLACEMENT COST  {TotalCost:N0} CR\nTEAM PAYS  {Charge:N0} CR\nRECOVERY ASSISTANCE  {Assistance:N0} CR\n\nReady owned bikes and reserve racers are used first. New bikes use your campaign's starter build. Wrecks and deceased racers remain permanent.\n\nAssistance is available once per completed race. Recovery does not award research, fame or race rewards.";
+        public string Description => $"{SetupSummary}\n\nREADY BIKES TO SUPPLY  {NewBikes}\nPARTNER  {(RecruitPartner ? "NEW REPLACEMENT RACER" : "EXISTING TEAM RACER")}\n\nREPLACEMENT COST  {TotalCost:N0} CR\nTEAM PAYS  {Charge:N0} CR\nRECOVERY ASSISTANCE  {Assistance:N0} CR\n\nReady owned bikes and reserve racers are used first. New bikes use your campaign's starter build. Wrecks and deceased racers remain permanent.\n\nAssistance is available once per completed race. Recovery does not award fame or race rewards.";
     }
 
     public sealed class TeamRecoveryService

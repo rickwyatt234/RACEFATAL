@@ -13,7 +13,7 @@ namespace RaceFatal.Content.Equipment
         [Min(1f)] [SerializeField] private float accelerationMultiplier = 1f;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new BoosterDefinition(id, displayName, requiredNodeSize, energyPerSecond, speedMultiplier, accelerationMultiplier, creditCost, requiredTechnologyId, energyCapacity, capacityStrainPerSecond);
+            return new BoosterDefinition(id, displayName, requiredNodeSize, energyPerSecond, speedMultiplier, accelerationMultiplier, creditCost, energyCapacity, capacityStrainPerSecond);
         }
     }
 }

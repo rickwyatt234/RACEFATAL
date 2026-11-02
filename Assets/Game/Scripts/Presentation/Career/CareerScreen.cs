@@ -5,7 +5,7 @@ namespace RaceFatal.Presentation.Career
         Home,
         Races,
         Garage,
-        Research,
+        Brands,
         Shop,
         Roster,
         Team

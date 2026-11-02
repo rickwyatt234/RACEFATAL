@@ -19,6 +19,7 @@ namespace RaceFatal.Career
         public string Description { get; }
         public CareerEventKind Kind { get; }
         public int RequiredFame { get; }
+        public int FameEntryFee { get; }
         public int EntryFee { get; }
         public IReadOnlyList<string> RaceIds { get; }
         public IReadOnlyList<int> RacePayouts { get; }
@@ -32,7 +33,7 @@ namespace RaceFatal.Career
         public int FirstAbsoluteDay => checked((FirstWeek - 1) * 7 + FirstDayOfWeek);
         public bool Supported => Kind == CareerEventKind.Race || Kind == CareerEventKind.Championship || Kind == CareerEventKind.Deathmatch || Kind == CareerEventKind.Other;
 
-        public CareerEventDefinition(string id, string name, string description, CareerEventKind kind, int fame, int fee, IEnumerable<string> raceIds, IEnumerable<int> payouts, IEnumerable<int> prizes, IEnumerable<int> points, int firstWeek = 1, int firstDayOfWeek = 1, int repeatEveryWeeks = 5, int roundSpacingDays = 7, int starterOrder = 0)
+        public CareerEventDefinition(string id, string name, string description, CareerEventKind kind, int fame, int fee, IEnumerable<string> raceIds, IEnumerable<int> payouts, IEnumerable<int> prizes, IEnumerable<int> points, int firstWeek = 1, int firstDayOfWeek = 1, int repeatEveryWeeks = 5, int roundSpacingDays = 7, int starterOrder = 0, int fameEntryFee = 0)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentException("Event ID is required.");
@@ -47,6 +48,7 @@ namespace RaceFatal.Career
             Kind = kind;
             RequiredFame = fame;
             EntryFee = fee;
+            FameEntryFee = fameEntryFee;
             RaceIds = Array.AsReadOnly((raceIds ?? Array.Empty<string>()).ToArray());
             RacePayouts = Array.AsReadOnly((payouts ?? Array.Empty<int>()).ToArray());
             ChampionshipPrizes = Array.AsReadOnly((prizes ?? Array.Empty<int>()).ToArray());

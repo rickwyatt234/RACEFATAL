@@ -12,10 +12,9 @@ namespace RaceFatal.Racing
         public int LapCount { get; }
         public int EntrantCount { get; }
         public int TeamSize { get; }
-        public int ResearchPointBonus { get; }
         public DeathmatchRules Deathmatch { get; }
 
-        public RaceDefinition(string id, string displayName, string trackId, EngineClass engineClass, int lapCount, int entrantCount, int teamSize, int researchPointBonus = 0, DeathmatchRules deathmatch = null)
+        public RaceDefinition(string id, string displayName, string trackId, EngineClass engineClass, int lapCount, int entrantCount, int teamSize, DeathmatchRules deathmatch = null)
         {
             if (lapCount <= 0)
             {
@@ -47,7 +46,6 @@ namespace RaceFatal.Racing
             LapCount = lapCount;
             EntrantCount = entrantCount;
             TeamSize = teamSize;
-            ResearchPointBonus = Math.Max(0, researchPointBonus);
         }
     }
 }

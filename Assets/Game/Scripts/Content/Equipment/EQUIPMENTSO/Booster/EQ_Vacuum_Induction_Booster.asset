@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Vacuum Induction Booster
   requiredNodeSize: 1
   creditCost: 0
-  requiredTechnologyId: 
   energyCapacity: 1400
   capacityStrainPerSecond: 8
   energyPerSecond: 60

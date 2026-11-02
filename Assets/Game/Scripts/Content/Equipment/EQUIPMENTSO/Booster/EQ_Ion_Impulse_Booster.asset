@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Ion Impulse Booster
   requiredNodeSize: 0
   creditCost: 0
-  requiredTechnologyId: 
   energyCapacity: 1000
   capacityStrainPerSecond: 8
   energyPerSecond: 60

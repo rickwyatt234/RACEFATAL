@@ -13,46 +13,10 @@ namespace RaceFatal.Career
             RecoverySupportCheckpoint = checkpoint;
         }
 
-        private readonly HashSet<string> unlockedTechnologyIds = new HashSet<string>();
         private readonly HashSet<string> unlockedChampionshipIds = new HashSet<string>();
         private readonly HashSet<string> eliminatedRacerIds = new HashSet<string>();
-        private readonly List<ResearchContract> researchContracts = new List<ResearchContract>();
         private readonly Dictionary<string, PostRaceResult> settledRaceResults = new Dictionary<string, PostRaceResult>();
-        public IReadOnlyList<ResearchContract> ResearchContracts => researchContracts.AsReadOnly();
         public IReadOnlyDictionary<string, PostRaceResult> SettledRaceResults => settledRaceResults;
-
-        public int ResearchOutputPerRace
-        {
-            get
-            {
-                int total = 0;
-                foreach (var contract in researchContracts)
-                    if (contract.RacesRemaining > 0)
-                        total = checked(total + contract.PointsPerRace);
-                return total;
-            }
-        }
-
-        internal void ReplaceResearchContract(ResearchContract contract)
-        {
-            researchContracts.RemoveAll(c => c.DefinitionId == contract.DefinitionId);
-            researchContracts.Add(contract);
-        }
-
-        public void RestoreResearchContract(ResearchContract contract)
-        {
-            if (contract == null || researchContracts.Exists(c => c.DefinitionId == contract.DefinitionId))
-                throw new ArgumentException("Duplicate or missing research contract.");
-            researchContracts.Add(contract);
-        }
-
-        internal int AdvanceResearchContracts()
-        {
-            int total = ResearchOutputPerRace;
-            foreach (var contract in researchContracts)
-                contract.Advance();
-            return total;
-        }
 
         public void RestoreSettledRace(string instanceId, PostRaceResult result)
         {
@@ -67,7 +31,24 @@ namespace RaceFatal.Career
         public string SecondaryColor { get; private set; }
         public int Credits { get; private set; }
         public int Fame { get; private set; }
-        public int ResearchPoints { get; private set; }
+        public int LifetimeFame { get; private set; }
+        public BrandProgress Brands { get; private set; } = new BrandProgress();
+        public void RestoreBrands(BrandProgress value) { Brands = value ?? new BrandProgress(); Brands.Validate(); }
+        public void RestoreFame(int available, int lifetime)
+        {
+            if (available < 0 || lifetime < available) throw new ArgumentException("Invalid team fame.");
+            Fame = available; LifetimeFame = lifetime;
+        }
+        public bool TrySpendFame(int amount)
+        {
+            if (amount < 0 || Fame < amount) return false;
+            Fame -= amount; return true;
+        }
+        public void RefundFame(int amount)
+        {
+            if (amount < 0 || (long)Fame + amount > LifetimeFame) throw new ArgumentException("Invalid fame refund.");
+            Fame = checked(Fame + amount);
+        }
         public GarageState Garage { get; }
         public TeamRosterState Roster { get; }
         public CareerCalendarState Calendar { get; private set; } = new CareerCalendarState();
@@ -81,7 +62,6 @@ namespace RaceFatal.Career
             return RaceFatal.Shared.Result.Success();
         }
 
-        public IReadOnlyCollection<string> UnlockedTechnologyIds => unlockedTechnologyIds;
         public IReadOnlyCollection<string> UnlockedChampionshipIds => unlockedChampionshipIds;
         public IReadOnlyCollection<string> EliminatedRacerIds => eliminatedRacerIds;
 
@@ -127,39 +107,9 @@ namespace RaceFatal.Career
         {
             if (amount <= 0)
                 return;
-            Fame += amount;
-        }
-
-        public void AddResearchPoints(int amount)
-        {
-            if (amount <= 0)
-                return;
-            ResearchPoints += amount;
-        }
-
-        public bool TrySpendResearchPoints(int amount)
-        {
-            if (amount < 0)
-                return false;
-            if (ResearchPoints < amount)
-                return false;
-            ResearchPoints -= amount;
-            return true;
-        }
-
-        public bool UnlockTechnology(string technologyId)
-        {
-            if (string.IsNullOrWhiteSpace(technologyId))
-            {
-                return false;
-            }
-
-            return unlockedTechnologyIds.Add(technologyId);
-        }
-
-        public bool HasTechnology(string technologyId)
-        {
-            return unlockedTechnologyIds.Contains(technologyId);
+            int lifetime = checked(LifetimeFame + amount);
+            Fame = checked(Fame + amount);
+            LifetimeFame = lifetime;
         }
 
         public bool UnlockChampionship(string championshipId)

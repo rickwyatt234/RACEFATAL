@@ -18,4 +18,3 @@ MonoBehaviour:
   topSpeed: 250
   acceleration: 20
   creditCost: 0
-  requiredTechnologyId: 

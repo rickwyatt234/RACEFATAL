@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Antimatter Pulse Booster
   requiredNodeSize: 2
   creditCost: 0
-  requiredTechnologyId: 
   energyCapacity: 1700
   capacityStrainPerSecond: 8
   energyPerSecond: 120

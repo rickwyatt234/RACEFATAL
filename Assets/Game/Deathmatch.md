@@ -35,7 +35,7 @@ Deathmatch calendar events must reference exactly one deathmatch race. Champions
 - Destruction retains existing permanent character/bike consequences. The event continues after player elimination, displaying live standings until survival or timeout resolves it.
 - Team-mode wins include eliminated teammates in the team classification. The team receives its position payout once, in full if a teammate wins. Character death/status and Character Fame remain individual.
 - Non-winners receive the existing DNF reward treatment. Eliminated riders cannot fast-resolve remaining contestants into winners.
-- Rewards, researcher output, calendar advancement, and settlement receipts use the existing campaign transaction flow. Returning to Career saves the campaign.
+- Rewards, brand contract progress, calendar advancement, and settlement receipts use the existing campaign transaction flow. Returning to Career saves the campaign.
 - Individual mode allows targeting every other racer, including the assigned partner. Team mode keeps existing teammate targeting restrictions.
 - The cockpit's lap area shows survivor count, time remaining, and speed/grace warnings. Final results and saved Races standings show winners, eliminations, and exit reasons.
 
@@ -45,8 +45,8 @@ The Unity menu validator covers startup and below-speed grace, exact-threshold r
 
 Unity is not installed in the implementation workspace. These menu validations and Play Mode checks must run in Unity before merging or treating this milestone as tested. Static diff and API-reference checks were performed here.
 
-Play Mode acceptance pass: enter each development event; tune the speed threshold to trigger a warning and recover; trigger DQ; confirm AI continues; check individual guided targeting of a partner; finish by survival and timeout; return to Career and reload. Confirm Credits/RP/Fame, permanent losses, last-event standings, and next calendar week persist once.
+Play Mode acceptance pass: enter each development event; tune the speed threshold to trigger a warning and recover; trigger DQ; confirm AI continues; check individual guided targeting of a partner; finish by survival and timeout; return to Career and reload. Confirm Credits/available Fame/lifetime Fame/brand contracts, permanent losses, last-event standings, and next calendar week persist once.
 
 ## Project checkpoint
 
-Career creation/succession, Garage/loadouts, components and complete-bike Shop, Research/staff, Roster/perks/recovery, Team, weekly events, championships, and Deathmatch now connect through campaign state. The next review should measure the whole loop: campaign initialization, race readiness, combat readability, event balance, replacement costs, research pacing, and recovery after losses. Run that review before choosing another feature milestone.
+Career creation/succession, Garage/loadouts, components and complete-bike Shop, Brands/contracts, Roster/perks/recovery, Team, weekly events, championships, and Deathmatch now connect through campaign state. The next review should measure the whole loop: campaign initialization, race readiness, combat readability, event balance, replacement costs, brand progression pacing, and recovery after losses. Run that review before choosing another feature milestone.

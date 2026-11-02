@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using RaceFatal.Career;
@@ -10,7 +11,7 @@ namespace RaceFatal.Infrastructure.Saving
 {
     public class CampaignSaveMapper
     {
-        public const int SupportedSaveVersion = 1;
+        public const int SupportedSaveVersion = 2;
         private readonly GameDatabase database;
         public CampaignSaveMapper(GameDatabase database)
         {
@@ -48,9 +49,9 @@ namespace RaceFatal.Infrastructure.Saving
                 return Result<GameSessionState>.Failure("Campaign save data is required.");
             }
 
-            if (data.saveVersion != SupportedSaveVersion)
+            if (data.saveVersion < 1 || data.saveVersion > SupportedSaveVersion)
             {
-                return Result<GameSessionState>.Failure($"Save version {data.saveVersion} is not supported. " + $"Expected version {SupportedSaveVersion}.");
+                return Result<GameSessionState>.Failure($"Save version {data.saveVersion} is not supported. " + $"Expected version 1–{SupportedSaveVersion}.");
             }
 
             Result<TeamState> playerTeamResult = RestoreTeam(data.playerTeam);
@@ -91,6 +92,17 @@ namespace RaceFatal.Infrastructure.Saving
             return Result<GameSessionState>.Success(session);
         }
 
+        private static BrandProgress CloneBrands(BrandProgress source)
+        {
+            source.Validate();
+            return new BrandProgress {
+                relationships = source.relationships.Select(b => new BrandRelationship { brandId = b.brandId, standing = b.standing }).ToList(),
+                contracts = source.contracts.Select(c => new BrandContract { instanceId = c.instanceId, brandId = c.brandId, terms = c.terms.Copy(), progress = c.progress, active = c.active, completed = c.completed, claimed = c.claimed }).ToList(),
+                purchaseAccess = source.purchaseAccess.ToList(), categoryPermits = source.categoryPermits.ToList(), preferredBrandIds = source.preferredBrandIds.ToList(),
+                pendingReveal = source.pendingReveal == null ? null : new BrandBoxReceipt { id = source.pendingReveal.id, brandId = source.pendingReveal.brandId, newBrand = source.pendingReveal.newBrand, contractIds = source.pendingReveal.contractIds.ToList() }
+            };
+        }
+
         private TeamSaveData CaptureTeam(TeamState team)
         {
             var data = new TeamSaveData
@@ -102,21 +114,15 @@ namespace RaceFatal.Infrastructure.Saving
                 secondaryColor = team.SecondaryColor,
                 credits = team.Credits,
                 fame = team.Fame,
-                researchPoints = team.ResearchPoints,
+                hasLifetimeFame = true, lifetimeFame = team.LifetimeFame,
+                brands = CloneBrands(team.Brands),
                 recoverySupportCheckpoint = team.RecoverySupportCheckpoint,
                 garage = CaptureGarage(team.Garage)
             };
-            foreach (var contract in team.ResearchContracts)
-                data.researchContracts.Add(new ResearchContractSaveData { definitionId = contract.DefinitionId, displayName = contract.DisplayName, pointsPerRace = contract.PointsPerRace, racesRemaining = contract.RacesRemaining });
             foreach (var receipt in team.SettledRaceResults)
             {
                 var result = receipt.Value;
-                data.settledRaceResults.Add(new SettledRaceSaveData { instanceId = receipt.Key, raceId = result.RaceId, playerRacerId = result.PlayerRacerId, status = result.PlayerRaceStatus.ToString(), position = result.PlayerPosition, credits = result.Reward.Credits, teamFame = result.Reward.TeamFame, researchPoints = result.Reward.ResearchPoints, characterFame = result.Reward.CharacterFame, eventRP = result.EventResearchPoints, researcherRP = result.ResearcherPoints, hasAudienceFavor = true, averageAudienceFavor = result.AverageAudienceFavor, playerDied = result.PlayerDied, careerEnded = result.CareerEnded });
-            }
-
-            foreach (string technologyId in team.UnlockedTechnologyIds)
-            {
-                data.unlockedTechnologyIds.Add(technologyId);
+                data.settledRaceResults.Add(new SettledRaceSaveData { instanceId = receipt.Key, raceId = result.RaceId, playerRacerId = result.PlayerRacerId, status = result.PlayerRaceStatus.ToString(), position = result.PlayerPosition, credits = result.Reward.Credits, teamFame = result.Reward.TeamFame, characterFame = result.Reward.CharacterFame, contractSummary = result.ContractSummary, hasAudienceFavor = true, averageAudienceFavor = result.AverageAudienceFavor, playerDied = result.PlayerDied, careerEnded = result.CareerEnded });
             }
 
             foreach (string championshipId in team.UnlockedChampionshipIds)
@@ -249,7 +255,7 @@ namespace RaceFatal.Infrastructure.Saving
                 return Result<TeamState>.Failure("Team name is required.");
             }
 
-            if (data.credits < 0 || data.fame < 0 || data.researchPoints < 0)
+            if (data.credits < 0 || data.fame < 0)
             {
                 return Result<TeamState>.Failure("Team currencies cannot be negative.");
             }
@@ -260,44 +266,23 @@ namespace RaceFatal.Infrastructure.Saving
             var calendarRestore = team.RestoreCalendar(data.calendar);
             if (!calendarRestore.IsSuccess)
                 return Result<TeamState>.Failure(calendarRestore.ErrorMessage);
-            team.AddFame(data.fame);
-            team.AddResearchPoints(data.researchPoints);
+
             try
             {
-                if (data.researchContracts != null)
-                    foreach (var contract in data.researchContracts)
-                    {
-                        if (contract == null)
-                            return Result<TeamState>.Failure("Null researcher contract.");
-                        team.RestoreResearchContract(new ResearchContract(contract.definitionId, contract.displayName, contract.pointsPerRace, contract.racesRemaining));
-                    }
-
+                team.RestoreFame(data.fame, data.hasLifetimeFame ? data.lifetimeFame : data.fame);
+                team.RestoreBrands(CloneBrands(data.brands ?? new BrandProgress()));
                 if (data.settledRaceResults != null)
                     foreach (var receipt in data.settledRaceResults)
                     {
-                        if (receipt == null || !Enum.TryParse(receipt.status, out RaceFatal.Racing.RaceParticipantStatus status) || (status != RaceFatal.Racing.RaceParticipantStatus.Finished && status != RaceFatal.Racing.RaceParticipantStatus.Destroyed && status != RaceFatal.Racing.RaceParticipantStatus.Retired) || string.IsNullOrWhiteSpace(receipt.raceId) || string.IsNullOrWhiteSpace(receipt.playerRacerId) || receipt.position < 1 || receipt.credits < 0 || receipt.teamFame < 0 || receipt.characterFame < 0 || receipt.researchPoints < 0 || receipt.eventRP < 0 || receipt.researcherRP < 0 || (long)receipt.eventRP + receipt.researcherRP > receipt.researchPoints)
-                            return Result<TeamState>.Failure("Invalid research race receipt.");
-                        team.RestoreSettledRace(receipt.instanceId, new PostRaceResult(receipt.raceId, receipt.playerRacerId, receipt.position, status, new RaceReward(receipt.credits, receipt.teamFame, receipt.researchPoints, receipt.characterFame), receipt.playerDied, receipt.careerEnded, receipt.eventRP, receipt.researcherRP, receipt.hasAudienceFavor ? receipt.averageAudienceFavor : 100f));
+                        if (receipt == null || !Enum.TryParse(receipt.status, out RaceFatal.Racing.RaceParticipantStatus status) || (status != RaceFatal.Racing.RaceParticipantStatus.Finished && status != RaceFatal.Racing.RaceParticipantStatus.Destroyed && status != RaceFatal.Racing.RaceParticipantStatus.Retired) || string.IsNullOrWhiteSpace(receipt.raceId) || string.IsNullOrWhiteSpace(receipt.playerRacerId) || receipt.position < 1 || receipt.credits < 0 || receipt.teamFame < 0 || receipt.characterFame < 0)
+                            return Result<TeamState>.Failure("Invalid race receipt.");
+                        team.RestoreSettledRace(receipt.instanceId, new PostRaceResult(receipt.raceId, receipt.playerRacerId, receipt.position, status, new RaceReward(receipt.credits, receipt.teamFame, receipt.characterFame), receipt.playerDied, receipt.careerEnded, receipt.hasAudienceFavor ? receipt.averageAudienceFavor : 100f, receipt.contractSummary));
                     }
 
-                _ = team.ResearchOutputPerRace;
             }
             catch (Exception exception)when (exception is ArgumentException || exception is OverflowException)
             {
-                return Result<TeamState>.Failure("Invalid research save data: " + exception.Message);
-            }
-
-            if (data.unlockedTechnologyIds != null)
-            {
-                foreach (string technologyId in data.unlockedTechnologyIds)
-                {
-                    if (string.IsNullOrWhiteSpace(technologyId))
-                    {
-                        continue;
-                    }
-
-                    team.UnlockTechnology(technologyId);
-                }
+                return Result<TeamState>.Failure("Invalid progression save data: " + exception.Message);
             }
 
             if (data.unlockedChampionshipIds != null)

@@ -15,10 +15,9 @@ namespace RaceFatal.Content.Vehicles
         [Header("Performance Stats")] [Min(0)] [SerializeField] private float topSpeed;
         [Min(0)] [SerializeField] private float acceleration;
         [Header("Cost")] [Min(0)] [SerializeField] private int creditCost;
-        [Header("Technology Requirement")] [SerializeField] private string requiredTechnologyId;
         public EngineDefinition CreateEngineDefinition()
         {
-            return new EngineDefinition(id, displayName, engineClass, topSpeed, acceleration, creditCost, requiredTechnologyId);
+            return new EngineDefinition(id, displayName, engineClass, topSpeed, acceleration, creditCost);
         }
     }
 }

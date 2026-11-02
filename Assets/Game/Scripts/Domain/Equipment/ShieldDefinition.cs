@@ -8,7 +8,7 @@ namespace RaceFatal.Equipment
         public float RechargePerSecond { get; }
         public float RechargeDelay { get; }
 
-        public ShieldDefinition(string id, string displayName, NodeSize requiredNodeSize, float capacity, float rechargePerSecond, float rechargeDelay, int creditCost, string requiredTechnologyId) : base(id, displayName, EquipmentCategory.Shield, requiredNodeSize, EquipmentActivationMode.Passive, creditCost, requiredTechnologyId)
+        public ShieldDefinition(string id, string displayName, NodeSize requiredNodeSize, float capacity, float rechargePerSecond, float rechargeDelay, int creditCost) : base(id, displayName, EquipmentCategory.Shield, requiredNodeSize, EquipmentActivationMode.Passive, creditCost)
         {
             Capacity = capacity;
             RechargePerSecond = rechargePerSecond;

@@ -19,7 +19,7 @@ namespace RaceFatal.Career
         {
             if (definition == null || !definition.Supported)
                 return Result.Failure("EVENT FORMAT IS NOT AVAILABLE.");
-            if (definition.RequiredFame < 0 || definition.EntryFee < 0 || definition.RaceIds.Count == 0 || (definition.Kind != CareerEventKind.Championship && definition.RaceIds.Count != 1) || (definition.Kind == CareerEventKind.Championship && definition.RaceIds.Count < 2) || definition.RacePayouts.Concat(definition.ChampionshipPrizes).Concat(definition.PositionPoints).Any(p => p < 0))
+            if (definition.FameEntryFee < 0 || definition.RequiredFame < 0 || definition.EntryFee < 0 || definition.RaceIds.Count == 0 || (definition.Kind != CareerEventKind.Championship && definition.RaceIds.Count != 1) || (definition.Kind == CareerEventKind.Championship && definition.RaceIds.Count < 2) || definition.RacePayouts.Concat(definition.ChampionshipPrizes).Concat(definition.PositionPoints).Any(p => p < 0))
                 return Result.Failure("INVALID EVENT RULES.");
             if (definition.FirstWeek < 1 || definition.FirstWeek > CareerCalendarState.MaxDay / 7 || definition.FirstDayOfWeek < 1 || definition.FirstDayOfWeek > 7 || definition.RaceIds.Count > 5)
                 return Result.Failure("INVALID EVENT DATES: use a valid week/day and at most five consecutive rounds.");
@@ -46,7 +46,7 @@ namespace RaceFatal.Career
             var data = team.Calendar.Data;
             bool changed = false;
             foreach (var definition in database.CareerEventDefinitions.Values.OrderBy(d => d.Id, StringComparer.Ordinal))
-                if (Validate(definition).IsSuccess && (team.Fame >= definition.RequiredFame || (definition.Kind == CareerEventKind.Championship && team.HasChampionshipUnlocked(definition.Id))) && !data.unlocked.Contains(definition.Id))
+                if (Validate(definition).IsSuccess && (team.LifetimeFame >= definition.RequiredFame || (definition.Kind == CareerEventKind.Championship && team.HasChampionshipUnlocked(definition.Id))) && !data.unlocked.Contains(definition.Id))
                 {
                     data.unlocked.Add(definition.Id);
                     changed = true;
@@ -172,6 +172,8 @@ namespace RaceFatal.Career
                 return Result.Failure("THIS EVENT OCCURRENCE HAS ALREADY BEEN ENTERED.");
             if ((long)day + (long)(definition.RaceIds.Count - 1) * schedule.roundSpacingDays > CareerCalendarState.MaxDay)
                 return Result.Failure("EVENT WOULD EXCEED THE CALENDAR LIMIT.");
+            if (team.Fame < definition.FameEntryFee)
+                return Result.Failure($"ENTRY REQUIRES {definition.FameEntryFee:N0} AVAILABLE FAME.");
             if (team.Credits < definition.EntryFee)
                 return Result.Failure($"ENTRY REQUIRES {definition.EntryFee:N0} CREDITS.");
             return Result.Success();
@@ -200,15 +202,17 @@ namespace RaceFatal.Career
             var before = team.Calendar.Export();
             string previousChampionship = session.CareerRun.ActiveChampionshipId;
             var active = team.Calendar.Data.active;
-            int fee = 0;
+            int fee = 0, fameFee = 0;
             if (active == null)
             {
                 var definition = database.GetCareerEventDefinition(eventId);
                 if ((definition.Kind == CareerEventKind.Deathmatch) != (race.State.Deathmatch != null))
                     return Result<CareerEntryTransaction>.Failure("PREPARED RACE FORMAT DOES NOT MATCH THE EVENT.");
                 fee = definition.EntryFee;
+                fameFee = definition.FameEntryFee;
                 if (!team.TrySpendCredits(fee))
                     return Result<CareerEntryTransaction>.Failure("NOT ENOUGH CREDITS.");
+                if (!team.TrySpendFame(fameFee)) { team.AddCredits(fee); return Result<CareerEntryTransaction>.Failure("NOT ENOUGH AVAILABLE FAME."); }
                 var schedule = team.Calendar.Data.schedules.First(e => e.eventId == eventId);
                 int day = occurrenceDay == 0 ? NextOccurrenceDay(team, eventId).Value : occurrenceDay;
                 active = new CareerEventEntryData
@@ -243,7 +247,7 @@ namespace RaceFatal.Career
                 race.UseInstanceId(active.pendingInstanceId);
             if (active.kind == CareerEventKind.Championship)
                 session.CareerRun.EnterChampionship(eventId);
-            return Result<CareerEntryTransaction>.Success(new CareerEntryTransaction(session, before, previousChampionship, fee));
+            return Result<CareerEntryTransaction>.Success(new CareerEntryTransaction(session, before, previousChampionship, fee, fameFee));
         }
 
         public Result SkipOrWithdraw(GameSessionState session)
@@ -364,14 +368,14 @@ namespace RaceFatal.Career
         private readonly GameSessionState session;
         private readonly CareerCalendarData before;
         private readonly string previousChampionship;
-        private readonly int fee;
+        private readonly int fee, fameFee;
         private bool rolledBack;
-        internal CareerEntryTransaction(GameSessionState session, CareerCalendarData before, string championship, int fee)
+        internal CareerEntryTransaction(GameSessionState session, CareerCalendarData before, string championship, int fee, int fameFee)
         {
             this.session = session;
             this.before = before;
             previousChampionship = championship;
-            this.fee = fee;
+            this.fee = fee; this.fameFee = fameFee;
         }
 
         public void Rollback()
@@ -381,6 +385,7 @@ namespace RaceFatal.Career
             rolledBack = true;
             session.PlayerTeam.RestoreCalendar(before);
             session.PlayerTeam.AddCredits(fee);
+            session.PlayerTeam.RefundFame(fameFee);
             if (previousChampionship == null)
                 session.CareerRun.ExitChampionship();
             else

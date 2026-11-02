@@ -9,7 +9,7 @@ namespace RaceFatal.Content.Equipment
         [Header("Handling")] [Min(0f)] [SerializeField] private float handlingMultiplier = 1f;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new HandlingUtilityDefinition(id, displayName, requiredNodeSize, handlingMultiplier, creditCost, requiredTechnologyId);
+            return new HandlingUtilityDefinition(id, displayName, requiredNodeSize, handlingMultiplier, creditCost);
         }
     }
 }

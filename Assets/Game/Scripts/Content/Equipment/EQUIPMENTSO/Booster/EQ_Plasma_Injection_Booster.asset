@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Plasma Injection Booster
   requiredNodeSize: 0
   creditCost: 0
-  requiredTechnologyId: 
   energyCapacity: 1100
   capacityStrainPerSecond: 8
   energyPerSecond: 64

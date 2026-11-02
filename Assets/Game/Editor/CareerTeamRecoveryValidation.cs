@@ -18,26 +18,20 @@ public static class CareerTeamRecoveryValidation
     {
         var db = new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("bike", "Combat Bike", 1, 0, 0));
-        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 100, null));
-        db.AddEngineDefinition(new EngineDefinition("locked-engine", "Advanced", default, 120, 12, 200, "engine-tech"));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 50, null));
-        db.AddEquipmentDefinition(new ShieldDefinition("shield", "Shield", default, 100, 10, 2, 25, "shield-tech"));
+        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 100));
+        db.AddEngineDefinition(new EngineDefinition("locked-engine", "Advanced", default, 120, 12, 200));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 50));
+        db.AddEquipmentDefinition(new ShieldDefinition("shield", "Shield", default, 100, 10, 2, 25));
         db.AddRacerDefinition(new RacerDefinition("partner-template", "Partner", .5f, .5f, .5f, .5f, .5f));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("player_starter", "Starter", "bike", "engine", "chassis", Array.Empty<EquipmentMountDefinition>(), true, 1000));
         var mount = new EquipmentMountDefinition("shield", default, 0);
-        db.AddBikeBuildDefinition(new BikeBuildDefinition("advanced", "Advanced", "bike", "locked-engine", "chassis", new[] { mount }, true, 2000, "build-tech"));
+        db.AddBikeBuildDefinition(new BikeBuildDefinition("advanced", "Advanced", "bike", "locked-engine", "chassis", new[] { mount }, true, 2000));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("invalid", "Invalid", "bike", "engine", "chassis", new[] { mount, mount }, true, 500));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("hidden", "AI only", "bike", "engine", "chassis", Array.Empty<EquipmentMountDefinition>()));
         var shop = new ShopService(db);
         var buyer = new TeamState("buyer", "Buyer", "#123456", "#abcdef");
         buyer.AddCredits(6000);
         Require(shop.FindOffer(ShopItemKind.Bike, "hidden") == null, "Unlisted AI builds not sold");
-        Require(!shop.Purchase(buyer, ShopItemKind.Bike, "advanced").IsSuccess, "Build technology required");
-        buyer.UnlockTechnology("build-tech");
-        Require(!shop.Purchase(buyer, ShopItemKind.Bike, "advanced").IsSuccess, "Bundled engine technology required");
-        buyer.UnlockTechnology("engine-tech");
-        Require(!shop.Purchase(buyer, ShopItemKind.Bike, "advanced").IsSuccess, "Bundled equipment technology required");
-        buyer.UnlockTechnology("shield-tech");
         Require(!shop.Purchase(buyer, ShopItemKind.Bike, "invalid").IsSuccess && buyer.Garage.Bikes.Count == 0 && buyer.Credits == 6000, "Invalid duplicate mounts cannot charge or leave partial inventory");
         Success(shop.Purchase(buyer, ShopItemKind.Bike, "advanced"), "Buy advanced bike");
         Success(shop.Purchase(buyer, ShopItemKind.Bike, "advanced"), "Buy second copy");
@@ -55,7 +49,6 @@ public static class CareerTeamRecoveryValidation
         deadPartner.Kill();
         team.AddCredits(300);
         team.AddFame(25);
-        team.AddResearchPoints(40);
         var build = db.GetBikeBuildDefinition("player_starter");
         var wreckA = factory.CreateInGarage(build, team.Garage, "#ffffff", "#000000").Value;
         var wreckB = factory.CreateInGarage(build, team.Garage, "#ffffff", "#000000").Value;
@@ -77,7 +70,7 @@ public static class CareerTeamRecoveryValidation
         team = sessions.Current.PlayerTeam;
         var replacement = team.Roster.FindRacer(sessions.Current.SelectedPartnerRacerId);
         Require(replacement.RacerId != deadPartner.RacerId && replacement.DefinitionId == "partner-template" && replacement.CanRace && team.Roster.FindRacer(deadPartner.RacerId).Status == RacerCareerStatus.Dead, "Replacement has a fresh identity and valid AI content; old racer stays dead");
-        Require(team.Credits == 0 && team.Fame == 25 && team.ResearchPoints == 40 && team.Calendar.Week == 1 && team.Garage.FindBike(wreckA.BikeId).IsDestroyed && team.Garage.FindBike(wreckB.BikeId).IsDestroyed, "Recovery preserves losses, calendar and progression");
+        Require(team.Credits == 0 && team.Fame == 25 && team.Calendar.Week == 1 && team.Garage.FindBike(wreckA.BikeId).IsDestroyed && team.Garage.FindBike(wreckB.BikeId).IsDestroyed, "Recovery preserves losses, calendar and progression");
         Require(TeamPreparationService.Inspect(sessions.Current).All(c => c.Ready), "Recovered assignments pass team checklist");
         Require(!saves.RecoverTeam(quote.Value.Signature).IsSuccess, "Repeated confirmation grants nothing");
         Reload(saves);

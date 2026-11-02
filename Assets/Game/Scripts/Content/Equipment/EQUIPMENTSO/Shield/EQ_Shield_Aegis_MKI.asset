@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: AEGIS MKI
   requiredNodeSize: 0
   creditCost: 250
-  requiredTechnologyId: 
   capacity: 150
   rechargePerSecond: 30
   rechargeDelay: 2

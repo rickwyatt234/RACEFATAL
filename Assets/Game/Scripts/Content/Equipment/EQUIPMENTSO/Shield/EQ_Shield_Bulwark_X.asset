@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Bulwark X
   requiredNodeSize: 2
   creditCost: 750
-  requiredTechnologyId: 
   capacity: 550
   rechargePerSecond: 44
   rechargeDelay: 2

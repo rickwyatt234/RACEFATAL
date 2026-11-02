@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Rear Auto Turret
   requiredNodeSize: 1
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 0
   aimMode: 5
   deliveryMode: 1

@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: FLASH//CAGE MKI
   requiredNodeSize: 1
   creditCost: 450
-  requiredTechnologyId: 
   capacity: 250
   rechargePerSecond: 20
   rechargeDelay: 2

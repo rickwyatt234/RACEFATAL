@@ -29,11 +29,11 @@ static class Program
     {
         var db = new GameDatabase();
         var platform = new BikeDefinition("bike", "Bike", 4, 0, 0);
-        var chassis = new ChassisDefinition("chassis", "Heavy", 350, .9f, 0, null, maxIntegrity: 150, steeringResponseMultiplier: .95f, leanResponseMultiplier: .9f, stabilityMultiplier: 1.1f, impactResistance: .2f);
-        var engine = new EngineDefinition("engine", "Engine", default, 100, 10, 0, null);
-        var booster = new BoosterDefinition("booster", "Booster", NodeSize.Small, 5, 1.2f, 1.3f, 0, null, 80);
-        var gyro = new HandlingUtilityDefinition("gyro", "Gyro", NodeSize.Small, 1.1f, 0, null);
-        var shield = new ShieldDefinition("shield", "Shield", NodeSize.Small, 50, 10, 1, 0, null);
+        var chassis = new ChassisDefinition("chassis", "Heavy", 350, .9f, 0, maxIntegrity: 150, steeringResponseMultiplier: .95f, leanResponseMultiplier: .9f, stabilityMultiplier: 1.1f, impactResistance: .2f);
+        var engine = new EngineDefinition("engine", "Engine", default, 100, 10, 0);
+        var booster = new BoosterDefinition("booster", "Booster", NodeSize.Small, 5, 1.2f, 1.3f, 0, 80);
+        var gyro = new HandlingUtilityDefinition("gyro", "Gyro", NodeSize.Small, 1.1f, 0);
+        var shield = new ShieldDefinition("shield", "Shield", NodeSize.Small, 50, 10, 1, 0);
         db.AddBikeDefinition(platform);
         db.AddChassisDefinition(chassis);
         db.AddEngineDefinition(engine);

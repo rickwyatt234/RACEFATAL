@@ -17,12 +17,12 @@ static class Program
     {
         var db=new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("bike","Bike",0,0,0));
-        db.AddEngineDefinition(new EngineDefinition("engine","Engine",default,100,10,0,null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis","Chassis",250,1,0,null));
+        db.AddEngineDefinition(new EngineDefinition("engine","Engine",default,100,10,0));
+        db.AddChassisDefinition(new ChassisDefinition("chassis","Chassis",250,1,0));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("build","Build","bike","engine","chassis",Array.Empty<EquipmentMountDefinition>()));
         db.AddRacerDefinition(new RacerDefinition("partner","Partner",.5f,.5f,.5f,.5f,.5f));
-        db.AddRaceDefinition(new RaceDefinition("race-a","Venue A race","venue-a",default,3,2,2,7));
-        db.AddRaceDefinition(new RaceDefinition("race-b","Venue B race","venue-b",default,4,2,2,11));
+        db.AddRaceDefinition(new RaceDefinition("race-a","Venue A race","venue-a",default,3,2,2));
+        db.AddRaceDefinition(new RaceDefinition("race-b","Venue B race","venue-b",default,4,2,2));
         CareerEventDefinition Event(string id,string race,int day,int repeat,int payout=100,int fame=0,CareerEventKind kind=CareerEventKind.Race) => new CareerEventDefinition(id,id,"Scheduled event",kind,fame,0,new[]{race},new[]{payout},Array.Empty<int>(),new[]{25,18},1,day,repeat);
         db.AddCareerEventDefinition(Event("day4","race-a",4,4,100));
         db.AddCareerEventDefinition(Event("day6","race-b",6,6,250));
@@ -42,7 +42,7 @@ static class Program
         var prep=new RacePreparationService(db,sessions,new RaceEntryBuilder(participants,factory,career));
         var resolver=new PostRaceResolutionService(new RaceRewardPolicy());
         RaceDirector Prepare(string eventId) => Ok(prep.PrepareSelectedRace(service.NextRaceId(team,eventId)));
-        RaceResult ResultFor(RaceDirector director) => new RaceResult(director.State.RaceDefinition.Id,new[]{new RaceResultEntry(session.CareerRun.Player.RacerId,team.TeamId,1,3,RaceParticipantStatus.Finished),new RaceResultEntry(session.SelectedPartnerRacerId,team.TeamId,2,3,RaceParticipantStatus.Finished)},director.InstanceId,director.State.RaceDefinition.ResearchPointBonus);
+        RaceResult ResultFor(RaceDirector director) => new RaceResult(director.State.RaceDefinition.Id,new[]{new RaceResultEntry(session.CareerRun.Player.RacerId,team.TeamId,1,3,RaceParticipantStatus.Finished),new RaceResultEntry(session.SelectedPartnerRacerId,team.TeamId,2,3,RaceParticipantStatus.Finished)},director.InstanceId);
         void Finish(RaceDirector director) => resolver.Resolve(ResultFor(director),team,session.CareerRun.Player);
         WeeklyChecks.Run(team, db);
         var weeklyStart = service.NextOccurrenceDay(team,"champ").Value;

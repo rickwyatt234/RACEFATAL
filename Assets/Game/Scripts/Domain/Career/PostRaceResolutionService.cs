@@ -45,19 +45,16 @@ namespace RaceFatal.Career
             if (raceResult.Deathmatch?.Mode == DeathmatchVictoryMode.Team && playerEntry.IsWinner)
             {
                 var teamReward = rewardPolicy.Calculate(playerEntry.Position, RaceParticipantStatus.Finished);
-                reward = new RaceReward(teamReward.Credits, teamReward.TeamFame, teamReward.ResearchPoints, reward.CharacterFame);
+                reward = new RaceReward(teamReward.Credits, teamReward.TeamFame, reward.CharacterFame);
             }
 
             reward = rewardPolicy.ApplyAudience(reward, playerEntry.AverageAudienceFavor);
             var calendarSettlement = CareerCalendarService.PreviewSettlement(team, raceResult);
             if (calendarSettlement != null)
-                reward = new RaceReward(calendarSettlement.Credits, reward.TeamFame, reward.ResearchPoints, reward.CharacterFame);
+                reward = new RaceReward(calendarSettlement.Credits, reward.TeamFame, reward.CharacterFame);
             if (playerEntry.Status != RaceParticipantStatus.Finished && playerEntry.Status != RaceParticipantStatus.Destroyed && playerEntry.Status != RaceParticipantStatus.Retired)
                 throw new InvalidOperationException("Player has no finalized race outcome.");
-            int researcherPoints = team.ResearchOutputPerRace;
-            int totalRP = checked(reward.ResearchPoints + raceResult.ResearchPointBonus + researcherPoints);
-            reward = new RaceReward(reward.Credits, reward.TeamFame, totalRP, reward.CharacterFame);
-            _ = checked(team.ResearchPoints + totalRP);
+            reward = new RaceReward(reward.Credits, reward.TeamFame, reward.CharacterFame);
             _ = checked(team.Credits + reward.Credits);
             _ = checked(team.Fame + reward.TeamFame);
             _ = checked(player.Progression.Fame + reward.CharacterFame);
@@ -76,16 +73,16 @@ namespace RaceFatal.Career
                 teammateRewards.Add((teammate, fame));
             }
 
-            team.AdvanceResearchContracts();
+            _ = checked(team.LifetimeFame + reward.TeamFame);
+            var contractSummary = team.Brands.ApplyRace(raceResult, playerEntry);
             team.AddCredits(reward.Credits);
             team.AddFame(reward.TeamFame);
-            team.AddResearchPoints(reward.ResearchPoints);
             player.Progression.AddFame(reward.CharacterFame);
             foreach (var(teammate, fame)in teammateRewards)
                 teammate.Progression.AddFame(fame);
             bool playerDied = playerEntry.Status == RaceParticipantStatus.Destroyed || player.Status == RacerCareerStatus.Dead;
             bool careerEnded = player.Status != RacerCareerStatus.Active;
-            var result = new PostRaceResult(raceResult.RaceId, player.RacerId, playerEntry.Position, playerEntry.Status, reward, playerDied, careerEnded, raceResult.ResearchPointBonus, researcherPoints, playerEntry.AverageAudienceFavor);
+            var result = new PostRaceResult(raceResult.RaceId, player.RacerId, playerEntry.Position, playerEntry.Status, reward, playerDied, careerEnded, playerEntry.AverageAudienceFavor, contractSummary);
             team.RestoreSettledRace(raceResult.InstanceId, result);
             if (calendarSettlement != null)
                 team.RestoreCalendar(calendarSettlement.Calendar);

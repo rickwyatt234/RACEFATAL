@@ -133,7 +133,7 @@ namespace RaceFatal.Presentation.Career
             var racer = Session?.CareerRun?.Player ?? Session?.PlayerTeam.Roster.Racers.LastOrDefault(r => r.IsPlayerCharacter);
             string record = racer == null ? "" : $"{racer.Name} // {racer.Status.ToString().ToUpperInvariant()}\n{racer.RacesEntered} STARTS · {racer.RacesWon} WINS · {racer.Podiums} PODIUMS\n\n";
             title.text = page == 2 ? "CONFIRM RETIREMENT" : page == 1 ? "CREATE NEW RACER" : "CAREER ENDED // TEAM CONTINUES";
-            summary.text = page == 2 ? "Permanently retire your current racer? Their statistics will remain in the Roster.\n\nAn unfinished championship will be withdrawn without a refund or final prize. Your team can continue with a new racer." : record + (page == 1 ? "Enter your new racer's name (1–40 characters). They begin with fresh personal progression. Your team's equipment carries forward. If your player bike is unusable, a ready spare or fresh starter bike will be assigned. Wrecks and lost upgrades stay destroyed." : "Would you like to create a new racer or return to the Main Menu?\n\nYour credits, research, fame, inventory and calendar remain with this team.");
+            summary.text = page == 2 ? "Permanently retire your current racer? Their statistics will remain in the Roster.\n\nAn unfinished championship will be withdrawn without a refund or final prize. Your team can continue with a new racer." : record + (page == 1 ? "Enter your new racer's name (1–40 characters). They begin with fresh personal progression. Your team's equipment carries forward. If your player bike is unusable, a ready spare or fresh starter bike will be assigned. Wrecks and lost upgrades stay destroyed." : "Would you like to create a new racer or return to the Main Menu?\n\nYour credits, brand standing, fame, inventory and calendar remain with this team.");
             primaryLabel.text = page == 2 ? "CONFIRM RETIREMENT" : page == 1 ? "CREATE & SAVE" : "CREATE NEW RACER";
             secondaryLabel.text = page == 2 ? "CANCEL" : page == 1 ? "BACK" : "MAIN MENU";
             ConfigureNavigation();
@@ -298,7 +298,7 @@ namespace RaceFatal.Presentation.Career
                 text.AppendLine("Assign a ready partner bike in Garage before entering a race.");
             if (partnerBike?.IsRaceReady == true && bike?.IsRaceReady == true && partnerBike.EngineClass != bike.EngineClass)
                 text.AppendLine("Player and partner engines need matching classes for team race entry.");
-            text.AppendLine($"\nTEAM RESOURCES\nCREDITS  {team.Credits:N0}\nTEAM FAME  {team.Fame:N0}\nRESEARCH POINTS  {team.ResearchPoints:N0}\nCALENDAR  {team.Calendar.DateLabel}");
+            text.AppendLine($"\nTEAM RESOURCES\nCREDITS  {team.Credits:N0}\nAVAILABLE FAME  {team.Fame:N0}\nLIFETIME FAME  {team.LifetimeFame:N0}\nCALENDAR  {team.Calendar.DateLabel}");
             text.AppendLine("\nTeam resources and owned items remain with this campaign. Previous racers, wrecks and lost upgrades retain their permanent status.");
             return text.ToString();
         }

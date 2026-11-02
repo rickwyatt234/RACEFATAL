@@ -15,6 +15,7 @@ namespace RaceFatal.Content.Career
         [SerializeField] private CareerEventKind kind;
         [Min(0)] [SerializeField] private int requiredFame;
         [Min(0)] [SerializeField] private int entryFee;
+        [Tooltip("Available team fame spent on championship registration, in addition to credits.")] [Min(0)] [SerializeField] private int fameEntryFee = 150;
         [Tooltip("One race for a single event or deathmatch; ordered circuit races for a championship. Deathmatch requires enabled Deathmatch rules on its race asset.")] [SerializeField] private List<RaceDefinitionSO> rounds =
             new List<RaceDefinitionSO>();
         [Tooltip("Credits for the player's finishing place each round. Entries beyond this table pay zero. DNF pays 40%.")] [SerializeField] private List<int> racePayouts =
@@ -35,6 +36,6 @@ namespace RaceFatal.Content.Career
         [HideInInspector] [SerializeField] private int roundSpacingDays = 1;
         public string Id => id;
 
-        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints, firstWeek, firstDayOfWeek, repeatEveryWeeks, roundSpacingDays, starterOrder);
+        public CareerEventDefinition CreateDefinition() => new CareerEventDefinition(id, displayName, description, kind, requiredFame, entryFee, rounds.Select(r => r != null ? r.Id : null), racePayouts, championshipPrizes, positionPoints, firstWeek, firstDayOfWeek, repeatEveryWeeks, roundSpacingDays, starterOrder, kind == CareerEventKind.Championship ? fameEntryFee : 0);
     }
 }

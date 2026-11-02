@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Particle Ejection Booster
   requiredNodeSize: 1
   creditCost: 0
-  requiredTechnologyId: 
   energyCapacity: 1500
   capacityStrainPerSecond: 8
   energyPerSecond: 80

@@ -11,7 +11,7 @@ namespace RaceFatal.Equipment
         public float TriggerDistance { get; }
         public float DefeatRadius { get; }
 
-        public CountermeasureDefinition(string id, string displayName, NodeSize requiredNodeSize, CountermeasureType countermeasureType, float cooldown, int usesPerRace, float triggerDistance, float defeatRadius, int creditCost, string requiredTechnologyId) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Reactive, creditCost, requiredTechnologyId)
+        public CountermeasureDefinition(string id, string displayName, NodeSize requiredNodeSize, CountermeasureType countermeasureType, float cooldown, int usesPerRace, float triggerDistance, float defeatRadius, int creditCost) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Reactive, creditCost)
         {
             CountermeasureType = countermeasureType;
             Cooldown = Math.Max(0f, cooldown);

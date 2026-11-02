@@ -79,21 +79,15 @@ namespace RaceFatal.Content
                 database.AddOpponentTeamDefinition(definition);
             }
 
-            foreach (var technology in catalog.TechnologyDefinitions)
-            {
-                if (technology != null)
-                    database.AddTechnologyDefinition(technology.CreateDefinition(catalog.ResearchProgression));
-            }
-
-            foreach (var researcher in catalog.ResearcherDefinitions)
-                if (researcher != null)
-                    database.AddResearcherDefinition(researcher.CreateDefinition());
             foreach (var entry in catalog.CareerEventDefinitions)
                 if (entry != null)
                     database.AddCareerEventDefinition(entry.CreateDefinition());
             if (database.CareerEventDefinitions.Count == 0)
                 foreach (var race in database.RaceDefinitions.Values)
                     database.AddCareerEventDefinition(new RaceFatal.Career.CareerEventDefinition("EVENT_" + race.Id, race.DisplayName, "Open race", race.Deathmatch != null ? RaceFatal.Career.CareerEventKind.Deathmatch : RaceFatal.Career.CareerEventKind.Race, 0, 0, new[] { race.Id }, new[] { 10000, 8000, 6500, 5000, 5000, 5000, 3500, 3500, 3500, 2500, 2500, 2500 }, System.Array.Empty<int>(), new[] { 25, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2, 1 }));
+            foreach (var brand in catalog.BrandDefinitions)
+                if (brand != null) database.AddBrandDefinition(brand.CreateDefinition());
+            RaceFatal.Career.BrandDefaults.Ensure(database);
             return database;
         }
     }

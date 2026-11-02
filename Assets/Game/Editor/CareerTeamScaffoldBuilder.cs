@@ -72,7 +72,7 @@ public static class CareerTeamScaffoldBuilder
         var progress = ScrollText(ui, "Progression", new Vector2(1350, -225), new Vector2(450, 680));
         var roster = Button(ui, "OpenRoster", "MANAGE ROSTER", new Vector2(410, -945), new Vector2(410, 62));
         var garage = Button(ui, "OpenGarage", "OPEN GARAGE", new Vector2(870, -945), new Vector2(440, 62));
-        var research = Button(ui, "OpenResearch", "MANAGE RESEARCH", new Vector2(1350, -945), new Vector2(450, 62));
+        var brands = Button(ui, "OpenBrands", "MANAGE BRANDS", new Vector2(1350, -945), new Vector2(450, 62));
         var feedback = Text(ui, "Feedback", "EDIT TEAM IDENTITY, THEN APPLY & SAVE.", 20, new Vector2(410, -1020), new Vector2(1390, 55));
         var serialized = new SerializedObject(view);
         Reference(serialized, "nameInput", name);
@@ -89,7 +89,7 @@ public static class CareerTeamScaffoldBuilder
         Reference(serialized, "saveButton", save);
         Reference(serialized, "rosterButton", roster);
         Reference(serialized, "garageButton", garage);
-        Reference(serialized, "researchButton", research);
+        Reference(serialized, "brandsButton", brands);
         serialized.ApplyModifiedPropertiesWithoutUndo();
         var controllerData = new SerializedObject(controller);
         Reference(controllerData, "teamView", view);

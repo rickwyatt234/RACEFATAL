@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Rocket Launcher
   requiredNodeSize: 2
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 1
   aimMode: 2
   deliveryMode: 2

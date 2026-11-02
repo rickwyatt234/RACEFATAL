@@ -17,9 +17,9 @@ public static class CareerCalendarValidation
     {
         var db = new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("test-bike", "Bike", 0, 0, 0));
-        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0, null));
-        db.AddRaceDefinition(new RaceDefinition("race", "Test Race", "track", default, 3, 4, 2, 7));
+        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0));
+        db.AddRaceDefinition(new RaceDefinition("race", "Test Race", "track", default, 3, 4, 2));
         db.AddCareerEventDefinition(Event("free", 0, 0, false));
         db.AddCareerEventDefinition(Event("paid", 0, 200, false));
         db.AddCareerEventDefinition(Event("champ", 0, 300, true));
@@ -31,7 +31,6 @@ public static class CareerCalendarValidation
         team.Roster.AddRacer(player);
         team.Roster.AddRacer(new RacerState("partner", "Partner", "team", false));
         team.AddCredits(2000);
-        team.RestoreResearchContract(new ResearchContract("staff", "Researcher", 10, 10));
         var opponent = new TeamState("opponent", "Opponent", "#fff", "#000");
         opponent.Roster.AddRacer(new RacerState("enemy-a", "Enemy A", "opponent", false));
         opponent.Roster.AddRacer(new RacerState("enemy-b", "Enemy B", "opponent", false));
@@ -83,7 +82,6 @@ public static class CareerCalendarValidation
         var race = Result(attempt);
         resolver.Resolve(race, team, player);
         Require(team.Credits == 2800 && team.Calendar.AbsoluteDay == 1 && team.Calendar.Active == null, "Payout preserves the event date");
-        Require(team.ResearchPoints == 67 && team.ResearchContracts[0].RacesRemaining == 9, "Event RP and researchers settle together");
         resolver.Resolve(race, team, player);
         Require(team.Credits == 2800 && team.Calendar.AbsoluteDay == 1, "Duplicate result cannot pay or advance twice");
         session = Reload(session, mapper);
@@ -122,13 +120,11 @@ public static class CareerCalendarValidation
         var reduced = Prepare(attrition, db);
         Require(reduced.State.Participants.Count == 2 && reduced.State.RaceDefinition.EntrantCount == 2, "An opponent unable to field two racers misses the next round");
         Require(service.Register(attrition, "champ", reduced).IsSuccess, "Continue reduced championship grid");
-        resolver.Resolve(new RaceResult("race", Result(reduced.InstanceId).Standings.Take(2).ToList(), reduced.InstanceId, 7), attrition.PlayerTeam, attrition.CareerRun.Player);
+        resolver.Resolve(new RaceResult("race", Result(reduced.InstanceId).Standings.Take(2).ToList(), reduced.InstanceId), attrition.PlayerTeam, attrition.CareerRun.Player);
         Require(attrition.PlayerTeam.Calendar.Active.standings.Single(s => s.teamId == "opponent").points == 27, "Absent team retains prior points and scores zero");
         var snapshot = team.Calendar.Export();
         snapshot.week = -1;
         Require(!team.RestoreCalendar(snapshot).IsSuccess, "Corrupt save rejected without replacing live calendar");
-        int points = team.ResearchPoints, remaining = team.ResearchContracts[0].RacesRemaining;
-        Require(service.SkipOrWithdraw(session).IsSuccess && team.ResearchPoints == points && team.ResearchContracts[0].RacesRemaining == remaining, "Skipping awards no research and does not consume staff contract");
         service.Refresh(team);
         int beforeWithdrawal = team.Credits;
         var withdrawnRace = Prepare(session, db);
@@ -169,7 +165,7 @@ public static class CareerCalendarValidation
     }
 
     private static CareerEventDefinition Event(string id, int fame, int fee, bool championship) => new CareerEventDefinition(id, id, "", championship ? CareerEventKind.Championship : CareerEventKind.Race, fame, fee, championship ? new[] { "race", "race", "race" } : new[] { "race" }, new[] { 1000, 800, 500, 100 }, new[] { 5000, 2500 }, new[] { 25, 18, 15, 12 });
-    private static RaceResult Result(string instance, RaceParticipantStatus status = RaceParticipantStatus.Finished) => new RaceResult("race", new[] { new RaceResultEntry("player", "team", 1, 3, status), new RaceResultEntry("partner", "team", 2, 3, RaceParticipantStatus.Finished), new RaceResultEntry("enemy-a", "opponent", 3, 3, RaceParticipantStatus.Finished), new RaceResultEntry("enemy-b", "opponent", 4, 3, RaceParticipantStatus.Finished) }, instance, 7);
+    private static RaceResult Result(string instance, RaceParticipantStatus status = RaceParticipantStatus.Finished) => new RaceResult("race", new[] { new RaceResultEntry("player", "team", 1, 3, status), new RaceResultEntry("partner", "team", 2, 3, RaceParticipantStatus.Finished), new RaceResultEntry("enemy-a", "opponent", 3, 3, RaceParticipantStatus.Finished), new RaceResultEntry("enemy-b", "opponent", 4, 3, RaceParticipantStatus.Finished) }, instance);
     private static GameSessionState Reload(GameSessionState session, CampaignSaveMapper mapper)
     {
         var captured = mapper.Capture(session);

@@ -58,7 +58,7 @@ namespace RaceFatal.Racing
 
             var savedEntry = session.PlayerTeam.Calendar.Active;
             if (savedEntry?.kind == CareerEventKind.Deathmatch && savedEntry.raceIds[savedEntry.roundIndex] == raceId)
-                race = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass, race.LapCount, race.EntrantCount, race.TeamSize, race.ResearchPointBonus, savedEntry.RestoreDeathmatch());
+                race = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass, race.LapCount, race.EntrantCount, race.TeamSize, savedEntry.RestoreDeathmatch());
             BikeState playerBike = session.PlayerTeam.Garage.FindBike(playerBikeId);
             if (playerBike == null)
             {
@@ -77,10 +77,13 @@ namespace RaceFatal.Racing
                 return Result<RaceDirector>.Failure($"Partner bike '{partnerBikeId}' " + "was not found.");
             }
 
+            var brands = new BrandService(database);
+            foreach (var opponent in session.World.OpponentTeams)
+                brands.ApplyOpponentPreferences(opponent, database.GetOpponentTeamDefinition(opponent.TeamId), session.PlayerTeam.LifetimeFame);
             if (calendarTeamIds != null)
             {
                 var eligible = session.World.OpponentTeams.Where(t => calendarTeamIds.Contains(t.TeamId) && t.Roster.GetRaceEligibleRacers().Count >= race.TeamSize && t.Garage.GetRaceReadyBikesFor(race.EngineClass).Count >= race.TeamSize).ToList();
-                var round = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass, race.LapCount, (eligible.Count + 1) * race.TeamSize, race.TeamSize, race.ResearchPointBonus, race.Deathmatch);
+                var round = new RaceDefinition(race.Id, race.DisplayName, race.TrackId, race.EngineClass, race.LapCount, (eligible.Count + 1) * race.TeamSize, race.TeamSize, race.Deathmatch);
                 return raceEntryBuilder.Build(round, session.CareerRun, playerBike, partner, partnerBike, eligible);
             }
 

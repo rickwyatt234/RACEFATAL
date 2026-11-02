@@ -22,7 +22,6 @@ namespace RaceFatal.Content.Vehicles
         [SerializeField] private string displayName;
         [Header("Complete-bike Shop Offer")] [SerializeField] private bool availableInShop;
         [Min(0)] [SerializeField] private int creditCost = 12000;
-        [SerializeField] private string requiredTechnologyId;
         [Header("Bike")] [SerializeField] private BikeDefinitionSO bike;
         [SerializeField] private EngineDefinitionSO engine;
         [SerializeField] private ChassisDefinitionSO chassis;
@@ -42,7 +41,7 @@ namespace RaceFatal.Content.Vehicles
                 mounts.Add(new EquipmentMountDefinition(mount.equipment.Id, mount.nodeSize, mount.nodeIndex));
             }
 
-            return new BikeBuildDefinition(id, displayName, bike != null ? bike.Id : null, engine != null ? engine.Id : null, chassis != null ? chassis.Id : null, mounts, availableInShop, creditCost, requiredTechnologyId);
+            return new BikeBuildDefinition(id, displayName, bike != null ? bike.Id : null, engine != null ? engine.Id : null, chassis != null ? chassis.Id : null, mounts, availableInShop, creditCost);
         }
     }
 }

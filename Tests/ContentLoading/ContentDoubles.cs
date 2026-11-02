@@ -53,9 +53,7 @@ namespace RaceFatal.Content
         public List<DefinitionContent<RacerDefinition>> RacerDefinitions = new List<DefinitionContent<RacerDefinition>>();
         public List<DefinitionContent<RacerPerkDefinition>> RacerPerkDefinitions = new List<DefinitionContent<RacerPerkDefinition>>();
         public List<DefinitionContent<OpponentTeamDefinition>> OpponentTeamDefinitions = new List<DefinitionContent<OpponentTeamDefinition>>();
-        public List<DefinitionContent<TechnologyDefinition>> TechnologyDefinitions = new List<DefinitionContent<TechnologyDefinition>>();
-        public List<DefinitionContent<ResearcherDefinition>> ResearcherDefinitions = new List<DefinitionContent<ResearcherDefinition>>();
+        public List<DefinitionContent<BrandDefinition>> BrandDefinitions = new List<DefinitionContent<BrandDefinition>>();
         public List<DefinitionContent<CareerEventDefinition>> CareerEventDefinitions = new List<DefinitionContent<CareerEventDefinition>>();
-        public object ResearchProgression;
     }
 }

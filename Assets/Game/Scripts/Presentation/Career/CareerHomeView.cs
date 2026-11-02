@@ -12,7 +12,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text racerNameText;
         [Header("Resources")] [SerializeField] private TMP_Text creditsText;
         [SerializeField] private TMP_Text fameText;
-        [SerializeField] private TMP_Text researchPointsText;
+        [SerializeField] private TMP_Text lifetimeFameText;
         [Header("Current Setup")] [SerializeField] private TMP_Text currentBikeText;
         [SerializeField] private TMP_Text currentPartnerText;
         [Header("Career")] [SerializeField] private TMP_Text careerStatusText;
@@ -28,7 +28,7 @@ namespace RaceFatal.Presentation.Career
             if (calendarView == null)
             {
                 calendarView = CareerHomeCalendarView.Create(transform, owner);
-                var labels = new[] { teamNameText, racerNameText, creditsText, fameText, researchPointsText, currentBikeText, currentPartnerText, careerStatusText };
+                var labels = new[] { teamNameText, racerNameText, creditsText, fameText, lifetimeFameText, currentBikeText, currentPartnerText, careerStatusText };
                 for (int i=0;i<labels.Length;i++)
                 {
                     if (labels[i] == null) continue;
@@ -47,8 +47,8 @@ namespace RaceFatal.Presentation.Career
             SetText(teamNameText, team != null ? team.TeamName : "NO TEAM");
             SetText(racerNameText, player != null ? player.Name : "NO ACTIVE RACER");
             SetText(creditsText, $"CREDITS  {(team?.Credits ?? 0):N0}");
-            SetText(fameText, $"TEAM FAME  {(team?.Fame ?? 0):N0}");
-            SetText(researchPointsText, $"RESEARCH POINTS  {(team?.ResearchPoints ?? 0):N0}");
+            SetText(fameText, $"AVAILABLE FAME  {(team?.Fame ?? 0):N0}");
+            SetText(lifetimeFameText, $"LIFETIME FAME  {(team?.LifetimeFame ?? 0):N0}");
             SetText(currentBikeText, "CURRENT BIKE  " + ResolveBikeName(session, database));
             SetText(currentPartnerText, "CURRENT PARTNER  " + (partner != null ? partner.Name : "NONE"));
             string careerStatus = run == null ? "ENDED — CREATE A NEW RACER" : run.IsActive ? "ACTIVE" : player?.Status.ToString().ToUpperInvariant() + " — CAREER ENDED";
@@ -106,8 +106,8 @@ namespace RaceFatal.Presentation.Career
             SetText(teamNameText, "NO TEAM");
             SetText(racerNameText, "NO ACTIVE RACER");
             SetText(creditsText, "CREDITS  0");
-            SetText(fameText, "TEAM FAME  0");
-            SetText(researchPointsText, "RESEARCH POINTS  0");
+            SetText(fameText, "AVAILABLE FAME  0");
+            SetText(lifetimeFameText, "LIFETIME FAME  0");
             SetText(currentBikeText, "CURRENT BIKE  NONE");
             SetText(currentPartnerText, "CURRENT PARTNER  NONE");
             SetText(careerStatusText, "CAREER STATUS  UNAVAILABLE");

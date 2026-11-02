@@ -17,9 +17,9 @@ static class Program
     {
         var db=new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("bike","Starter",1,0,0));
-        db.AddEngineDefinition(new EngineDefinition("engine","Engine",default,100,10,0,null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis","Chassis",350,1,0,null));
-        db.AddEquipmentDefinition(new ShieldDefinition("shield","Shield",NodeSize.Small,50,10,1,0,null));
+        db.AddEngineDefinition(new EngineDefinition("engine","Engine",default,100,10,0));
+        db.AddChassisDefinition(new ChassisDefinition("chassis","Chassis",350,1,0));
+        db.AddEquipmentDefinition(new ShieldDefinition("shield","Shield",NodeSize.Small,50,10,1,0));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("build","Build","bike","engine","chassis",new[]{new EquipmentMountDefinition("shield",NodeSize.Small,0)}));
         db.AddRacerDefinition(new RacerDefinition("partner","Partner",.5f,.5f,.5f,.5f,.5f));
         db.AddRacerPerkDefinition(new RacerPerkDefinition("perk1","Perk One","Test",0,RacerPerkEffect.EnergyCapacity,.1f));

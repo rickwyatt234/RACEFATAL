@@ -25,10 +25,9 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private TextMeshProUGUI creditsText;
         [SerializeField] private TextMeshProUGUI teamFameText;
         [SerializeField] private TextMeshProUGUI audienceSummaryText;
-        [SerializeField] private TextMeshProUGUI researchPointsText;
+        [SerializeField] private TextMeshProUGUI contractSummaryText;
         [SerializeField] private TextMeshProUGUI characterFameText;
         [SerializeField] private TextMeshProUGUI careerStatusText;
-        [SerializeField] private TextMeshProUGUI researchBreakdownText;
         [Header("Post-Race Scene")] [Tooltip("Scene loaded after leaving the final results screen.")] [SerializeField] private string postRaceSceneName;
         [Header("Vehicle")] [Range(0f, 1f)] [SerializeField] private float finishBrakeInput = 0.35f;
         [Header("Cursor")] [SerializeField] private bool releaseCursorOnOutcome = true;
@@ -429,20 +428,19 @@ namespace RaceFatal.Presentation.Racing
                 }
             }
 
-            if (researchPointsText != null)
+            if (contractSummaryText != null)
             {
-                researchPointsText.text = $"+{reward.ResearchPoints:N0}";
-            }
-
-            string researchBreakdown = $"RACE +{result.RaceResearchPoints}  EVENT +{result.EventResearchPoints}  STAFF +{result.ResearcherPoints}";
-            if (researchBreakdownText != null)
-                researchBreakdownText.text = researchBreakdown;
-            else if (researchPointsText != null)
-            {
-                researchPointsText.enableAutoSizing = true;
-                researchPointsText.fontSizeMin = 12;
-                researchPointsText.fontSizeMax = 24;
-                researchPointsText.text = $"+{reward.ResearchPoints:N0}\n<size=65%>{researchBreakdown}</size>";
+                contractSummaryText.enableAutoSizing = true;
+                contractSummaryText.fontSizeMin = 12;
+                contractSummaryText.fontSizeMax = 20;
+                if (string.IsNullOrEmpty(result.ContractSummary)) contractSummaryText.text = "NO ACTIVE CONTRACTS";
+                else
+                {
+                    var lines = result.ContractSummary.Split('\n');
+                    int completed = 0;
+                    foreach (var line in lines) if (line.Contains("COMPLETE;")) completed++;
+                    contractSummaryText.text = $"{lines.Length} UPDATED / {completed} COMPLETE\nDETAILS IN BRANDS";
+                }
             }
 
             if (characterFameText != null)

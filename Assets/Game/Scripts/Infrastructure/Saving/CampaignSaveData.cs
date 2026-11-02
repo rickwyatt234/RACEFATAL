@@ -30,11 +30,11 @@ namespace RaceFatal.Infrastructure.Saving
         public string secondaryColor;
         public int credits;
         public int fame;
-        public int researchPoints;
+        public bool hasLifetimeFame;
+        public int lifetimeFame;
+        public RaceFatal.Career.BrandProgress brands;
         public string recoverySupportCheckpoint;
-        public List<ResearchContractSaveData> researchContracts = new List<ResearchContractSaveData>();
         public List<SettledRaceSaveData> settledRaceResults = new List<SettledRaceSaveData>();
-        public List<string> unlockedTechnologyIds = new List<string>();
         public List<string> unlockedChampionshipIds = new List<string>();
         public List<string> eliminatedRacerIds = new List<string>();
         public List<RacerSaveData> racers = new List<RacerSaveData>();
@@ -42,17 +42,11 @@ namespace RaceFatal.Infrastructure.Saving
     }
 
     [Serializable]
-    public class ResearchContractSaveData
-    {
-        public string definitionId, displayName;
-        public int pointsPerRace, racesRemaining;
-    }
-
-    [Serializable]
     public class SettledRaceSaveData
     {
         public string instanceId, raceId, playerRacerId, status;
-        public int position, credits, teamFame, researchPoints, characterFame, eventRP, researcherRP;
+        public int position, credits, teamFame, characterFame;
+        public string contractSummary;
         public bool playerDied, careerEnded;
         public bool hasAudienceFavor;
         public float averageAudienceFavor = 100f;

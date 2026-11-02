@@ -10,9 +10,8 @@ namespace RaceFatal.Vehicles
         public float TopSpeed { get; }
         public float Acceleration { get; }
         public int CreditCost { get; }
-        public string RequiredTechnologyId { get; }
 
-        public EngineDefinition(string id, string displayName, EngineClass engineClass, float topSpeed, float acceleration, int creditCost, string requiredTechnologyId)
+        public EngineDefinition(string id, string displayName, EngineClass engineClass, float topSpeed, float acceleration, int creditCost)
         {
             Id = id;
             DisplayName = displayName;
@@ -20,7 +19,6 @@ namespace RaceFatal.Vehicles
             TopSpeed = topSpeed;
             Acceleration = acceleration;
             CreditCost = creditCost;
-            RequiredTechnologyId = requiredTechnologyId;
         }
     }
 }

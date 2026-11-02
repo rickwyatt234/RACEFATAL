@@ -69,17 +69,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 73b137646cbb4b598221f98d6634ce3b, type: 2}
   - {fileID: 11400000, guid: e5ac5a5ba3574e47aaaeb580c62a5ec4, type: 2}
   - {fileID: 11400000, guid: 94d0cf9870fe4cb1be9aa9c81c851715, type: 2}
-  researchProgression: {fileID: 11400000, guid: 231dd2b052284ea4c9ea58bd6ada7912, type: 2}
-  researchTreeLayout: {fileID: 11400000, guid: 5b2591011c33b2f4085a89b21e24fead, type: 2}
-  researcherDefinitions:
-  - {fileID: 11400000, guid: 1e9f64c101e96544fb14dddb634546c3, type: 2}
-  - {fileID: 11400000, guid: 166f85e60b169d74ab6efbbc0279e7fb, type: 2}
-  technologyDefinitions:
-  - {fileID: 11400000, guid: e451a6c25932b0f479d08a2180db1141, type: 2}
-  - {fileID: 11400000, guid: 8d2570676465aad46a9688309b1c3d80, type: 2}
-  - {fileID: 11400000, guid: d75cf405f4c39784cb9355a49ecd2a73, type: 2}
-  - {fileID: 11400000, guid: 98582002b0020cb4184f3845e4cb9584, type: 2}
-  - {fileID: 11400000, guid: 2e986d48d577d4b45ab0018ad25e7f6b, type: 2}
+  brandDefinitions: []
   careerEventDefinitions:
   - {fileID: 11400000, guid: 4682ccb991a488e4daa05468ef7f64d9, type: 2}
   - {fileID: 11400000, guid: 3569016e9367cea4c849f8dc285c9acb, type: 2}

@@ -369,7 +369,7 @@ namespace RaceFatal.Racing
                 results.Add(new RaceResultEntry(participant.RacerId, participant.Racer.Name, participant.TeamId, participant.TeamName, state.Deathmatch != null ? participant.DeathmatchPosition : i + 1, participant.CompletedLaps, participant.Status, participant.FinishTimeSeconds, participant.WasFastResolved, participant.DeathmatchWinner, participant.Eliminations, participant.EliminationReason, participant == audiencePlayer ? Audience.AverageFavor : 100f));
             }
 
-            return new RaceResult(state.RaceDefinition.Id, results, raceInstanceId, state.RaceDefinition.ResearchPointBonus, state.IsFinished, state.Deathmatch);
+            return new RaceResult(state.RaceDefinition.Id, results, raceInstanceId, state.IsFinished, state.Deathmatch, state.RaceDefinition.TrackId);
         }
 
         private void PermanentlyDestroy(RaceParticipant participant)

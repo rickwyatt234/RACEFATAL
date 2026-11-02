@@ -12,7 +12,6 @@ namespace RaceFatal.Content.Equipment
         [SerializeField] protected string displayName;
         [Header("Requirements")] [SerializeField] protected NodeSize requiredNodeSize;
         [Header("Cost")] [Min(0)] [SerializeField] protected int creditCost;
-        [Header("Technology Requirement")] [SerializeField] protected string requiredTechnologyId;
         public abstract EquipmentDefinition CreateEquipmentDefinition();
     }
 }

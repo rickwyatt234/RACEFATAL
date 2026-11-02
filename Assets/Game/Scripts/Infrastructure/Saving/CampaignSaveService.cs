@@ -82,7 +82,7 @@ namespace RaceFatal.Infrastructure.Saving
             string racerName = ResolveSummaryRacerName(data);
             bool hasCareerRun = !CareerRunSaveData.IsAbsent(data.careerRun);
             bool careerActive = hasCareerRun && data.careerRun.isActive;
-            var summary = new SaveSlotSummary(slotIndex, true, data.saveVersion, data.lastSavedUtc, data.playerTeam.teamName, racerName, data.playerTeam.credits, data.playerTeam.fame, data.playerTeam.researchPoints, hasCareerRun, careerActive);
+            var summary = new SaveSlotSummary(slotIndex, true, data.saveVersion, data.lastSavedUtc, data.playerTeam.teamName, racerName, data.playerTeam.credits, data.playerTeam.fame, hasCareerRun, careerActive);
             return Result<SaveSlotSummary>.Success(summary);
         }
 

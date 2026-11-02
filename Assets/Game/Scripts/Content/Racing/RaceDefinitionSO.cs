@@ -18,8 +18,6 @@ namespace RaceFatal.Content.Racing
         [Min(1)] [SerializeField] private int lapCount = 3;
         [Min(1)] [SerializeField] private int entrantCount = 12;
         [Min(1)] [SerializeField] private int teamSize = 2;
-        [Header("Research reward")] [Tooltip("Bonus RP for a finalized race, including a resolved DNF.")] [Min(0)] [SerializeField] private
-            int researchPointBonus;
         [Header("Deathmatch (laps do not end this event)")] [SerializeField] private bool deathmatch;
         [SerializeField] private DeathmatchVictoryMode victoryMode = DeathmatchVictoryMode.Team;
         [Min(1)] [SerializeField] private int allowedWinners = 1;
@@ -52,7 +50,7 @@ namespace RaceFatal.Content.Racing
             }
             try
             {
-                definition = new RaceDefinition(id, displayName, track.Id, engineClass, lapCount, entrantCount, teamSize, researchPointBonus, deathmatch ? new DeathmatchRules(victoryMode, allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies) : null);
+                definition = new RaceDefinition(id, displayName, track.Id, engineClass, lapCount, entrantCount, teamSize, deathmatch ? new DeathmatchRules(victoryMode, allowedWinners, timeLimitSeconds, minimumSpeedKph, startGraceSeconds, belowSpeedGraceSeconds, shareTimeoutTies) : null);
                 error = null;
                 return true;
             }

@@ -126,7 +126,7 @@ namespace RaceFatal.Presentation.Career
             }
 
             SetFeedback(saved.IsSuccess ? "ENTERING AN EVENT MOVES TODAY TO ITS DATE. FINISHING DOES NOT SKIP THE WEEK." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
-            Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  TEAM FAME {Team.Fame:N0}");
+            Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  AVAILABLE FAME {Team.Fame:N0} / LIFETIME {Team.LifetimeFame:N0}");
             var active = Team.Calendar.Active;
             bool championshipLocked = active?.kind == CareerEventKind.Championship;
             Set(advanceLabel, championshipLocked ? "CHAMPIONSHIP IN PROGRESS" : active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
@@ -154,7 +154,7 @@ namespace RaceFatal.Presentation.Career
                     if (!calendar.Validate(definition).IsSuccess) continue;
                     AddCard(definition.Id, definition.DisplayName,
                         definition.Kind.ToString().ToUpperInvariant() + " // " + CareerCalendarState.FormatDay(occurrence.Day),
-                        $"FEE {definition.EntryFee:N0}  //  {definition.RaceIds.Count} ROUND(S)",
+                        $"FEE {definition.EntryFee:N0} CR + {definition.FameEntryFee:N0} FAME  //  {definition.RaceIds.Count} ROUND(S)",
                         active != null ? "CURRENT EVENT MUST FINISH FIRST" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
                 }
                 if (cards.Count == 0)
@@ -216,7 +216,7 @@ namespace RaceFatal.Presentation.Career
             text.AppendLine(entry?.description ?? definition.Description);
             text.AppendLine($"\nFORMAT  {kind.ToString().ToUpperInvariant()}\nENTRY FEE  {entry?.entryFee ?? definition.EntryFee:N0} CREDITS{(entry != null ? " (PAID)" : "")}");
             if (race != null)
-                text.AppendLine($"ENGINE CLASS  {race.EngineClass}\n{(kind == CareerEventKind.Deathmatch ? "DEATHMATCH — KEEP CIRCULATING" : "LAPS  " + race.LapCount)}\nRACERS  UP TO {race.EntrantCount} / {race.TeamSize} PER TEAM\nEVENT RESEARCH BONUS  +{race.ResearchPointBonus} RP");
+                text.AppendLine($"ENGINE CLASS  {race.EngineClass}\n{(kind == CareerEventKind.Deathmatch ? "DEATHMATCH — KEEP CIRCULATING" : "LAPS  " + race.LapCount)}\nRACERS  UP TO {race.EntrantCount} / {race.TeamSize} PER TEAM");
             var survivalRules = kind == CareerEventKind.Deathmatch ? (entry != null ? entry.RestoreDeathmatch() : race?.Deathmatch) : null;
             int payoutPlaces = survivalRules?.Mode == DeathmatchVictoryMode.Team && race != null ? race.EntrantCount / race.TeamSize : race?.EntrantCount ?? payouts.Count;
             text.AppendLine($"\nBASE PURSE  {payouts.Take(payoutPlaces).Sum(v => (long)v):N0} CREDITS\n{(survivalRules?.Mode == DeathmatchVictoryMode.Team ? "TEAM" : "PLAYER")} PAYOUT BY POSITION");
@@ -242,6 +242,7 @@ namespace RaceFatal.Presentation.Career
             foreach (var check in TeamPreparationService.Inspect(Session, race))
                 text.AppendLine(check.ToString());
             text.AppendLine("Use PREPARATION / RECOVERY for Garage, Roster and Shop shortcuts.");
+            if (entry == null) text.AppendLine($"FAME ENTRY FEE  {definition.FameEntryFee:N0}");
             Set(selectedRequirementsText, text.ToString());
             ShowDiagram(race?.TrackId);
             var eligible = Preview(id);
@@ -343,9 +344,10 @@ namespace RaceFatal.Presentation.Career
             pendingEventId = selectedEventId;
             pendingOccurrenceDay = selectedOccurrenceDay;
             pendingAdvance = false;
+            int fameFee = Team.Calendar.Active == null ? context.Database.GetCareerEventDefinition(selectedEventId).FameEntryFee : 0;
             int fee = Team.Calendar.Active == null ? context.Database.GetCareerEventDefinition(selectedEventId).EntryFee : 0;
             string name = Team.Calendar.Active?.displayName ?? context.Database.GetCareerEventDefinition(selectedEventId).DisplayName;
-            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS\nREMAINING: {Team.Credits - fee:N0} CREDITS\n\nTODAY WILL MOVE TO {CareerCalendarState.FormatDay(selectedOccurrenceDay)}. EARLIER EVENTS WILL BE MISSED. FINISHING KEEPS THAT DATE. CHAMPIONSHIP ENTRY COMMITS YOU TO ALL ROUNDS. OTHER EVENT FEES ARE FORFEITED IF YOU WITHDRAW.");
+            ShowConfirmation($"ENTER {name}?\n\nCHARGE NOW: {fee:N0} CREDITS + {fameFee:N0} FAME\nREMAINING: {Team.Credits - fee:N0} CREDITS / {Team.Fame - fameFee:N0} FAME\n\nTODAY WILL MOVE TO {CareerCalendarState.FormatDay(selectedOccurrenceDay)}. EARLIER EVENTS WILL BE MISSED. FINISHING KEEPS THAT DATE. CHAMPIONSHIP ENTRY COMMITS YOU TO ALL ROUNDS. OTHER EVENT FEES ARE FORFEITED IF YOU WITHDRAW.");
         }
 
         private void ConfirmAdvance()
@@ -354,7 +356,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             pendingAdvance = true;
             pendingEventId = null;
-            ShowConfirmation(Team.Calendar.Active == null ? "ADVANCE TO THE NEXT UNLOCKED EVENT DATE?\n\nEVENTS ON EARLIER DATES WILL BE MISSED. RESEARCH STAFF DO NOT EARN POINTS FOR SKIPPED DAYS." : "WITHDRAW FROM THIS EVENT?\n\nTHE ENTRY FEE IS NOT REFUNDED. NO COMPLETION PRIZE IS AWARDED. TODAY DOES NOT CHANGE. THIS OCCURRENCE CANNOT BE ENTERED AGAIN.");
+            ShowConfirmation(Team.Calendar.Active == null ? "ADVANCE TO THE NEXT UNLOCKED EVENT DATE?\n\nEVENTS ON EARLIER DATES WILL BE MISSED." : "WITHDRAW FROM THIS EVENT?\n\nTHE ENTRY FEE IS NOT REFUNDED. NO COMPLETION PRIZE IS AWARDED. TODAY DOES NOT CHANGE. THIS OCCURRENCE CANNOT BE ENTERED AGAIN.");
         }
 
         private void ShowConfirmation(string message)

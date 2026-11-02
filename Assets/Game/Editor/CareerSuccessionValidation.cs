@@ -19,8 +19,8 @@ public static class CareerSuccessionValidation
         ValidateCalendarNullSerialization();
         var db = new GameDatabase();
         db.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0));
-        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0, null));
-        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0, null));
+        db.AddEngineDefinition(new EngineDefinition("engine", "Engine", default, 100, 10, 0));
+        db.AddChassisDefinition(new ChassisDefinition("chassis", "Chassis", 250, 1, 0));
         db.AddBikeBuildDefinition(new BikeBuildDefinition("player_starter", "Starter", "bike", "engine", "chassis", Array.Empty<EquipmentMountDefinition>()));
         db.AddRacerPerkDefinition(new RacerPerkDefinition("starter-perk", "Energy Reserve", "More energy", 100, RacerPerkEffect.EnergyCapacity, 10));
         db.AddRacerPerkDefinition(new RacerPerkDefinition("ai-perk", "AI Pace", "AI only", 0, RacerPerkEffect.Pace, 1));
@@ -38,9 +38,6 @@ public static class CareerSuccessionValidation
         player.Progression.AddFame(250);
         team.AddCredits(12000);
         team.AddFame(800);
-        team.AddResearchPoints(1000);
-        team.UnlockTechnology("legacy-tech");
-        team.RestoreResearchContract(new ResearchContract("staff", "Staff", 10, 5));
         var bike = builds.CreateInGarage(db.GetBikeBuildDefinition("player_starter"), team.Garage, "#ffffff", "#000000").Value;
         var partnerBike = builds.CreateInGarage(db.GetBikeBuildDefinition("player_starter"), team.Garage, "#ffffff", "#000000").Value;
         var session = new GameSessionState(team, new CareerRun("original-run", team, player), WorldState.Restore(null).Value, partner.RacerId, bike.BikeId, partnerBike.BikeId);
@@ -69,7 +66,7 @@ public static class CareerSuccessionValidation
         Require(!saves.StartSuccessor("Too soon").IsSuccess, "Cannot bypass unsettled fatal event");
         team = sessions.Current.PlayerTeam;
         player = sessions.Current.CareerRun.Player;
-        var fatal = new RaceResult("race", new[] { new RaceResultEntry(player.RacerId, team.TeamId, 1, 1, RaceParticipantStatus.Destroyed), new RaceResultEntry(partner.RacerId, team.TeamId, 2, 2, RaceParticipantStatus.Finished) }, "fatal-attempt", 7);
+        var fatal = new RaceResult("race", new[] { new RaceResultEntry(player.RacerId, team.TeamId, 1, 1, RaceParticipantStatus.Destroyed), new RaceResultEntry(partner.RacerId, team.TeamId, 2, 2, RaceParticipantStatus.Finished) }, "fatal-attempt");
         manager.ResolvePostRace(fatal, player);
         Require(team.Calendar.Week == 8 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn, "Fatal results settle before succession and close championship");
         Require(saves.SaveCurrentCampaign().IsSuccess, "Save death");
@@ -86,14 +83,13 @@ public static class CareerSuccessionValidation
         repository.ThrowOnSave = true;
         Require(!saves.StartSuccessor("Exception").IsSuccess && sessions.Current.PlayerTeam.Roster.Racers.Count == 2, "Thrown write failure also rolls back");
         repository.ThrowOnSave = false;
-        int credits = sessions.Current.PlayerTeam.Credits, rp = sessions.Current.PlayerTeam.ResearchPoints;
+        int credits = sessions.Current.PlayerTeam.Credits;
         int fame = sessions.Current.PlayerTeam.Fame;
         Require(saves.StartSuccessor("  Successor  ").IsSuccess, "Create successor and recovery bike");
         var next = sessions.Current.CareerRun.Player;
         string nextId = next.RacerId;
         team = sessions.Current.PlayerTeam;
         Require(next.Name == "Successor" && nextId != "original" && next.Progression.Fame == 0 && next.RacesEntered == 0, "Fresh identity and personal progression");
-        Require(team.Credits == credits && team.ResearchPoints == rp && team.Fame == fame && team.Calendar.Week == 8 && team.HasTechnology("legacy-tech") && team.ResearchContracts[0].RacesRemaining == 4, "Team economy, technology, staff and calendar preserved");
         Require(team.Garage.Bikes.Count == 3 && team.Garage.FindBike(wreckId).IsDestroyed && team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).IsRaceReady && sessions.Current.SelectedPartnerRacerId == partner.RacerId && sessions.Current.SelectedPartnerBikeId == partnerBike.BikeId, "Fresh recovery bike assigned; wreck and partner preserved");
         Require(next.Progression.HasPurchasedPerk("starter-perk") && !next.Progression.HasPurchasedPerk("ai-perk") && sessions.Current.CareerRun.NeedsIntroduction, "Player-compatible starter perk and pending summary");
         var old = team.Roster.FindRacer("original");

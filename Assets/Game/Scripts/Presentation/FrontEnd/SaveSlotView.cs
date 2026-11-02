@@ -56,7 +56,7 @@ namespace RaceFatal.Presentation.FrontEnd
 
             SetText(teamNameText, string.IsNullOrWhiteSpace(summary.TeamName) ? "UNNAMED TEAM" : summary.TeamName);
             SetText(racerNameText, string.IsNullOrWhiteSpace(summary.RacerName) ? "NO ACTIVE RACER" : summary.RacerName);
-            SetText(resourcesText, $"CREDITS {summary.Credits:N0}  //  " + $"FAME {summary.TeamFame:N0}  //  " + $"RP {summary.ResearchPoints:N0}");
+            SetText(resourcesText, $"CREDITS {summary.Credits:N0}  //  " + $"AVAILABLE FAME {summary.TeamFame:N0}");
             SetText(lastSavedText, FormatLastSaved(summary.LastSavedUtc));
             string status = summary.CareerActive ? "CAREER ACTIVE" : summary.HasCareerRun ? "CAREER INACTIVE" : "NO ACTIVE RACER";
             SetText(statusText, status);

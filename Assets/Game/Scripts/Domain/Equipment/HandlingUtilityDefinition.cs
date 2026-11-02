@@ -6,7 +6,7 @@ namespace RaceFatal.Equipment
     {
         public float HandlingMultiplier { get; }
 
-        public HandlingUtilityDefinition(string id, string displayName, NodeSize requiredNodeSize, float handlingMultiplier, int creditCost, string requiredTechnologyId) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Passive, creditCost, requiredTechnologyId)
+        public HandlingUtilityDefinition(string id, string displayName, NodeSize requiredNodeSize, float handlingMultiplier, int creditCost) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Passive, creditCost)
         {
             HandlingMultiplier = handlingMultiplier;
         }

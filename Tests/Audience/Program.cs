@@ -29,14 +29,14 @@ static class Program
         public Fixture(AudienceSettings settings = null, bool shield = false, DeathmatchRules deathmatch = null)
         {
             var platform = new BikeDefinition("bike", "Bike", 2, 0, 0);
-            var chassis = new ChassisDefinition("chassis", "Chassis", 100, 1, 0, null, maxIntegrity: 10000);
-            var engine = new EngineDefinition("engine", "Engine", default, 100, 10, 0, null);
-            var shieldDefinition = new ShieldDefinition("shield", "Shield", NodeSize.Small, 20, 1, 1, 0, null);
+            var chassis = new ChassisDefinition("chassis", "Chassis", 100, 1, 0, maxIntegrity: 10000);
+            var engine = new EngineDefinition("engine", "Engine", default, 100, 10, 0);
+            var shieldDefinition = new ShieldDefinition("shield", "Shield", NodeSize.Small, 20, 1, 1, 0);
             Database.AddBikeDefinition(platform);
             Database.AddChassisDefinition(chassis);
             Database.AddEngineDefinition(engine);
             Database.AddEquipmentDefinition(shieldDefinition);
-            var booster = new BoosterDefinition("booster", "Booster", NodeSize.Small, 1, 1, 1, 0, null, 100);
+            var booster = new BoosterDefinition("booster", "Booster", NodeSize.Small, 1, 1, 1, 0, 100);
             Database.AddEquipmentDefinition(booster);
             var factory = new VehicleFactory();
             var participants = new RaceParticipantFactory(Database, new BikePerformanceCalculator(Database));
@@ -244,7 +244,6 @@ static class Program
             Equal(reward.TeamFame, 50 + favor / 2, "Team fame adjustment");
             Equal(reward.CharacterFame, 50 + favor / 2, "Character fame adjustment");
             Equal(reward.Credits, 10000, "Credits unaffected");
-            Equal(reward.ResearchPoints, 50, "Research unaffected");
         }
 
         Equal(new PostRaceResult("r", "p", 1, RaceParticipantStatus.Finished, policy.Calculate(1, RaceParticipantStatus.Finished), false, false).AudienceFameMultiplier, 1, "Legacy receipt neutral default");

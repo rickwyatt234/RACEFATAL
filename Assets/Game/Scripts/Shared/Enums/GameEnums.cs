@@ -81,18 +81,6 @@ namespace RaceFatal.Shared
         Speed
     }
 
-    public enum ResearchField
-    {
-        ConventionalWeapons,
-        LaserTechnology,
-        RailgunTechnology,
-        MissileTechnology,
-        ShieldTechnology,
-        EnergyTechnology,
-        EngineTechnology,
-        ChassisTechnology,
-    }
-
     public enum RacerCareerStatus
     {
         Active,

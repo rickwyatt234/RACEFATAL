@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Prototype Shield
   requiredNodeSize: 0
   creditCost: 100
-  requiredTechnologyId: 
   capacity: 100
   rechargePerSecond: 8
   rechargeDelay: 2

@@ -16,7 +16,7 @@ namespace RaceFatal.Content.Equipment
             35f;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new CountermeasureDefinition(id, displayName, requiredNodeSize, countermeasureType, cooldown, usesPerRace, triggerDistance, defeatRadius, creditCost, requiredTechnologyId);
+            return new CountermeasureDefinition(id, displayName, requiredNodeSize, countermeasureType, cooldown, usesPerRace, triggerDistance, defeatRadius, creditCost);
         }
     }
 }

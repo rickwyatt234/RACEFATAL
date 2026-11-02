@@ -17,6 +17,7 @@ MonoBehaviour:
   description: 3 day championship // Entry Fee required // Chromapex Circuit // Circuit
     2 // Circuit 3 // Engine Class 1
   kind: 1
+  fameEntryFee: 150
   requiredFame: 0
   entryFee: 1000
   rounds:

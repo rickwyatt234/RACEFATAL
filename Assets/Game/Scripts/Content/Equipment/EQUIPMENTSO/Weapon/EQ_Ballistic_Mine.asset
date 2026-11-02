@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Ballistic Mine
   requiredNodeSize: 1
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 1
   aimMode: 1
   deliveryMode: 3

@@ -2,7 +2,7 @@
 
 Audience favor starts at 100 and stays between 0 and 200. It records only the player's active racing time, from the start signal until their finish, retirement or destruction. Countdown, pauses with zero game delta time, spectating and fast resolution add no audience time. An event with no active time uses neutral favor.
 
-Fame multiplier = 0.5 + average favor / 200. The average is time-weighted, including exact integration of idle decay down to zero. A final burst cannot replace an uneventful race's average. This scales both Team Fame and Character Fame earned from the player's result after finish/DNF rules. Credits, research, and teammates' individual fame remain unchanged. Rounding uses the existing reward policy. Existing settlement receipts still prevent duplicate awards. Results and save receipts retain the average; old saves default to 100.
+Fame multiplier = 0.5 + average favor / 200. The average is time-weighted, including exact integration of idle decay down to zero. A final burst cannot replace an uneventful race's average. This scales both Team Fame and Character Fame earned from the player's result after finish/DNF rules. Credits and teammates' individual fame remain unchanged. Rounding uses the existing reward policy. Existing settlement receipts still prevent duplicate awards. Results and save receipts retain the average; old saves default to 100.
 
 ## Default tuning
 

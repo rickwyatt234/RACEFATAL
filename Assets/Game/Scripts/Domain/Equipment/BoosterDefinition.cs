@@ -10,7 +10,7 @@ namespace RaceFatal.Equipment
         public float SpeedMultiplier { get; }
         public float AccelerationMultiplier { get; }
 
-        public BoosterDefinition(string id, string displayName, NodeSize requiredNodeSize, float energyPerSecond, float speedMultiplier, float accelerationMultiplier, int creditCost, string requiredTechnologyId, float energyCapacity = 1000f, float capacityStrainPerSecond = 8f) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Hold, creditCost, requiredTechnologyId)
+        public BoosterDefinition(string id, string displayName, NodeSize requiredNodeSize, float energyPerSecond, float speedMultiplier, float accelerationMultiplier, int creditCost, float energyCapacity = 1000f, float capacityStrainPerSecond = 8f) : base(id, displayName, EquipmentCategory.Utility, requiredNodeSize, EquipmentActivationMode.Hold, creditCost)
         {
             if (float.IsNaN(energyCapacity) || float.IsInfinity(energyCapacity) || energyCapacity < 0f)
                 throw new System.ArgumentOutOfRangeException(nameof(energyCapacity));

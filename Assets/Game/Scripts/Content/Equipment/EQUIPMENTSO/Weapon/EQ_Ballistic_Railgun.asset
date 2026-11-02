@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Ballistic Railgun
   requiredNodeSize: 2
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 3
   aimMode: 0
   deliveryMode: 1

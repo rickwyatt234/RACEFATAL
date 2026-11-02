@@ -19,10 +19,9 @@ namespace RaceFatal.Content.Vehicles
         [Tooltip("Fraction of structural collision damage prevented after shields. 0.2 = 20%. Does not prevent fatal wall impacts.")] [Range(0f,
             0.9f)] [SerializeField] private float impactResistance;
         [Header("Cost")] [Min(0)] [SerializeField] private int creditCost;
-        [Header("Technology Requirement")] [SerializeField] private string requiredTechnologyId;
         public ChassisDefinition CreateChassisDefinition()
         {
-            return new ChassisDefinition(id, displayName, mass, handlingMultiplier, creditCost, requiredTechnologyId, maxIntegrity, steeringResponseMultiplier, leanResponseMultiplier, stabilityMultiplier, impactResistance);
+            return new ChassisDefinition(id, displayName, mass, handlingMultiplier, creditCost, maxIntegrity, steeringResponseMultiplier, leanResponseMultiplier, stabilityMultiplier, impactResistance);
         }
     }
 }

@@ -43,19 +43,19 @@ namespace RaceFatal.Racing
 
     public class RaceResult
     {
+        public string TrackId { get; }
         public string RaceId { get; }
         public string InstanceId { get; }
-        public int ResearchPointBonus { get; }
         public bool IsFinalized { get; }
         public DeathmatchRules Deathmatch { get; }
         public IReadOnlyList<RaceResultEntry> Standings { get; }
 
-        public RaceResult(string raceId, IReadOnlyList<RaceResultEntry> standings, string instanceId = null, int researchPointBonus = 0, bool isFinalized = true, DeathmatchRules deathmatch = null)
+        public RaceResult(string raceId, IReadOnlyList<RaceResultEntry> standings, string instanceId = null, bool isFinalized = true, DeathmatchRules deathmatch = null, string trackId = null)
         {
+            TrackId = trackId;
             Deathmatch = deathmatch;
             RaceId = raceId;
             InstanceId = instanceId ?? System.Guid.NewGuid().ToString("N");
-            ResearchPointBonus = System.Math.Max(0, researchPointBonus);
             IsFinalized = isFinalized;
             Standings = standings;
         }

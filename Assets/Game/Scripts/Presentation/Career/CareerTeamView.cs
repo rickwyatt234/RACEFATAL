@@ -24,7 +24,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button saveButton;
         [SerializeField] private Button rosterButton;
         [SerializeField] private Button garageButton;
-        [SerializeField] private Button researchButton;
+        [SerializeField] private Button brandsButton;
         private CareerController owner;
         private GameContext context;
         private readonly TeamManagementService service = new TeamManagementService();
@@ -39,7 +39,7 @@ namespace RaceFatal.Presentation.Career
             Bind(saveButton, Save);
             Bind(rosterButton, OpenRoster);
             Bind(garageButton, OpenGarage);
-            Bind(researchButton, OpenResearch);
+            Bind(brandsButton, OpenBrands);
             if (primaryInput != null)
             {
                 primaryInput.onValueChanged.RemoveListener(UpdatePrimaryPreview);
@@ -104,8 +104,8 @@ namespace RaceFatal.Presentation.Career
             var overview = new StringBuilder();
             overview.AppendLine($"{team.TeamName}\n");
             overview.AppendLine($"CREDITS  {team.Credits:N0}");
-            overview.AppendLine($"TEAM FAME  {team.Fame:N0}");
-            overview.AppendLine($"RESEARCH POINTS  {team.ResearchPoints:N0}");
+            overview.AppendLine($"AVAILABLE FAME  {team.Fame:N0}");
+            overview.AppendLine($"LIFETIME FAME  {team.LifetimeFame:N0}");
             overview.AppendLine($"\nCAREER  {(session.CareerRun == null ? "NONE" : session.CareerRun.IsActive ? "ACTIVE" : "ENDED")}");
             overview.AppendLine($"PLAYER  {session.CareerRun?.Player?.Name ?? "NONE"}");
             var partner = team.Roster.FindRacer(session.SelectedPartnerRacerId);
@@ -121,16 +121,9 @@ namespace RaceFatal.Presentation.Career
             overview.AppendLine($"EQUIPMENT  {garage.Equipment.Count}");
             Set(overviewText, overview.ToString());
             var progression = new StringBuilder();
-            progression.AppendLine($"RESEARCH STAFF\n{team.ResearchOutputPerRace:N0} RP AFTER EACH RACE\n");
-            if (team.ResearchContracts.Count == 0)
-                progression.AppendLine("No researchers hired. Visit Research to hire staff.");
-            foreach (var contract in team.ResearchContracts.OrderBy(c => c.DisplayName))
-                progression.AppendLine(contract.RacesRemaining > 0 ? $"{contract.DisplayName}\n{contract.PointsPerRace:N0} RP / RACE · {contract.RacesRemaining} RACES LEFT\n" : $"{contract.DisplayName}\nCONTRACT EXPIRED\n");
-            progression.AppendLine($"\nTECHNOLOGIES  {team.UnlockedTechnologyIds.Count}\n");
-            if (team.UnlockedTechnologyIds.Count == 0)
-                progression.AppendLine("No technologies researched yet.");
-            foreach (string id in team.UnlockedTechnologyIds.OrderBy(id => id))
-                progression.AppendLine(context.Database.GetTechnologyDefinition(id)?.DisplayName ?? id);
+            progression.AppendLine($"BRANDS  {team.Brands.relationships.Count}\nCONTRACTS  {team.Brands.contracts.Count(c => c.active)}/3 ACTIVE\n");
+            foreach (var brand in team.Brands.relationships.OrderBy(b => b.brandId))
+                progression.AppendLine($"{(context.Database.BrandDefinitions.TryGetValue(brand.brandId, out var definition) ? definition.DisplayName : brand.brandId)} / {brand.TierName}");
             Set(progressionText, progression.ToString());
         }
 
@@ -169,9 +162,9 @@ namespace RaceFatal.Presentation.Career
             owner?.ShowGarage();
         }
 
-        private void OpenResearch()
+        private void OpenBrands()
         {
-            owner?.ShowResearch();
+            owner?.ShowBrands();
         }
 
         private void UpdatePrimaryPreview(string value)
@@ -217,8 +210,8 @@ namespace RaceFatal.Presentation.Career
                 rosterButton.onClick.RemoveListener(OpenRoster);
             if (garageButton != null)
                 garageButton.onClick.RemoveListener(OpenGarage);
-            if (researchButton != null)
-                researchButton.onClick.RemoveListener(OpenResearch);
+            if (brandsButton != null)
+                brandsButton.onClick.RemoveListener(OpenBrands);
             if (primaryInput != null)
                 primaryInput.onValueChanged.RemoveListener(UpdatePrimaryPreview);
             if (secondaryInput != null)

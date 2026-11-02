@@ -19,7 +19,6 @@ MonoBehaviour:
   lapCount: 1
   entrantCount: 8
   teamSize: 1
-  researchPointBonus: 0
   deathmatch: 1
   victoryMode: 0
   allowedWinners: 3

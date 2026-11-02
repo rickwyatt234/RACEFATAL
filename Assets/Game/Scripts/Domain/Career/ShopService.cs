@@ -25,9 +25,9 @@ namespace RaceFatal.Career
         public string Category { get; }
         public string Details { get; }
         public int CreditCost { get; }
-        public string RequiredTechnologyId { get; }
 
-        internal ShopOffer(ShopItemKind kind, string id, string name, string category, string details, int cost, string technology)
+        public string BrandId { get; }
+        internal ShopOffer(ShopItemKind kind, string id, string name, string category, string details, int cost, string brandId)
         {
             Kind = kind;
             DefinitionId = id;
@@ -35,7 +35,7 @@ namespace RaceFatal.Career
             Category = category;
             Details = details;
             CreditCost = cost;
-            RequiredTechnologyId = technology;
+            BrandId = brandId;
         }
     }
 
@@ -53,9 +53,9 @@ namespace RaceFatal.Career
         {
             var offers = new List<ShopOffer>();
             foreach (var d in database.EngineDefinitions.Values)
-                offers.Add(new ShopOffer(ShopItemKind.Engine, d.Id, d.DisplayName, "ENGINES", $"ENGINE CLASS  {d.EngineClass}\nTOP SPEED  {d.TopSpeed:0.##}\nACCELERATION  {d.Acceleration:0.##}", d.CreditCost, d.RequiredTechnologyId));
+                offers.Add(new ShopOffer(ShopItemKind.Engine, d.Id, d.DisplayName, "ENGINES", $"ENGINE CLASS  {d.EngineClass}\nTOP SPEED  {d.TopSpeed:0.##}\nACCELERATION  {d.Acceleration:0.##}", d.CreditCost, BrandService.OwnerOf(database, ShopItemKind.Engine, d.Id)?.Id));
             foreach (var d in database.ChassisDefinitions.Values)
-                offers.Add(new ShopOffer(ShopItemKind.Chassis, d.Id, d.DisplayName, "CHASSIS", $"MASS  {d.Mass:0.##} kg\nMAX INTEGRITY  {d.MaxIntegrity:0.##}\nHANDLING  x{d.HandlingMultiplier:0.##}\nSTEERING RESPONSE  x{d.SteeringResponseMultiplier:0.##}\nLEAN RESPONSE  x{d.LeanResponseMultiplier:0.##}\nSTABILITY  x{d.StabilityMultiplier:0.##}\nIMPACT RESISTANCE  {d.ImpactResistance:P0}", d.CreditCost, d.RequiredTechnologyId));
+                offers.Add(new ShopOffer(ShopItemKind.Chassis, d.Id, d.DisplayName, "CHASSIS", $"MASS  {d.Mass:0.##} kg\nMAX INTEGRITY  {d.MaxIntegrity:0.##}\nHANDLING  x{d.HandlingMultiplier:0.##}\nSTEERING RESPONSE  x{d.SteeringResponseMultiplier:0.##}\nLEAN RESPONSE  x{d.LeanResponseMultiplier:0.##}\nSTABILITY  x{d.StabilityMultiplier:0.##}\nIMPACT RESISTANCE  {d.ImpactResistance:P0}", d.CreditCost, BrandService.OwnerOf(database, ShopItemKind.Chassis, d.Id)?.Id));
             foreach (var d in database.EquipmentDefinitions.Values)
             {
                 string details = $"CATEGORY  {d.Category}\nREQUIRED NODE  {d.RequiredNodeSize}\nACTIVATION  {d.ActivationMode}";
@@ -65,7 +65,7 @@ namespace RaceFatal.Career
                     details += $"\nENERGY CAPACITY  {booster.EnergyCapacity:0.##}\nENERGY / SEC  {booster.EnergyPerSecond:0.##}";
                 if (d is ShieldDefinition shield)
                     details += $"\nCAPACITY  {shield.Capacity:0.##}\nRECHARGE / SEC  {shield.RechargePerSecond:0.##}";
-                offers.Add(new ShopOffer(ShopItemKind.Equipment, d.Id, d.DisplayName, d.Category.ToString().ToUpperInvariant(), details, d.CreditCost, d.RequiredTechnologyId));
+                offers.Add(new ShopOffer(ShopItemKind.Equipment, d.Id, d.DisplayName, d.Category.ToString().ToUpperInvariant(), details, d.CreditCost, BrandService.OwnerOf(database, ShopItemKind.Equipment, d.Id)?.Id));
             }
 
             foreach (var build in database.BikeBuildDefinitions.Values.Where(b => b.AvailableInShop))
@@ -83,10 +83,7 @@ namespace RaceFatal.Career
                     details.AppendLine(mount == null ? "INVALID MOUNT" : $"{mount.NodeSize} {mount.NodeIndex + 1}: {database.GetEquipmentDefinition(mount.EquipmentDefinitionId)?.DisplayName ?? "MISSING"}");
                 if (build.Equipment.Count == 0)
                     details.AppendLine("NONE");
-                var required = RequiredTechnologies(build).ToList();
-                if (required.Count > 0)
-                    details.AppendLine("\nREQUIRES  " + string.Join(", ", required));
-                offers.Add(new ShopOffer(ShopItemKind.Bike, build.Id, build.DisplayName, "COMPLETE BIKES", details.ToString(), build.CreditCost, required.FirstOrDefault()));
+                offers.Add(new ShopOffer(ShopItemKind.Bike, build.Id, build.DisplayName, "COMPLETE BIKES", details.ToString(), build.CreditCost, BrandService.OwnerOf(database, ShopItemKind.Bike, build.Id)?.Id));
             }
 
             offers.Sort((a, b) => {  int category = string.CompareOrdinal(a.Category,
@@ -108,9 +105,9 @@ namespace RaceFatal.Career
                 return Result.Failure("ITEM IS NO LONGER AVAILABLE.");
             if (offer.CreditCost < 0)
                 return Result.Failure("ITEM HAS AN INVALID PRICE.");
-            string missing = MissingTechnology(team, kind, id);
+            string missing = MissingBrandAccess(team, kind, id);
             if (missing != null)
-                return Result.Failure("REQUIRES TECHNOLOGY: " + missing);
+                return Result.Failure("BRAND ACCESS REQUIRED: " + missing);
             if (kind == ShopItemKind.Bike)
             {
                 var built = BuildKit(id, out var kit);
@@ -164,35 +161,32 @@ namespace RaceFatal.Career
             return result;
         }
 
-        public string MissingTechnology(TeamState team, ShopItemKind kind, string id)
+        public string MissingBrandAccess(TeamState team, ShopItemKind kind, string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                return null;
-            IEnumerable<string> technologies;
-            if (kind == ShopItemKind.Bike)
-            {
-                var build = database.GetBikeBuildDefinition(id);
-                if (build == null)
-                    return null;
-                technologies = RequiredTechnologies(build);
-            }
-            else
-            {
-                string required = kind == ShopItemKind.Engine ? database.GetEngineDefinition(id)?.RequiredTechnologyId : kind == ShopItemKind.Chassis ? database.GetChassisDefinition(id)?.RequiredTechnologyId : kind == ShopItemKind.Equipment ? database.GetEquipmentDefinition(id)?.RequiredTechnologyId : null;
-                technologies = new[] {  required };
-            }
-
-            return technologies.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t) && (team == null || !team.HasTechnology(t)));
+            if (team != null && (kind == ShopItemKind.Engine && team.Garage.Engines.Any(e => e.EngineDefinitionId == id) ||
+                kind == ShopItemKind.Chassis && team.Garage.Chassis.Any(c => c.ChassisDefinitionId == id) ||
+                kind == ShopItemKind.Equipment && team.Garage.Equipment.Any(e => e.EquipmentDefinitionId == id))) return null;
+            var brand = BrandService.OwnerOf(database, kind, id);
+            if (brand == null) return null;
+            var product = brand.Products.First(p => p.Kind == kind && p.DefinitionId == id);
+            return team != null && team.Brands.CanBuy(brand.Id, product) ? null : brand.DisplayName;
         }
 
-        private IEnumerable<string> RequiredTechnologies(BikeBuildDefinition build)
+        // Grant inventory directly: contract rewards never charge credits or bypass a failed import.
+        public Result Grant(TeamState team, ShopItemKind kind, string id)
         {
-            var ids =
-                new List<string> {  build.RequiredTechnologyId,  database.GetEngineDefinition(build.EngineDefinitionId)?.RequiredTechnologyId,  database.GetChassisDefinition(build.ChassisDefinitionId)?.RequiredTechnologyId };
-            foreach (var mount in build.Equipment)
-                if (mount != null)
-                    ids.Add(database.GetEquipmentDefinition(mount.EquipmentDefinitionId)?.RequiredTechnologyId);
-            return ids.Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().OrderBy(t => t, StringComparer.Ordinal);
+            switch (kind)
+            {
+                case ShopItemKind.Engine: return ToResult(team.Garage.AddEngine(vehicles.CreateEngine(database.GetEngineDefinition(id))));
+                case ShopItemKind.Chassis: return ToResult(team.Garage.AddChassis(vehicles.CreateChassis(database.GetChassisDefinition(id))));
+                case ShopItemKind.Equipment: return ToResult(team.Garage.AddEquipment(equipment.Create(database.GetEquipmentDefinition(id))));
+                case ShopItemKind.Bike:
+                    var result = BuildKit(id, out var kit);
+                    if (!result.IsSuccess) return result;
+                    foreach (var bike in kit.Bikes) bike.Paint(team.PrimaryColor, team.SecondaryColor);
+                    return team.Garage.ImportKit(kit);
+                default: return Result.Failure("UNKNOWN REWARD TYPE.");
+            }
         }
 
         private Result BuildKit(string id, out GarageState kit)

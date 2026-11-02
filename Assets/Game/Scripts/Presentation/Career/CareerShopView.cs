@@ -25,7 +25,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text confirmationText;
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
-        [SerializeField] private Button technologyButton;
+        [SerializeField] private Button brandButton;
         private readonly List<CareerGarageOptionView> spawned = new List<CareerGarageOptionView>();
         private readonly List<Selectable> modalBlocked = new List<Selectable>();
         private GameContext context;
@@ -48,8 +48,8 @@ namespace RaceFatal.Presentation.Career
             context = gameContext;
             shop = context?.Database != null ? new ShopService(context.Database) : null;
             EnsureDetailsPanel();
-            EnsureTechnologyButton();
-            Bind(technologyButton, OpenTechnology);
+            EnsureBrandButton();
+            Bind(brandButton, OpenBrand);
             Bind(purchaseButton, RequestPurchase);
             Bind(saveButton, SaveShop);
             Bind(garageButton, OpenGarage);
@@ -77,7 +77,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            List<ShopOffer> offers = shop.GetOffers();
+            List<ShopOffer> offers = shop.GetOffers().Where(o => o.BrandId == null || Team.Brands.Find(o.BrandId) != null || shop.MissingBrandAccess(Team, o.Kind, o.DefinitionId) == null).ToList();
             var categories = new List<string> {  "ALL" };
             categories.AddRange(offers.Select(o => o.Category).Distinct());
             if (!categories.Contains(category))
@@ -90,7 +90,7 @@ namespace RaceFatal.Presentation.Career
                 selected = visible[0];
             foreach (ShopOffer offer in visible)
             {
-                bool locked = shop.MissingTechnology(Team, offer.Kind, offer.DefinitionId) != null;
+                bool locked = shop.MissingBrandAccess(Team, offer.Kind, offer.DefinitionId) != null;
                 string state = offer.CreditCost < 0 ? "  [UNAVAILABLE]" : locked ? "  [LOCKED]" : Team.Credits < offer.CreditCost ? "  [LOW CREDITS]" : "";
                 AddOption(itemList, $"{offer.DisplayName}{state}\n{offer.Category}  //  {offer.CreditCost:N0} CR",
                     () => {  selected = offer;  Refresh(); }, offer == selected);
@@ -133,43 +133,38 @@ namespace RaceFatal.Presentation.Career
             detailViewport.sizeDelta = new Vector2(detailSize.x, detailSize.y - (show ? 180 : 0));
         }
 
-        private void EnsureTechnologyButton()
+        private void EnsureBrandButton()
         {
-            if (technologyButton != null || purchaseButton == null)
+            if (brandButton != null || purchaseButton == null)
                 return;
-            technologyButton = Instantiate(purchaseButton, purchaseButton.transform.parent);
-            technologyButton.name = "ViewRequiredTechnology";
-            technologyButton.onClick = new Button.ButtonClickedEvent();
-            var rect = technologyButton.GetComponent<RectTransform>();
+            brandButton = Instantiate(purchaseButton, purchaseButton.transform.parent);
+            brandButton.name = "ViewRequiredBrand";
+            brandButton.onClick = new Button.ButtonClickedEvent();
+            var rect = brandButton.GetComponent<RectTransform>();
             purchaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(240, rect.sizeDelta.y);
             rect.sizeDelta = new Vector2(240, rect.sizeDelta.y);
             rect.anchoredPosition += new Vector2(260, 0);
-            var label = technologyButton.GetComponentInChildren<TMP_Text>();
+            var label = brandButton.GetComponentInChildren<TMP_Text>();
             if (label != null)
             {
-                label.text = "VIEW REQUIRED TECHNOLOGY";
+                label.text = "VIEW BRAND";
                 label.enableAutoSizing = true;
                 label.fontSizeMin = 14;
                 label.fontSizeMax = 20;
             }
         }
 
-        private void OpenTechnology()
+        private void OpenBrand()
         {
-            if (selected == null)
-                return;
-            string technology = shop.MissingTechnology(Team, selected.Kind, selected.DefinitionId) ?? selected.RequiredTechnologyId;
-            if (!string.IsNullOrWhiteSpace(technology))
-                owner?.ShowTechnology(technology);
+            if (selected != null) owner?.ShowBrand(selected.BrandId);
         }
 
         private void RenderDetails()
         {
-            if (technologyButton != null)
+            if (brandButton != null)
             {
-                technologyButton.gameObject.SetActive(selected != null && !string.IsNullOrWhiteSpace(selected.RequiredTechnologyId));
-                string target = selected == null ? null : shop.MissingTechnology(Team, selected.Kind, selected.DefinitionId) ?? selected.RequiredTechnologyId;
-                technologyButton.interactable = context?.Database?.GetTechnologyDefinition(target) != null;
+                brandButton.gameObject.SetActive(selected != null && !string.IsNullOrWhiteSpace(selected.BrandId));
+                brandButton.interactable = selected != null && !string.IsNullOrWhiteSpace(selected.BrandId);
             }
 
             UpdateBikePreview();
@@ -327,8 +322,8 @@ namespace RaceFatal.Presentation.Career
 
         private void OnDestroy()
         {
-            if (technologyButton != null)
-                technologyButton.onClick.RemoveListener(OpenTechnology);
+            if (brandButton != null)
+                brandButton.onClick.RemoveListener(OpenBrand);
             if (purchaseButton != null)
                 purchaseButton.onClick.RemoveListener(RequestPurchase);
             if (saveButton != null)

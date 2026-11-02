@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Kinetic Ram
   requiredNodeSize: 2
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 1
   aimMode: 6
   deliveryMode: 6

@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Machine Gun
   requiredNodeSize: 0
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 2
   aimMode: 0
   deliveryMode: 1

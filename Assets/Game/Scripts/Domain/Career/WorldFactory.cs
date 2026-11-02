@@ -40,6 +40,7 @@ namespace RaceFatal.Career
             }
 
             var team = new TeamState(definition.Id, definition.DisplayName, definition.PrimaryColor, definition.SecondaryColor);
+            new BrandService(database).ApplyOpponentPreferences(team, definition, 0);
             Result racerResult = CreateRacers(definition, team);
             if (!racerResult.IsSuccess)
             {

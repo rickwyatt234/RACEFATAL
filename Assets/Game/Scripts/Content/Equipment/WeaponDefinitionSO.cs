@@ -39,7 +39,7 @@ namespace RaceFatal.Content.Equipment
             180f)] [SerializeField] private float targetingHalfAngle;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new WeaponDefinition(id, displayName, requiredNodeSize, activationMode, aimMode, deliveryMode, range, projectileSpeed, damage, startingAmmo, fireInterval, chargeDuration, targetLockDuration, creditCost, requiredTechnologyId, projectileCount, spreadAngle, explosionRadius, armingDelay, lifetime, exposureDuration, effectDuration, statusDamagePerSecond, lateralDistance, dashDuration, impactPush, targetingHalfAngle, energyPerActivation);
+            return new WeaponDefinition(id, displayName, requiredNodeSize, activationMode, aimMode, deliveryMode, range, projectileSpeed, damage, startingAmmo, fireInterval, chargeDuration, targetLockDuration, creditCost, projectileCount, spreadAngle, explosionRadius, armingDelay, lifetime, exposureDuration, effectDuration, statusDamagePerSecond, lateralDistance, dashDuration, impactPush, targetingHalfAngle, energyPerActivation);
         }
     }
 }

@@ -3814,10 +3814,9 @@ MonoBehaviour:
   creditsText: {fileID: 655318274}
   teamFameText: {fileID: 272855409}
   audienceSummaryText: {fileID: 0}
-  researchPointsText: {fileID: 1572012589}
+  contractSummaryText: {fileID: 1572012589}
   characterFameText: {fileID: 5300265}
   careerStatusText: {fileID: 82909530}
-  researchBreakdownText: {fileID: 0}
   postRaceSceneName: 01_Career
   finishBrakeInput: 0.35
   releaseCursorOnOutcome: 1
@@ -4884,7 +4883,7 @@ GameObject:
   m_Component:
   - component: {fileID: 896940328}
   m_Layer: 0
-  m_Name: ResearchRow
+  m_Name: ContractsRow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8411,7 +8410,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Research Earned:'
+  m_text: 'Brand Contracts:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 745a1f69efd114c4db148f3e0272bbc8, type: 2}
   m_sharedMaterial: {fileID: 2348070970455937769, guid: 745a1f69efd114c4db148f3e0272bbc8, type: 2}

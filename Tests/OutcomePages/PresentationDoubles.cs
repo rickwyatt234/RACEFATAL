@@ -24,8 +24,8 @@ namespace UnityEngine.SceneManagement {public static class SceneManager {public 
 namespace RaceFatal.Shared {public class Result {public bool IsSuccess=true;public string ErrorMessage;} }
 namespace RaceFatal.Career
 {
-    public class RaceReward {public int Credits,TeamFame,ResearchPoints,CharacterFame;}
-    public class PostRaceResult {public RaceReward Reward=new RaceReward();public float AverageAudienceFavor,AudienceFameMultiplier=1;public int RaceResearchPoints,EventResearchPoints,ResearcherPoints;public bool PlayerDied,CareerEnded;}
+    public class RaceReward {public int Credits,TeamFame,CharacterFame;}
+    public class PostRaceResult {public RaceReward Reward=new RaceReward();public float AverageAudienceFavor,AudienceFameMultiplier=1;public string ContractSummary;public bool PlayerDied,CareerEnded;}
 }
 namespace RaceFatal.Racing
 {

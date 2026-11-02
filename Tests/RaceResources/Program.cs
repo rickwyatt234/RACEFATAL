@@ -13,8 +13,8 @@ static class Program
     static RaceEquipmentSystem Create(EnergyPool pool,EquipmentActivationMode mode=EquipmentActivationMode.Press)
     {
         var db=new GameDatabase();var loadout=new BikeLoadout(2,0,0);
-        var weapon=new WeaponDefinition("weapon","Weapon",NodeSize.Small,mode,default,default,100,100,10,1,0.5f,0.25f,0,0,null,energyPerActivation:10);
-        var boost=new BoosterDefinition("boost","Boost",NodeSize.Small,20,1.2f,1.4f,0,null,100,5);
+        var weapon=new WeaponDefinition("weapon","Weapon",NodeSize.Small,mode,default,default,100,100,10,1,0.5f,0.25f,0,0,energyPerActivation:10);
+        var boost=new BoosterDefinition("boost","Boost",NodeSize.Small,20,1.2f,1.4f,0,100,5);
         db.AddEquipmentDefinition(weapon);db.AddEquipmentDefinition(boost);
         var factory=new EquipmentFactory();
         Check(loadout.InstallEquipment(factory.Create(weapon),NodeSize.Small,0).IsSuccess,"weapon install");
@@ -32,7 +32,7 @@ static class Program
         Near(pool.Recharge(1000),35,"strip limited by strained capacity");Near(pool.MaxEnergy,95,"strip cannot repair strain");
         pool.ApplyBoostStrain(1000);Near(pool.MaxEnergy,0,"no capacity floor");Near(pool.CurrentEnergy,0,"energy clamped");Near(pool.Recharge(1000),0,"exhausted capacity cannot recharge");Check(!system.SetBoostActive(true),"no boost at zero");
         Check(!system.BeginSelectedActivation(),"no weapon at zero");
-        var shield=new RaceShieldState(new ShieldDefinition("shield","Shield",NodeSize.Small,100,40,2,0,null),pool);
+        var shield=new RaceShieldState(new ShieldDefinition("shield","Shield",NodeSize.Small,100,40,2,0),pool);
         Near(shield.Maximum,100,"shield independent of zero capacity");Near(shield.AbsorbDamage(60),0,"shield protects");shield.Tick(1f);Near(shield.Current,40,"shield delay");shield.Tick(2f);Check(shield.Current>40,"free shield recovery");Near(pool.CurrentEnergy,0,"shield does not consume energy");
         var partial=new EnergyPool(100);var partialSystem=Create(partial);partial.SpendUpTo(95);partialSystem.SetBoostActive(true);partialSystem.Tick(1f);Near(partial.MaxEnergy,98.75f,"strain only for powered boost duration");partialSystem.Tick(1f);Near(partial.MaxEnergy,98.75f,"no strain without thrust");
         var heldPool=new EnergyPool(100);var held=Create(heldPool,EquipmentActivationMode.Hold);held.BeginSelectedActivation();held.Tick(10f);Near(heldPool.CurrentEnergy,0,"hold cannot overspend");
@@ -40,7 +40,7 @@ static class Program
         var notified=new EnergyPool(100);var reentrant=Create(notified);bool nested=true;
         notified.OnEnergyChanged += (_,__) => nested=reentrant.BeginSelectedActivation();
         Check(reentrant.BeginSelectedActivation(),"outer activation succeeds");Check(!nested,"energy event cannot bypass cooldown");Near(notified.CurrentEnergy,90,"one spend during callback");
-        var preciseShield=new RaceShieldState(new ShieldDefinition("precise","Shield",NodeSize.Small,100,40,2,0,null),new EnergyPool(0));
+        var preciseShield=new RaceShieldState(new ShieldDefinition("precise","Shield",NodeSize.Small,100,40,2,0),new EnergyPool(0));
         preciseShield.AbsorbDamage(100);preciseShield.Tick(2.5f);Near(preciseShield.Current,20,"only recharge after delay crossing");
         var fresh=new EnergyPool(100);Near(fresh.MaxEnergy,100,"new race restores capacity");
         Console.WriteLine($"PASS: {checks} resource checks.");

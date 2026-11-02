@@ -20,10 +20,7 @@ public static class CareerTeamValidation
         Require(team.Garage.AddBike(bike).IsSuccess, "Own bike");
         team.AddCredits(2345);
         team.AddFame(67);
-        team.AddResearchPoints(89);
-        team.UnlockTechnology("tech");
         team.UnlockChampionship("championship");
-        team.RestoreResearchContract(new ResearchContract("staff", "Research Staff", 10, 2));
         Require(!service.UpdateIdentity(null, "New", "#fff", "#000", true).IsSuccess, "Missing team rejected");
         foreach (string name in new[]
         {
@@ -52,7 +49,7 @@ public static class CareerTeamValidation
         Require(team.TeamName == "New Team" && team.PrimaryColor == "#AABBCC" && team.SecondaryColor == "#001122", "Identity normalized");
         Require(bike.PrimaryColor == "#111111", "Custom bike paint preserved when repaint is off");
         Require(service.UpdateIdentity(team, "New Team", "#33ccff", "#ff3399", true).IsSuccess && bike.PrimaryColor == "#33CCFF" && bike.SecondaryColor == "#FF3399", "Optional repaint applies");
-        Require(team.Credits == 2345 && team.Fame == 67 && team.ResearchPoints == 89, "Identity changes preserve resources");
+        Require(team.Credits == 2345 && team.Fame == 67, "Identity changes preserve resources");
         var session = new GameSessionState(team, null, new WorldState(), null, null, null);
         var mapper = new CampaignSaveMapper(database);
         var captured = mapper.Capture(session);
@@ -62,7 +59,6 @@ public static class CareerTeamValidation
         Require(result.IsSuccess, "Restore succeeds: " + result.ErrorMessage);
         var restored = result.Value.PlayerTeam;
         Require(restored.TeamName == "New Team" && restored.PrimaryColor == "#33CCFF" && restored.Garage.FindBike("owned-bike").SecondaryColor == "#FF3399", "Identity and paint survive reload");
-        Require(restored.ResearchPoints == 89 && restored.HasTechnology("tech") && restored.HasChampionshipUnlocked("championship") && restored.ResearchOutputPerRace == 10, "Team progression and research contracts survive reload");
         Debug.Log("Team management validation passed: input validation, optional repaint, resources and JSON save roundtrip.");
     }
 

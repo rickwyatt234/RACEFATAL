@@ -16,7 +16,6 @@ MonoBehaviour:
   displayName: Ballistic Shotgun
   requiredNodeSize: 0
   creditCost: 0
-  requiredTechnologyId: 
   activationMode: 1
   aimMode: 0
   deliveryMode: 5

@@ -14,14 +14,14 @@ namespace RaceFatal.Presentation.Career
         [Header("Screens")] [SerializeField] private GameObject homeRoot;
         [SerializeField] private GameObject racesRoot;
         [SerializeField] private GameObject garageRoot;
-        [SerializeField] private GameObject researchRoot;
+        [SerializeField] private GameObject brandsRoot;
         [SerializeField] private GameObject shopRoot;
         [SerializeField] private GameObject rosterRoot;
         [SerializeField] private GameObject teamRoot;
         [Header("Navigation")] [SerializeField] private Button homeButton;
         [SerializeField] private Button racesButton;
         [SerializeField] private Button garageButton;
-        [SerializeField] private Button researchButton;
+        [SerializeField] private Button brandsButton;
         [SerializeField] private Button shopButton;
         [SerializeField] private Button rosterButton;
         [SerializeField] private Button teamButton;
@@ -30,7 +30,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private CareerRacesView racesView;
         [SerializeField] private CareerGarageView garageView;
         [SerializeField] private CareerShopView shopView;
-        [SerializeField] private CareerResearchView researchView;
+        [SerializeField] private CareerBrandsView brandsView;
         [SerializeField] private CareerRosterView rosterView;
         [SerializeField] private CareerTeamView teamView;
         [Header("Feedback")] [SerializeField] private TMP_Text errorText;
@@ -64,7 +64,7 @@ namespace RaceFatal.Presentation.Career
             racesView?.Initialize(this, context);
             garageView?.Initialize(context);
             shopView?.Initialize(this, context);
-            researchView?.Initialize(this, context);
+            brandsView = CareerBrandsView.Create(brandsRoot, this, context);
             rosterView?.Initialize(this, context);
             teamView?.Initialize(this, context);
             ShowScreen(CareerScreen.Home);
@@ -90,15 +90,14 @@ namespace RaceFatal.Presentation.Career
             ShowScreen(CareerScreen.Garage);
         }
 
-        public void ShowResearch()
+        public void ShowBrands()
         {
-            ShowScreen(CareerScreen.Research);
+            ShowScreen(CareerScreen.Brands);
         }
 
-        public void ShowTechnology(string technologyId)
+        public void ShowBrand(string id)
         {
-            ShowScreen(CareerScreen.Research);
-            researchView?.FocusTechnology(technologyId);
+            ShowBrands(); brandsView?.FocusBrand(id);
         }
 
         public void ShowShop()
@@ -122,7 +121,7 @@ namespace RaceFatal.Presentation.Career
             SetActive(homeRoot, screen == CareerScreen.Home);
             SetActive(racesRoot, screen == CareerScreen.Races);
             SetActive(garageRoot, screen == CareerScreen.Garage);
-            SetActive(researchRoot, screen == CareerScreen.Research);
+            SetActive(brandsRoot, screen == CareerScreen.Brands);
             SetActive(shopRoot, screen == CareerScreen.Shop);
             SetActive(rosterRoot, screen == CareerScreen.Roster);
             SetActive(teamRoot, screen == CareerScreen.Team);
@@ -139,9 +138,9 @@ namespace RaceFatal.Presentation.Career
             {
                 garageView?.Refresh();
             }
-            else if (screen == CareerScreen.Research)
+            else if (screen == CareerScreen.Brands)
             {
-                researchView?.Refresh();
+                brandsView?.Refresh();
             }
             else if (screen == CareerScreen.Roster)
             {
@@ -349,7 +348,7 @@ namespace RaceFatal.Presentation.Career
             Bind(homeButton, ShowHome);
             Bind(racesButton, ShowRaces);
             Bind(garageButton, ShowGarage);
-            Bind(researchButton, ShowResearch);
+            Bind(brandsButton, ShowBrands);
             Bind(shopButton, ShowShop);
             Bind(rosterButton, ShowRoster);
             Bind(teamButton, ShowTeam);

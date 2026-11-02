@@ -32,14 +32,14 @@ public static class CareerHubScaffoldBuilder
         TMP_Text racerName = CreateText(homeRoot.transform, "RacerName", "RACER NAME", 30f, TextAlignmentOptions.TopLeft, new Vector2(410f, -280f), new Vector2(900f, 52f));
         TMP_Text credits = CreateText(homeRoot.transform, "Credits", "CREDITS  0", 28f, TextAlignmentOptions.TopLeft, new Vector2(410f, -400f), new Vector2(700f, 48f));
         TMP_Text fame = CreateText(homeRoot.transform, "TeamFame", "TEAM FAME  0", 28f, TextAlignmentOptions.TopLeft, new Vector2(410f, -465f), new Vector2(700f, 48f));
-        TMP_Text research = CreateText(homeRoot.transform, "ResearchPoints", "RESEARCH POINTS  0", 28f, TextAlignmentOptions.TopLeft, new Vector2(410f, -530f), new Vector2(700f, 48f));
+        TMP_Text brands = CreateText(homeRoot.transform, "LifetimeFame", "LIFETIME FAME  0", 28f, TextAlignmentOptions.TopLeft, new Vector2(410f, -530f), new Vector2(700f, 48f));
         TMP_Text bike = CreateText(homeRoot.transform, "CurrentBike", "CURRENT BIKE  NONE", 26f, TextAlignmentOptions.TopLeft, new Vector2(1140f, -400f), new Vector2(650f, 48f));
         TMP_Text partner = CreateText(homeRoot.transform, "CurrentPartner", "CURRENT PARTNER  NONE", 26f, TextAlignmentOptions.TopLeft, new Vector2(1140f, -465f), new Vector2(650f, 48f));
         TMP_Text careerStatus = CreateText(homeRoot.transform, "CareerStatus", "CAREER STATUS  ACTIVE", 26f, TextAlignmentOptions.TopLeft, new Vector2(1140f, -530f), new Vector2(650f, 48f));
-        ConfigureHomeView(homeView, teamName, racerName, credits, fame, research, bike, partner, careerStatus);
+        ConfigureHomeView(homeView, teamName, racerName, credits, fame, brands, bike, partner, careerStatus);
         GameObject racesRoot = CreatePlaceholderScreen(canvas.transform, "RacesRoot", "RACES // CHAMPIONSHIPS", "Race selection will be implemented next.");
         GameObject garageRoot = CreatePlaceholderScreen(canvas.transform, "GarageRoot", "GARAGE", "Owned bikes and loadout management will appear here.");
-        GameObject researchRoot = CreatePlaceholderScreen(canvas.transform, "ResearchRoot", "RESEARCH", "Technology progression will appear here.");
+        GameObject brandsRoot = CreatePlaceholderScreen(canvas.transform, "BrandsRoot", "BRANDS", "Corporate opportunities and brand contracts.");
         GameObject shopRoot = CreatePlaceholderScreen(canvas.transform, "ShopRoot", "SHOP", "Purchasable bikes, parts, and equipment will appear here.");
         GameObject rosterRoot = CreatePlaceholderScreen(canvas.transform, "RosterRoot", "ROSTER", "Team racers and career status will appear here.");
         GameObject teamRoot = CreatePlaceholderScreen(canvas.transform, "TeamRoot", "TEAM", "Team identity and progression will appear here.");
@@ -48,17 +48,17 @@ public static class CareerHubScaffoldBuilder
         Button homeButton = CreateNavigationButton(navigation.transform, "HOME", 0);
         Button racesButton = CreateNavigationButton(navigation.transform, "RACES", 1);
         Button garageButton = CreateNavigationButton(navigation.transform, "GARAGE", 2);
-        Button researchButton = CreateNavigationButton(navigation.transform, "RESEARCH", 3);
+        Button brandsButton = CreateNavigationButton(navigation.transform, "BRANDS", 3);
         Button shopButton = CreateNavigationButton(navigation.transform, "SHOP", 4);
         Button rosterButton = CreateNavigationButton(navigation.transform, "ROSTER", 5);
         Button teamButton = CreateNavigationButton(navigation.transform, "TEAM", 6);
         Button saveAndReturnButton = CreateBottomButton(navigation.transform, "SAVE & RETURN");
         TMP_Text errorText = CreateText(canvas.transform, "CareerErrorText", string.Empty, 20f, TextAlignmentOptions.Left, new Vector2(350f, 22f), new Vector2(1500f, 40f), new Vector2(0f, 0f));
-        ConfigureCareerController(controller, homeRoot, racesRoot, garageRoot, researchRoot, shopRoot, rosterRoot, teamRoot, homeButton, racesButton, garageButton, researchButton, shopButton, rosterButton, teamButton, saveAndReturnButton, homeView, errorText);
+        ConfigureCareerController(controller, homeRoot, racesRoot, garageRoot, brandsRoot, shopRoot, rosterRoot, teamRoot, homeButton, racesButton, garageButton, brandsButton, shopButton, rosterButton, teamButton, saveAndReturnButton, homeView, errorText);
         homeRoot.SetActive(true);
         racesRoot.SetActive(false);
         garageRoot.SetActive(false);
-        researchRoot.SetActive(false);
+        brandsRoot.SetActive(false);
         shopRoot.SetActive(false);
         rosterRoot.SetActive(false);
         teamRoot.SetActive(false);
@@ -68,34 +68,34 @@ public static class CareerHubScaffoldBuilder
         Debug.Log("RACE//FATAL career hub scaffold built in 01_Career.");
     }
 
-    private static void ConfigureHomeView(CareerHomeView view, TMP_Text teamName, TMP_Text racerName, TMP_Text credits, TMP_Text fame, TMP_Text research, TMP_Text bike, TMP_Text partner, TMP_Text careerStatus)
+    private static void ConfigureHomeView(CareerHomeView view, TMP_Text teamName, TMP_Text racerName, TMP_Text credits, TMP_Text fame, TMP_Text brands, TMP_Text bike, TMP_Text partner, TMP_Text careerStatus)
     {
         SerializedObject serialized = new SerializedObject(view);
         SetReference(serialized, "teamNameText", teamName);
         SetReference(serialized, "racerNameText", racerName);
         SetReference(serialized, "creditsText", credits);
         SetReference(serialized, "fameText", fame);
-        SetReference(serialized, "researchPointsText", research);
+        SetReference(serialized, "lifetimeFameText", brands);
         SetReference(serialized, "currentBikeText", bike);
         SetReference(serialized, "currentPartnerText", partner);
         SetReference(serialized, "careerStatusText", careerStatus);
         serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    private static void ConfigureCareerController(CareerController controller, GameObject homeRoot, GameObject racesRoot, GameObject garageRoot, GameObject researchRoot, GameObject shopRoot, GameObject rosterRoot, GameObject teamRoot, Button homeButton, Button racesButton, Button garageButton, Button researchButton, Button shopButton, Button rosterButton, Button teamButton, Button saveAndReturnButton, CareerHomeView homeView, TMP_Text errorText)
+    private static void ConfigureCareerController(CareerController controller, GameObject homeRoot, GameObject racesRoot, GameObject garageRoot, GameObject brandsRoot, GameObject shopRoot, GameObject rosterRoot, GameObject teamRoot, Button homeButton, Button racesButton, Button garageButton, Button brandsButton, Button shopButton, Button rosterButton, Button teamButton, Button saveAndReturnButton, CareerHomeView homeView, TMP_Text errorText)
     {
         SerializedObject serialized = new SerializedObject(controller);
         SetReference(serialized, "homeRoot", homeRoot);
         SetReference(serialized, "racesRoot", racesRoot);
         SetReference(serialized, "garageRoot", garageRoot);
-        SetReference(serialized, "researchRoot", researchRoot);
+        SetReference(serialized, "brandsRoot", brandsRoot);
         SetReference(serialized, "shopRoot", shopRoot);
         SetReference(serialized, "rosterRoot", rosterRoot);
         SetReference(serialized, "teamRoot", teamRoot);
         SetReference(serialized, "homeButton", homeButton);
         SetReference(serialized, "racesButton", racesButton);
         SetReference(serialized, "garageButton", garageButton);
-        SetReference(serialized, "researchButton", researchButton);
+        SetReference(serialized, "brandsButton", brandsButton);
         SetReference(serialized, "shopButton", shopButton);
         SetReference(serialized, "rosterButton", rosterButton);
         SetReference(serialized, "teamButton", teamButton);

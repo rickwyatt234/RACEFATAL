@@ -11,7 +11,7 @@ namespace RaceFatal.Content.Equipment
         [Min(0f)] [SerializeField] private float rechargeDelay;
         public override EquipmentDefinition CreateEquipmentDefinition()
         {
-            return new ShieldDefinition(id, displayName, requiredNodeSize, capacity, rechargePerSecond, rechargeDelay, creditCost, requiredTechnologyId);
+            return new ShieldDefinition(id, displayName, requiredNodeSize, capacity, rechargePerSecond, rechargeDelay, creditCost);
         }
     }
 }
