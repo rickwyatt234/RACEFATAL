@@ -3,7 +3,7 @@
 ## Build the screen
 
 1. Pull this branch and let Unity finish compiling.
-2. Run **RACE//FATAL > Career > Build Shop UI** outside Play Mode.
+2. Run the inspector migration described in [EditorAuthoredUI.md](EditorAuthoredUI.md) outside Play Mode. The former Shop toolbar command was removed.
 3. The tool opens and saves `Assets/Game/Scenes/01_Career.unity`, replaces the original shop placeholder / generated shop panels, and wires `CareerController.shopView` automatically. Existing race and garage screens remain intact. Rerunning rebuilds the generated shop panels; keep custom additions outside `ShopUI` and `ShopConfirmation`.
 4. Start from `00_Bootstrap`, load a campaign, and open **SHOP**.
 
@@ -21,7 +21,7 @@ Use the existing Career Hub builder only if the base scene is missing; that tool
 
 ## Validation
 
-Run **RACE//FATAL > Career > Validate Shop Purchases** for domain checks. This can also run with Unity's `-executeMethod CareerShopValidation.Run`. Checks cover all three item kinds, rejected/locked purchases, insufficient funds, exact balance, unique duplicate instances, and zero/negative prices.
+Run domain checks with Unity's `-executeMethod CareerShopValidation.Run`; the validation toolbar entry has been removed. Checks cover all three item kinds, rejected/locked purchases, insufficient funds, exact balance, unique duplicate instances, and zero/negative prices.
 
 In Unity, check:
 

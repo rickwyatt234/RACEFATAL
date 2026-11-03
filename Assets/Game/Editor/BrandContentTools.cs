@@ -20,7 +20,6 @@ public static class BrandContentTools
         public List<BrandContractTemplate> contracts;
     }
 
-    [MenuItem("RACE//FATAL/Brands/Materialize Starter Brand Catalog")]
     public static void Materialize()
     {
         var catalog = Selection.activeObject as GameContentCatalogSO;
@@ -50,7 +49,6 @@ public static class BrandContentTools
         Debug.Log("Starter brands saved as editable assets. Restart from Bootstrap after editing content. Existing contract copies retain their original terms.");
     }
 
-    [MenuItem("RACE//FATAL/Brands/Validate Selected Catalog")]
     public static void Validate()
     {
         var catalog = Selection.activeObject as GameContentCatalogSO;

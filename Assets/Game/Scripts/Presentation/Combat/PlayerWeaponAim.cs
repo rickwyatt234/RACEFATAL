@@ -23,9 +23,9 @@ namespace RaceFatal.Presentation.Combat
         private PlayerCockpitView cockpitView;
         private RaceWeaponPresenter presenter;
         private RaycastHit[] raycastBuffer;
-        private RectTransform reticleRoot, fallbackRoot;
-        private Image reticleImage;
-        private Image[] crosshairImages;
+        [SerializeField] private RectTransform reticleRoot, fallbackRoot;
+        [SerializeField] private Image reticleImage;
+        [SerializeField] private Image[] crosshairImages;
         public bool IsActive => racerView != null && racerView.IsInitialized && racerView.Participant != null && racerView.Participant.Role == RaceParticipantRole.Player && cockpitView != null && cockpitView.IsActivePlayerView && !cockpitView.IsDeathViewActive && cockpitView.CockpitCamera != null && cockpitView.CockpitCamera.enabled;
 
         private void Awake() => CacheReferences();
@@ -70,7 +70,7 @@ namespace RaceFatal.Presentation.Combat
                 HideReticle();
                 return;
             }
-            EnsureReticle(canvas);
+            if (reticleRoot == null) return;
             var parent = canvas.transform as RectTransform;
             Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera ?? cockpitView.CockpitCamera;
             Vector3 screen = cockpitView.CockpitCamera.ViewportToScreenPoint(new Vector3(viewport.x, viewport.y, 0f));
@@ -155,8 +155,10 @@ namespace RaceFatal.Presentation.Combat
             return muzzleToAim.sqrMagnitude >= 0.001f;
         }
 
-        private void EnsureReticle(Canvas canvas)
+#if UNITY_EDITOR
+        public void EditorAuthor(Canvas canvas)
         {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
             if (reticleRoot != null) return;
             var root = new GameObject("Selected Weapon Reticle", typeof(RectTransform), typeof(Image));
             reticleRoot = root.GetComponent<RectTransform>();
@@ -180,7 +182,9 @@ namespace RaceFatal.Presentation.Combat
             };
             root.SetActive(false);
         }
+#endif
 
+#if UNITY_EDITOR
         private Image CreateLine(Vector2 minimum, Vector2 maximum, Vector2 thickness)
         {
             var line = new GameObject("Crosshair Line", typeof(RectTransform), typeof(Image));
@@ -194,9 +198,10 @@ namespace RaceFatal.Presentation.Combat
             image.raycastTarget = false;
             return image;
         }
+#endif
 
         private void HideReticle() { if (reticleRoot != null) reticleRoot.gameObject.SetActive(false); }
         private void OnDisable() => HideReticle();
-        private void OnDestroy() { if (reticleRoot != null) Destroy(reticleRoot.gameObject); }
+
     }
 }

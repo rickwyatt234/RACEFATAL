@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public static class CareerGarageScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/01_Career.unity";
-    [MenuItem("RACE//FATAL/Career/Build Garage UI")]
+
     public static void BuildGarage()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

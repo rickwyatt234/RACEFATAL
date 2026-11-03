@@ -26,17 +26,20 @@ namespace RaceFatal.Presentation.Racing
 
             if (raceTimeText != null)
             {
-                if (survival)
-                {
-                    raceTimeText.enableAutoSizing = true;
-                    raceTimeText.fontSizeMin = 10;
-                    raceTimeText.fontSizeMax = 24;
-                }
-
                 raceTimeText.text = raceTime;
             }
         }
 
+        [SerializeField] private bool layoutAuthored;
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (layoutAuthored) return;
+            if (raceTimeText != null) { raceTimeText.enableAutoSizing=true; raceTimeText.fontSizeMin=10; raceTimeText.fontSizeMax=24; }
+            layoutAuthored=true;
+        }
+#endif
         public void Hide()
         {
             gameObject.SetActive(false);

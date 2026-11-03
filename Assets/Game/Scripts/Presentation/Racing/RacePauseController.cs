@@ -13,7 +13,7 @@ namespace RaceFatal.Presentation.Racing
         private static RacePauseController owner;
         private static int resumeFrame = -1;
         private RaceRuntimeController runtime;
-        private RacePauseView view;
+        [SerializeField] private RacePauseView view;
         private float savedTimeScale;
         private float savedFixedDeltaTime;
         private bool savedAudioPause;
@@ -73,11 +73,10 @@ namespace RaceFatal.Presentation.Racing
             savedSelection = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
             if (view == null)
             {
-                var root = new GameObject("RacePauseUI", typeof(RectTransform));
-                root.transform.SetParent(transform, false);
-                view = root.AddComponent<RacePauseView>();
-                view.Initialize(this, pauseKey, hideMenuKey);
+                Debug.LogError("Missing authored pause menu. Run the UI migration in the Editor.", this);
+                return;
             }
+            view.Initialize(this, pauseKey, hideMenuKey);
 
             savedTimeScale = Time.timeScale;
             savedFixedDeltaTime = Time.fixedDeltaTime;

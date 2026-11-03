@@ -9,7 +9,7 @@ using UnityEngine;
 
 public static class CareerShopValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Shop Purchases")]
+
     public static void Run()
     {
         var database = new GameDatabase();

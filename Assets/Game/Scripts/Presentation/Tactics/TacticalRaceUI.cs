@@ -18,28 +18,38 @@ namespace RaceFatal.Presentation.Tactics
         [SerializeField] private TMP_Text details;
         [SerializeField] private TMP_Text orders;
         private TacticalRaceController controller;
-        private readonly List<GameObject> actionItems = new List<GameObject>();
+        [SerializeField] private Button[] actionSlots;
+        [SerializeField] private Button[] markerSlots;
+        [SerializeField] private TMP_Text[] stripSlots;
+        [SerializeField] private bool authored;
         private readonly Dictionary<RacerViewController,Button> markers = new Dictionary<RacerViewController,Button>();
         private readonly Dictionary<EnergyStripAIAnchor,TMP_Text> strips = new Dictionary<EnergyStripAIAnchor,TMP_Text>();
         private RacerViewController actionSelection;
-        private TMP_Text positionMarker;
+        [SerializeField] private TMP_Text positionMarker;
         public void Initialize(TacticalRaceController value)
         {
             controller = value;
-            if (canvas == null) BuildUI();
-            ConfigureActionList();
+            if (canvas == null || !HasAuthoredLayout) throw new InvalidOperationException("Author the tactical UI in the Editor before playing.");
+            markers.Clear(); strips.Clear(); actionSelection=null;
+            foreach(var slot in markerSlots) slot.gameObject.SetActive(false);
+            foreach(var slot in stripSlots) slot.gameObject.SetActive(false);
+            foreach(var slot in actionSlots) slot.gameObject.SetActive(false);
             var controls = canvas.transform.Find("ControlsWindow");
             if (controls != null)
             {
                 var label = controls.GetComponentInChildren<TMP_Text>(true);
                 if (label != null) label.text = "TACTICAL // RACE CONTROL\nSpace: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down | Tab: cycle | Enter: actions | Home: player";
             }
-            if (Application.isPlaying && EventSystem.current == null)
-                new GameObject("TacticalEventSystem",typeof(EventSystem),typeof(StandaloneInputModule));
+
         }
+        public bool HasAuthoredLayout => authored && actionSlots != null && markerSlots != null && stripSlots != null;
+#if UNITY_EDITOR
         public void BuildUI()
         {
-            if (canvas != null) return;
+            if (Application.isPlaying) throw new InvalidOperationException("Editor only");
+            if (HasAuthoredLayout) return;
+            if (canvas == null)
+            {
             var root = new GameObject("TacticalCanvas",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));
             root.transform.SetParent(transform,false); canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 100;
@@ -47,10 +57,35 @@ namespace RaceFatal.Presentation.Tactics
             Text("TACTICAL // RACE CONTROL\nSpace: race / tactical | W / S: pan | Scroll: zoom | MMB drag: orbit | Q: top-down | Tab: cycle | Enter: actions | Home: player",Panel("ControlsWindow",root.transform,new Vector2(0,465),new Vector2(1750,95)),Vector2.zero,new Vector2(1700,90),23);
             details = Text("",Panel("ReconWindow",root.transform,new Vector2(-690,80),new Vector2(460,650)),Vector2.zero,new Vector2(430,620),22);
             orders = Text("",Panel("PartnerOrdersWindow",root.transform,new Vector2(0,-450),new Vector2(1650,110)),Vector2.zero,new Vector2(1600,100),23);
+            }
             ConfigureActionList();
-            if (Application.isPlaying && EventSystem.current == null) new GameObject("TacticalEventSystem",typeof(EventSystem),typeof(StandaloneInputModule));
-            root.SetActive(false);
+            positionMarker = Text("+ POSITION",canvas.transform,Vector2.zero,new Vector2(180,40),22);
+            positionMarker.gameObject.SetActive(false);
+            actionSlots = new Button[7];
+            for(int i=0;i<actionSlots.Length;i++)
+            {
+                actionSlots[i]=Button("Action " + i,actionListRoot,new Vector2(0,180-i*66),new Vector2(300,56),()=>{});
+                actionSlots[i].gameObject.AddComponent<EventTrigger>();
+                actionSlots[i].gameObject.SetActive(false);
+            }
+            markerSlots = new Button[128];
+            for(int i=0;i<markerSlots.Length;i++)
+            {
+                markerSlots[i]=Button("Racer " + i,canvas.transform,Vector2.zero,new Vector2(195,45),()=>{});
+                markerSlots[i].gameObject.SetActive(false);
+            }
+            stripSlots = new TMP_Text[256];
+            for(int i=0;i<stripSlots.Length;i++)
+            {
+                stripSlots[i]=Text("RECHARGE",canvas.transform,Vector2.zero,new Vector2(160,35),18);
+                stripSlots[i].color=Color.cyan; stripSlots[i].gameObject.SetActive(false);
+            }
+            actionListRoot.SetAsLastSibling();
+            authored=true;
+            canvas.gameObject.SetActive(false);
         }
+#endif
+#if UNITY_EDITOR
         private void ConfigureActionList()
         {
             // Reuse the serialized wheel root so existing scenes need no UI rebuild.
@@ -74,13 +109,13 @@ namespace RaceFatal.Presentation.Tactics
             }
             actionListRoot.gameObject.SetActive(false);
         }
+#endif
         private void Update()
         {
             if (controller == null || canvas == null) return;
             canvas.gameObject.SetActive(controller.IsOpen && !RacePauseController.IsGameplayBlocked);
             if (!controller.IsOpen || RacePauseController.IsGameplayBlocked) return;
             UpdateMarkers();
-            if (positionMarker == null) positionMarker = Text("+ POSITION",canvas.transform,Vector2.zero,new Vector2(180,40),22);
             positionMarker.gameObject.SetActive(controller.PositionPreview.HasValue);
             if(controller.PositionPreview.HasValue) positionMarker.transform.position=controller.TacticalCamera.WorldToScreenPoint(controller.PositionPreview.Value);
             var selected = controller.Selected;
@@ -99,8 +134,7 @@ namespace RaceFatal.Presentation.Tactics
             orders.text = controller.Partner != null ? $"PARTNER // {controller.Partner.Acknowledgment}\n{controller.Partner.Aggression} | {(controller.Partner.ConserveEnergy ? "CONSERVING" : "ENERGY AUTHORIZED")}" : "PARTNER // UNAVAILABLE";
             if (actionSelection != selected) { actionSelection = selected; RebuildActionList(); }
             actionListRoot.gameObject.SetActive(controller.WheelOpen && selected != null);
-            // World-space racer markers must not intercept clicks on the command list.
-            actionListRoot.SetAsLastSibling();
+            // Authored after marker slots so commands remain above world markers.
             if (!controller.WheelOpen || selected == null) controller.ClearPreview();
         }
         private void UpdateMarkers()
@@ -111,7 +145,9 @@ namespace RaceFatal.Presentation.Tactics
                 if (!markers.TryGetValue(view,out var button))
                 {
                     var captured = view;
-                    button = Button("",canvas.transform,Vector2.zero,new Vector2(195,45),() => controller.Select(captured));
+                    if (markers.Count >= markerSlots.Length) throw new InvalidOperationException("Tactical racer slots exhausted. Increase authored slots before shipping this race.");
+                    button = markerSlots[markers.Count];
+                    RaceFatal.Presentation.Career.UiBindings.Bind(button, () => controller.Select(captured));
                     markers[view] = button;
                 }
                 Vector3 screen = controller.TacticalCamera.WorldToScreenPoint(view.transform.position);
@@ -125,14 +161,18 @@ namespace RaceFatal.Presentation.Tactics
             foreach (var pair in markers) if (pair.Key == null || pair.Key.Participant.Status != RaceParticipantStatus.Racing) pair.Value.gameObject.SetActive(false);
             foreach (var strip in EnergyStripAIAnchor.ActiveAnchors)
             {
-                if (!strips.TryGetValue(strip,out var label)) { label = Text("RECHARGE",canvas.transform,Vector2.zero,new Vector2(160,35),18); label.color = Color.cyan; strips[strip] = label; }
+                if (!strips.TryGetValue(strip,out var label))
+                {
+                    if (strips.Count >= stripSlots.Length) throw new InvalidOperationException("Tactical recharge slots exhausted. Increase authored slots before shipping this track.");
+                    label=stripSlots[strips.Count]; strips[strip]=label;
+                }
                 Vector3 screen = controller.TacticalCamera.WorldToScreenPoint(strip.Position);
                 label.gameObject.SetActive(screen.z > 0f); label.transform.position = screen;
             }
         }
         private void RebuildActionList()
         {
-            foreach (var item in actionItems) { item.SetActive(false); Destroy(item); } actionItems.Clear();
+            foreach (var item in actionSlots) item.gameObject.SetActive(false);
             controller.ClearPreview();
             if (actionSelection == null) return;
             var actions = new List<(string,Action)>();
@@ -159,17 +199,22 @@ namespace RaceFatal.Presentation.Tactics
             for(int i=0;i<actions.Count;i++)
             {
                 var action=actions[i];
-                var button=Button(action.Item1,actionListRoot,new Vector2(0f, 180f - i * 66f),new Vector2(300f,56f),action.Item2);
+                var button=actionSlots[i];
+                button.gameObject.SetActive(true);
+                button.GetComponentInChildren<TMP_Text>(true).text=action.Item1;
+                RaceFatal.Presentation.Career.UiBindings.Bind(button, () => action.Item2());
+                var trigger=button.GetComponent<EventTrigger>();
+                trigger.triggers.Clear();
                 button.interactable = controller.Partner != null || action.Item1 == "TAG";
-                actionItems.Add(button.gameObject);
                 if(action.Item1.Contains("LEFT") || action.Item1.Contains("RIGHT"))
                 {
-                    int side=action.Item1.Contains("LEFT")?-1:1; var trigger=button.gameObject.AddComponent<EventTrigger>();
+                    int side=action.Item1.Contains("LEFT")?-1:1;
                     var enter=new EventTrigger.Entry{eventID=EventTriggerType.PointerEnter}; enter.callback.AddListener(_=>controller.Preview(side)); trigger.triggers.Add(enter);
                     var leave=new EventTrigger.Entry{eventID=EventTriggerType.PointerExit}; leave.callback.AddListener(_=>controller.ClearPreview()); trigger.triggers.Add(leave);
                 }
             }
         }
+#if UNITY_EDITOR
         private static Transform Panel(string name,Transform parent,Vector2 position,Vector2 size)
         {
             var go=new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(Image));
@@ -178,12 +223,16 @@ namespace RaceFatal.Presentation.Tactics
             var image=go.GetComponent<Image>();image.color=new Color(0.02f,0.03f,0.06f,0.9f);image.raycastTarget=false;
             return go.transform;
         }
+#endif
+#if UNITY_EDITOR
         public static TMP_Text Text(string value,Transform parent,Vector2 position,Vector2 size,float fontSize)
         {
             var go=new GameObject("Label",typeof(RectTransform),typeof(CanvasRenderer),typeof(TextMeshProUGUI)); go.transform.SetParent(parent,false);
             var rect=go.GetComponent<RectTransform>(); rect.anchorMin=rect.anchorMax=new Vector2(0.5f,0.5f);rect.anchoredPosition=position;rect.sizeDelta=size;
             var text=go.GetComponent<TextMeshProUGUI>();text.text=value;text.fontSize=fontSize;text.color=new Color(0.8f,0.95f,1f);text.alignment=TextAlignmentOptions.Center;text.raycastTarget=false;return text;
         }
+#endif
+#if UNITY_EDITOR
         private static Button Button(string label,Transform parent,Vector2 position,Vector2 size,Action action)
         {
             var go=new GameObject(label.Length>0?label:"RacerMarker",typeof(RectTransform),typeof(CanvasRenderer),typeof(Image),typeof(Button));go.transform.SetParent(parent,false);
@@ -191,5 +240,6 @@ namespace RaceFatal.Presentation.Tactics
             go.GetComponent<Image>().color=new Color(0.04f,0.07f,0.12f,0.94f);
             var button=go.GetComponent<Button>();button.onClick.AddListener(()=>action());Text(label,go.transform,Vector2.zero,size,18);return button;
         }
+#endif
     }
 }

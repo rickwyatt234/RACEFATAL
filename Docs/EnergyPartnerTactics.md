@@ -2,7 +2,7 @@
 
 ## Setup in Unity
 
-Open the race scene, then choose **RACE//FATAL > Racing > Build Tactical UI and Commands**. Save the scene. This creates the editable tactical canvas and information windows, attaches the controllers, adds missing recharge-strip AI anchors, and raises scene strip recharge rates to at least 200 energy/second. It is safe to rerun without duplicating the canvas. Exit Play Mode before using it.
+Use the inspector migration in [EditorAuthoredUI.md](EditorAuthoredUI.md) to author the tactical canvas and saved marker/action slots. The former tactical toolbar commands were removed. Recharge rates and AI anchors remain separately authored track data; the UI migration does not rebalance gameplay.
 
 The shipped booster, shield, and weapon definitions are already migrated. **RACE//FATAL > Racing > Apply Energy and Survivability Rebalance** applies the starting baseline to additional/custom booster and shield assets. It does not replace custom weapon energy costs. Save prefab overrides deliberately when editing a prefab instance.
 

@@ -1,13 +1,15 @@
+#if UNITY_EDITOR
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace RaceFatal.Presentation.Career
 {
-    internal static class CareerRuntimeUi
+    public static class EditorUiFactory
     {
-        internal static RectTransform Rect(Transform parent, string name, Vector2 position, Vector2 size)
+        public static RectTransform Rect(Transform parent, string name, Vector2 position, Vector2 size)
         {
+            if (Application.isPlaying) throw new System.InvalidOperationException("UI authoring is Editor-only.");
             var obj = new GameObject(name, typeof(RectTransform));
             obj.transform.SetParent(parent, false);
             var rect = obj.GetComponent<RectTransform>();
@@ -17,7 +19,7 @@ namespace RaceFatal.Presentation.Career
             return rect;
         }
 
-        internal static TMP_Text Text(Transform parent, string name, string value, Vector2 position, Vector2 size, float fontSize = 23)
+        public static TMP_Text Text(Transform parent, string name, string value, Vector2 position, Vector2 size, float fontSize = 23)
         {
             var label = Rect(parent, name, position, size).gameObject.AddComponent<TextMeshProUGUI>();
             label.text = value;
@@ -28,7 +30,7 @@ namespace RaceFatal.Presentation.Career
             return label;
         }
 
-        internal static Button Button(Transform parent, string label, Vector2 position, Vector2 size, UnityEngine.Events.UnityAction action)
+        public static Button Button(Transform parent, string label, Vector2 position, Vector2 size, UnityEngine.Events.UnityAction action)
         {
             var rect = Rect(parent, label, position, size);
             var image = rect.gameObject.AddComponent<Image>();
@@ -40,7 +42,7 @@ namespace RaceFatal.Presentation.Career
             return button;
         }
 
-        internal static TMP_Text Scroll(Transform parent, string name, Vector2 position, Vector2 size)
+        public static TMP_Text Scroll(Transform parent, string name, Vector2 position, Vector2 size)
         {
             var rect = Rect(parent, name, position, size);
             rect.gameObject.AddComponent<Image>().color = new Color(.035f, .065f, .085f);
@@ -58,7 +60,7 @@ namespace RaceFatal.Presentation.Career
             return text;
         }
 
-        internal static RectTransform Modal(Transform canvas, string name, Vector2 size, out GameObject overlay)
+        public static RectTransform Modal(Transform canvas, string name, Vector2 size, out GameObject overlay)
         {
             var root = Rect(canvas, name, Vector2.zero, Vector2.zero);
             root.anchorMin = Vector2.zero;
@@ -73,3 +75,5 @@ namespace RaceFatal.Presentation.Career
         }
     }
 }
+
+#endif

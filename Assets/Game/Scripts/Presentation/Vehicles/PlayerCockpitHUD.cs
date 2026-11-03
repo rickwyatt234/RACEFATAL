@@ -23,8 +23,8 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private Vector2 integrityAnchor = new Vector2(0.5f, 1f);
         [SerializeField] private Vector2 integrityPosition = new Vector2(0f, -260f);
         [SerializeField] private Vector2 integritySize = new Vector2(220f, 70f);
-        private Image integrityBar;
-        private TextMeshProUGUI integrityLabel;
+        [SerializeField] private Image integrityBar;
+        [SerializeField] private TextMeshProUGUI integrityLabel;
         [Header("Shield")] [SerializeField] private GameObject shieldGroup;
         [SerializeField] private Image shieldFill;
         [SerializeField] private TextMeshProUGUI shieldText;
@@ -43,7 +43,7 @@ namespace RaceFatal.Presentation.Vehicles
         [SerializeField] private AudioClip crowdCheeringLoop;
         [SerializeField] private AudioClip crowdBooingLoop;
         [Range(0f, 1f)] [SerializeField] private float crowdVolume = 0.35f;
-        private CockpitAudienceHUD audienceHud;
+        [SerializeField] private CockpitAudienceHUD audienceHud;
         [Header("Root")] [Tooltip("Root GameObject containing the normal player cockpit HUD.")] [SerializeField] private GameObject hudRoot;
 #endregion
 #region Feedback
@@ -104,6 +104,7 @@ namespace RaceFatal.Presentation.Vehicles
         private float previousShieldMaximum;
         private float damageFlashTimer;
         private bool resolved;
+        private bool audienceBound;
 #endregion
 #region Unity
         private void Awake()
@@ -120,8 +121,8 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             if (participant?.Vehicle == null)
                 return;
-            if (showAudience && audienceHud == null)
-                TryCreateAudienceHUD();
+            if (showAudience && !audienceBound)
+                BindAudienceHUD();
             UpdateVehicleHUD();
             UpdateRaceHUD();
             UpdateDamageFeedback();
@@ -154,10 +155,26 @@ namespace RaceFatal.Presentation.Vehicles
 
 #endregion
 #region Vehicle HUD
-        private void TryCreateAudienceHUD()
+        private void BindAudienceHUD()
         {
-            if (raceRuntime?.Director == null)
-                return;
+            if (raceRuntime?.Director == null || audienceHud == null) return;
+            audienceHud.Initialize(raceRuntime.Director, participant, speedText != null ? speedText.font : null, crowdCheeringLoop, crowdBooingLoop, crowdVolume);
+            audienceBound = true;
+        }
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            AuthorAudienceHUD();
+            if (integrityBar == null) TryCreateIntegrityHUD();
+            if (energyFill != null)
+            {
+                if (boostCostPreview == null) boostCostPreview = MakeEnergyOverlay("OneSecondBoostPreview",new Color(1f,0.65f,0.1f,0.85f));
+                if (capacityUnavailable == null) capacityUnavailable = MakeEnergyOverlay("LostCapacity",new Color(0.6f,0.05f,0.2f,0.8f));
+            }
+        }
+        private void AuthorAudienceHUD()
+        {
             if (audienceRoot == null)
             {
                 Transform parent = hudRoot != null ? hudRoot.transform : speedText != null ? speedText.canvas?.transform : null;
@@ -173,8 +190,9 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             audienceHud = audienceRoot.GetComponent<CockpitAudienceHUD>() ?? audienceRoot.gameObject.AddComponent<CockpitAudienceHUD>();
-            audienceHud.Initialize(raceRuntime.Director, participant, speedText != null ? speedText.font : null, crowdCheeringLoop, crowdBooingLoop, crowdVolume);
+            audienceHud.EditorAuthor(speedText != null ? speedText.font : null);
         }
+#endif
 
         private void UpdateVehicleHUD()
         {
@@ -197,8 +215,8 @@ namespace RaceFatal.Presentation.Vehicles
             speedText.text = speedKph.ToString("000");
         }
 
-        private UnityEngine.UI.Image boostCostPreview;
-        private UnityEngine.UI.Image capacityUnavailable;
+        [SerializeField] private UnityEngine.UI.Image boostCostPreview;
+        [SerializeField] private UnityEngine.UI.Image capacityUnavailable;
         private void UpdateEnergy(RaceVehicleState vehicle)
         {
             float maximum = vehicle.EnergyPool.StartingCapacity;
@@ -211,8 +229,6 @@ namespace RaceFatal.Presentation.Vehicles
                 energyText.text = $"{current:0} / {vehicle.EnergyPool.MaxEnergy:0}  [BOOST {vehicle.EquipmentSystem.BoostEnergyPerSecond:0}/s | STRAIN {vehicle.EquipmentSystem.BoostStrainPerSecond:0}/s]";
             if (energyFill != null)
             {
-                if (boostCostPreview == null) boostCostPreview = MakeEnergyOverlay("OneSecondBoostPreview",new Color(1f,0.65f,0.1f,0.85f));
-                if (capacityUnavailable == null) capacityUnavailable = MakeEnergyOverlay("LostCapacity",new Color(0.6f,0.05f,0.2f,0.8f));
                 float capacityRatio = maximum > 0f ? vehicle.EnergyPool.MaxEnergy / maximum : 0f;
                 SetEnergyRegion(capacityUnavailable,capacityRatio,1f);
                 float costRatio = maximum > 0f ? vehicle.EquipmentSystem.BoostEnergyPerSecond / maximum : 0f;
@@ -221,6 +237,7 @@ namespace RaceFatal.Presentation.Vehicles
             debugEnergyPercent = normalized * 100f;
         }
 
+#if UNITY_EDITOR
         private UnityEngine.UI.Image MakeEnergyOverlay(string name, Color color)
         {
             var go = new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(UnityEngine.UI.Image));
@@ -229,8 +246,10 @@ namespace RaceFatal.Presentation.Vehicles
             var image = go.GetComponent<UnityEngine.UI.Image>(); image.color=color; image.raycastTarget=false;
             return image;
         }
+#endif
         private static void SetEnergyRegion(UnityEngine.UI.Image image,float start,float end)
         {
+            if (image == null) return;
             var rect=image.rectTransform; rect.anchorMin=new Vector2(Mathf.Clamp01(start),0f);rect.anchorMax=new Vector2(Mathf.Clamp01(end),1f);rect.offsetMin=rect.offsetMax=Vector2.zero;
             image.enabled=end-start>0.0001f;
         }
@@ -243,8 +262,6 @@ namespace RaceFatal.Presentation.Vehicles
             if (damageText != null)
                 damageText.text = $"{damage:0}%";
             debugDamagePercent = damage;
-            if (showIntegrity && integrityBar == null)
-                TryCreateIntegrityHUD();
             if (integrityRoot != null)
                 integrityRoot.gameObject.SetActive(showIntegrity);
             if (showIntegrity && integrityBar != null)
@@ -256,6 +273,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
         }
 
+#if UNITY_EDITOR
         private void TryCreateIntegrityHUD()
         {
             if (integrityRoot == null)
@@ -285,7 +303,9 @@ namespace RaceFatal.Presentation.Vehicles
             integrityLabel.alignment = TextAlignmentOptions.Center;
             integrityLabel.raycastTarget = false;
         }
+#endif
 
+#if UNITY_EDITOR
         private RectTransform CreateIntegrityRect(string name, Transform parent, Vector2 minimum, Vector2 maximum)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
@@ -296,6 +316,7 @@ namespace RaceFatal.Presentation.Vehicles
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             return rect;
         }
+#endif
 
         private void UpdateShield(RaceVehicleState vehicle)
         {

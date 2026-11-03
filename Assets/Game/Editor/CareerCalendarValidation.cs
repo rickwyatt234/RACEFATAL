@@ -12,7 +12,7 @@ using UnityEngine;
 
 public static class CareerCalendarValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Race Calendar")]
+
     public static void Run()
     {
         var db = new GameDatabase();

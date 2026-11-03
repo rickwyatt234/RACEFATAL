@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class DeathmatchDevelopmentTools
 {
-    [MenuItem("RACE//FATAL/Career/Create Deathmatch Development Events")]
+
     public static void Create()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

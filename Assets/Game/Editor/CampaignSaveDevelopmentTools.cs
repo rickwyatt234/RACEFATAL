@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class CampaignSaveDevelopmentTools
 {
-    [MenuItem("RACE//FATAL/Development/Open Save Folder")]
+
     public static void OpenSaveFolder()
     {
         string saveRoot = GetSaveRoot();
@@ -12,7 +12,6 @@ public static class CampaignSaveDevelopmentTools
         EditorUtility.RevealInFinder(saveRoot);
     }
 
-    [MenuItem("RACE//FATAL/Development/Delete All Save Slots")]
     public static void DeleteAllSaveSlots()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

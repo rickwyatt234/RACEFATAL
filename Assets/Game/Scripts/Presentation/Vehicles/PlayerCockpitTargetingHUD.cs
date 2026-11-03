@@ -105,7 +105,7 @@ namespace RaceFatal.Presentation.Vehicles
         private RacerViewController selectedTarget;
         private RacerViewController focusedRacer;
         private readonly List<TargetCandidate> focusCandidates = new List<TargetCandidate>();
-        private RectTransform focusHighlight;
+        [SerializeField] private RectTransform focusHighlight;
         private bool wasTargetLocked;
 #endregion
 #region Unity
@@ -183,7 +183,7 @@ namespace RaceFatal.Presentation.Vehicles
                 if (focusHighlight != null) focusHighlight.gameObject.SetActive(false);
                 return;
             }
-            EnsureFocusHighlight();
+
             if (focusHighlight != null)
             {
                 PositionAtHudUv(focusHighlight, uv, Vector2.zero);
@@ -199,8 +199,10 @@ namespace RaceFatal.Presentation.Vehicles
             if (focusHighlight != null) focusHighlight.gameObject.SetActive(false);
         }
 
-        private void EnsureFocusHighlight()
+#if UNITY_EDITOR
+        public void EditorAuthor()
         {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
             if (focusHighlight != null) return;
             RectTransform reference = idBoxes.Count > 0 ? idBoxes[0]?.root : null;
             if (reference == null) reference = rocketReticle;
@@ -226,11 +228,9 @@ namespace RaceFatal.Presentation.Vehicles
                         graphic.raycastTarget = false;
                     }
         }
+#endif
 
-        private void OnDestroy()
-        {
-            if (focusHighlight != null) Destroy(focusHighlight.gameObject);
-        }
+
 
         private void OnDisable()
         {

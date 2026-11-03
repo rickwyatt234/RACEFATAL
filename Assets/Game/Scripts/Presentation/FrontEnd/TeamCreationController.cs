@@ -20,14 +20,14 @@ namespace RaceFatal.Presentation.FrontEnd
         {
             if (preview == null || input == null) return;
             preview.raycastTarget = true;
-            var button = preview.GetComponent<Button>() ?? preview.gameObject.AddComponent<Button>();
-            button.targetGraphic = preview;
+            var button = preview.GetComponent<Button>();
+            if (button == null) throw new System.InvalidOperationException("Author the color preview buttons in the Editor before playing.");
             button.onClick.AddListener(() => {
                 if (picker == null) picker = TeamColorPicker.Create(preview.canvas.transform);
                 picker.Open(preview.color, color => input.text = "#" + ColorUtility.ToHtmlStringRGB(color), button);
             });
         }
-        private void OnDestroy() { if (picker != null) Destroy(picker.gameObject); }
+
 
         public void Initialize(FrontEndController owner)
         {

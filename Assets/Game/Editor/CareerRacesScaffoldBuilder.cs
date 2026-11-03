@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public static class CareerRacesScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/01_Career.unity";
-    [MenuItem("RACE//FATAL/Career/Build Races Screen")]
+
     public static void BuildRacesScreen()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

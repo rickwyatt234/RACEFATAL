@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public static class CareerShopInitializationValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Inactive Shop Initialization")]
+
     public static void Run()
     {
         var root = new GameObject("InactiveShopTest", typeof(RectTransform));

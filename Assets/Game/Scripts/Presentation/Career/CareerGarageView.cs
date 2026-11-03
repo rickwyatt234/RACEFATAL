@@ -27,7 +27,6 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button assignPartnerButton;
         [SerializeField] private Button removeButton;
         [SerializeField] private Button saveButton;
-        private readonly List<CareerGarageOptionView> spawned = new List<CareerGarageOptionView>();
         private enum SlotKind
         {
             Engine,
@@ -55,27 +54,32 @@ namespace RaceFatal.Presentation.Career
 
         public void Refresh()
         {
-            ClearOptions();
-            if (Garage == null || context?.Database == null)
+            try
             {
-                SetText(feedbackText, "NO LOADED GARAGE.");
-                SetText(bikeDetailsText, string.Empty);
-                SetText(slotDetailsText, string.Empty);
-                SetText(assignmentText, string.Empty);
-                return;
-            }
+                ClearOptions();
+                if (Garage == null || context?.Database == null)
+                {
+                    SetText(feedbackText, "NO LOADED GARAGE.");
+                    SetText(bikeDetailsText, string.Empty);
+                    SetText(slotDetailsText, string.Empty);
+                    SetText(assignmentText, string.Empty);
+                    return;
+                }
 
-            if (SelectedBike == null && Garage.Bikes.Count > 0)
-            {
-                selectedBikeId = Garage.Bikes[0].BikeId;
-                selectedSlotKind = SlotKind.Engine;
-            }
+                if (SelectedBike == null && Garage.Bikes.Count > 0)
+                {
+                    selectedBikeId = Garage.Bikes[0].BikeId;
+                    selectedSlotKind = SlotKind.Engine;
+                }
 
-            RenderBikes();
-            RenderSlots();
-            RenderInventory();
-            RenderDetails();
-            UpdateActions();
+                RenderBikes();
+                RenderSlots();
+                RenderInventory();
+                RenderDetails();
+                UpdateActions();
+
+            }
+            finally { AuthoredPage.RenderAll(this); }
         }
 
         private void SelectBike(string bikeId)
@@ -332,23 +336,16 @@ namespace RaceFatal.Presentation.Career
 
         private void AddOption(RectTransform container, string label, Action clicked, bool interactable, bool selected)
         {
-            if (container == null || optionTemplate == null)
-                return;
-            CareerGarageOptionView option = Instantiate(optionTemplate, container);
-            option.gameObject.SetActive(true);
-            option.Bind(label, clicked, interactable, selected);
-            spawned.Add(option);
+            AuthoredPage.Require(container).Add(row =>
+            {
+                var option = (CareerGarageOptionView)row;
+                option.Bind(label, clicked, interactable, selected);
+            });
         }
 
         private void ClearOptions()
         {
-            foreach (CareerGarageOptionView option in spawned)
-            {
-                if (option != null)
-                    Destroy(option.gameObject);
-            }
-
-            spawned.Clear();
+            AuthoredPage.BeginAll(this);
         }
 
         private static void Bind(Button button, UnityEngine.Events.UnityAction action)

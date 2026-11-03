@@ -70,6 +70,11 @@ static class Program
         foreach(var mode in new[]{WeaponDeliveryMode.GuidedProjectile,WeaponDeliveryMode.Dropped,WeaponDeliveryMode.Ram,WeaponDeliveryMode.FlameCone})
             Check(!PlayerWeaponAim.UsesGunReticle(WeaponAimMode.Forward,mode),"Special delivery excluded from gun reticle");
         Check(!PlayerWeaponAim.UsesGunReticle(WeaponAimMode.RearTargeted,WeaponDeliveryMode.Projectile),"Rear turret has no forward reticle");
+        Invoke(aim,"LateUpdate");Check(Get<RectTransform>(aim,"reticleRoot")==null,"Missing reticle never builds UI at runtime");
+        var authored=new GameObject("Authored reticle",typeof(RectTransform),typeof(UnityEngine.UI.Image));
+        var fallback=new GameObject("Authored crosshair",typeof(RectTransform));
+        Set(aim,"reticleRoot",authored.GetComponent<RectTransform>());Set(aim,"reticleImage",authored.GetComponent<UnityEngine.UI.Image>());
+        Set(aim,"fallbackRoot",fallback.GetComponent<RectTransform>());Set(aim,"crosshairImages",Array.Empty<UnityEngine.UI.Image>());
         Invoke(aim,"LateUpdate");var root=Get<RectTransform>(aim,"reticleRoot");
         Check(root.gameObject.activeSelf,"Selected forward gun shows reticle");
         Set(profile,"reticleSize",new Vector2(56,56));Set(profile,"reticleSprite",new Sprite());Invoke(aim,"LateUpdate");

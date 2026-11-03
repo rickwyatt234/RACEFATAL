@@ -7,7 +7,7 @@ using UnityEngine;
 public static class CareerRosterDevelopmentTools
 {
     private const string Folder = "Assets/Game/RosterDevelopment";
-    [MenuItem("RACE//FATAL/Career/Create Roster Development Perks")]
+
     public static void Create()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

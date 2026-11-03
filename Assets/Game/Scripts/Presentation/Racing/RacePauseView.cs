@@ -8,17 +8,35 @@ namespace RaceFatal.Presentation.Racing
 {
     public sealed class RacePauseView : MonoBehaviour
     {
-        private CanvasGroup group;
-        private GameObject menu;
-        private GameObject confirmation;
-        private Button resumeButton;
-        private Button cancelButton;
-        private GameObject ownedEventSystem;
+        [SerializeField] private CanvasGroup group;
+        [SerializeField] private GameObject menu;
+        [SerializeField] private GameObject confirmation;
+        [SerializeField] private Button resumeButton;
+        [SerializeField] private Button cancelButton;
+        [SerializeField] private Button hideButton, quitButton, confirmQuitButton;
+        [SerializeField] private TMP_Text hints;
+        private bool initialized;
         public bool IsVisible => gameObject.activeSelf && group != null && group.alpha > 0f;
         public bool IsConfirmingQuit => IsVisible && confirmation.activeSelf;
 
         public void Initialize(RacePauseController controller, KeyCode pauseKey, KeyCode hideKey)
         {
+            if (initialized) return;
+            initialized = true;
+            RaceFatal.Presentation.Career.UiBindings.Bind(resumeButton, controller.Resume);
+            RaceFatal.Presentation.Career.UiBindings.Bind(hideButton, controller.ToggleMenu);
+            RaceFatal.Presentation.Career.UiBindings.Bind(quitButton, ShowQuitConfirmation);
+            RaceFatal.Presentation.Career.UiBindings.Bind(cancelButton, ShowMenu);
+            RaceFatal.Presentation.Career.UiBindings.Bind(confirmQuitButton, controller.QuitGame);
+            hideButton.GetComponentInChildren<TMP_Text>(true).text = "HIDE MENU // " + hideKey;
+            hints.text = pauseKey + " // RESUME     " + hideKey + " // SHOW / HIDE MENU\nThe race stays frozen while the menu is hidden.";
+            Close();
+        }
+#if UNITY_EDITOR
+        public void EditorAuthor(RacePauseController controller, KeyCode pauseKey, KeyCode hideKey)
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (group != null) return;
             var canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 30000;
@@ -40,9 +58,9 @@ namespace RaceFatal.Presentation.Racing
             Text(menu.transform, "RACE//FATAL", 26, new Vector2(0, 170), new Vector2(540, 42));
             Text(menu.transform, "PAUSED", 52, new Vector2(0, 105), new Vector2(540, 72));
             resumeButton = Button(menu.transform, "RESUME", 15, controller.Resume);
-            Button(menu.transform, "HIDE MENU // " + hideKey, -60, controller.ToggleMenu);
-            Button(menu.transform, "QUIT GAME", -135, ShowQuitConfirmation);
-            Text(menu.transform, pauseKey + " // RESUME     " + hideKey + " // SHOW / HIDE MENU\nThe race stays frozen while the menu is hidden.", 18,
+            hideButton = Button(menu.transform, "HIDE MENU // " + hideKey, -60, controller.ToggleMenu);
+            quitButton = Button(menu.transform, "QUIT GAME", -135, ShowQuitConfirmation);
+            hints = Text(menu.transform, pauseKey + " // RESUME     " + hideKey + " // SHOW / HIDE MENU\nThe race stays frozen while the menu is hidden.", 18,
                 new Vector2(0, -230), new Vector2(590, 70));
 
             confirmation = Panel(backdrop, "QuitConfirmation");
@@ -50,15 +68,11 @@ namespace RaceFatal.Presentation.Racing
             Text(confirmation.transform, "This race will not be saved.\nYour last campaign save will be kept.", 24,
                 new Vector2(0, 30), new Vector2(530, 100));
             cancelButton = Button(confirmation.transform, "BACK", -75, ShowMenu);
-            Button(confirmation.transform, "QUIT GAME", -150, controller.QuitGame);
+            confirmQuitButton = Button(confirmation.transform, "QUIT GAME", -150, controller.QuitGame);
 
-            if (EventSystem.current == null)
-            {
-                ownedEventSystem = new GameObject("PauseEventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-                ownedEventSystem.transform.SetParent(controller.transform, false);
-            }
             Close();
         }
+#endif
 
         public void ShowMenu()
         {
@@ -90,11 +104,7 @@ namespace RaceFatal.Presentation.Racing
             Select(cancelButton.gameObject);
         }
 
-        private void OnDestroy()
-        {
-            if (ownedEventSystem != null)
-                Destroy(ownedEventSystem);
-        }
+
 
         private static void Select(GameObject target)
         {
@@ -102,13 +112,16 @@ namespace RaceFatal.Presentation.Racing
                 EventSystem.current.SetSelectedGameObject(target);
         }
 
+#if UNITY_EDITOR
         private static GameObject Panel(Transform parent, string name)
         {
             var panel = Rect(parent, name, Vector2.zero, new Vector2(650, 590));
             panel.gameObject.AddComponent<Image>().color = new Color(.025f, .055f, .075f, .98f);
             return panel.gameObject;
         }
+#endif
 
+#if UNITY_EDITOR
         private static RectTransform Rect(Transform parent, string name, Vector2 position, Vector2 size)
         {
             var obj = new GameObject(name, typeof(RectTransform));
@@ -119,8 +132,10 @@ namespace RaceFatal.Presentation.Racing
             rect.sizeDelta = size;
             return rect;
         }
+#endif
 
-        private static void Text(Transform parent, string value, float size, Vector2 position, Vector2 dimensions)
+#if UNITY_EDITOR
+        private static TMP_Text Text(Transform parent, string value, float size, Vector2 position, Vector2 dimensions)
         {
             var label = Rect(parent, "Label", position, dimensions).gameObject.AddComponent<TextMeshProUGUI>();
             label.text = value;
@@ -129,8 +144,11 @@ namespace RaceFatal.Presentation.Racing
             label.alignment = TextAlignmentOptions.Center;
             label.richText = false;
             label.raycastTarget = false;
+            return label;
         }
+#endif
 
+#if UNITY_EDITOR
         private static Button Button(Transform parent, string label, float y, UnityAction action)
         {
             var rect = Rect(parent, label, new Vector2(0, y), new Vector2(530, 60));
@@ -147,5 +165,6 @@ namespace RaceFatal.Presentation.Racing
             Text(rect, label, 24, Vector2.zero, rect.sizeDelta);
             return button;
         }
+#endif
     }
 }

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public static class CareerShopScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/01_Career.unity";
-    [MenuItem("RACE//FATAL/Career/Build Shop UI")]
+
     public static void BuildShop()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

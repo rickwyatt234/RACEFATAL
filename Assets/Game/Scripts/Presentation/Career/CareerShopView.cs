@@ -26,16 +26,15 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
         [SerializeField] private Button brandButton;
-        private readonly List<CareerGarageOptionView> spawned = new List<CareerGarageOptionView>();
         private readonly List<Selectable> modalBlocked = new List<Selectable>();
         private GameContext context;
         private CareerController owner;
         private ShopService shop;
-        private RectTransform detailViewport;
-        private ScrollRect detailScroll;
-        private Image bikePreview;
-        private TMP_Text previewPlaceholder;
-        private Vector2 detailSize;
+        [SerializeField] private RectTransform detailViewport;
+        [SerializeField] private ScrollRect detailScroll;
+        [SerializeField] private Image bikePreview;
+        [SerializeField] private TMP_Text previewPlaceholder;
+        [SerializeField] private Vector2 detailSize;
         private ShopOffer selected;
         private ShopOffer pending;
         private TeamState pendingTeam;
@@ -47,8 +46,6 @@ namespace RaceFatal.Presentation.Career
             owner = controller;
             context = gameContext;
             shop = context?.Database != null ? new ShopService(context.Database) : null;
-            EnsureDetailsPanel();
-            EnsureBrandButton();
             Bind(brandButton, OpenBrand);
             Bind(purchaseButton, RequestPurchase);
             Bind(saveButton, SaveShop);
@@ -60,64 +57,73 @@ namespace RaceFatal.Presentation.Career
 
         public void Refresh()
         {
-            CancelPurchase();
-            ClearOptions();
-            SetText(creditsText, Team != null ? $"CREDITS  {Team.Credits:N0}" : "CREDITS  --");
-            if (saveButton != null)
-                saveButton.interactable = context?.Saves?.HasActiveCampaign == true;
-            if (garageButton != null)
-                garageButton.interactable = Team != null;
-            if (shop == null || Team == null)
+            try
             {
-                selected = null;
-                SetText(detailsText, "NO LOADED CAMPAIGN.");
-                SetText(feedbackText, "START FROM 00_Bootstrap AND LOAD A CAMPAIGN.");
-                if (purchaseButton != null)
-                    purchaseButton.interactable = false;
-                return;
-            }
+                CancelPurchase();
+                ClearOptions();
+                SetText(creditsText, Team != null ? $"CREDITS  {Team.Credits:N0}" : "CREDITS  --");
+                if (saveButton != null)
+                    saveButton.interactable = context?.Saves?.HasActiveCampaign == true;
+                if (garageButton != null)
+                    garageButton.interactable = Team != null;
+                if (shop == null || Team == null)
+                {
+                    selected = null;
+                    SetText(detailsText, "NO LOADED CAMPAIGN.");
+                    SetText(feedbackText, "START FROM 00_Bootstrap AND LOAD A CAMPAIGN.");
+                    if (purchaseButton != null)
+                        purchaseButton.interactable = false;
+                    return;
+                }
 
-            List<ShopOffer> offers = shop.GetOffers().Where(o => o.BrandId == null || Team.Brands.Find(o.BrandId) != null || shop.MissingBrandAccess(Team, o.Kind, o.DefinitionId) == null).ToList();
-            var categories = new List<string> {  "ALL" };
-            categories.AddRange(offers.Select(o => o.Category).Distinct());
-            if (!categories.Contains(category))
-                category = "ALL";
-            foreach (string value in categories)
-                AddOption(categoryList, value, () => {  category = value;  selected = null;  Refresh(); }, value == category);
-            List<ShopOffer> visible = offers.Where(o => category == "ALL" || o.Category == category).ToList();
-            selected = selected == null ? null : visible.Find(o => o.Kind == selected.Kind && o.DefinitionId == selected.DefinitionId);
-            if (selected == null && visible.Count > 0)
-                selected = visible[0];
-            foreach (ShopOffer offer in visible)
-            {
-                bool locked = shop.MissingBrandAccess(Team, offer.Kind, offer.DefinitionId) != null;
-                string state = offer.CreditCost < 0 ? "  [UNAVAILABLE]" : locked ? "  [LOCKED]" : Team.Credits < offer.CreditCost ? "  [LOW CREDITS]" : "";
-                AddOption(itemList, $"{offer.DisplayName}{state}\n{offer.Category}  //  {offer.CreditCost:N0} CR",
-                    () => {  selected = offer;  Refresh(); }, offer == selected);
-            }
+                List<ShopOffer> offers = shop.GetOffers().Where(o => o.BrandId == null || Team.Brands.Find(o.BrandId) != null || shop.MissingBrandAccess(Team, o.Kind, o.DefinitionId) == null).ToList();
+                var categories = new List<string> {  "ALL" };
+                categories.AddRange(offers.Select(o => o.Category).Distinct());
+                if (!categories.Contains(category))
+                    category = "ALL";
+                foreach (string value in categories)
+                    AddOption(categoryList, value, () => {  category = value;  selected = null;  Refresh(); }, value == category);
+                List<ShopOffer> visible = offers.Where(o => category == "ALL" || o.Category == category).ToList();
+                selected = selected == null ? null : visible.Find(o => o.Kind == selected.Kind && o.DefinitionId == selected.DefinitionId);
+                if (selected == null && visible.Count > 0)
+                    selected = visible[0];
+                foreach (ShopOffer offer in visible)
+                {
+                    bool locked = shop.MissingBrandAccess(Team, offer.Kind, offer.DefinitionId) != null;
+                    string state = offer.CreditCost < 0 ? "  [UNAVAILABLE]" : locked ? "  [LOCKED]" : Team.Credits < offer.CreditCost ? "  [LOW CREDITS]" : "";
+                    AddOption(itemList, $"{offer.DisplayName}{state}\n{offer.Category}  //  {offer.CreditCost:N0} CR",
+                        () => {  selected = offer;  Refresh(); }, offer == selected);
+                }
 
-            RenderDetails();
+                RenderDetails();
+
+            }
+            finally { AuthoredPage.RenderAll(this); }
         }
 
+#if UNITY_EDITOR
         private void EnsureDetailsPanel()
         {
             if (detailsText == null || detailViewport != null)
                 return;
             var old = detailsText.rectTransform;
             detailSize = old.sizeDelta;
-            var root = CareerRuntimeUi.Rect(old.parent, "ShopDetailsPanel", old.anchoredPosition, detailSize);
+            var root = EditorUiFactory.Rect(old.parent, "ShopDetailsPanel", old.anchoredPosition, detailSize);
             var oldText = detailsText;
-            detailsText = CareerRuntimeUi.Scroll(root, "DetailsScroll", Vector2.zero, detailSize);
+            detailsText = EditorUiFactory.Scroll(root, "DetailsScroll", Vector2.zero, detailSize);
             detailScroll = detailsText.GetComponentInParent<ScrollRect>(true);
             detailViewport = (RectTransform)detailScroll.transform;
-            var preview = CareerRuntimeUi.Rect(root, "BikePreview", Vector2.zero, new Vector2(detailSize.x, 165));
+            detailViewport.anchoredPosition = new Vector2(0,-180);
+            detailViewport.sizeDelta = new Vector2(detailSize.x,detailSize.y-180);
+            var preview = EditorUiFactory.Rect(root, "BikePreview", Vector2.zero, new Vector2(detailSize.x, 165));
             bikePreview = preview.gameObject.AddComponent<Image>();
             bikePreview.preserveAspect = true;
             bikePreview.raycastTarget = false;
-            previewPlaceholder = CareerRuntimeUi.Text(root, "PreviewPlaceholder", "BIKE PREVIEW UNAVAILABLE", Vector2.zero, new Vector2(detailSize.x, 165), 21);
+            previewPlaceholder = EditorUiFactory.Text(root, "PreviewPlaceholder", "BIKE PREVIEW UNAVAILABLE", Vector2.zero, new Vector2(detailSize.x, 165), 21);
             previewPlaceholder.alignment = TextAlignmentOptions.Center;
             oldText.gameObject.SetActive(false);
         }
+#endif
 
         private void UpdateBikePreview()
         {
@@ -129,10 +135,10 @@ namespace RaceFatal.Presentation.Career
             bikePreview.gameObject.SetActive(show && sprite != null);
             bikePreview.sprite = sprite;
             previewPlaceholder.gameObject.SetActive(show && sprite == null);
-            detailViewport.anchoredPosition = new Vector2(0, show ? -180 : 0);
-            detailViewport.sizeDelta = new Vector2(detailSize.x, detailSize.y - (show ? 180 : 0));
+
         }
 
+#if UNITY_EDITOR
         private void EnsureBrandButton()
         {
             if (brandButton != null || purchaseButton == null)
@@ -153,7 +159,15 @@ namespace RaceFatal.Presentation.Career
                 label.fontSizeMax = 20;
             }
         }
+#endif
 
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            EnsureDetailsPanel(); EnsureBrandButton();
+        }
+#endif
         private void OpenBrand()
         {
             if (selected != null) owner?.ShowBrand(selected.BrandId);
@@ -285,25 +299,16 @@ namespace RaceFatal.Presentation.Career
 
         private void AddOption(RectTransform list, string label, System.Action click, bool isSelected)
         {
-            if (list == null || optionTemplate == null)
-                return;
-            var option = Instantiate(optionTemplate, list);
-            option.gameObject.SetActive(true);
-            option.Bind(label, click, true, isSelected);
-            spawned.Add(option);
+            AuthoredPage.Require(list).Add(row =>
+            {
+                var option = (CareerGarageOptionView)row;
+                option.Bind(label, click, true, isSelected);
+            });
         }
 
         private void ClearOptions()
         {
-            foreach (var option in spawned)
-            {
-                if (option == null)
-                    continue;
-                option.gameObject.SetActive(false);
-                Destroy(option.gameObject);
-            }
-
-            spawned.Clear();
+            AuthoredPage.BeginAll(this);
         }
 
         private static void SetText(TMP_Text target, string value)

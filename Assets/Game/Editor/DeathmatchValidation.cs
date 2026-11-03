@@ -12,7 +12,7 @@ using UnityEngine;
 
 public static class DeathmatchValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Deathmatch")]
+
     public static void Run()
     {
         var fixture = new Fixture(new DeathmatchRules(DeathmatchVictoryMode.Team, 1, 100, 30, 5, 2));

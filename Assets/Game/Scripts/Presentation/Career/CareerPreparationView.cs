@@ -14,44 +14,58 @@ namespace RaceFatal.Presentation.Career
         private CareerController owner;
         private GameContext context;
         private CareerRacesView races;
-        private GameObject modal;
-        private TMP_Text details, feedback, recoveryLabel;
-        private Button recoverButton;
+        [SerializeField] private GameObject modal;
+        [SerializeField] private TMP_Text details, feedback, recoveryLabel;
+        [SerializeField] private Button recoverButton;
         private readonly List<Selectable> blocked = new List<Selectable>();
         private TeamRecoveryQuote pending;
         private bool confirming, busy, forEvent;
         public static void Create(CareerController owner, GameContext context, CareerRacesView races, Transform canvas, params GameObject[] roots)
         {
-            var host = new GameObject("TeamPreparationController");
-            host.transform.SetParent(canvas, false);
-            var view = host.AddComponent<CareerPreparationView>();
-            view.owner = owner;
-            view.context = context;
-            view.races = races;
-            view.Build(canvas);
-            for (int i = 0; i < roots.Length; i++)
+            var view = canvas.GetComponentInChildren<CareerPreparationView>(true);
+            if (view == null) throw new System.InvalidOperationException("Author the preparation dialog in the Editor before playing.");
+            view.owner=owner; view.context=context; view.races=races;
+            UiBindings.Bind(view.modal, "GARAGE", () => view.Navigate(CareerScreen.Garage));
+            UiBindings.Bind(view.modal, "ROSTER", () => view.Navigate(CareerScreen.Roster));
+            UiBindings.Bind(view.modal, "SHOP", () => view.Navigate(CareerScreen.Shop));
+            UiBindings.Bind(view.modal, "CAREER HOME", () => view.Navigate(CareerScreen.Home));
+            UiBindings.Bind(view.recoverButton, view.Recover);
+            UiBindings.Bind(view.modal, "BACK / CLOSE", view.Back);
+            for (int i=0;i<roots.Length;i++)
             {
-                bool eventScreen = i == 0;
-                if (roots[i] != null)
-                    CareerRuntimeUi.Button(roots[i].transform, "PREPARATION / RECOVERY", new Vector2(1440, -95), new Vector2(380, 50), () => view.Open(eventScreen));
+                bool eventScreen=i==0;
+                if (roots[i]!=null) UiBindings.Bind(roots[i], "PREPARATION / RECOVERY", () => view.Open(eventScreen));
             }
+            view.modal.SetActive(false);
         }
+#if UNITY_EDITOR
+        public void EditorAuthor(Transform canvas, params GameObject[] roots)
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (modal != null) return;
+            Build(canvas);
+            foreach (var root in roots)
+                if (root != null) EditorUiFactory.Button(root.transform, "PREPARATION / RECOVERY", new Vector2(1440,-95), new Vector2(380,50), () => {});
+        }
+#endif
 
+#if UNITY_EDITOR
         private void Build(Transform canvas)
         {
-            var panel = CareerRuntimeUi.Modal(canvas, "TeamPreparation", new Vector2(1200, 880), out modal);
-            CareerRuntimeUi.Text(panel, "Heading", "TEAM // RACE PREPARATION", new Vector2(35, -30), new Vector2(1130, 60), 34);
-            details = CareerRuntimeUi.Scroll(panel, "Checklist", new Vector2(35, -110), new Vector2(1130, 460));
-            feedback = CareerRuntimeUi.Text(panel, "Feedback", "", new Vector2(35, -585), new Vector2(1130, 85));
-            CareerRuntimeUi.Button(panel, "GARAGE", new Vector2(35, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Garage));
-            CareerRuntimeUi.Button(panel, "ROSTER", new Vector2(323, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Roster));
-            CareerRuntimeUi.Button(panel, "SHOP", new Vector2(611, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Shop));
-            CareerRuntimeUi.Button(panel, "CAREER HOME", new Vector2(899, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Home));
-            recoverButton = CareerRuntimeUi.Button(panel, "REVIEW TEAM RECOVERY", new Vector2(35, -770), new Vector2(700, 65), Recover);
+            var panel = EditorUiFactory.Modal(canvas, "TeamPreparation", new Vector2(1200, 880), out modal);
+            EditorUiFactory.Text(panel, "Heading", "TEAM // RACE PREPARATION", new Vector2(35, -30), new Vector2(1130, 60), 34);
+            details = EditorUiFactory.Scroll(panel, "Checklist", new Vector2(35, -110), new Vector2(1130, 460));
+            feedback = EditorUiFactory.Text(panel, "Feedback", "", new Vector2(35, -585), new Vector2(1130, 85));
+            EditorUiFactory.Button(panel, "GARAGE", new Vector2(35, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Garage));
+            EditorUiFactory.Button(panel, "ROSTER", new Vector2(323, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Roster));
+            EditorUiFactory.Button(panel, "SHOP", new Vector2(611, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Shop));
+            EditorUiFactory.Button(panel, "CAREER HOME", new Vector2(899, -685), new Vector2(265, 55), () => Navigate(CareerScreen.Home));
+            recoverButton = EditorUiFactory.Button(panel, "REVIEW TEAM RECOVERY", new Vector2(35, -770), new Vector2(700, 65), Recover);
             recoveryLabel = recoverButton.GetComponentInChildren<TMP_Text>();
-            CareerRuntimeUi.Button(panel, "BACK / CLOSE", new Vector2(770, -770), new Vector2(395, 65), Back);
+            EditorUiFactory.Button(panel, "BACK / CLOSE", new Vector2(770, -770), new Vector2(395, 65), Back);
             modal.SetActive(false);
         }
+#endif
 
         private void Open(bool eventScreen)
         {
@@ -155,10 +169,6 @@ namespace RaceFatal.Presentation.Career
             details.GetComponentInParent<ScrollRect>(true).verticalNormalizedPosition = 1;
         }
 
-        private void OnDestroy()
-        {
-            if (modal != null)
-                Destroy(modal);
-        }
+
     }
 }

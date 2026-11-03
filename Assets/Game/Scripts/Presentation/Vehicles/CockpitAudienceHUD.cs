@@ -6,9 +6,9 @@ namespace RaceFatal.Presentation.Vehicles
 {
     public sealed class CockpitAudienceHUD : MonoBehaviour
     {
-        private AudienceEqualizerGraphic equalizer;
-        private TextMeshProUGUI favorText, averageText;
-        private AudioSource cheers, boos;
+        [SerializeField] private AudienceEqualizerGraphic equalizer;
+        [SerializeField] private TextMeshProUGUI favorText, averageText;
+        [SerializeField] private AudioSource cheers, boos;
         private RaceDirector director;
         private RaceParticipant participant;
         private float shownFavor = 100f, masterVolume;
@@ -17,19 +17,28 @@ namespace RaceFatal.Presentation.Vehicles
             director = raceDirector;
             participant = player;
             masterVolume = Mathf.Clamp01(volume);
+            if (equalizer == null) throw new System.InvalidOperationException("Missing authored audience HUD.");
+            cheers.clip = cheering; boos.clip = booing;
+
+            Refresh(0f);
+        }
+
+#if UNITY_EDITOR
+        public void EditorAuthor(TMP_FontAsset font)
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
             if (equalizer == null)
             {
                 equalizer = CreateRect("Crowd Equalizer", new Vector2(0f, 0.28f), new Vector2(1f, 0.7f)).gameObject.AddComponent<AudienceEqualizerGraphic>();
                 equalizer.raycastTarget = false;
                 favorText = CreateText("Audience Favor", new Vector2(0f, 0.72f), Vector2.one, font, 18f);
                 averageText = CreateText("Average Fame", Vector2.zero, new Vector2(1f, 0.25f), font, 13f);
-                cheers = CreateAudio(cheering);
-                boos = CreateAudio(booing);
+                cheers = CreateAudio(null);
+                boos = CreateAudio(null);
             }
-
-            Refresh(0f);
         }
-
+#endif
+#if UNITY_EDITOR
         private RectTransform CreateRect(string objectName, Vector2 minimum, Vector2 maximum)
         {
             var rect = new GameObject(objectName, typeof(RectTransform)).GetComponent<RectTransform>();
@@ -40,7 +49,9 @@ namespace RaceFatal.Presentation.Vehicles
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             return rect;
         }
+#endif
 
+#if UNITY_EDITOR
         private TextMeshProUGUI CreateText(string objectName, Vector2 minimum, Vector2 maximum, TMP_FontAsset font, float size)
         {
             var label = CreateRect(objectName, minimum, maximum).gameObject.AddComponent<TextMeshProUGUI>();
@@ -52,11 +63,11 @@ namespace RaceFatal.Presentation.Vehicles
             label.raycastTarget = false;
             return label;
         }
+#endif
 
+#if UNITY_EDITOR
         private AudioSource CreateAudio(AudioClip clip)
         {
-            if (clip == null)
-                return null;
             var source = gameObject.AddComponent<AudioSource>();
             source.clip = clip;
             source.loop = true;
@@ -65,6 +76,7 @@ namespace RaceFatal.Presentation.Vehicles
             source.volume = 0f;
             return source;
         }
+#endif
 
         private void Update() => Refresh(Time.deltaTime);
         private void Refresh(float deltaTime)

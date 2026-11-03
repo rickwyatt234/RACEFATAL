@@ -17,6 +17,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text currentPartnerText;
         [Header("Career")] [SerializeField] private TMP_Text careerStatusText;
         private CareerHomeCalendarView calendarView;
+        [SerializeField] private bool layoutAuthored;
         public void Bind(GameSessionState session, GameDatabase database, CareerController owner = null)
         {
             if (session == null)
@@ -28,16 +29,7 @@ namespace RaceFatal.Presentation.Career
             if (calendarView == null)
             {
                 calendarView = CareerHomeCalendarView.Create(transform, owner);
-                var labels = new[] { teamNameText, racerNameText, creditsText, fameText, lifetimeFameText, currentBikeText, currentPartnerText, careerStatusText };
-                for (int i=0;i<labels.Length;i++)
-                {
-                    if (labels[i] == null) continue;
-                    var rect = labels[i].rectTransform;
-                    rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0,1);
-                    rect.anchoredPosition = new Vector2(410+(i%3)*470,-195-(i/3)*55);
-                    rect.sizeDelta = new Vector2(450,48);
-                    labels[i].fontSize = 24; labels[i].enableAutoSizing=true; labels[i].fontSizeMin=17;
-                }
+
             }
             calendarView.Bind(session.PlayerTeam, database);
             TeamState team = session.PlayerTeam;
@@ -54,6 +46,25 @@ namespace RaceFatal.Presentation.Career
             string careerStatus = run == null ? "ENDED — CREATE A NEW RACER" : run.IsActive ? "ACTIVE" : player?.Status.ToString().ToUpperInvariant() + " — CAREER ENDED";
             SetText(careerStatusText, $"CAREER STATUS  {careerStatus}");
         }
+
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (layoutAuthored) return;
+            layoutAuthored = true;
+                var labels = new[] { teamNameText, racerNameText, creditsText, fameText, lifetimeFameText, currentBikeText, currentPartnerText, careerStatusText };
+                for (int i=0;i<labels.Length;i++)
+                {
+                    if (labels[i] == null) continue;
+                    var rect = labels[i].rectTransform;
+                    rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0,1);
+                    rect.anchoredPosition = new Vector2(410+(i%3)*470,-195-(i/3)*55);
+                    rect.sizeDelta = new Vector2(450,48);
+                    labels[i].fontSize = 24; labels[i].enableAutoSizing=true; labels[i].fontSizeMin=17;
+                }
+        }
+#endif
 
         private RacerState ResolvePlayer(GameSessionState session)
         {

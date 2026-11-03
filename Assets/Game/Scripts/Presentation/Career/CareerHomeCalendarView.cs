@@ -10,10 +10,11 @@ namespace RaceFatal.Presentation.Career
 {
     public sealed class CareerHomeCalendarView : MonoBehaviour
     {
-        private TMP_Text heading, details, eventTitle, pageLabel;
-        private readonly Button[] days = new Button[28];
-        private readonly Button[] events = new Button[4];
-        private readonly TMP_Text[] eventLabels = new TMP_Text[4];
+        [SerializeField] private TMP_Text heading, details, eventTitle, pageLabel;
+        [SerializeField] private Button[] days = new Button[28];
+        [SerializeField] private Button[] events = new Button[4];
+        [SerializeField] private TMP_Text[] eventLabels = new TMP_Text[4];
+        [SerializeField] private Button previousBlock, nextBlock, today, previousEvents, nextEvents;
         private TeamState team;
         private GameDatabase database;
         private CareerCalendarService calendar;
@@ -23,38 +24,52 @@ namespace RaceFatal.Presentation.Career
         private List<CareerEventOccurrence> selected = new List<CareerEventOccurrence>();
         public static CareerHomeCalendarView Create(Transform parent, CareerController owner)
         {
-            var root = CareerRuntimeUi.Rect(parent, "HomeCalendar", new Vector2(410,-385), new Vector2(1380,450));
-            var view = root.gameObject.AddComponent<CareerHomeCalendarView>();
+            var view = parent.GetComponentInChildren<CareerHomeCalendarView>(true);
+            if (view == null) throw new System.InvalidOperationException("Author the Home calendar in the Editor before playing.");
             view.owner = owner;
-            view.Build();
+            view.BindControls();
             return view;
         }
-        private void Build()
+        private void BindControls()
         {
-            heading = CareerRuntimeUi.Text(transform,"Heading","",Vector2.zero,new Vector2(730,45),25);
-            CareerRuntimeUi.Button(transform,"<",new Vector2(740,0),new Vector2(55,38),()=> { if(block>0) block--; Render(); });
-            CareerRuntimeUi.Button(transform,">",new Vector2(805,0),new Vector2(55,38),()=> { if((long)(block+2)*28<=CareerCalendarState.MaxDay) block++; Render(); });
-            CareerRuntimeUi.Button(transform,"NOW",new Vector2(870,0),new Vector2(90,38),()=> { block=(team.Calendar.AbsoluteDay-1)/28; Render(); SelectDay(team.Calendar.AbsoluteDay); });
-            for(int i=0;i<7;i++) CareerRuntimeUi.Text(transform,"Day"+i,"DAY "+(i+1),new Vector2(i*138,-50),new Vector2(130,30),19);
+            UiBindings.Bind(previousBlock, () => { if (block > 0) block--; Render(); });
+            UiBindings.Bind(nextBlock, () => { if ((long)(block+2)*28<=CareerCalendarState.MaxDay) block++; Render(); });
+            UiBindings.Bind(today, () => { block=(team.Calendar.AbsoluteDay-1)/28; Render(); SelectDay(team.Calendar.AbsoluteDay); });
+            UiBindings.Bind(previousEvents, () => { if(page>0)page--; RenderEvents(); });
+            UiBindings.Bind(nextEvents, () => { if((page+1)*4<selected.Count)page++; RenderEvents(); });
+            for (int i=0;i<days.Length;i++) { int index=i; UiBindings.Bind(days[i],()=>SelectDay(block*28+index+1)); }
+            for (int i=0;i<events.Length;i++) { int index=i; UiBindings.Bind(events[i],()=>OpenEvent(index)); }
+        }
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (heading != null) return;
+            heading = EditorUiFactory.Text(transform,"Heading","",Vector2.zero,new Vector2(730,45),25);
+            previousBlock = EditorUiFactory.Button(transform,"<",new Vector2(740,0),new Vector2(55,38),()=> { if(block>0) block--; Render(); });
+            nextBlock = EditorUiFactory.Button(transform,">",new Vector2(805,0),new Vector2(55,38),()=> { if((long)(block+2)*28<=CareerCalendarState.MaxDay) block++; Render(); });
+            today = EditorUiFactory.Button(transform,"NOW",new Vector2(870,0),new Vector2(90,38),()=> { block=(team.Calendar.AbsoluteDay-1)/28; Render(); SelectDay(team.Calendar.AbsoluteDay); });
+            for(int i=0;i<7;i++) EditorUiFactory.Text(transform,"Day"+i,"DAY "+(i+1),new Vector2(i*138,-50),new Vector2(130,30),19);
             for(int i=0;i<28;i++)
             {
                 int index=i;
-                days[i]=CareerRuntimeUi.Button(transform,"",new Vector2(i%7*138,-85-i/7*65),new Vector2(130,57),()=>SelectDay(block*28+index+1));
+                days[i]=EditorUiFactory.Button(transform,"",new Vector2(i%7*138,-85-i/7*65),new Vector2(130,57),()=>SelectDay(block*28+index+1));
                 days[i].GetComponentInChildren<TMP_Text>().fontSize=18;
             }
-            eventTitle = CareerRuntimeUi.Text(transform,"EventTitle","SELECT A DAY",new Vector2(995,0),new Vector2(385,38),22);
+            eventTitle = EditorUiFactory.Text(transform,"EventTitle","SELECT A DAY",new Vector2(995,0),new Vector2(385,38),22);
             for(int i=0;i<4;i++)
             {
                 int index=i;
-                events[i]=CareerRuntimeUi.Button(transform,"",new Vector2(995,-48-i*63),new Vector2(385,56),()=>OpenEvent(index));
+                events[i]=EditorUiFactory.Button(transform,"",new Vector2(995,-48-i*63),new Vector2(385,56),()=>OpenEvent(index));
                 eventLabels[i]=events[i].GetComponentInChildren<TMP_Text>();
                 eventLabels[i].enableAutoSizing=true; eventLabels[i].fontSizeMin=15;
             }
-            CareerRuntimeUi.Button(transform,"<",new Vector2(995,-306),new Vector2(55,35),()=> { if(page>0)page--; RenderEvents(); });
-            pageLabel=CareerRuntimeUi.Text(transform,"Page","",new Vector2(1060,-306),new Vector2(250,35),19);
-            CareerRuntimeUi.Button(transform,">",new Vector2(1325,-306),new Vector2(55,35),()=> { if((page+1)*4<selected.Count)page++; RenderEvents(); });
-            details=CareerRuntimeUi.Scroll(transform,"CalendarDetails",new Vector2(0,-355),new Vector2(1380,90));
+            previousEvents = EditorUiFactory.Button(transform,"<",new Vector2(995,-306),new Vector2(55,35),()=> { if(page>0)page--; RenderEvents(); });
+            pageLabel=EditorUiFactory.Text(transform,"Page","",new Vector2(1060,-306),new Vector2(250,35),19);
+            nextEvents = EditorUiFactory.Button(transform,">",new Vector2(1325,-306),new Vector2(55,35),()=> { if((page+1)*4<selected.Count)page++; RenderEvents(); });
+            details=EditorUiFactory.Scroll(transform,"CalendarDetails",new Vector2(0,-355),new Vector2(1380,90));
         }
+#endif
         public void Bind(TeamState value, GameDatabase db)
         {
             team=value; database=db; calendar=new CareerCalendarService(db);

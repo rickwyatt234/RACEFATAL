@@ -13,6 +13,17 @@ namespace RaceFatal.Presentation.Racing
 {
     public class RaceOutcomeController : MonoBehaviour
     {
+        [SerializeField] private bool layoutAuthored;
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (layoutAuthored) return;
+            if (teamFameText != null) { teamFameText.enableAutoSizing=true; teamFameText.fontSizeMin=12; teamFameText.fontSizeMax=24; }
+            if (contractSummaryText != null) { contractSummaryText.enableAutoSizing=true; contractSummaryText.fontSizeMin=12; contractSummaryText.fontSizeMax=20; }
+            layoutAuthored=true;
+        }
+#endif
         [Header("Runtime")] [SerializeField] private RaceRuntimeController raceRuntime;
         [Header("Outcome UI")] [SerializeField] private GameObject outcomePanel;
         [SerializeField] private TextMeshProUGUI outcomeTitle;
@@ -421,18 +432,18 @@ namespace RaceFatal.Presentation.Racing
                 teamFameText.text = $"+{reward.TeamFame:N0}";
                 if (audienceSummaryText == null)
                 {
-                    teamFameText.enableAutoSizing = true;
-                    teamFameText.fontSizeMin = 12f;
-                    teamFameText.fontSizeMax = 24f;
+
+
+
                     teamFameText.text += $"\n<size=65%>{audienceSummary}</size>";
                 }
             }
 
             if (contractSummaryText != null)
             {
-                contractSummaryText.enableAutoSizing = true;
-                contractSummaryText.fontSizeMin = 12;
-                contractSummaryText.fontSizeMax = 20;
+
+
+
                 if (string.IsNullOrEmpty(result.ContractSummary)) contractSummaryText.text = "NO ACTIVE CONTRACTS";
                 else
                 {

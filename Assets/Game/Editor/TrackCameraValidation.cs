@@ -8,7 +8,7 @@ using UnityEngine;
 // requiring a test-framework package. Run in Edit Mode after compilation.
 public static class TrackCameraValidation
 {
-    [MenuItem("RACE//FATAL/Validation/Track Camera Frames")]
+
     public static void Run()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

@@ -36,7 +36,7 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text confirmationText;
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
-        private readonly List<CareerRaceCardView> cards = new List<CareerRaceCardView>();
+        private readonly List<string> eventIds = new List<string>();
         private readonly Dictionary<string, int> cardDays = new Dictionary<string, int>();
         private readonly List<Selectable> blocked = new List<Selectable>();
         private CareerController owner;
@@ -93,89 +93,95 @@ namespace RaceFatal.Presentation.Career
 
         public void Refresh()
         {
-            Cancel();
-            ClearCards();
-            busy = false;
-            calendarSaved = false;
-            if (enterRaceButton != null)
-                enterRaceButton.interactable = false;
-            if (advanceButton != null)
-                advanceButton.interactable = false;
-            SelectedRaceDefinition = null;
-            Set(selectedRaceNameText, "SELECT AN EVENT");
-            Set(selectedTrackText, "");
-            Set(selectedRequirementsText, "");
-            Set(selectedStatusText, "");
-            ShowDiagram(null);
-            if (Team == null || calendar == null || context.Saves?.HasActiveCampaign != true)
+            try
             {
-                Set(weekText, "NO CAMPAIGN");
-                SetFeedback("LOAD A CAMPAIGN FROM 00_BOOTSTRAP.");
-                return;
-            }
-
-            var beforeRefresh = Team.Calendar.Export();
-            bool changed = calendar.Refresh(Team);
-            var saved = changed ? context.Saves.SaveCurrentCampaign() : Result.Success();
-            calendarSaved = saved.IsSuccess;
-            if (!saved.IsSuccess)
-            {
-                Team.RestoreCalendar(beforeRefresh);
-                SetFeedback("CALENDAR SAVE FAILED: " + saved.ErrorMessage + " REOPEN RACES TO RETRY.");
-                return;
-            }
-
-            SetFeedback(saved.IsSuccess ? "ENTERING AN EVENT MOVES TODAY TO ITS DATE. FINISHING DOES NOT SKIP THE WEEK." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
-            Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  AVAILABLE FAME {Team.Fame:N0} / LIFETIME {Team.LifetimeFame:N0}");
-            var active = Team.Calendar.Active;
-            bool championshipLocked = active?.kind == CareerEventKind.Championship;
-            Set(advanceLabel, championshipLocked ? "CHAMPIONSHIP IN PROGRESS" : active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
-            if (advanceButton != null)
-                advanceButton.interactable = calendarSaved && Session.CareerRun?.IsActive == true && !championshipLocked;
-            if (mode == 3)
-            {
-                DisplayStandings();
-                return;
-            }
-
-            if (mode == 0 && active != null)
-            {
-                AddCard(active.eventId, active.displayName, CareerCalendarState.FormatDay(active.scheduledDay),
-                    $"ROUND {active.roundIndex + 1}/{active.raceIds.Count}  //  ENTRY PAID", "CONTINUE EVENT", active.scheduledDay);
-                SetFeedback(championshipLocked ? "COMPLETE YOUR CHAMPIONSHIP BEFORE ENTERING ANOTHER EVENT." : "CONTINUE YOUR ENTERED EVENT.");
-            }
-            else
-            {
-                int week = Team.Calendar.Week + (mode == 1 ? 1 : 0);
-                Set(weekText, $"{(mode == 1 ? "NEXT WEEK" : "THIS WEEK")} {week}  //  TODAY: {Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS");
-                foreach (var occurrence in calendar.GetAvailableEventsForWeek(Team, week))
+                Cancel();
+                ClearCards();
+                busy = false;
+                calendarSaved = false;
+                if (enterRaceButton != null)
+                    enterRaceButton.interactable = false;
+                if (advanceButton != null)
+                    advanceButton.interactable = false;
+                SelectedRaceDefinition = null;
+                Set(selectedRaceNameText, "SELECT AN EVENT");
+                Set(selectedTrackText, "");
+                Set(selectedRequirementsText, "");
+                Set(selectedStatusText, "");
+                ShowDiagram(null);
+                if (Team == null || calendar == null || context.Saves?.HasActiveCampaign != true)
                 {
-                    var definition = context.Database.GetCareerEventDefinition(occurrence.EventId);
-                    if (!calendar.Validate(definition).IsSuccess) continue;
-                    AddCard(definition.Id, definition.DisplayName,
-                        definition.Kind.ToString().ToUpperInvariant() + " // " + CareerCalendarState.FormatDay(occurrence.Day),
-                        $"FEE {definition.EntryFee:N0} CR + {definition.FameEntryFee:N0} FAME  //  {definition.RaceIds.Count} ROUND(S)",
-                        active != null ? "CURRENT EVENT MUST FINISH FIRST" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
+                    Set(weekText, "NO CAMPAIGN");
+                    SetFeedback("LOAD A CAMPAIGN FROM 00_BOOTSTRAP.");
+                    return;
                 }
-                if (cards.Count == 0)
-                    SetFeedback(mode == 1 ? "NO AVAILABLE EVENTS NEXT WEEK." : "NO REMAINING EVENTS THIS WEEK. VIEW UPCOMING EVENTS OR THE HOME CALENDAR.");
-            }
 
-            if (!cards.Any(c => c.RaceId == selectedEventId))
-                selectedEventId = cards.FirstOrDefault()?.RaceId;
-            if (selectedEventId != null)
-                SelectEvent(selectedEventId);
+                var beforeRefresh = Team.Calendar.Export();
+                bool changed = calendar.Refresh(Team);
+                var saved = changed ? context.Saves.SaveCurrentCampaign() : Result.Success();
+                calendarSaved = saved.IsSuccess;
+                if (!saved.IsSuccess)
+                {
+                    Team.RestoreCalendar(beforeRefresh);
+                    SetFeedback("CALENDAR SAVE FAILED: " + saved.ErrorMessage + " REOPEN RACES TO RETRY.");
+                    return;
+                }
+
+                SetFeedback(saved.IsSuccess ? "ENTERING AN EVENT MOVES TODAY TO ITS DATE. FINISHING DOES NOT SKIP THE WEEK." : "CALENDAR SAVE FAILED: " + saved.ErrorMessage);
+                Set(weekText, $"{Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS  //  AVAILABLE FAME {Team.Fame:N0} / LIFETIME {Team.LifetimeFame:N0}");
+                var active = Team.Calendar.Active;
+                bool championshipLocked = active?.kind == CareerEventKind.Championship;
+                Set(advanceLabel, championshipLocked ? "CHAMPIONSHIP IN PROGRESS" : active == null ? "NEXT EVENT DATE" : "WITHDRAW EVENT");
+                if (advanceButton != null)
+                    advanceButton.interactable = calendarSaved && Session.CareerRun?.IsActive == true && !championshipLocked;
+                if (mode == 3)
+                {
+                    DisplayStandings();
+                    return;
+                }
+
+                if (mode == 0 && active != null)
+                {
+                    AddCard(active.eventId, active.displayName, CareerCalendarState.FormatDay(active.scheduledDay),
+                        $"ROUND {active.roundIndex + 1}/{active.raceIds.Count}  //  ENTRY PAID", "CONTINUE EVENT", active.scheduledDay);
+                    SetFeedback(championshipLocked ? "COMPLETE YOUR CHAMPIONSHIP BEFORE ENTERING ANOTHER EVENT." : "CONTINUE YOUR ENTERED EVENT.");
+                }
+                else
+                {
+                    int week = Team.Calendar.Week + (mode == 1 ? 1 : 0);
+                    Set(weekText, $"{(mode == 1 ? "NEXT WEEK" : "THIS WEEK")} {week}  //  TODAY: {Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS");
+                    foreach (var occurrence in calendar.GetAvailableEventsForWeek(Team, week))
+                    {
+                        var definition = context.Database.GetCareerEventDefinition(occurrence.EventId);
+                        if (!calendar.Validate(definition).IsSuccess) continue;
+                        AddCard(definition.Id, definition.DisplayName,
+                            definition.Kind.ToString().ToUpperInvariant() + " // " + CareerCalendarState.FormatDay(occurrence.Day),
+                            $"FEE {definition.EntryFee:N0} CR + {definition.FameEntryFee:N0} FAME  //  {definition.RaceIds.Count} ROUND(S)",
+                            active != null ? "CURRENT EVENT MUST FINISH FIRST" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
+                    }
+                    if (eventIds.Count == 0)
+                        SetFeedback(mode == 1 ? "NO AVAILABLE EVENTS NEXT WEEK." : "NO REMAINING EVENTS THIS WEEK. VIEW UPCOMING EVENTS OR THE HOME CALENDAR.");
+                }
+
+                if (!eventIds.Contains(selectedEventId))
+                    selectedEventId = eventIds.FirstOrDefault();
+                if (selectedEventId != null)
+                    SelectEvent(selectedEventId);
+
+            }
+            finally { AuthoredPage.RenderAll(this); }
         }
 
         private void AddCard(string id, string name, string type, string requirements, string status, int day)
         {
-            if (cardTemplate == null || cardContainer == null)
-                return;
-            var card = Instantiate(cardTemplate, cardContainer);
-            card.gameObject.SetActive(true);
             cardDays[id] = day;
-            card.BindEvent(id, name, type, requirements, status, SelectEvent);
-            cards.Add(card);
+            eventIds.Add(id);
+            AuthoredPage.Require(cardContainer).Add(row =>
+            {
+                var card = (CareerRaceCardView)row;
+                card.BindEvent(id, name, type, requirements, status, SelectEvent);
+                card.SetSelected(id == selectedEventId);
+            });
         }
 
         public void FocusOccurrence(string id, int day)
@@ -190,7 +196,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             selectedEventId = id;
             selectedOccurrenceDay = occurrenceDay;
-            foreach (var card in cards)
+            foreach (var card in cardContainer.GetComponentsInChildren<CareerRaceCardView>(true))
                 card.SetSelected(card.RaceId == id);
             var active = Team.Calendar.Active;
             var occurrence = selectedOccurrenceDay > 0 ? calendar.GetOccurrences(Team, selectedOccurrenceDay, selectedOccurrenceDay).FirstOrDefault(e => e.EventId == id) : null;
@@ -442,15 +448,8 @@ namespace RaceFatal.Presentation.Career
 
         private void ClearCards()
         {
-            foreach (var card in cards)
-                if (card != null)
-                {
-                    card.gameObject.SetActive(false);
-                    Destroy(card.gameObject);
-                }
-
-            cards.Clear();
-            cardDays.Clear();
+            AuthoredPage.BeginAll(this);
+            eventIds.Clear(); cardDays.Clear();
         }
 
         private void OnDisable()

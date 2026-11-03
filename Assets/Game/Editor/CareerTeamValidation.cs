@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class CareerTeamValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Team Management")]
+
     public static void Run()
     {
         var service = new TeamManagementService();

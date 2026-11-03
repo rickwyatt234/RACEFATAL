@@ -13,7 +13,7 @@ using UnityEngine;
 public static class CareerSuccessionValidation
 {
     private const int TestSlot = 1;
-    [MenuItem("RACE//FATAL/Career/Validate Career Succession")]
+
     public static void Run()
     {
         ValidateCalendarNullSerialization();

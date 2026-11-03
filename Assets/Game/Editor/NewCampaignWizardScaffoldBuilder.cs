@@ -11,7 +11,7 @@ public static class NewCampaignWizardScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/03_MainMenu.unity";
     private const string DefaultsPath = "Assets/Game/Scripts/Content/Catalogs/NewCampaignDefaults.asset";
-    [MenuItem("RACE//FATAL/Front End/Build New Campaign Wizard")]
+
     public static void BuildNewCampaignWizard()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

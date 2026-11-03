@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public static class FrontEndSceneScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/03_MainMenu.unity";
-    [MenuItem("RACE//FATAL/Front End/Build Main Menu Scaffold")]
+
     public static void BuildMainMenuScaffold()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

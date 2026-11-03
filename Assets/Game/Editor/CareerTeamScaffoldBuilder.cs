@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public static class CareerTeamScaffoldBuilder
 {
-    [MenuItem("RACE//FATAL/Career/Build Team UI")]
+
     public static void Build()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

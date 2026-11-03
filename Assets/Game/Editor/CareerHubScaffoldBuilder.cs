@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public static class CareerHubScaffoldBuilder
 {
     private const string ScenePath = "Assets/Game/Scenes/01_Career.unity";
-    [MenuItem("RACE//FATAL/Career/Build Career Hub Scaffold")]
+
     public static void BuildCareerHubScaffold()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

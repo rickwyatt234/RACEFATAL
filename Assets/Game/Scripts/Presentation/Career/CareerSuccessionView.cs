@@ -12,24 +12,31 @@ namespace RaceFatal.Presentation.Career
     {
         private CareerController owner;
         private GameContext context;
-        private GameObject modal;
-        private TMP_Text title, summary, feedback, homeLabel;
-        private TMP_InputField nameInput;
-        private Button primary, secondary, roster, homeAction;
-        private ScrollRect introductionScroll;
-        private TMP_Text introductionText;
-        private TMP_Text primaryLabel, secondaryLabel;
+        [SerializeField] private GameObject modal;
+        [SerializeField] private TMP_Text title, summary, feedback, homeLabel;
+        [SerializeField] private TMP_InputField nameInput;
+        [SerializeField] private Button primary, secondary, roster, homeAction;
+        [SerializeField] private ScrollRect introductionScroll;
+        [SerializeField] private TMP_Text introductionText;
+        [SerializeField] private TMP_Text primaryLabel, secondaryLabel;
+        private void BindControls()
+        {
+            UiBindings.Bind(homeAction, () => Show(Session?.CareerRun?.IsActive == true ? 2 : 0));
+            UiBindings.Bind(roster, () => FinishIntroduction(1));
+            UiBindings.Bind(primary, Confirm); UiBindings.Bind(secondary, Back);
+            modal.SetActive(false);
+        }
         private int page;
         private bool busy;
         private GameSessionState Session => context?.Sessions?.Current;
 
         public static void Create(CareerController owner, GameContext context, Transform home)
         {
-            var root = Rect(home, "CareerSuccession", new Vector2(410, -855), new Vector2(1380, 170));
-            var view = root.gameObject.AddComponent<CareerSuccessionView>();
+            var view = home.GetComponentInChildren<CareerSuccessionView>(true);
+            if (view == null) throw new System.InvalidOperationException("Author the succession dialog in the Editor before playing.");
             view.owner = owner;
             view.context = context;
-            view.Build(home.parent);
+            view.BindControls();
             view.RefreshHome();
             if (context.Sessions.Current?.CareerRun?.IsActive != true)
                 view.Show(0);
@@ -37,8 +44,11 @@ namespace RaceFatal.Presentation.Career
                 view.Show(3);
         }
 
-        private void Build(Transform canvas)
+#if UNITY_EDITOR
+        public void EditorAuthor(Transform canvas)
         {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (modal != null) return;
             homeLabel = Text(transform, "Summary", "", 23, Vector2.zero, new Vector2(1380, 85));
             homeAction = Button(transform, "CareerAction", "", new Vector2(0, -92), new Vector2(430, 58), out var actionLabel);
             homeAction.onClick.AddListener(() => Show(Session?.CareerRun?.IsActive == true ? 2 : 0));
@@ -56,8 +66,8 @@ namespace RaceFatal.Presentation.Career
             summary = Text(panel, "Summary", "", 25, new Vector2(40, -110), new Vector2(1020, 250));
             nameInput = Input(panel, new Vector2(40, -360), new Vector2(1020, 64));
             feedback = Text(panel, "Feedback", "", 22, new Vector2(40, -445), new Vector2(1020, 100));
-            primary = Button(panel, "Primary", "", new Vector2(40, -575), new Vector2(490, 70), out primaryLabel);
-            secondary = Button(panel, "Secondary", "", new Vector2(570, -575), new Vector2(490, 70), out secondaryLabel);
+            primary = Button(panel, "Primary", "", new Vector2(40, -575), new Vector2(314, 70), out primaryLabel);
+            secondary = Button(panel, "Secondary", "", new Vector2(746, -575), new Vector2(314, 70), out secondaryLabel);
             roster = Button(panel, "Roster", "ROSTER", new Vector2(393, -575), new Vector2(314, 70), out var rosterLabel);
             roster.onClick.AddListener(() => FinishIntroduction(1));
             var scrollRoot = Rect(panel, "Introduction", new Vector2(40, -105), new Vector2(1020, 325));
@@ -78,8 +88,9 @@ namespace RaceFatal.Presentation.Career
             secondary.onClick.AddListener(Back);
             modal.SetActive(false);
         }
+#endif
 
-        private TMP_Text homeActionLabel;
+        [SerializeField] private TMP_Text homeActionLabel;
         private void OnEnable()
         {
             if (context != null)
@@ -111,11 +122,6 @@ namespace RaceFatal.Presentation.Career
             summary.gameObject.SetActive(page != 3);
             introductionScroll.gameObject.SetActive(page == 3);
             roster.gameObject.SetActive(page == 3);
-            ((RectTransform)primary.transform).sizeDelta = new Vector2(page == 3 ? 314 : 490, 70);
-            ((RectTransform)secondary.transform).sizeDelta = new Vector2(page == 3 ? 314 : 490, 70);
-            ((RectTransform)secondary.transform).anchoredPosition = new Vector2(page == 3 ? 746 : 570, -575);
-            primaryLabel.rectTransform.sizeDelta = ((RectTransform)primary.transform).sizeDelta;
-            secondaryLabel.rectTransform.sizeDelta = ((RectTransform)secondary.transform).sizeDelta;
             if (page == 3)
             {
                 title.text = "NEW RACER // STARTING SUMMARY";
@@ -316,12 +322,9 @@ namespace RaceFatal.Presentation.Career
             }
         }
 
-        private void OnDestroy()
-        {
-            if (modal != null)
-                Destroy(modal);
-        }
 
+
+#if UNITY_EDITOR
         private static RectTransform Rect(Transform parent, string name, Vector2 position, Vector2 size)
         {
             var obj = new GameObject(name, typeof(RectTransform));
@@ -332,7 +335,9 @@ namespace RaceFatal.Presentation.Career
             rect.sizeDelta = size;
             return rect;
         }
+#endif
 
+#if UNITY_EDITOR
         private static TMP_Text Text(Transform parent, string name, string value, float size, Vector2 position, Vector2 dimensions)
         {
             var text = Rect(parent, name, position, dimensions).gameObject.AddComponent<TextMeshProUGUI>();
@@ -343,7 +348,9 @@ namespace RaceFatal.Presentation.Career
             text.raycastTarget = false;
             return text;
         }
+#endif
 
+#if UNITY_EDITOR
         private static Button Button(Transform parent, string name, string label, Vector2 position, Vector2 size, out TMP_Text text)
         {
             var rect = Rect(parent, name, position, size);
@@ -356,7 +363,9 @@ namespace RaceFatal.Presentation.Career
             text.alignment = TextAlignmentOptions.Center;
             return button;
         }
+#endif
 
+#if UNITY_EDITOR
         private static TMP_InputField Input(Transform parent, Vector2 position, Vector2 size)
         {
             var rect = Rect(parent, "RacerName", position, size);
@@ -375,5 +384,6 @@ namespace RaceFatal.Presentation.Career
             input.navigation = new Navigation {  mode = Navigation.Mode.None };
             return input;
         }
+#endif
     }
 }

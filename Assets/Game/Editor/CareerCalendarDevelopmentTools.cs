@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class CareerCalendarDevelopmentTools
 {
-    [MenuItem("RACE//FATAL/Career/Create Calendar Development Events")]
+
     public static void Create()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)

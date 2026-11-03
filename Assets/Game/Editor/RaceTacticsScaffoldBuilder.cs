@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class RaceTacticsScaffoldBuilder
 {
-    [MenuItem("RACE//FATAL/Racing/Build Tactical UI and Commands")]
+
     public static void Build()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogWarning("Exit Play Mode before building tactical UI."); return; }
@@ -33,7 +33,6 @@ public static class RaceTacticsScaffoldBuilder
         Debug.Log("Tactical UI ready. Save the scene. Space toggles tactical; W/S pan, scroll zooms, MMB drag orbits, Q resets top-down, Tab cycles, Enter opens the action list, Home recenters. Resource rebalance is a separate menu action.");
     }
 
-    [MenuItem("RACE//FATAL/Racing/Apply Energy and Survivability Rebalance")]
     public static void Rebalance()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;

@@ -26,7 +26,6 @@ namespace RaceFatal.Presentation.Career
         [SerializeField] private TMP_Text confirmationText;
         [SerializeField] private Button confirmButton;
         [SerializeField] private Button cancelButton;
-        private readonly List<CareerGarageOptionView> spawned = new List<CareerGarageOptionView>();
         private readonly List<Selectable> blocked = new List<Selectable>();
         private CareerController owner;
         private GameContext context;
@@ -57,69 +56,74 @@ namespace RaceFatal.Presentation.Career
 
         public void Refresh()
         {
-            Cancel();
-            ClearOptions();
-            if (Team == null || service == null)
+            try
             {
-                Set(profileText, "LOAD A CAMPAIGN TO MANAGE YOUR ROSTER.");
-                Set(feedbackText, "START FROM 00_BOOTSTRAP.");
-                Set(fundsText, string.Empty);
-                SetActions(false, false, false);
+                Cancel();
+                ClearOptions();
+                if (Team == null || service == null)
+                {
+                    Set(profileText, "LOAD A CAMPAIGN TO MANAGE YOUR ROSTER.");
+                    Set(feedbackText, "START FROM 00_BOOTSTRAP.");
+                    Set(fundsText, string.Empty);
+                    SetActions(false, false, false);
+                    if (saveButton != null)
+                        saveButton.interactable = false;
+                    return;
+                }
+
+                var player = Session.CareerRun?.Player;
                 if (saveButton != null)
-                    saveButton.interactable = false;
-                return;
-            }
+                    saveButton.interactable = context.Saves?.HasActiveCampaign == true;
+                var racers = Team.Roster.Racers;
+                if (selectedRacerId == null || Team.Roster.FindRacer(selectedRacerId) == null)
+                    selectedRacerId = player?.RacerId ?? racers.FirstOrDefault()?.RacerId;
+                var selected = Team.Roster.FindRacer(selectedRacerId);
+                var perks = context.Database.RacerPerkDefinitions.Values.OrderBy(p => p.DisplayName).ToList();
+                if (selectedPerkId == null || !perks.Any(p => p.Id == selectedPerkId))
+                    selectedPerkId = perks.FirstOrDefault()?.Id;
+                var recruits = context.Database.RacerDefinitions.Values.Where(d => d != null && Team.Roster.FindRacer(d.Id) == null).OrderBy(d => d.DisplayName).ToList();
+                if (selectedRecruitId == null || !recruits.Any(d => d.Id == selectedRecruitId))
+                    selectedRecruitId = recruits.FirstOrDefault()?.Id;
+                Set(fundsText, $"TEAM CREDITS {Team.Credits:N0}  //  SELECTED RACER FAME {selected?.Progression.Fame ?? 0:N0}");
+                foreach (var racer in racers)
+                {
+                    string role = racer.IsPlayerCharacter ? "PLAYER" : racer.RacerId == Session.SelectedPartnerRacerId ? "PARTNER" : "RESERVE";
+                    AddOption(racerList, $"{racer.Name}  [{role}]\n{racer.Status}  //  FAME {racer.Progression.Fame:N0}",
+                        () => {  selectedRacerId = racer.RacerId;  Refresh(); }, racer.RacerId == selectedRacerId);
+                }
 
-            var player = Session.CareerRun?.Player;
-            if (saveButton != null)
-                saveButton.interactable = context.Saves?.HasActiveCampaign == true;
-            var racers = Team.Roster.Racers;
-            if (selectedRacerId == null || Team.Roster.FindRacer(selectedRacerId) == null)
-                selectedRacerId = player?.RacerId ?? racers.FirstOrDefault()?.RacerId;
-            var selected = Team.Roster.FindRacer(selectedRacerId);
-            var perks = context.Database.RacerPerkDefinitions.Values.OrderBy(p => p.DisplayName).ToList();
-            if (selectedPerkId == null || !perks.Any(p => p.Id == selectedPerkId))
-                selectedPerkId = perks.FirstOrDefault()?.Id;
-            var recruits = context.Database.RacerDefinitions.Values.Where(d => d != null && Team.Roster.FindRacer(d.Id) == null).OrderBy(d => d.DisplayName).ToList();
-            if (selectedRecruitId == null || !recruits.Any(d => d.Id == selectedRecruitId))
-                selectedRecruitId = recruits.FirstOrDefault()?.Id;
-            Set(fundsText, $"TEAM CREDITS {Team.Credits:N0}  //  SELECTED RACER FAME {selected?.Progression.Fame ?? 0:N0}");
-            foreach (var racer in racers)
-            {
-                string role = racer.IsPlayerCharacter ? "PLAYER" : racer.RacerId == Session.SelectedPartnerRacerId ? "PARTNER" : "RESERVE";
-                AddOption(racerList, $"{racer.Name}  [{role}]\n{racer.Status}  //  FAME {racer.Progression.Fame:N0}",
-                    () => {  selectedRacerId = racer.RacerId;  Refresh(); }, racer.RacerId == selectedRacerId);
-            }
+                foreach (var perk in perks)
+                {
+                    bool owned = selected?.Progression.HasPurchasedPerk(perk.Id) == true;
+                    bool available = service.CanPurchasePerk(Team, selectedRacerId, perk.Id).IsSuccess;
+                    AddOption(perkList, $"{perk.DisplayName}  [{(owned ? "OWNED" : available ? "AVAILABLE" : "LOCKED")}]\n{perk.FameCost:N0} FAME  //  {perk.Effect} +{perk.Strength:0.##}",
+                        () => {  selectedPerkId = perk.Id;  Refresh(); }, perk.Id == selectedPerkId);
+                }
 
-            foreach (var perk in perks)
-            {
-                bool owned = selected?.Progression.HasPurchasedPerk(perk.Id) == true;
-                bool available = service.CanPurchasePerk(Team, selectedRacerId, perk.Id).IsSuccess;
-                AddOption(perkList, $"{perk.DisplayName}  [{(owned ? "OWNED" : available ? "AVAILABLE" : "LOCKED")}]\n{perk.FameCost:N0} FAME  //  {perk.Effect} +{perk.Strength:0.##}",
-                    () => {  selectedPerkId = perk.Id;  Refresh(); }, perk.Id == selectedPerkId);
-            }
+                foreach (var recruit in recruits)
+                    AddOption(recruitList, $"{recruit.DisplayName}\n{RosterService.RecruitmentCost:N0} CREDITS",
+                        () => {  selectedRecruitId = recruit.Id;  Refresh(); }, recruit.Id == selectedRecruitId);
+                var choice = context.Database.GetRacerPerkDefinition(selectedPerkId);
+                var profile = new System.Text.StringBuilder();
+                if (selected != null)
+                {
+                    profile.AppendLine($"{selected.Name}  //  {selected.Status}  //  {(selected.IsPlayerCharacter ? "PLAYER" : "TEAM RACER")}");
+                    profile.AppendLine($"RACES {selected.RacesEntered}  WINS {selected.RacesWon}  PODIUMS {selected.Podiums}  DESTROYED {selected.RacersDestroyed}");
+                    profile.AppendLine($"FAME {selected.Progression.Fame:N0}  //  PERKS {selected.Progression.PurchasedPerkIds.Count}");
+                    if (!selected.CanRace)
+                        profile.AppendLine("UNAVAILABLE FOR RACE AND PERK PURCHASES.");
+                }
 
-            foreach (var recruit in recruits)
-                AddOption(recruitList, $"{recruit.DisplayName}\n{RosterService.RecruitmentCost:N0} CREDITS",
-                    () => {  selectedRecruitId = recruit.Id;  Refresh(); }, recruit.Id == selectedRecruitId);
-            var choice = context.Database.GetRacerPerkDefinition(selectedPerkId);
-            var profile = new System.Text.StringBuilder();
-            if (selected != null)
-            {
-                profile.AppendLine($"{selected.Name}  //  {selected.Status}  //  {(selected.IsPlayerCharacter ? "PLAYER" : "TEAM RACER")}");
-                profile.AppendLine($"RACES {selected.RacesEntered}  WINS {selected.RacesWon}  PODIUMS {selected.Podiums}  DESTROYED {selected.RacersDestroyed}");
-                profile.AppendLine($"FAME {selected.Progression.Fame:N0}  //  PERKS {selected.Progression.PurchasedPerkIds.Count}");
-                if (!selected.CanRace)
-                    profile.AppendLine("UNAVAILABLE FOR RACE AND PERK PURCHASES.");
-            }
+                if (choice != null)
+                    profile.AppendLine($"\nSELECTED PERK: {choice.DisplayName}  //  {choice.Description}");
+                Set(profileText, profile.ToString());
+                Result canPerk = service.CanPurchasePerk(Team, selectedRacerId, selectedPerkId);
+                Result canHire = service.CanRecruit(Team, selectedRecruitId);
+                bool persistent = context.Saves?.HasActiveCampaign == true;
+                SetActions(persistent && selected != null && !selected.IsPlayerCharacter && selected.CanRace && selected.RacerId != Session.SelectedPartnerRacerId, persistent && canPerk.IsSuccess, persistent && canHire.IsSuccess);
 
-            if (choice != null)
-                profile.AppendLine($"\nSELECTED PERK: {choice.DisplayName}  //  {choice.Description}");
-            Set(profileText, profile.ToString());
-            Result canPerk = service.CanPurchasePerk(Team, selectedRacerId, selectedPerkId);
-            Result canHire = service.CanRecruit(Team, selectedRecruitId);
-            bool persistent = context.Saves?.HasActiveCampaign == true;
-            SetActions(persistent && selected != null && !selected.IsPlayerCharacter && selected.CanRace && selected.RacerId != Session.SelectedPartnerRacerId, persistent && canPerk.IsSuccess, persistent && canHire.IsSuccess);
+            }
+            finally { AuthoredPage.RenderAll(this); }
         }
 
         private void BuyPerk()
@@ -264,25 +268,16 @@ namespace RaceFatal.Presentation.Career
 
         private void AddOption(RectTransform list, string label, System.Action action, bool selected)
         {
-            if (list == null || optionTemplate == null)
-                return;
-            var option = Instantiate(optionTemplate, list);
-            option.gameObject.SetActive(true);
-            option.Bind(label, action, true, selected);
-            spawned.Add(option);
+            AuthoredPage.Require(list).Add(row =>
+            {
+                var option = (CareerGarageOptionView)row;
+                option.Bind(label, action, true, selected);
+            });
         }
 
         private void ClearOptions()
         {
-            foreach (var option in spawned)
-            {
-                if (option == null)
-                    continue;
-                option.gameObject.SetActive(false);
-                Destroy(option.gameObject);
-            }
-
-            spawned.Clear();
+            AuthoredPage.BeginAll(this);
         }
 
         private static void Set(TMP_Text target, string text)

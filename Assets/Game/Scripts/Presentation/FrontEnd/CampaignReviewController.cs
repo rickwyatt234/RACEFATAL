@@ -36,8 +36,6 @@ namespace RaceFatal.Presentation.FrontEnd
         {
             if (draft == null)
                 return;
-            foreach (var label in new[] {teamNameText, racerNameText, colorsText})
-                if (label != null) { label.rectTransform.sizeDelta = new Vector2(650, 100); label.enableAutoSizing = true; label.fontSizeMin = 18; }
             var placeholder = teamNameText != null ? teamNameText.transform.parent.Find("StartingContentInfo") : null;
             if (placeholder != null) placeholder.gameObject.SetActive(false);
             if (startingInfo != null) startingInfo.text = "";
@@ -51,16 +49,25 @@ namespace RaceFatal.Presentation.FrontEnd
             SetStatus(string.Empty);
         }
 
-        private TMP_Text startingInfo;
+        [SerializeField] private TMP_Text startingInfo;
         public void PresentStartingInfo(RaceFatal.Career.GameSessionState session, RaceFatal.Data.GameDatabase database)
         {
-            if (startingInfo == null && teamNameText != null)
-                startingInfo = RaceFatal.Presentation.Career.CareerRuntimeUi.Scroll(teamNameText.transform.parent,
-                    "StartingLoadout", new Vector2(780, -205), new Vector2(1020, 620));
             if (startingInfo != null)
                 startingInfo.text = RaceFatal.Presentation.Career.CareerSuccessionView.BuildStartingSummary(session, database);
         }
 
+#if UNITY_EDITOR
+        public void EditorAuthor()
+        {
+            if (Application.isPlaying) throw new System.InvalidOperationException("Editor only");
+            if (startingInfo != null) return;
+            foreach (var label in new[] {teamNameText, racerNameText, colorsText})
+                if (label != null) { label.rectTransform.sizeDelta = new Vector2(650, 100); label.enableAutoSizing = true; label.fontSizeMin = 18; }
+            if (startingInfo == null && teamNameText != null)
+                startingInfo = RaceFatal.Presentation.Career.EditorUiFactory.Scroll(teamNameText.transform.parent,
+                    "StartingLoadout", new Vector2(780, -205), new Vector2(1020, 620));
+        }
+#endif
         public void SetBusy(bool busy)
         {
             if (confirmButton != null)

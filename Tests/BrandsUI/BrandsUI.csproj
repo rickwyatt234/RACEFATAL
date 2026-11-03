@@ -8,7 +8,7 @@
   <Compile Include="../../Assets/Game/Editor/CareerBrandsScaffoldBuilder.cs" />
   <Compile Include="../../Assets/Game/Editor/BrandUiLayout.cs" />
   <Compile Include="../../Assets/Game/Scripts/Presentation/Career/CareerBrandsView.cs" />
-  <Compile Include="../../Assets/Game/Scripts/Presentation/Career/CareerRuntimeUi.cs" />
+  <Compile Include="../../Assets/Game/Scripts/Presentation/Career/EditorUiFactory.cs" />
   <Compile Include="../../Assets/Game/Scripts/Content/Career/BrandDefinitionSO.cs" />
  </ItemGroup>
 </Project>

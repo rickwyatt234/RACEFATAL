@@ -73,7 +73,8 @@ namespace RaceFatal.Presentation.Tactics
         private void Start()
         {
             runtime = GetComponent<RaceRuntimeController>();
-            ui = GetComponent<TacticalRaceUI>() ?? gameObject.AddComponent<TacticalRaceUI>();
+            ui = GetComponent<TacticalRaceUI>();
+            if (ui == null) throw new System.InvalidOperationException("Missing authored tactical UI.");
             ui.Initialize(this);
         }
         private void RefreshRacers()

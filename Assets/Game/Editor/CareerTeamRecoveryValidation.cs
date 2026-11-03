@@ -13,7 +13,7 @@ using UnityEngine;
 public static class CareerTeamRecoveryValidation
 {
     private const int Slot = 1;
-    [MenuItem("RACE//FATAL/Career/Validate Bike Shop and Recovery")]
+
     public static void Run()
     {
         var db = new GameDatabase();

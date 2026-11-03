@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class CareerRosterValidation
 {
-    [MenuItem("RACE//FATAL/Career/Validate Roster Progression")]
+
     public static void Run()
     {
         var database = new GameDatabase();
