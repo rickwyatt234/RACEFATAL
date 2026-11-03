@@ -95,6 +95,13 @@ namespace RaceFatal.Career
                 if (c.progress < 0 || c.progress > c.terms.Target || c.completed != (c.progress == c.terms.Target) || (c.claimed && !c.completed) || (c.active && c.completed)) throw new ArgumentException("Invalid contract progress.");
             }
             if (categoryPermits.Any(c => !Enum.IsDefined(typeof(BrandCategory), c)) || categoryPermits.Distinct().Count() != categoryPermits.Count || purchaseAccess.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Invalid brand unlocks.");
+            // Unity inline serialization can restore an absent class reference as
+            // an all-default instance. It represents no reveal, not a purchase.
+            // Never discard a receipt containing any actual transaction data.
+            if (pendingReveal != null && string.IsNullOrEmpty(pendingReveal.id) &&
+                string.IsNullOrEmpty(pendingReveal.brandId) && !pendingReveal.newBrand &&
+                (pendingReveal.contractIds == null || pendingReveal.contractIds.Count == 0))
+                pendingReveal = null;
             if (pendingReveal != null && (string.IsNullOrWhiteSpace(pendingReveal.id) || Find(pendingReveal.brandId) == null || pendingReveal.contractIds == null || pendingReveal.contractIds.Count == 0 || pendingReveal.contractIds.Any(id => !contracts.Any(c => c.instanceId == id && c.brandId == pendingReveal.brandId)))) throw new ArgumentException("Invalid box receipt.");
         }
     }
