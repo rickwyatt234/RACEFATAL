@@ -58,6 +58,26 @@ static class Program
         var roundtrip = Ok(mapper.Restore(UnityEngine.JsonUtility.FromJson<CampaignSaveData>(UnityEngine.JsonUtility.ToJson(captured))));
         Check(roundtrip.PlayerTeam.Brands.pendingReveal.id == first.id && roundtrip.PlayerTeam.Fame == team.Fame && roundtrip.PlayerTeam.LifetimeFame == 3000, "Box receipt and fame survive reload before reveal");
         team.Brands.pendingReveal = null;
+        foreach (var shell in new[] { new BrandBoxReceipt(), new BrandBoxReceipt { id = "", brandId = "", contractIds = null } })
+        {
+            var emptyReceiptSave = Ok(mapper.Capture(session));
+            emptyReceiptSave.playerTeam.brands.pendingReveal = shell;
+            var recovered = Ok(mapper.Restore(emptyReceiptSave));
+            Check(recovered.PlayerTeam.Brands.pendingReveal == null && recovered.PlayerTeam.Brands.contracts.Count == 3 && recovered.PlayerTeam.Fame == team.Fame,
+                "Unity empty receipt shell restores without changing contracts or fame");
+            Ok(brands.OpenBox(recovered.PlayerTeam));
+            Check(recovered.PlayerTeam.Brands.contracts.Count == 6, "Recovered career can buy another box");
+        }
+        foreach (var damaged in new[] {
+            new BrandBoxReceipt { id = "transaction" },
+            new BrandBoxReceipt { brandId = "brand" },
+            new BrandBoxReceipt { newBrand = true },
+            new BrandBoxReceipt { contractIds = new System.Collections.Generic.List<string> { "missing" } } })
+        {
+            var damagedSave = Ok(mapper.Capture(session));
+            damagedSave.playerTeam.brands.pendingReveal = damaged;
+            Check(!mapper.Restore(damagedSave).IsSuccess, "Nonempty damaged receipts still reject restore");
+        }
         var duplicate = Ok(brands.OpenBox(team));
         Check(!duplicate.newBrand && team.Brands.contracts.Count == 6 && team.Brands.contracts.Select(c => c.instanceId).Distinct().Count() == 6, "Duplicate brand adds contracts without replacing earlier copies");
         team.Brands.pendingReveal = null;
