@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
- <PropertyGroup><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><NoWarn>0649;0414</NoWarn></PropertyGroup>
+ <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><NoWarn>0649;0414</NoWarn></PropertyGroup>
  <ItemGroup>
   <ProjectReference Include="../CampaignCreation/Domain/Domain.csproj" />
   <Compile Include="UnityDoubles.cs" />
+  <Compile Include="Program.cs" />
+  <Compile Include="EditorDoubles.cs" />
+  <Compile Include="../../Assets/Game/Editor/CareerBrandsScaffoldBuilder.cs" />
+  <Compile Include="../../Assets/Game/Editor/BrandUiLayout.cs" />
   <Compile Include="../../Assets/Game/Scripts/Presentation/Career/CareerBrandsView.cs" />
   <Compile Include="../../Assets/Game/Scripts/Presentation/Career/CareerRuntimeUi.cs" />
   <Compile Include="../../Assets/Game/Scripts/Content/Career/BrandDefinitionSO.cs" />

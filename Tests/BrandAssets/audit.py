@@ -34,4 +34,6 @@ for p in (root/'Assets/Game/BrandDevelopment').glob('*.asset'):
     assert re.search(r'guid: (\w+)',Path(str(p)+'.meta').read_text())[1] == expected_guid, 'Legacy hardware GUID changed'
 for p in (root/'Assets/Game/Scripts').rglob('*.cs'):
     assert not re.search(r'\b(?:ResearchPoints|ResearchService|ResearcherService|RequiredTechnologyId|TechnologyDefinition|ResearchField)\b',p.read_text()), f'Retired API in {p}'
+view = (root/'Assets/Game/Scripts/Presentation/Career/CareerBrandsView.cs').read_text()
+assert not re.search(r'\b(?:Instantiate|AddComponent|Destroy|DestroyImmediate)\s*(?:<[^>]+>)?\s*\(|\bCareerRuntimeUi\b|new\s+GameObject', view), 'Brands UI must bind authored objects only'
 print('PASS: Brands scene wiring, hierarchy, removed APIs and legacy hardware metadata')

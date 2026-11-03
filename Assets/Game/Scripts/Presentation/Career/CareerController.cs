@@ -64,7 +64,7 @@ namespace RaceFatal.Presentation.Career
             racesView?.Initialize(this, context);
             garageView?.Initialize(context);
             shopView?.Initialize(this, context);
-            brandsView = CareerBrandsView.Create(brandsRoot, this, context);
+            brandsView = CareerBrandsView.InitializeExisting(brandsRoot, this, context);
             rosterView?.Initialize(this, context);
             teamView?.Initialize(this, context);
             ShowScreen(CareerScreen.Home);
