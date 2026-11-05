@@ -21,7 +21,7 @@ namespace RaceFatal.Career
                 return Result.Failure("EVENT FORMAT IS NOT AVAILABLE.");
             if (definition.FameEntryFee < 0 || definition.RequiredFame < 0 || definition.EntryFee < 0 || definition.RaceIds.Count == 0 || (definition.Kind != CareerEventKind.Championship && definition.RaceIds.Count != 1) || (definition.Kind == CareerEventKind.Championship && definition.RaceIds.Count < 2) || definition.RacePayouts.Concat(definition.ChampionshipPrizes).Concat(definition.PositionPoints).Any(p => p < 0))
                 return Result.Failure("INVALID EVENT RULES.");
-            if (definition.FirstWeek < 1 || definition.FirstWeek > CareerCalendarState.MaxDay / 7 || definition.FirstDayOfWeek < 1 || definition.FirstDayOfWeek > 7 || definition.RaceIds.Count > 5)
+            if (definition.FirstWeek < 1 || definition.FirstWeek > CareerCalendarState.MaxDay / 7 || definition.FirstDayOfWeek < 1 || definition.FirstDayOfWeek > 7 || definition.RaceIds.Count > 7)
                 return Result.Failure("INVALID EVENT DATES: use a valid week/day and at most five consecutive rounds.");
             if (definition.StarterOrder < 0 || definition.StarterOrder > 3 || (definition.StarterOrder > 0 && (definition.Kind != CareerEventKind.Race || definition.RequiredFame != 0)))
                 return Result.Failure("STARTER EVENTS MUST BE SINGLE RACES WITH NO FAME REQUIREMENT AND ORDER 1–3.");
@@ -52,12 +52,22 @@ namespace RaceFatal.Career
                     changed = true;
                 }
 
+            // Existing schedule saves predate the event-kind metadata.
+            foreach (var item in data.schedules)
+            {
+                var authored = database.GetCareerEventDefinition(item.eventId);
+                if (authored != null && item.kind != authored.Kind)
+                {
+                    item.kind = authored.Kind;
+                    changed = true;
+                }
+            }
             if (data.scheduleVersion == 0)
             {
                 bool legacyProgress = data.active != null || data.week > 1;
                 data.schedules = database.CareerEventDefinitions.Values.Where(d => Validate(d).IsSuccess)
                     .OrderBy(d => d.Id, StringComparer.Ordinal)
-                    .Select(d => new CareerEventScheduleData { eventId = d.Id, firstDay = d.FirstAbsoluteDay, repeatEveryWeeks = legacyProgress ? d.RepeatEveryWeeks : 5, roundSpacingDays = legacyProgress ? d.RoundSpacingDays : 1, roundCount = d.RaceIds.Count, starterOrder = d.StarterOrder }).ToList();
+                    .Select(d => new CareerEventScheduleData { eventId = d.Id, firstDay = d.FirstAbsoluteDay, repeatEveryWeeks = legacyProgress ? d.RepeatEveryWeeks : 5, roundSpacingDays = legacyProgress ? d.RoundSpacingDays : 1, roundCount = d.RaceIds.Count, starterOrder = d.StarterOrder, kind = d.Kind }).ToList();
                 data.scheduleVersion = legacyProgress ? 1 : 2;
                 if (data.active != null)
                 {
