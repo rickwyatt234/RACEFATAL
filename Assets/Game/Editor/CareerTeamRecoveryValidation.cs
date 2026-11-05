@@ -47,7 +47,7 @@ public static class CareerTeamRecoveryValidation
         team.Roster.AddRacer(player);
         team.Roster.AddRacer(deadPartner);
         deadPartner.Kill();
-        team.AddCredits(300);
+        team.AddCredits(7000);
         team.AddFame(25);
         var build = db.GetBikeBuildDefinition("player_starter");
         var wreckA = factory.CreateInGarage(build, team.Garage, "#ffffff", "#000000").Value;
@@ -61,10 +61,10 @@ public static class CareerTeamRecoveryValidation
         var recovery = new TeamRecoveryService(db);
         var quote = recovery.Quote(sessions.Current);
         Success(quote, "Quote recovery");
-        Require(quote.Value.NewBikes == 2 && quote.Value.RecruitPartner && quote.Value.TotalCost == 7000 && quote.Value.Charge == 300 && quote.Value.Assistance == 6700, "Recovery spends available credits and covers only shortfall");
+        Require(quote.Value.NewBikes == 2 && quote.Value.RecruitPartner && quote.Value.TotalCost == 7000 && quote.Value.Charge == 7000 && quote.Value.Assistance == 0, "Replacement requires full credits with no assistance");
         Require(TeamPreparationService.Inspect(sessions.Current).Count(c => !c.Ready) >= 3, "Checklist shows multiple missing requirements");
         repo.Fail = true;
-        Require(!saves.RecoverTeam(quote.Value.Signature).IsSuccess && sessions.Current.PlayerTeam.Credits == 300 && sessions.Current.PlayerTeam.Garage.Bikes.Count == 2 && sessions.Current.PlayerTeam.Roster.Racers.Count == 2 && string.IsNullOrEmpty(sessions.Current.PlayerTeam.RecoverySupportCheckpoint), "Save failure rolls back charge, kit, replacement and support receipt");
+        Require(!saves.RecoverTeam(quote.Value.Signature).IsSuccess && sessions.Current.PlayerTeam.Credits == 7000 && sessions.Current.PlayerTeam.Garage.Bikes.Count == 2 && sessions.Current.PlayerTeam.Roster.Racers.Count == 2 && string.IsNullOrEmpty(sessions.Current.PlayerTeam.RecoverySupportCheckpoint), "Save failure rolls back charge, kit, replacement and support receipt");
         repo.Fail = false;
         Success(saves.RecoverTeam(quote.Value.Signature), "Save team recovery");
         team = sessions.Current.PlayerTeam;
@@ -76,11 +76,11 @@ public static class CareerTeamRecoveryValidation
         Reload(saves);
         team = sessions.Current.PlayerTeam;
         replacement = team.Roster.FindRacer(sessions.Current.SelectedPartnerRacerId);
-        Require(replacement.DefinitionId == "partner-template" && team.RecoverySupportCheckpoint == "0" && team.Garage.Bikes.Count == 4, "AI profile, kit, assignments and support receipt survive JSON reload");
+        Require(replacement.DefinitionId == "partner-template" && string.IsNullOrEmpty(team.RecoverySupportCheckpoint) && team.Garage.Bikes.Count == 4, "AI profile, kit, assignments and support receipt survive JSON reload");
         var participant = new RaceParticipantFactory(db, new BikePerformanceCalculator(db)).Create(replacement, team.Garage.FindBike(sessions.Current.SelectedPartnerBikeId), RaceParticipantRole.PlayerPartner);
         Success(participant, "Prepare recovered partner for race");
         team.Garage.FindBike(sessions.Current.SelectedPartnerBikeId).Destroy();
-        Require(!recovery.Quote(sessions.Current).IsSuccess, "No repeat subsidy before another completed race");
+        Require(!recovery.Quote(sessions.Current).IsSuccess, "Insufficient credits cannot produce another bike");
         team.AddCredits(1000);
         var funded = recovery.Quote(sessions.Current);
         Success(funded, "Fully funded repair after support");
@@ -117,14 +117,17 @@ public static class CareerTeamRecoveryValidation
         team.TrySpendCredits(team.Credits);
         team.Garage.FindBike(sessions.Current.SelectedPartnerBikeId).Destroy();
         var renewed = recovery.Quote(sessions.Current);
-        Success(renewed, "Support renewed after race settlement");
-        Require(renewed.Value.Assistance == 1000 && renewed.Value.Charge == 0, "Only replacement shortfall is covered after race");
+        Require(!renewed.IsSuccess, "No free recovery after race settlement");
+        team.AddCredits(1000);
+        renewed = recovery.Quote(sessions.Current);
+        Success(renewed, "Fully funded replacement");
+        Require(renewed.Value.Assistance == 0 && renewed.Value.Charge == 1000, "No subsidy after race");
         Success(saves.RecoverTeam(renewed.Value.Signature), "Renewed recovery");
         Reload(saves);
-        Require(sessions.Current.PlayerTeam.RecoverySupportCheckpoint == "1", "Renewed support receipt persists");
+        Require(string.IsNullOrEmpty(sessions.Current.PlayerTeam.RecoverySupportCheckpoint), "No support receipt is created");
         manager.RetireCurrentRun();
         Require(!recovery.Quote(sessions.Current).IsSuccess, "Recovery cannot bypass career succession");
-        Debug.Log("Bike shop and recovery validation passed: bundle gates, unique inventory, saved purchases, support limits, permanent losses, AI profile persistence and preparation.");
+        Debug.Log("Bike shop and recovery validation passed: bundle gates, unique inventory, saved purchases, no assistance, permanent losses, AI profile persistence and preparation.");
     }
 
     private static void Reload(CampaignSaveService saves)
