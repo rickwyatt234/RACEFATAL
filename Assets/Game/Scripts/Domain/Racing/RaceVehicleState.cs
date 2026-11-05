@@ -62,6 +62,9 @@ namespace RaceFatal.Racing
 
         internal void Tick(float deltaTime)
         {
+            if (EquipmentSystem.Shield != null)
+                EquipmentSystem.Shield.EmergencyRechargeMultiplier = Damage.CurrentIntegrity < Performance.MaxIntegrity*.35f
+                    ? 1f + Math.Min(.2f,Perks?.Bonus(RacerPerkEffect.LowIntegrityShieldRecharge) ?? 0f):1f;
             EquipmentSystem.Tick(deltaTime);
         }
 
@@ -72,7 +75,7 @@ namespace RaceFatal.Racing
 
         internal float RechargeEnergy(float amount)
         {
-            return EnergyPool.Recharge(amount);
+            return EnergyPool.Recharge(amount * (1f + Math.Min(.2f, Perks?.Bonus(RacerPerkEffect.EnergyRegeneration) ?? 0f)));
         }
     }
 }
