@@ -9,7 +9,8 @@ namespace RaceFatal.Career
         Pace,
         Overtaking,
         Defense,
-        WeaponAggression
+        WeaponAggression,
+        SteeringResponse, CornerStability, Braking, VerticalStability, SlipstreamAcceleration, EnergyCapacityPercent, BoosterEfficiency, BoostAcceleration, EnergyRegeneration, EngineAcceleration, UnshieldedDamage, BallisticDamage, OrdnanceDamage, BurnDamage, ExecutionDamage, MaxIntegrityPercent, ShieldRechargeDelay, CollisionResistance, CriticalShieldRecharge, CriticalIntegrityResistance, GuidedLockSpeed, AiLeadAccuracy, CountermeasureCooldown, SiphonStrength, UtilityCooldown, FinishCharacterFame, EliminationCharacterFame, OvertakeAudience, CombatAudience, PrestigeCharacterFame
     }
 
     public sealed class RacerPerkDefinition
