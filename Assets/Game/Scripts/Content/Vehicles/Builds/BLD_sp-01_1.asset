@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ddc41656e53c7d4aac70a9c6915810f, type: 3}
+  m_Name: BLD_sp-01_1
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.BikeBuildDefinitionSO
+  id: rf_build_sp-01_1
+  displayName: Straight-Line Specialists KATANA
+  bike: {fileID: 11400000, guid: 7f843fc03f5ccd6c7ca9b37d3323b884, type: 2}
+  engine: {fileID: 11400000, guid: b788c480ea9692efb7050d13cd27175e, type: 2}
+  chassis: {fileID: 11400000, guid: 121b5455b2bb656418f989dd801dc818, type: 2}
+  availableInShop: 1
+  creditCost: 8240
+  equipment:
+  - equipment: {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
+    nodeSize: 0
+    nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: d10e34f76d9b410b9b3b62808aed54aa, type: 2}
+    nodeSize: 1
+    nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 08070c1a61cd77743b200a7791446db4, type: 2}
+    nodeSize: 1
+    nodeIndex: 1
+  - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+    nodeSize: 1
+    nodeIndex: 2

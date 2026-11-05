@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.EngineDefinitionSO
   id: combustion_engine_mkiii
   displayName: Combustion Engine MkIII
-  engineClass: 0
-  topSpeed: 210
-  acceleration: 12
-  creditCost: 0
+  engineClass: 1
+  topSpeed: 250
+  acceleration: 22
+  creditCost: 12000

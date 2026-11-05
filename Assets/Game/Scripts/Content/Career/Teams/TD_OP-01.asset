@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_OP-01
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: OP-01
+  displayName: OP-01 Scavengers
+  primaryColor: '#A09646'
+  secondaryColor: '#242222'
+  philosophy: 4
+  racers:
+  - {fileID: 11400000, guid: 0d845fbef915fcd4aaab04a02016e3a3, type: 2}
+  - {fileID: 11400000, guid: 2ad9da4d8c4dd8645a153795033cf572, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: 97e2598bc57ab8df102ca2ae9e2bd9d3, type: 2}
+  - {fileID: 11400000, guid: de746e34dbe9f128c6a4b2671e3ac9bc, type: 2}

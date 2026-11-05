@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.EngineDefinitionSO
   id: plasma_engine_mki
   displayName: Plasma Engine MkI
-  engineClass: 2
-  topSpeed: 300
-  acceleration: 25
-  creditCost: 0
+  engineClass: 4
+  topSpeed: 160.05
+  acceleration: 14.17
+  creditCost: 2200

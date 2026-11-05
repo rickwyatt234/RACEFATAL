@@ -6,6 +6,7 @@ namespace RaceFatal.Career
 {
     public sealed class OpponentTeamDefinition
     {
+        public bool LegacyRoster { get; }
         public string Id { get; }
         public string DisplayName { get; }
         public string PrimaryColor { get; }
@@ -14,8 +15,9 @@ namespace RaceFatal.Career
         public IReadOnlyList<string> RacerDefinitionIds { get; }
         public IReadOnlyList<string> StartingBikeBuildIds { get; }
 
-        public OpponentTeamDefinition(string id, string displayName, string primaryColor, string secondaryColor, TeamPhilosophy philosophy, IReadOnlyList<string> racerDefinitionIds, IReadOnlyList<string> startingBikeBuildIds)
+        public OpponentTeamDefinition(string id, string displayName, string primaryColor, string secondaryColor, TeamPhilosophy philosophy, IReadOnlyList<string> racerDefinitionIds, IReadOnlyList<string> startingBikeBuildIds, bool legacyRoster = false)
         {
+            LegacyRoster = legacyRoster;
             Id = id ?? throw new ArgumentNullException(nameof(id));
             DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
             PrimaryColor = primaryColor;

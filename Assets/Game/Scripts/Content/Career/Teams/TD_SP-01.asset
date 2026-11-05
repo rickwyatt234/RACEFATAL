@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_SP-01
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: SP-01
+  displayName: SP-01 Straight-Line Specialists
+  primaryColor: '#F948DA'
+  secondaryColor: '#242222'
+  philosophy: 6
+  racers:
+  - {fileID: 11400000, guid: 983ef74b1dacffe45b55d32e360b3575, type: 2}
+  - {fileID: 11400000, guid: 6d60e87b40b03924599c4d81e757fd30, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: 32f171144104b63b729bbe549fb0f3e6, type: 2}
+  - {fileID: 11400000, guid: 9bcbc46d9ee83ac123968d2da1a5464a, type: 2}

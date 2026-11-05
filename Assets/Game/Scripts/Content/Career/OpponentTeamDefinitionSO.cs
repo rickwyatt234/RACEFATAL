@@ -16,6 +16,7 @@ namespace RaceFatal.Content.Career
         [Header("Behavior")] [SerializeField] private TeamPhilosophy philosophy;
         [Header("Racers")] [SerializeField] private List<RacerDefinitionSO> racers = new List<RacerDefinitionSO>();
         [Header("Starting Garage")] [SerializeField] private List<BikeBuildDefinitionSO> bikeBuilds = new List<BikeBuildDefinitionSO>();
+        [SerializeField] private bool legacyRoster;
         public string Id => id;
 
         public OpponentTeamDefinition CreateDefinition()
@@ -38,7 +39,7 @@ namespace RaceFatal.Content.Career
                 }
             }
 
-            return new OpponentTeamDefinition(id, displayName, primaryColor, secondaryColor, philosophy, racerIds, bikeBuildIds);
+            return new OpponentTeamDefinition(id, displayName, primaryColor, secondaryColor, philosophy, racerIds, bikeBuildIds, legacyRoster);
         }
     }
 }

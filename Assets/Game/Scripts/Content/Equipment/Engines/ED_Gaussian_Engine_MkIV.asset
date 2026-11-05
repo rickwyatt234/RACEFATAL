@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.EngineDefinitionSO
   id: gaussian_engine_mkiv
   displayName: Gaussian Engine MkIV
-  engineClass: 1
-  topSpeed: 270
-  acceleration: 23
-  creditCost: 0
+  engineClass: 0
+  topSpeed: 297.0
+  acceleration: 29.12
+  creditCost: 24000

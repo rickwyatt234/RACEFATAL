@@ -70,7 +70,11 @@ namespace RaceFatal.Vehicles
                     energyCapacity += booster.EnergyCapacity;
             }
 
-            var performance = new BikePerformance(engineDefinition.TopSpeed, engineDefinition.Acceleration, chassisDefinition.HandlingMultiplier, chassisDefinition.Mass, chassisDefinition.MaxIntegrity, chassisDefinition.SteeringResponseMultiplier, chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier, chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
+            var performance = new BikePerformance(
+                engineDefinition.TopSpeed * (1f - bikeDefinition.SpeedPenalty),
+                engineDefinition.Acceleration * (1f - bikeDefinition.AccelerationPenalty),
+                chassisDefinition.HandlingMultiplier * (1f - bikeDefinition.HandlingPenalty),
+                chassisDefinition.Mass, chassisDefinition.MaxIntegrity * (1f - bikeDefinition.IntegrityPenalty), chassisDefinition.SteeringResponseMultiplier, chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier, chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
             return Result<BikePerformance>.Success(performance);
         }
     }

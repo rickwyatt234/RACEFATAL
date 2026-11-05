@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ddc41656e53c7d4aac70a9c6915810f, type: 3}
+  m_Name: BLD_sp-02_1
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Vehicles.BikeBuildDefinitionSO
+  id: rf_build_sp-02_1
+  displayName: Precision Racers CAFE
+  bike: {fileID: 11400000, guid: 0e9e3a293f216ce85a5fd208237ba28d, type: 2}
+  engine: {fileID: 11400000, guid: b546e2fbd56c78742ad858a79cc44338, type: 2}
+  chassis: {fileID: 11400000, guid: dd20ed736887d83409b93a7db8ef5d0b, type: 2}
+  availableInShop: 1
+  creditCost: 8320
+  equipment:
+  - equipment: {fileID: 11400000, guid: dba5521edcd6fb34eb05d1932a30bd91, type: 2}
+    nodeSize: 0
+    nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 2a4cb5c0ce7a48a38861324ba3f0b3c1, type: 2}
+    nodeSize: 0
+    nodeIndex: 1
+  - equipment: {fileID: 11400000, guid: 08070c1a61cd77743b200a7791446db4, type: 2}
+    nodeSize: 1
+    nodeIndex: 0
+  - equipment: {fileID: 11400000, guid: 7ddf3291cedd92c428ff2c8aaf7892db, type: 2}
+    nodeSize: 1
+    nodeIndex: 1

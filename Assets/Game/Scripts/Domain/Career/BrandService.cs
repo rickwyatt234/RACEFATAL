@@ -91,7 +91,10 @@ namespace RaceFatal.Career
         public void ApplyOpponentPreferences(TeamState team, OpponentTeamDefinition definition, int lifetimeFame)
         {
             if (definition == null) return;
-            var preferred = database.BrandDefinitions.Values.Where(b => b.Philosophy == definition.Philosophy).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();
+            var profile = ApprovedCareerBlueprint.Teams.FirstOrDefault(t => t.Id == definition.Id);
+            var preferred = database.BrandDefinitions.Values.Where(b => profile == null
+                ? b.Philosophy == definition.Philosophy
+                : b.DisplayName == profile.ManufacturerA || b.DisplayName == profile.ManufacturerB).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();
             team.Brands.preferredBrandIds = preferred.Select(b => b.Id).ToList();
             foreach (var brand in preferred)
             {

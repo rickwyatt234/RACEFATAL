@@ -20,6 +20,7 @@ namespace RaceFatal.Career
             var world = new WorldState();
             foreach (OpponentTeamDefinition definition in database.OpponentTeamDefinitions)
             {
+                if (definition.LegacyRoster) continue;
                 Result<TeamState> result = CreateOpponentTeam(definition);
                 if (!result.IsSuccess)
                 {

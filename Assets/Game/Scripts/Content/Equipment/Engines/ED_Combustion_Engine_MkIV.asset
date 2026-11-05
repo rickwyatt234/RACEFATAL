@@ -15,6 +15,6 @@ MonoBehaviour:
   id: combustion_engine_mkiv
   displayName: Combustion Engine MkIV
   engineClass: 0
-  topSpeed: 220
-  acceleration: 18
-  creditCost: 0
+  topSpeed: 300
+  acceleration: 28
+  creditCost: 24000

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_DF-01
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: DF-01
+  displayName: DF-01 Armored Survivors
+  primaryColor: '#8FC617'
+  secondaryColor: '#242222'
+  philosophy: 5
+  racers:
+  - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
+  - {fileID: 11400000, guid: d384802d81839d24580a966f7aebc217, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: eff6fb9428f7dab36bc95b2b98e2a5a0, type: 2}
+  - {fileID: 11400000, guid: f6c33c928fd177fc9678c9aea4de369b, type: 2}

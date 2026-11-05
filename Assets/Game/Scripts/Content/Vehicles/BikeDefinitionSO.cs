@@ -15,13 +15,19 @@ namespace RaceFatal.Content.Vehicles
         [Header("Equipment Nodes")] [Min(0)] [SerializeField] private int smallNodeCount;
         [Min(0)] [SerializeField] private int mediumNodeCount;
         [Min(0)] [SerializeField] private int largeNodeCount;
+        [Header("Platform")] [SerializeField] private BikeWeightClass weightClass = BikeWeightClass.Medium;
+        [Range(0f, .99f)] [SerializeField] private float speedPenalty;
+        [Range(0f, .99f)] [SerializeField] private float accelerationPenalty;
+        [Range(0f, .99f)] [SerializeField] private float integrityPenalty;
+        [Range(0f, .99f)] [SerializeField] private float handlingPenalty;
         public string Id => id;
         public string DisplayName => displayName;
         public GameObject BikePrefab => bikePrefab;
 
         public BikeDefinition CreateBikeDefinition()
         {
-            return new BikeDefinition(id, displayName, smallNodeCount, mediumNodeCount, largeNodeCount);
+            return new BikeDefinition(id, displayName, smallNodeCount, mediumNodeCount, largeNodeCount,
+                weightClass, speedPenalty, accelerationPenalty, integrityPenalty, handlingPenalty);
         }
 
         private void OnValidate()

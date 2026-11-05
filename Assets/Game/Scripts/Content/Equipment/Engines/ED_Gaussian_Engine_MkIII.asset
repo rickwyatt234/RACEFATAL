@@ -15,6 +15,6 @@ MonoBehaviour:
   id: gaussian_engine_mkiii
   displayName: Gaussian Engine MkIII
   engineClass: 1
-  topSpeed: 260
-  acceleration: 17
-  creditCost: 0
+  topSpeed: 247.5
+  acceleration: 22.88
+  creditCost: 12000

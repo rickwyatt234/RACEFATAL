@@ -27,3 +27,4 @@ MonoBehaviour:
   bikeBuilds:
   - {fileID: 11400000, guid: a923654199c9f1c43b2f533dd328ea82, type: 2}
   - {fileID: 11400000, guid: 80f344b293052934597d0579e6470bfe, type: 2}
+  legacyRoster: 1

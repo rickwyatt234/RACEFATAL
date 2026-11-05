@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_RK-02
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: RK-02
+  displayName: RK-02 Volatile Combatants
+  primaryColor: '#086C80'
+  secondaryColor: '#242222'
+  philosophy: 2
+  racers:
+  - {fileID: 11400000, guid: 891584d9821c8c747b95e83763bf2602, type: 2}
+  - {fileID: 11400000, guid: dc3772b669448484598d20bbcc2e508c, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: 812585d8ef9ac7bca7873c95b95e945f, type: 2}
+  - {fileID: 11400000, guid: 829fc50dadd45aa5ea456ca2ab105c1f, type: 2}

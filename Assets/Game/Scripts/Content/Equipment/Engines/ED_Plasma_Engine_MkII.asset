@@ -15,6 +15,6 @@ MonoBehaviour:
   id: plasma_engine_mkii
   displayName: Plasma Engine MkII
   engineClass: 2
-  topSpeed: 290
-  acceleration: 28
-  creditCost: 0
+  topSpeed: 198.85
+  acceleration: 18.53
+  creditCost: 5500

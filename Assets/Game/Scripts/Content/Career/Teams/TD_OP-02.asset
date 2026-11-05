@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548073bbc0036e48a8f2443234afc3a, type: 3}
+  m_Name: TD_OP-02
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.OpponentTeamDefinitionSO
+  id: OP-02
+  displayName: OP-02 Ambush Specialists
+  primaryColor: '#044767'
+  secondaryColor: '#242222'
+  philosophy: 4
+  racers:
+  - {fileID: 11400000, guid: 0318b2d9252ca4944a541b7b07291797, type: 2}
+  - {fileID: 11400000, guid: 7ac5ab96b2939704cb7fb3f838e5660f, type: 2}
+  bikeBuilds:
+  - {fileID: 11400000, guid: 6b469a219b8bfc2855b9da0fed7d6e7a, type: 2}
+  - {fileID: 11400000, guid: 128dbc16f1cc59855d94296c6bee6d01, type: 2}
