@@ -44,7 +44,7 @@ namespace RaceFatal.Racing
             if (!performanceResult.IsSuccess)
                 return Result<RaceParticipant>.Failure(performanceResult.ErrorMessage);
             var perks = RacerPerkBonuses.For(racer, database);
-            var energy = new EnergyPool(System.Math.Max(0f, performanceResult.Value.EnergyCapacity + perks.EnergyCapacity));
+            var energy = new EnergyPool(System.Math.Max(0f, performanceResult.Value.EnergyCapacity * (1f + System.Math.Min(0.20f, perks.EnergyCapacityPercent)) + perks.EnergyCapacity));
             Result<RaceEquipmentSystem> equipmentResult = RaceEquipmentSystem.Create(racer.RacerId, bike.Loadout, database, energy);
             if (!equipmentResult.IsSuccess)
                 return Result<RaceParticipant>.Failure(equipmentResult.ErrorMessage);

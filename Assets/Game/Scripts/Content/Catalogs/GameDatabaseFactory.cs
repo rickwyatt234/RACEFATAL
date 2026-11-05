@@ -73,6 +73,9 @@ namespace RaceFatal.Content
             foreach (var perk in catalog.RacerPerkDefinitions)
                 if (perk != null)
                     database.AddRacerPerkDefinition(perk.CreateDefinition());
+            foreach (var perk in RaceFatal.Career.PlayerPerkCatalog.CreateDefinitions())
+                if (database.GetRacerPerkDefinition(perk.Id) == null)
+                    database.AddRacerPerkDefinition(perk);
             foreach (var opponentTeam in catalog.OpponentTeamDefinitions)
             {
                 var definition = opponentTeam.CreateDefinition();

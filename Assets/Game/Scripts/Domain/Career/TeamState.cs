@@ -33,6 +33,21 @@ namespace RaceFatal.Career
         public int Fame { get; private set; }
         public int LifetimeFame { get; private set; }
         public BrandProgress Brands { get; private set; } = new BrandProgress();
+        private readonly HashSet<string> teamPerkIds = new HashSet<string>(StringComparer.Ordinal);
+        public IReadOnlyCollection<string> TeamPerkIds => teamPerkIds;
+        public bool HasTeamPerk(string id) => !string.IsNullOrWhiteSpace(id) && teamPerkIds.Contains(id);
+        public bool GrantTeamPerk(string id)
+        {
+            if (TeamPerkCatalog.Find(id) == null) return false;
+            return teamPerkIds.Add(id);
+        }
+        public void RestoreTeamPerks(IEnumerable<string> ids)
+        {
+            teamPerkIds.Clear();
+            if (ids == null) return;
+            foreach (string id in ids)
+                if (TeamPerkCatalog.Find(id) != null) teamPerkIds.Add(id);
+        }
         public void RestoreBrands(BrandProgress value) { Brands = value ?? new BrandProgress(); Brands.Validate(); }
         public void RestoreFame(int available, int lifetime)
         {

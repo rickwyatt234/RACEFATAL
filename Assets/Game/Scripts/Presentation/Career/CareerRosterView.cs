@@ -96,7 +96,7 @@ namespace RaceFatal.Presentation.Career
                 {
                     bool owned = selected?.Progression.HasPurchasedPerk(perk.Id) == true;
                     bool available = service.CanPurchasePerk(Team, selectedRacerId, perk.Id).IsSuccess;
-                    AddOption(perkList, $"{perk.DisplayName}  [{(owned ? "OWNED" : available ? "AVAILABLE" : "LOCKED")}]\n{perk.FameCost:N0} FAME  //  {perk.Effect} +{perk.Strength:0.##}",
+                    AddOption(perkList, $"{perk.DisplayName}  [{(owned ? "OWNED" : available ? "AVAILABLE" : "LOCKED")}]\n{perk.FameCost:N0} FAME  //  {perk.Effect} {perk.Strength:P0}",
                         () => {  selectedPerkId = perk.Id;  Refresh(); }, perk.Id == selectedPerkId);
                 }
 

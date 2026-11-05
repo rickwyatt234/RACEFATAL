@@ -58,8 +58,8 @@ namespace RaceFatal.Career
             var perk = database.GetRacerPerkDefinition(perkId);
             if (perk == null)
                 return Result.Failure("UNKNOWN PERK.");
-            if (racer.IsPlayerCharacter && perk.Effect != RacerPerkEffect.EnergyCapacity)
-                return Result.Failure("AI SKILL PERKS REQUIRE A TEAMMATE.");
+            if (racer.IsPlayerCharacter && (perk.Effect == RacerPerkEffect.Pace || perk.Effect == RacerPerkEffect.Overtaking || perk.Effect == RacerPerkEffect.Defense || perk.Effect == RacerPerkEffect.WeaponAggression))
+                return Result.Failure("LEGACY AI SKILL PERKS REQUIRE A TEAMMATE.");
             if (perk.FameCost < 0 || perk.Strength <= 0 || float.IsNaN(perk.Strength) || float.IsInfinity(perk.Strength) || !Enum.IsDefined(typeof(RacerPerkEffect), perk.Effect))
                 return Result.Failure("INVALID PERK CONFIGURATION.");
             if (racer.Progression.HasPurchasedPerk(perkId))

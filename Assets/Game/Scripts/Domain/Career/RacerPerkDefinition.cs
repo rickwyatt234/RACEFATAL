@@ -9,7 +9,8 @@ namespace RaceFatal.Career
         Pace,
         Overtaking,
         Defense,
-        WeaponAggression
+        WeaponAggression,
+        SteeringResponse, CornerStability, Braking, VerticalStability, SlipstreamAcceleration, EnergyCapacityPercent, BoosterEfficiency, BoostAcceleration, EnergyRegeneration, EngineAcceleration, UnshieldedDamage, BallisticDamage, OrdnanceDamage, BurnDamage, ExecutionDamage, MaxIntegrityPercent, ShieldRechargeDelay, CollisionResistance, CriticalShieldRecharge, CriticalIntegrityResistance, GuidedLockSpeed, AiLeadAccuracy, CountermeasureCooldown, SiphonStrength, UtilityCooldown, FinishCharacterFame, EliminationCharacterFame, OvertakeAudience, CombatAudience, PrestigeCharacterFame
     }
 
     public sealed class RacerPerkDefinition
@@ -41,6 +42,10 @@ namespace RaceFatal.Career
         public float Overtaking { get; private set; }
         public float Defense { get; private set; }
         public float WeaponAggression { get; private set; }
+        public float EnergyCapacityPercent { get; private set; }
+        public float MaxIntegrityPercent { get; private set; }
+        public float CollisionResistance { get; private set; }
+        public float FinishCharacterFame { get; private set; }
 
         public static RacerPerkBonuses For(RacerState racer, GameDatabase database)
         {
@@ -54,6 +59,18 @@ namespace RaceFatal.Career
                     continue;
                 switch (perk.Effect)
                 {
+                    case RacerPerkEffect.EnergyCapacityPercent:
+                        bonuses.EnergyCapacityPercent += perk.Strength;
+                        break;
+                    case RacerPerkEffect.MaxIntegrityPercent:
+                        bonuses.MaxIntegrityPercent += perk.Strength;
+                        break;
+                    case RacerPerkEffect.CollisionResistance:
+                        bonuses.CollisionResistance += perk.Strength;
+                        break;
+                    case RacerPerkEffect.FinishCharacterFame:
+                        bonuses.FinishCharacterFame += perk.Strength;
+                        break;
                     case RacerPerkEffect.EnergyCapacity:
                         bonuses.EnergyCapacity += perk.Strength;
                         break;

@@ -209,7 +209,7 @@ namespace RaceFatal.Career
 
         private string GrantStartingPerk(RacerState player)
         {
-            var candidates = database.RacerPerkDefinitions.Values.Where(p => p.Effect == RacerPerkEffect.EnergyCapacity && p.FameCost >= 0 && p.Strength > 0 && !float.IsNaN(p.Strength) && !float.IsInfinity(p.Strength)).ToList();
+            var candidates = database.RacerPerkDefinitions.Values.Where(p => (p.Effect == RacerPerkEffect.EnergyCapacity || p.Effect == RacerPerkEffect.EnergyCapacityPercent || p.Effect == RacerPerkEffect.SteeringResponse || p.Effect == RacerPerkEffect.MaxIntegrityPercent || p.Effect == RacerPerkEffect.FinishCharacterFame) && p.FameCost >= 0 && p.Strength > 0 && !float.IsNaN(p.Strength) && !float.IsInfinity(p.Strength)).ToList();
             if (candidates.Count == 0)
                 return null;
             int tierCost = candidates.Min(p => p.FameCost);

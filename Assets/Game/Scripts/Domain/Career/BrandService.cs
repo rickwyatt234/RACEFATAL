@@ -64,7 +64,15 @@ namespace RaceFatal.Career
             if (c == null || !c.completed || c.claimed) return Result.Failure("NO UNCLAIMED REWARD.");
             var t = c.terms; var relationship = team.Brands.Find(c.brandId);
             if ((long)relationship.standing + t.StandingReward > int.MaxValue || (t.RewardKind == BrandRewardKind.Credits && (long)team.Credits + t.Credits > int.MaxValue)) return Result.Failure("REWARD EXCEEDS ACCOUNT LIMIT.");
-            if (t.RewardKind != BrandRewardKind.Credits)
+            if (t.RewardKind == BrandRewardKind.TeamPerk)
+            {
+                var perk = TeamPerkCatalog.Find(t.ItemId);
+                if (perk == null || !string.Equals(perk.Manufacturer, database.BrandDefinitions[c.brandId].DisplayName, StringComparison.OrdinalIgnoreCase))
+                    return Result.Failure("MANUFACTURER TEAM PERK CONTENT IS MISSING OR MISMATCHED.");
+                if (team.HasTeamPerk(perk.Id)) return Result.Failure("TEAM PERK ALREADY OWNED.");
+                if (!team.GrantTeamPerk(perk.Id)) return Result.Failure("TEAM PERK COULD NOT BE GRANTED.");
+            }
+            else if (t.RewardKind != BrandRewardKind.Credits)
             {
                 var offer = new ShopService(database).FindOffer(t.ItemKind, t.ItemId);
                 if (offer == null) return Result.Failure("REWARD CONTENT IS MISSING. CONTRACT IS RETAINED.");
@@ -79,7 +87,7 @@ namespace RaceFatal.Career
             relationship.standing += t.StandingReward; c.claimed = true;
             return Result.Success();
         }
-        public static string RewardText(BrandContractTemplate t) => t.RewardKind == BrandRewardKind.Credits ? t.Credits.ToString("N0") + " CR" : t.RewardKind == BrandRewardKind.PurchaseAccess ? "PURCHASE ACCESS: " + t.ItemId : "ONE FREE ITEM + REPLACEMENT ACCESS: " + t.ItemId;
+        public static string RewardText(BrandContractTemplate t) => t.RewardKind == BrandRewardKind.Credits ? t.Credits.ToString("N0") + " CR" : t.RewardKind == BrandRewardKind.TeamPerk ? "PERMANENT TEAM PERK: " + (TeamPerkCatalog.Find(t.ItemId)?.Name ?? t.ItemId) : t.RewardKind == BrandRewardKind.PurchaseAccess ? "PURCHASE ACCESS: " + t.ItemId : "ONE FREE ITEM + REPLACEMENT ACCESS: " + t.ItemId;
         public void ApplyOpponentPreferences(TeamState team, OpponentTeamDefinition definition, int lifetimeFame)
         {
             if (definition == null) return;

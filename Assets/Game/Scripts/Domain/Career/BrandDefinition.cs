@@ -7,7 +7,7 @@ namespace RaceFatal.Career
 {
     public enum BrandCategory { Shields, Chassis, Ballistics, EnergyWeapons, Explosives, Utility, Propulsion, Bikes }
     public enum BrandObjective { DestroyRacers, FinishRaces, WinRaces, PodiumFinishes, ConsecutivePodiums }
-    public enum BrandRewardKind { Credits, PurchaseAccess, FreeItem }
+    public enum BrandRewardKind { Credits, PurchaseAccess, FreeItem, TeamPerk }
 
     [Serializable]
     public sealed class BrandProduct
@@ -37,7 +37,7 @@ namespace RaceFatal.Career
         {
             if (string.IsNullOrWhiteSpace(Id) || string.IsNullOrWhiteSpace(Title) || Target < 1 || MinimumLifetimeFame < 0 || RequiredStanding < 0 || StandingReward < 0 || Credits < 0 ||
                 !Enum.IsDefined(typeof(BrandObjective), Objective) || !Enum.IsDefined(typeof(BrandRewardKind), RewardKind) ||
-                (RewardKind != BrandRewardKind.Credits && (string.IsNullOrWhiteSpace(ItemId) || !Enum.IsDefined(typeof(ShopItemKind), ItemKind))))
+                (RewardKind != BrandRewardKind.Credits && (string.IsNullOrWhiteSpace(ItemId) || (RewardKind != BrandRewardKind.TeamPerk && !Enum.IsDefined(typeof(ShopItemKind), ItemKind)))))
                 throw new ArgumentException("Invalid brand contract: " + Id);
         }
     }
