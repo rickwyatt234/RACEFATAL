@@ -589,6 +589,7 @@ namespace RaceFatal.Presentation.Vehicles
                 score += fullPressurePreferredTargetBonus * currentRacePressure;
             }
 
+            score += .0015f * participant.Racer.HostilityToward(target.RacerId);
             if (targetIsPlayer)
             {
                 score += currentPlayerTargetBonus;
@@ -874,7 +875,7 @@ namespace RaceFatal.Presentation.Vehicles
                     return;
                 }
 
-                guidedLockState.TrackCandidate(currentTarget, Time.fixedDeltaTime, weapon.TargetLockDuration);
+                guidedLockState.TrackCandidate(currentTarget, Time.fixedDeltaTime, equipment.LockDuration(weapon, currentTarget.Participant?.Vehicle?.EquipmentSystem));
                 if (!guidedLockState.IsLocked)
                 {
                     debugDecision = IsPlayerTarget(currentTarget) ? "Acquiring Player Guided Lock" : "Acquiring Guided Lock";

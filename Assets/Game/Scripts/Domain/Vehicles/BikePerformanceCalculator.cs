@@ -55,6 +55,8 @@ namespace RaceFatal.Vehicles
                 return Result<BikePerformance>.Failure($"Chassis definition '{chassisState.ChassisDefinitionId}' was not found.");
             }
 
+            var utilities = new System.Collections.Generic.Dictionary<UtilityEffect, float>();
+            float Bonus(UtilityEffect effect) => utilities.TryGetValue(effect, out var bonus) ? bonus : 0f;
             float passiveHandling = 1f;
             float energyCapacity = 0f;
             foreach (var node in bike.Loadout.Nodes)
@@ -64,6 +66,8 @@ namespace RaceFatal.Vehicles
                 var definition = database.GetEquipmentDefinition(node.InstalledEquipment.EquipmentDefinitionId);
                 if (definition == null)
                     return Result<BikePerformance>.Failure("Installed equipment definition was not found.");
+                if (definition is RaceUtilityDefinition utility)
+                    utilities[utility.Effect] = Math.Max(Bonus(utility.Effect), utility.Strength);
                 if (definition is HandlingUtilityDefinition handling)
                     passiveHandling *= handling.HandlingMultiplier;
                 if (definition is BoosterDefinition booster)
@@ -72,9 +76,9 @@ namespace RaceFatal.Vehicles
 
             var performance = new BikePerformance(
                 engineDefinition.TopSpeed * (1f - bikeDefinition.SpeedPenalty),
-                engineDefinition.Acceleration * (1f - bikeDefinition.AccelerationPenalty),
+                engineDefinition.Acceleration * (1f - bikeDefinition.AccelerationPenalty) * (1f + Bonus(UtilityEffect.Acceleration)),
                 chassisDefinition.HandlingMultiplier * (1f - bikeDefinition.HandlingPenalty),
-                chassisDefinition.Mass, chassisDefinition.MaxIntegrity * (1f - bikeDefinition.IntegrityPenalty), chassisDefinition.SteeringResponseMultiplier, chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier, chassisDefinition.ImpactResistance, passiveHandling, energyCapacity);
+                chassisDefinition.Mass * (1f - Bonus(UtilityEffect.Mass)), chassisDefinition.MaxIntegrity * (1f - bikeDefinition.IntegrityPenalty) * (1f + Bonus(UtilityEffect.Integrity)), chassisDefinition.SteeringResponseMultiplier * (1f + Bonus(UtilityEffect.Steering)), chassisDefinition.LeanResponseMultiplier, chassisDefinition.StabilityMultiplier * (1f + Bonus(UtilityEffect.Stability)), chassisDefinition.ImpactResistance, passiveHandling * (1f + Bonus(UtilityEffect.Grip)), energyCapacity);
             return Result<BikePerformance>.Success(performance);
         }
     }

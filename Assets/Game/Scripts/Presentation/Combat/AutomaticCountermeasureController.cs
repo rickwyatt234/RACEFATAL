@@ -161,7 +161,8 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
-            if (!catalog.TryGetProfile(activeDefinitionId, out activeProfile))
+            if (!catalog.TryGetProfile(activeDefinitionId, out activeProfile) &&
+                !(activeDefinition.UsesPerRace == int.MaxValue && catalog.TryGetProfile("countermeasure_flare_basic", out activeProfile)))
             {
                 debugProfileResolved = false;
                 debugProfile = "None";
@@ -200,6 +201,7 @@ namespace RaceFatal.Presentation.Combat
 
                 missile.DefeatByCountermeasure(escapeUp);
                 defeatedCount++;
+                if (activeDefinition.UsesPerRace == int.MaxValue) break;
             }
 
             PlayDeploymentAudio();

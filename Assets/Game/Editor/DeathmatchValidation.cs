@@ -35,7 +35,7 @@ public static class DeathmatchValidation
         race.RetireRacer("enemy-b");
         race.Tick(.1f);
         Require(race.State.IsFinished && race.FinalRaceResult.Standings.Single(s => s.RacerId == "player").IsWinner, "Surviving partner wins for team");
-        Require(fixture.Session.PlayerTeam.Credits == 1100 && fixture.Session.PlayerTeam.Calendar.AbsoluteDay == 1, "Team pays once in full even if player DQ");
+        Require(fixture.Session.PlayerTeam.Credits == 1100 && fixture.Session.PlayerTeam.Calendar.AbsoluteDay == fixture.EntryDay, "Team pays once in full even if player DQ");
         var receipt = race.PostRaceResult;
         race.Tick(1000);
         race.CompleteRace();
@@ -134,6 +134,7 @@ public static class DeathmatchValidation
         public readonly CareerCalendarService Calendar;
         public readonly GameSessionState Session;
         public readonly RaceDirector Race;
+        public readonly int EntryDay;
         public Fixture(DeathmatchRules rules)
         {
             Database.AddBikeDefinition(new BikeDefinition("bike", "Bike", 0, 0, 0));
@@ -157,6 +158,7 @@ public static class DeathmatchValidation
             Race = Prepare(Session);
             var entry = Calendar.Register(Session, "dm", Race);
             Require(entry.IsSuccess, "Entry: " + entry.ErrorMessage);
+            EntryDay = team.Calendar.AbsoluteDay;
         }
 
         public RaceDirector Prepare(GameSessionState session)

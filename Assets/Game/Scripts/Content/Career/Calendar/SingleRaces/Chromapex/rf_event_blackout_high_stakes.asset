@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_blackout_high_stakes
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_blackout_high_stakes
+  displayName: Blackout High Stakes
+  description: High Stakes / Class 2 / 1 round
+  kind: 0
+  requiredFame: 150
+  entryFee: 5600
+  rounds:
+  - {fileID: 11400000, guid: 40aed05a740b1b1b4bbd20d98ba713ae, type: 2}
+  racePayouts: 88450000ac300000c422000056180000621100006e0a0000f40600007a03000000000000000000000000000000000000
+  championshipPrizes:
+  positionPoints:
+  firstWeek: 1
+  firstDayOfWeek: 2
+  repeatEveryWeeks: 5
+  roundSpacingDays: 1
+  starterOrder: 0

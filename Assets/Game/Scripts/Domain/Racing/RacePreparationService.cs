@@ -119,7 +119,10 @@ namespace RaceFatal.Racing
             var selected = new List<TeamState>(requiredOpponents);
             if (requiredOpponents == 0)
                 return Result<List<TeamState>>.Success(selected);
-            foreach (TeamState team in world.OpponentTeams)
+            int seed = race.Id.Aggregate(sessionManager.Current.PlayerTeam.Calendar.AbsoluteDay,
+                (value, ch) => unchecked(value * 31 + ch));
+            var draw = new Random(seed);
+            foreach (TeamState team in world.OpponentTeams.OrderBy(t => draw.Next()))
             {
                 IReadOnlyList<RacerState> racers = team.Roster.GetRaceEligibleRacers();
                 if (racers.Count < race.TeamSize)

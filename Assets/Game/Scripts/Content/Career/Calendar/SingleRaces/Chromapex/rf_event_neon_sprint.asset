@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_neon_sprint
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_neon_sprint
+  displayName: Neon Sprint
+  description: Sprint / Class 5 / 1 round
+  kind: 0
+  requiredFame: 0
+  entryFee: 350
+  rounds:
+  - {fileID: 11400000, guid: ae4624126786049a1dc1adea2bc32a73, type: 2}
+  racePayouts: 020800009b05000001040000cd0200000002000033010000cd0000006600000000000000000000000000000000000000
+  championshipPrizes:
+  positionPoints:
+  firstWeek: 1
+  firstDayOfWeek: 5
+  repeatEveryWeeks: 5
+  roundSpacingDays: 1
+  starterOrder: 0

@@ -90,7 +90,7 @@ public static class CareerSuccessionValidation
         string nextId = next.RacerId;
         team = sessions.Current.PlayerTeam;
         Require(next.Name == "Successor" && nextId != "original" && next.Progression.Fame == 0 && next.RacesEntered == 0, "Fresh identity and personal progression");
-        Require(team.Garage.Bikes.Count == 3 && team.Garage.FindBike(wreckId).IsDestroyed && team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).IsRaceReady && sessions.Current.SelectedPartnerRacerId == partner.RacerId && sessions.Current.SelectedPartnerBikeId == partnerBike.BikeId, "Fresh recovery bike assigned; wreck and partner preserved");
+        Require(team.Garage.Bikes.Count == 2 && team.Garage.FindBike(wreckId).IsDestroyed && !team.Garage.FindBike(sessions.Current.SelectedPlayerBikeId).IsRaceReady && sessions.Current.SelectedPartnerRacerId == partner.RacerId && sessions.Current.SelectedPartnerBikeId == partnerBike.BikeId, "No free recovery bike; wreck and partner preserved");
         Require(next.Progression.HasPurchasedPerk("starter-perk") && !next.Progression.HasPurchasedPerk("ai-perk") && sessions.Current.CareerRun.NeedsIntroduction, "Player-compatible starter perk and pending summary");
         var old = team.Roster.FindRacer("original");
         Require(old.Status == RacerCareerStatus.Dead && old.RacesWon == 1 && old.RacesEntered == 1, "Previous career history remains permanent");
@@ -98,7 +98,7 @@ public static class CareerSuccessionValidation
         Require(team.Credits == credits && team.Calendar.Week == 8, "Old result cannot pay again after succession");
         Require(!saves.StartSuccessor("Duplicate").IsSuccess, "No repeated successor or kit");
         Reload(saves);
-        Require(sessions.Current.CareerRun.Player.RacerId == nextId && sessions.Current.PlayerTeam.Garage.Bikes.Count == 3, "Successor and one recovery kit survive reload");
+        Require(sessions.Current.CareerRun.Player.RacerId == nextId && sessions.Current.PlayerTeam.Garage.Bikes.Count == 2, "Successor and original garage survive reload");
         Require(sessions.Current.CareerRun.NeedsIntroduction && sessions.Current.CareerRun.StartingPerkId == "starter-perk" && sessions.Current.CareerRun.Player.Progression.PurchasedPerkIds.Count == 1, "Unseen summary and perk survive reload without reroll");
         repository.Fail = true;
         Require(!saves.AcknowledgeNewRacer().IsSuccess && sessions.Current.CareerRun.NeedsIntroduction, "Summary dismissal failure can retry");
@@ -111,7 +111,7 @@ public static class CareerSuccessionValidation
         Require(!saves.RetirePlayer().IsSuccess && sessions.Current.CareerRun.IsActive && sessions.Current.CareerRun.Player.CanRace, "Failed retirement save restores active racer");
         repository.Fail = false;
         Require(saves.RetirePlayer().IsSuccess && sessions.Current.CareerRun.Player.Status == RacerCareerStatus.Retired && sessions.Current.PlayerTeam.Calendar.Week == week, "Retirement changes status without skipping a free week");
-        Require(saves.StartSuccessor("Third").IsSuccess && sessions.Current.PlayerTeam.Garage.Bikes.Count == 3, "Retirement with ready bike grants no extra kit");
+        Require(saves.StartSuccessor("Third").IsSuccess && sessions.Current.PlayerTeam.Garage.Bikes.Count == 2, "Retirement with ready bike grants no extra kit");
         calendar = sessions.Current.PlayerTeam.Calendar.Export();
         calendar.active = Entry("pending");
         Require(sessions.Current.PlayerTeam.RestoreCalendar(calendar).IsSuccess, "Prepare interrupted paid event");
@@ -145,7 +145,7 @@ public static class CareerSuccessionValidation
         repository.Data = missing;
         RequireSuccess(saves.LoadCampaign(TestSlot), "Load missing-content fixture");
         int rosterCount = sessions.Current.PlayerTeam.Roster.Racers.Count;
-        Require(!saves.StartSuccessor("Unavailable kit").IsSuccess && sessions.Current.PlayerTeam.Roster.Racers.Count == rosterCount && sessions.Current.PlayerTeam.Garage.Bikes.Count == bikesBefore, "Missing content grants no partial kit or racer");
+        Require(saves.StartSuccessor("No free kit").IsSuccess && sessions.Current.PlayerTeam.Roster.Racers.Count == rosterCount + 1 && sessions.Current.PlayerTeam.Garage.Bikes.Count == bikesBefore, "Succession grants no free replacement when starter content is missing");
         Debug.Log("Career succession validation passed: death settlement, retirement, team preservation, recovery, legacy saves, replay and save-failure rollback.");
     }
 

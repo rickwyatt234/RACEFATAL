@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_crossfire_minor_cup
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_crossfire_minor_cup
+  displayName: Crossfire Minor Cup
+  description: Minor Cup / Class 1 / 2 rounds
+  kind: 1
+  fameEntryFee: 150
+  requiredFame: 200
+  entryFee: 1750
+  rounds:
+  - {fileID: 11400000, guid: db0b27c752dbecd4cc1352dea43c8f8e, type: 2}
+  - {fileID: 11400000, guid: ba7fe8f7434bb74572b36f6f4fb65d75, type: 2}
+  racePayouts: 6a18000017110000350c00008b0800001a060000a9030000710200003801000000000000000000000000000000000000
+  championshipPrizes: a00f0000d0070000e8030000
+  positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000
+  firstWeek: 1
+  firstDayOfWeek: 1
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1

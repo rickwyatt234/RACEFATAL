@@ -36,30 +36,30 @@ namespace RaceFatal.Career
                 var added=team.Roster.AddRacer(racer);
                 if(!added.IsSuccess)return Result.Failure(added.ErrorMessage);
             }
-            int ready=team.Garage.GetRaceReadyBikesFor(raceClass).Count;
-            foreach(string buildId in definition.StartingBikeBuildIds)
+            // Fill the two distinct seats. Higher tiers keep the frame and mounts, and
+            // select a legal engine from a preferred manufacturer when available.
+            var ready = team.Garage.GetRaceReadyBikesFor(raceClass).ToList();
+            foreach (string id in definition.StartingBikeBuildIds.Take(required))
             {
-                if(ready>=required)break;
-                var build=database.GetBikeBuildDefinition(buildId);
-                var engine=build==null?null:database.GetEngineDefinition(build.EngineDefinitionId);
-                if(engine==null || !GarageState.IsClassEligible(engine.EngineClass,raceClass))continue;
-                var newBike=builds.CreateInGarage(build,team.Garage,team.PrimaryColor,team.SecondaryColor);
-                if(!newBike.IsSuccess)return Result.Failure(newBike.ErrorMessage);
-                ready++;
-            }
-            // If the team has two legitimate presets that were both destroyed, a further
-            // fresh copy may be needed, using the same signature model, not arbitrary cheats.
-            if(ready<required)
-            {
-                var build=definition.StartingBikeBuildIds.Select(database.GetBikeBuildDefinition)
-                    .FirstOrDefault(b=>b!=null && database.GetEngineDefinition(b.EngineDefinitionId)!=null &&
-                        GarageState.IsClassEligible(database.GetEngineDefinition(b.EngineDefinitionId).EngineClass,raceClass));
-                while(ready<required && build!=null)
+                var build = database.GetBikeBuildDefinition(id);
+                if (build == null) return Result.Failure("Opponent build is missing: " + id);
+                var existing = ready.FirstOrDefault(b => b.BikeDefinitionId == build.BikeDefinitionId);
+                if (existing != null) { ready.Remove(existing); continue; }
+                var engine = database.GetEngineDefinition(build.EngineDefinitionId);
+                if (engine == null || !GarageState.IsClassEligible(engine.EngineClass, raceClass))
                 {
-                    var newBike=builds.CreateInGarage(build,team.Garage,team.PrimaryColor,team.SecondaryColor);
-                    if(!newBike.IsSuccess)return Result.Failure(newBike.ErrorMessage);
-                    ready++;
+                    var upgrade = database.EngineDefinitions.Values.Where(e => GarageState.IsClassEligible(e.EngineClass, raceClass))
+                        .OrderByDescending(e => team.Brands.preferredBrandIds.Contains(BrandService.OwnerOf(database, ShopItemKind.Engine, e.Id)?.Id))
+                        .ThenBy(e => e.CreditCost).ThenBy(e => e.Id, StringComparer.Ordinal).FirstOrDefault();
+                    if (upgrade == null) continue;
+                    build = new BikeBuildDefinition(build.Id, build.DisplayName, build.BikeDefinitionId,
+                        upgrade.Id, build.ChassisDefinitionId, build.Equipment);
                 }
+                var staged = new GarageState();
+                var made = builds.CreateInGarage(build, staged, team.PrimaryColor, team.SecondaryColor);
+                if (!made.IsSuccess) return Result.Failure(made.ErrorMessage);
+                var imported = team.Garage.ImportKit(staged);
+                if (!imported.IsSuccess) return imported;
             }
             return Result.Success();
         }

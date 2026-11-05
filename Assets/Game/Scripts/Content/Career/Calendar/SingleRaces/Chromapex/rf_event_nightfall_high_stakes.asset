@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_nightfall_high_stakes
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_nightfall_high_stakes
+  displayName: Nightfall High Stakes
+  description: High Stakes / Class 4 / 1 round
+  kind: 0
+  requiredFame: 50
+  entryFee: 2800
+  rounds:
+  - {fileID: 11400000, guid: a26e8fe0a3b4ac7800575334ae1bd38e, type: 2}
+  racePayouts: b8240000b41900005c120000da0c00002e09000082050000ac030000d601000000000000000000000000000000000000
+  championshipPrizes:
+  positionPoints:
+  firstWeek: 1
+  firstDayOfWeek: 4
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1
+  starterOrder: 0

@@ -196,7 +196,7 @@ namespace RaceFatal.Career
 
         private string GrantStartingPerk(RacerState player)
         {
-            var candidates = database.RacerPerkDefinitions.Values.Where(p => RacerPerkCatalog.IsStarter(p.Id) && p.FameCost >= 0 && p.Strength > 0 && !float.IsNaN(p.Strength) && !float.IsInfinity(p.Strength)).ToList();
+            var candidates = database.RacerPerkDefinitions.Values.Where(p => RacerPerkCatalog.IsStarter(p) && p.FameCost >= 0 && p.Strength > 0 && !float.IsNaN(p.Strength) && !float.IsInfinity(p.Strength)).ToList();
             if (candidates.Count == 0)
                 return null;
             int tierCost = candidates.Min(p => p.FameCost);
@@ -211,7 +211,7 @@ namespace RaceFatal.Career
             var run=Current?.CareerRun;
             if(run?.IsActive!=true || !run.NeedsIntroduction)return Result.Failure("STARTING PERK SELECTION IS CLOSED.");
             var perk=database.GetRacerPerkDefinition(id);
-            if(perk==null || !RacerPerkCatalog.IsStarter(id))return Result.Failure("SELECT AN ELIGIBLE STARTER PERK.");
+            if(perk==null || !RacerPerkCatalog.IsStarter(perk))return Result.Failure("SELECT AN ELIGIBLE STARTER PERK.");
             if(run.StartingPerkId==id)return Result.Success();
             if(!run.Player.Progression.ReplaceFreeStartingPerk(run.StartingPerkId,id))return Result.Failure("STARTER PERK COULD NOT BE CHANGED.");
             run.ChangeStartingPerk(id);

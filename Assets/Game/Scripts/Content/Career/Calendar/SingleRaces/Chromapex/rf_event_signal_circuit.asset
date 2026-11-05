@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_signal_circuit
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_signal_circuit
+  displayName: Signal Circuit
+  description: Circuit / Class 1 / 1 round
+  kind: 0
+  requiredFame: 200
+  entryFee: 1750
+  rounds:
+  - {fileID: 11400000, guid: 1ed35f9ac0fe6b42d3da5353bdb29c67, type: 2}
+  racePayouts: 6a18000017110000350c00008b0800001a060000a9030000710200003801000000000000000000000000000000000000
+  championshipPrizes:
+  positionPoints:
+  firstWeek: 1
+  firstDayOfWeek: 1
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1
+  starterOrder: 0

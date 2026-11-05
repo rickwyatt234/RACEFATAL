@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RaceFatal.Presentation.Combat
 {
-    public class RaceWeaponPresenter : MonoBehaviour
+    public partial class RaceWeaponPresenter : MonoBehaviour
     {
         [Header("Hitscan / Area")] [SerializeField] private LayerMask hitMask = ~0;
         [Tooltip("Maximum number of hits inspected by a single hitscan shot.")] [Min(4)] [SerializeField] private int hitscanBufferSize = 32;
@@ -55,6 +55,7 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
+            UpdateRaceUtilities();
             UpdateAutomaticTurrets();
             UpdateBurns(Time.deltaTime);
             PruneFlameExposure();
@@ -85,6 +86,8 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
+            utilityStates.Clear();
+            runtime.Director.DamageApplied += OnUtilityDamage;
             runtime.Director.WeaponFired += OnWeaponFired;
         }
 
@@ -95,6 +98,7 @@ namespace RaceFatal.Presentation.Combat
                 return;
             }
 
+            runtime.Director.DamageApplied -= OnUtilityDamage;
             runtime.Director.WeaponFired -= OnWeaponFired;
         }
 
@@ -205,7 +209,39 @@ namespace RaceFatal.Presentation.Combat
                 return false;
             }
 
-            return presentationLookup.TryGetValue(definitionId, out profile);
+            if (presentationLookup.TryGetValue(definitionId, out profile)) return true;
+            int suffix = definitionId.IndexOf("__", System.StringComparison.Ordinal);
+            if (suffix >= 0) definitionId = definitionId.Substring(0, suffix);
+            switch (definitionId)
+            {
+                case "rf_weapon_ballistic_machine_gun_mk_i": return presentationLookup.TryGetValue("weapon_machine_gun", out profile);
+                case "rf_weapon_ballistic_machine_gun_mk_ii": return presentationLookup.TryGetValue("weapon_machine_gun", out profile);
+                case "rf_weapon_ballistic_mine_mk_i": return presentationLookup.TryGetValue("weapon_ballistic_mine", out profile);
+                case "rf_weapon_ballistic_mine_mk_ii": return presentationLookup.TryGetValue("weapon_ballistic_mine", out profile);
+                case "rf_weapon_ballistic_railgun_mk_i": return presentationLookup.TryGetValue("weapon_ballistic_railgun", out profile);
+                case "rf_weapon_ballistic_railgun_mk_ii": return presentationLookup.TryGetValue("weapon_ballistic_railgun", out profile);
+                case "rf_weapon_ballistic_shotgun_mk_i": return presentationLookup.TryGetValue("weapon_ballistic_shotgun", out profile);
+                case "rf_weapon_ballistic_shotgun_mk_ii": return presentationLookup.TryGetValue("weapon_ballistic_shotgun", out profile);
+                case "rf_weapon_chemical_flamethrower_mk_i": return presentationLookup.TryGetValue("weapon_flamethrower", out profile);
+                case "rf_weapon_chemical_flamethrower_mk_ii": return presentationLookup.TryGetValue("weapon_flamethrower", out profile);
+                case "rf_weapon_cluster_rocket": return presentationLookup.TryGetValue("weapon_rocket_launcher", out profile);
+                case "rf_weapon_corrosive_projector": return presentationLookup.TryGetValue("weapon_flamethrower", out profile);
+                case "rf_weapon_electromagnetic_machine_gun": return presentationLookup.TryGetValue("weapon_machine_gun", out profile);
+                case "rf_weapon_electromagnetic_rear_turret": return presentationLookup.TryGetValue("weapon_rear_auto_turret", out profile);
+                case "rf_weapon_emp_mine": return presentationLookup.TryGetValue("weapon_ballistic_mine", out profile);
+                case "rf_weapon_flechette_machine_gun": return presentationLookup.TryGetValue("weapon_ballistic_shotgun", out profile);
+                case "rf_weapon_guided_rocket_mk_i": return presentationLookup.TryGetValue("weapon_rocket_launcher", out profile);
+                case "rf_weapon_guided_rocket_mk_ii": return presentationLookup.TryGetValue("weapon_rocket_launcher", out profile);
+                case "rf_weapon_incendiary_mine": return presentationLookup.TryGetValue("weapon_ballistic_mine", out profile);
+                case "rf_weapon_laser_rear_turret": return presentationLookup.TryGetValue("weapon_rear_auto_turret", out profile);
+                case "rf_weapon_particle_railgun": return presentationLookup.TryGetValue("weapon_ballistic_railgun", out profile);
+                case "rf_weapon_penetrator_rocket": return presentationLookup.TryGetValue("weapon_rocket_launcher", out profile);
+                case "rf_weapon_plasma_flamethrower": return presentationLookup.TryGetValue("weapon_flamethrower", out profile);
+                case "rf_weapon_plasma_shotgun": return presentationLookup.TryGetValue("weapon_ballistic_shotgun", out profile);
+                case "rf_weapon_rear_auto_turret_mk_i": return presentationLookup.TryGetValue("weapon_rear_auto_turret", out profile);
+                case "rf_weapon_rear_auto_turret_mk_ii": return presentationLookup.TryGetValue("weapon_rear_auto_turret", out profile);
+                default: return false;
+            }
         }
 
 #endregion

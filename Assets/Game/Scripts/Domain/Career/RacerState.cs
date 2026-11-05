@@ -6,6 +6,15 @@ namespace RaceFatal.Career
 {
     public class RacerState
     {
+        private readonly Dictionary<string,float> hostility = new Dictionary<string,float>();
+        public IReadOnlyDictionary<string,float> Rivalries => hostility;
+        public float HostilityToward(string rival) => rival != null && hostility.TryGetValue(rival, out float value) ? value : 0f;
+        public void RecordHostility(string rival, float amount)
+        {
+            if (string.IsNullOrEmpty(rival) || rival == RacerId || !(amount > 0f)) return;
+            hostility[rival] = Math.Min(100f, HostilityToward(rival) + amount);
+        }
+
         public string RacerId { get; }
         public string DefinitionId { get; }
         public string Name { get; }

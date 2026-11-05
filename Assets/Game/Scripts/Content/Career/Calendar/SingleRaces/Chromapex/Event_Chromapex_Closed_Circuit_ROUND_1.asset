@@ -15,7 +15,7 @@ MonoBehaviour:
   id: event_chromapex_closed_circuit
   displayName: Event_Chromapex_Closed_Circuit
   track: {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
-  engineClass: 0
+  engineClass: 4
   lapCount: 3
   entrantCount: 12
   teamSize: 2

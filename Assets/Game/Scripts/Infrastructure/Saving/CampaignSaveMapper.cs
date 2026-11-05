@@ -164,6 +164,8 @@ namespace RaceFatal.Infrastructure.Saving
                     fame = racer.Progression.Fame
                 }
             };
+            foreach (var rival in racer.Rivalries)
+                data.rivalries.Add(new RivalrySaveData { racerId = rival.Key, hostility = rival.Value });
             foreach (string perkId in racer.Progression.PurchasedPerkIds)
             {
                 data.progression.purchasedPerkIds.Add(perkId);
@@ -368,7 +370,11 @@ namespace RaceFatal.Infrastructure.Saving
             }
 
             CharacterProgressionSaveData progression = data.progression ?? new CharacterProgressionSaveData();
-            return RacerState.Restore(data.racerId, data.name, data.teamId, data.isPlayerCharacter, status, data.racesEntered, data.racesWon, data.podiums, data.racersDestroyed, progression.fame, progression.purchasedPerkIds, data.definitionId);
+            var result = RacerState.Restore(data.racerId, data.name, data.teamId, data.isPlayerCharacter, status, data.racesEntered, data.racesWon, data.podiums, data.racersDestroyed, progression.fame, progression.purchasedPerkIds, data.definitionId);
+            if (result.IsSuccess && data.rivalries != null)
+                foreach (var rival in data.rivalries)
+                    if (rival != null) result.Value.RecordHostility(rival.racerId, rival.hostility);
+            return result;
         }
 
         private Result<CareerRun> RestoreCareerRun(CareerRunSaveData data, TeamState team)

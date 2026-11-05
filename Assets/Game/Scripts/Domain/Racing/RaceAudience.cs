@@ -14,6 +14,7 @@ namespace RaceFatal.Racing
         }
 
         private readonly Dictionary<string, Rival> rivals = new Dictionary<string, Rival>();
+        internal RaceFatal.Career.RacerPerkBonuses Perks { get; set; }
         private AudienceSettings settings = new AudienceSettings();
         private double elapsed, favorIntegral, lastCombat, lastHit = double.NegativeInfinity;
         private double lastImpact = double.NegativeInfinity, damageWindow;
@@ -145,6 +146,10 @@ namespace RaceFatal.Racing
             amount = AudienceSettings.Safe(amount);
             if (amount <= 0f)
                 return;
+            float showboat = Perks?.Bonus(RaceFatal.Career.RacerPerkEffect.Showboat) ?? 0f;
+            float celebrity = Perks?.Bonus(RaceFatal.Career.RacerPerkEffect.CombatCelebrity) ?? 0f;
+            amount *= action == "OVERTAKE" ? 1f + showboat - (celebrity > 0 ? .05f : 0f)
+                                          : 1f + celebrity - (showboat > 0 ? .05f : 0f);
             Favor = ClampFavor(Favor + amount);
             LastAction = action;
         }

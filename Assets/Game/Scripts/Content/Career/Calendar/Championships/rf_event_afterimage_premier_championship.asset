@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_afterimage_premier_championship
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_afterimage_premier_championship
+  displayName: Afterimage Premier Championship
+  description: Premier Championship / Class 1 / 5 rounds
+  kind: 1
+  fameEntryFee: 150
+  requiredFame: 200
+  entryFee: 7000
+  rounds:
+  - {fileID: 11400000, guid: 3835761af0987988bc6165bcfb0a2976, type: 2}
+  - {fileID: 11400000, guid: ed55c3a752e656fbf849bd4f9f40f675, type: 2}
+  - {fileID: 11400000, guid: dfad1c8f4598cb59037f24b20a5646d3, type: 2}
+  - {fileID: 11400000, guid: 8764f00635f9a8b8ced9ad240bb4b3ae, type: 2}
+  - {fileID: 11400000, guid: c6f453490313c5035065d5a3665a0679, type: 2}
+  racePayouts: f0550000273c0000f82a0000131e00007c150000e40c0000980800004c04000000000000000000000000000000000000
+  championshipPrizes: a00f0000d0070000e8030000
+  positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000
+  firstWeek: 1
+  firstDayOfWeek: 1
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1

@@ -21,6 +21,10 @@ namespace RaceFatal.Equipment
             var brand = BrandService.OwnerOf(perkDatabase, ShopItemKind.Equipment, item.Id);
             return brand==null?0f:TeamPerkCatalog.Bonus(ownerTeam,effect,brand.DisplayName);
         }
+        private readonly Dictionary<UtilityEffect, float> utilities = new Dictionary<UtilityEffect, float>();
+        public float Utility(UtilityEffect effect) => utilities.TryGetValue(effect, out float strength) ? strength : 0f;
+        public float LockDuration(WeaponDefinition weapon, RaceEquipmentSystem target) =>
+            weapon.TargetLockDuration * (1f - PlayerBonus(RacerPerkEffect.LockOnSpeed)) * (1f + (target?.Utility(UtilityEffect.Jammer) ?? 0f));
         private readonly EnergyPool energy;
         private readonly List<WeaponState> weapons = new List<WeaponState>();
         private readonly List<BoosterState> boosters = new List<BoosterState>();
@@ -37,7 +41,7 @@ namespace RaceFatal.Equipment
         {
             get { float total = 0f; foreach (var b in boosters)
                 {
-                    float saving=Math.Min(.20f,PlayerBonus(RacerPerkEffect.BoosterEfficiency)+BrandBonus(b.Definition,"BoosterEfficiency"));
+                    float saving=Math.Min(.20f,Utility(UtilityEffect.BoosterEfficiency)+PlayerBonus(RacerPerkEffect.BoosterEfficiency)+BrandBonus(b.Definition,"BoosterEfficiency"));
                     float strain=PlayerBonus(RacerPerkEffect.Overcharged)>0f?.06f:0f;
                     total+=b.Definition.EnergyPerSecond*(1f-saving+strain);
                 } return total; }
@@ -224,6 +228,14 @@ namespace RaceFatal.Equipment
                     return Result<RaceEquipmentSystem>.Failure($"Equipment definition '{equipment.EquipmentDefinitionId}' was not found.");
                 }
 
+                if (definition is RaceUtilityDefinition utility)
+                    system.utilities[utility.Effect] = Math.Max(system.Utility(utility.Effect), utility.Strength);
+            }
+            foreach (BikeNode node in loadout.Nodes)
+            {
+                if (!node.IsOccupied) continue;
+                var equipment = node.InstalledEquipment;
+                var definition = database.GetEquipmentDefinition(equipment.EquipmentDefinitionId);
                 Result<RaceEquipmentSystem> result = system.Register(equipment, definition);
                 if (!result.IsSuccess)
                 {
@@ -252,9 +264,10 @@ namespace RaceFatal.Equipment
 
                     Shield = new RaceShieldState(shield, energy,
                         BrandBonus(shield,"ShieldCapacity"),
-                        BrandBonus(shield,"ShieldRecharge"),
-                        PlayerBonus(RacerPerkEffect.ShieldDelay));
+                        BrandBonus(shield,"ShieldRecharge") + Utility(UtilityEffect.ShieldRecharge),
+                        PlayerBonus(RacerPerkEffect.ShieldDelay) + Utility(UtilityEffect.ShieldDelay));
                     return Result<RaceEquipmentSystem>.Success(this);
+                case RaceUtilityDefinition _:
                 case HandlingUtilityDefinition _:
                     return Result<RaceEquipmentSystem>.Success(this);
                 case CountermeasureDefinition countermeasure:
@@ -727,8 +740,8 @@ namespace RaceFatal.Equipment
                 return false;
             }
 
-            state.RemainingUses--;
-            state.CooldownRemaining = state.Definition.Cooldown;
+            if (state.Definition.UsesPerRace != int.MaxValue) state.RemainingUses--;
+            state.CooldownRemaining = state.Definition.Cooldown * (1f - Math.Min(.25f, PlayerBonus(RacerPerkEffect.CountermeasureCooldown) + BrandBonus(state.Definition, "DefensiveCooldown")));
             return true;
         }
 

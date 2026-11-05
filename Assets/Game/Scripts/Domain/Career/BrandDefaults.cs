@@ -22,6 +22,9 @@ namespace RaceFatal.Career
                 BrandCategory category = Category(database, offer);
                 int[] candidates = Owners(category);
                 int index = candidates[StableHash(offer.DefinitionId) % candidates.Length];
+                int marker = offer.DefinitionId.LastIndexOf("__m", StringComparison.Ordinal);
+                if (marker >= 0 && int.TryParse(offer.DefinitionId.Substring(marker + 3), out int supplier)
+                    && supplier >= 0 && supplier < Names.Length) index = supplier;
                 assigned[Id(index)].Add(new BrandProduct { Kind = offer.Kind, DefinitionId = offer.DefinitionId, BasicStock = false });
             }
             for (int i = 0; i < Names.Length; i++)
@@ -37,7 +40,7 @@ namespace RaceFatal.Career
                     new BrandContractTemplate { Id = "wins", Title = "Become the headline", Objective = BrandObjective.WinRaces, Target = 2, Credits = 5000, StandingReward = 60 }
                 };
                 foreach (var product in products)
-                    templates.Add(new BrandContractTemplate { Id = "stock_" + product.Key, Title = "Product endorsement / " + offers.First(o => o.Kind == product.Kind && o.DefinitionId == product.DefinitionId).DisplayName, Objective = BrandObjective.PodiumFinishes, Target = product.BasicStock ? 2 : 4, RequiredStanding = product.BasicStock ? 0 : 100, MinimumLifetimeFame = product.BasicStock ? 0 : 300, StandingReward = 60, RewardKind = product.BasicStock ? BrandRewardKind.FreeItem : BrandRewardKind.PurchaseAccess, ItemKind = product.Kind, ItemId = product.DefinitionId });
+                    templates.Add(new BrandContractTemplate { Id = "stock_" + product.Key, Title = "Product endorsement / " + offers.First(o => o.Kind == product.Kind && o.DefinitionId == product.DefinitionId).DisplayName, Objective = BrandObjective.PodiumFinishes, Target = product.BasicStock ? 2 : 4, RequiredStanding = product.DefinitionId.Contains("__exclusive") ? 650 : product.BasicStock ? 0 : 100, MinimumLifetimeFame = product.BasicStock ? 0 : 300, StandingReward = 60, RewardKind = product.BasicStock ? BrandRewardKind.FreeItem : BrandRewardKind.PurchaseAccess, ItemKind = product.Kind, ItemId = product.DefinitionId });
                 var races = database.RaceDefinitions.Values.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
                 if (races.Count > 0)
                 {

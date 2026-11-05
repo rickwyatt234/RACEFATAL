@@ -100,7 +100,7 @@ namespace RaceFatal.Presentation.Career
         private void CycleStartingPerk()
         {
             if (page != 3 || !CanChange()) return;
-            var eligible=context.Database.RacerPerkDefinitions.Values.Where(p=>RacerPerkCatalog.IsStarter(p.Id))
+            var eligible=context.Database.RacerPerkDefinitions.Values.Where(p=>RacerPerkCatalog.IsStarter(p))
                 .OrderBy(p=>p.Id,System.StringComparer.Ordinal).ToList();
             if (eligible.Count == 0) return;
             int index=eligible.FindIndex(p=>p.Id==Session.CareerRun.StartingPerkId);

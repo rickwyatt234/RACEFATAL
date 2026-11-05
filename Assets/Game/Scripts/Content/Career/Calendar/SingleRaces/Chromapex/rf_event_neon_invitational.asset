@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_neon_invitational
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_neon_invitational
+  displayName: Neon Invitational
+  description: Invitational / Class 3 / 1 round
+  kind: 3
+  requiredFame: 100
+  entryFee: 1050
+  rounds:
+  - {fileID: 11400000, guid: b8c855f73e43e501643933cc0a7bbafd, type: 2}
+  racePayouts: 36100000590b00001b080000ac0500000d0400006e0200009f010000cf00000000000000000000000000000000000000
+  championshipPrizes:
+  positionPoints:
+  firstWeek: 1
+  firstDayOfWeek: 1
+  repeatEveryWeeks: 5
+  roundSpacingDays: 1
+  starterOrder: 0

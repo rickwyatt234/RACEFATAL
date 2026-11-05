@@ -75,7 +75,7 @@ namespace RaceFatal.Presentation.Combat
                     pushDirection = motor.SteeringInput >= 0f ? transform.right : -transform.right;
                 }
 
-                otherMotor.ApplyExternalVelocityChange(pushDirection, impactPush);
+                otherMotor.ApplyExternalVelocityChange(pushDirection, impactPush * (1f - other.Participant.Vehicle.EquipmentSystem.Utility(RaceFatal.Equipment.UtilityEffect.Anchor)));
             }
 
             Vector3 contactPoint = collision.contactCount > 0 ? collision.GetContact(0).point : other.transform.position;

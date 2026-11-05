@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_spectral_premier_championship
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_spectral_premier_championship
+  displayName: Spectral Premier Championship
+  description: Premier Championship / Class 3 / 7 rounds
+  kind: 1
+  fameEntryFee: 150
+  requiredFame: 100
+  entryFee: 4200
+  rounds:
+  - {fileID: 11400000, guid: 3ab5e0ab1dc5dff401046a836042ae88, type: 2}
+  - {fileID: 11400000, guid: 53601c771369568390a73ae634321f99, type: 2}
+  - {fileID: 11400000, guid: b3c25c0bbd112e1ae663547df12c41e3, type: 2}
+  - {fileID: 11400000, guid: 1768e2c3f9efd66bac15aba13406cbcd, type: 2}
+  - {fileID: 11400000, guid: 2f45b0328653213d54d58741d712799e, type: 2}
+  - {fileID: 11400000, guid: 03b78a656b18ad56590f2ffc986b96a4, type: 2}
+  - {fileID: 11400000, guid: ad64f35a2fbfe6e5238ba3278d66cd3f, type: 2}
+  racePayouts: 2035000030250000901a000098120000480d0000f807000050050000a802000000000000000000000000000000000000
+  championshipPrizes: a00f0000d0070000e8030000
+  positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000
+  firstWeek: 1
+  firstDayOfWeek: 3
+  repeatEveryWeeks: 6
+  roundSpacingDays: 1

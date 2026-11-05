@@ -75,6 +75,7 @@ namespace RaceFatal.Racing
             ElapsedRaceTime = 0f;
             state.StartRace();
             audiencePlayer = FindPlayerParticipant();
+            Audience.Perks = audiencePlayer?.Perks;
             foreach (RaceParticipant participant in state.Participants)
                 participant.Racer.RecordRaceEntered();
         }
@@ -223,6 +224,8 @@ namespace RaceFatal.Racing
             DamageEvent damageEvent = new DamageEvent(attackerRacerId, victimRacerId, resolution.IncomingDamage, resolution.ShieldAbsorbed, resolution.BikeDamage, cause, impactSide, shieldDepleted, resolution.CausedDestruction);
             if (attacker != null && attacker == audiencePlayer && attacker != victim && (state.Deathmatch?.Mode == DeathmatchVictoryMode.Individual || attacker.TeamId != victim.TeamId) && (cause == DamageCause.Weapon || cause == DamageCause.Collision))
                 Audience.RecordDamage(damageEvent, isRamAttack);
+            if (attacker != null && attacker.TeamId != victim.TeamId)
+                victim.Racer.RecordHostility(attacker.RacerId, resolution.BikeDamage * .12f + resolution.ShieldAbsorbed * .025f);
             DamageApplied?.Invoke(damageEvent);
             if (resolution.CausedDestruction)
             {

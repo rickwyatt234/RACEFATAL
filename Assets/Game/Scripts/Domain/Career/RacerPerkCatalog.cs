@@ -46,6 +46,9 @@ namespace RaceFatal.Career
                 if (database.GetRacerPerkDefinition(perk.Id) == null)
                     database.AddRacerPerkDefinition(perk);
         }
+        public static bool IsStarter(RacerPerkDefinition perk) =>
+            perk != null && (IsStarter(perk.Id) || (perk.Effect == RacerPerkEffect.EnergyCapacity && perk.FameCost <= 150 && perk.Strength > 0));
+
         public static bool IsStarter(string id)
         {
             var definition = Array.Find((RacerPerkDefinition[])Definitions, p => p.Id == id);

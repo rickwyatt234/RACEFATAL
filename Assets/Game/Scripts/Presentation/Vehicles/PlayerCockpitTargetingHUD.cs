@@ -438,7 +438,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            lockState.TrackCandidate(selectedTarget, Time.deltaTime, weapon.TargetLockDuration);
+            lockState.TrackCandidate(selectedTarget, Time.deltaTime, equipment.LockDuration(weapon, selectedTarget.Participant?.Vehicle?.EquipmentSystem));
             UpdateTargetingAudio();
             PositionAtHudUv(rocketReticle, selectedCandidate.HudUv, Vector2.zero);
             ShowTargeting();

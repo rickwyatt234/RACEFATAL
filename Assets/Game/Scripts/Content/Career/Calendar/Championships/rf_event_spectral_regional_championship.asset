@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19e53bdc4ded46f0a9736950bb941bab, type: 3}
+  m_Name: rf_event_spectral_regional_championship
+  m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.CareerEventDefinitionSO
+  id: rf_event_spectral_regional_championship
+  displayName: Spectral Regional Championship
+  description: Regional Championship / Class 4 / 4 rounds
+  kind: 1
+  fameEntryFee: 150
+  requiredFame: 50
+  entryFee: 700
+  rounds:
+  - {fileID: 11400000, guid: f39f209894e2a57e37a3678f9094d5bf, type: 2}
+  - {fileID: 11400000, guid: 2ed2b732392859d9f2e81fa1dd98f51b, type: 2}
+  - {fileID: 11400000, guid: 2bc3ed816377accef02e0ffc81484669, type: 2}
+  - {fileID: 11400000, guid: 54efd35b29caafcc4212cd41b793ebab, type: 2}
+  racePayouts: 1c0c00007a0800000e0600003d04000007030000d1010000360100009b00000000000000000000000000000000000000
+  championshipPrizes: a00f0000d0070000e8030000
+  positionPoints: 19000000120000000f0000000c0000000a00000008000000060000000500000004000000030000000200000001000000
+  firstWeek: 1
+  firstDayOfWeek: 4
+  repeatEveryWeeks: 4
+  roundSpacingDays: 1

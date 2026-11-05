@@ -16,6 +16,8 @@ namespace RaceFatal.Racing
         public EnergyPool EnergyPool { get; }
         public RaceEquipmentSystem EquipmentSystem { get; }
 
+        private float hardlight, hardlightSeconds;
+        private bool hardlightUsed;
         private float temporaryHandlingMultiplier = 1f;
         public float TemporaryHandlingMultiplier
         {
@@ -48,20 +50,30 @@ namespace RaceFatal.Racing
                 return new DamageResolution(incomingDamage: 0f, shieldAbsorbed: 0f, bikeDamage: 0f, causedDestruction: false);
             }
 
-            float remainingDamage = EquipmentSystem.AbsorbDamage(incomingDamage);
+            float temporaryAbsorbed = Math.Min(hardlight, incomingDamage);
+            hardlight -= temporaryAbsorbed;
+            float remainingDamage = EquipmentSystem.AbsorbDamage(incomingDamage - temporaryAbsorbed);
             float shieldAbsorbed = incomingDamage - remainingDamage;
+            EnergyPool.Recharge((shieldAbsorbed - temporaryAbsorbed) * EquipmentSystem.Utility(UtilityEffect.DamageConverter));
             if (cause == DamageCause.Collision)
                 remainingDamage *= (1f - Performance.ImpactResistance) * (1f - Math.Min(.15f, Perks?.Bonus(RacerPerkEffect.ImpactDefense) ?? 0f));
             if (Damage.CurrentIntegrity <= Performance.MaxIntegrity * .25f)
                 remainingDamage *= 1f - Math.Min(.15f, Perks?.Bonus(RacerPerkEffect.IronWill) ?? 0f);
             bool wasDestroyed = Damage.IsDestroyed;
             float bikeDamage = Damage.ApplyDamage(remainingDamage);
+            if (!hardlightUsed && !Damage.IsDestroyed && Damage.CurrentIntegrity < Performance.MaxIntegrity * .25f)
+            {
+                hardlight = EquipmentSystem.Utility(UtilityEffect.Hardlight);
+                if (hardlight > 0f) { hardlightUsed = true; hardlightSeconds = 3f; }
+            }
             bool destroyedNow = !wasDestroyed && Damage.IsDestroyed;
             return new DamageResolution(incomingDamage: incomingDamage, shieldAbsorbed: shieldAbsorbed, bikeDamage: bikeDamage, causedDestruction: destroyedNow);
         }
 
         internal void Tick(float deltaTime)
         {
+            hardlightSeconds -= deltaTime;
+            if (hardlightSeconds <= 0f) hardlight = 0f;
             if (EquipmentSystem.Shield != null)
                 EquipmentSystem.Shield.EmergencyRechargeMultiplier = Damage.CurrentIntegrity < Performance.MaxIntegrity*.35f
                     ? 1f + Math.Min(.2f,Perks?.Bonus(RacerPerkEffect.LowIntegrityShieldRecharge) ?? 0f):1f;
@@ -75,7 +87,7 @@ namespace RaceFatal.Racing
 
         internal float RechargeEnergy(float amount)
         {
-            return EnergyPool.Recharge(amount * (1f + Math.Min(.2f, Perks?.Bonus(RacerPerkEffect.EnergyRegeneration) ?? 0f)));
+            return EnergyPool.Recharge(amount * (1f + Math.Min(.2f, (Perks?.Bonus(RacerPerkEffect.EnergyRegeneration) ?? 0f) + EquipmentSystem.Utility(UtilityEffect.Recovery))));
         }
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: DEV_EVENT_5_ROUND_1
   displayName: Open Circuit 5 - Round 1
   track: {fileID: 11400000, guid: b8240a3dd6581a6439aa0be3ea32c6d4, type: 2}
-  engineClass: 0
+  engineClass: 4
   lapCount: 1
   entrantCount: 12
   teamSize: 2

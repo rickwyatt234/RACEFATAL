@@ -14,10 +14,17 @@ namespace RaceFatal.Presentation.Tracks
         public TrackProgressPath ProgressPath => progressPath;
         public int GridSlotCount => gridSlots.Count;
 
+        internal void ConfigureGenerated(TrackProgressPath path, LapLineTrigger line, List<Transform> slots)
+        {
+            progressPath = path;
+            lapLine = line;
+            gridSlots = slots;
+        }
+
         public bool Initialize(RaceRuntimeController raceRuntime)
         {
             runtime = raceRuntime;
-            if (pathBuilder == null)
+            if (pathBuilder == null && (progressPath == null || progressPath.SampleCount == 0))
             {
                 Debug.LogError("TrackRuntimeController requires a " + "TrackPathBuilder.", this);
                 return false;
@@ -29,7 +36,7 @@ namespace RaceFatal.Presentation.Tracks
                 return false;
             }
 
-            if (!pathBuilder.Build())
+            if (pathBuilder != null && !pathBuilder.Build())
             {
                 Debug.LogError("The circuit progress path could not be built.", this);
                 return false;

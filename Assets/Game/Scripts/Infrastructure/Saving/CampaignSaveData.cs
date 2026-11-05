@@ -55,6 +55,13 @@ namespace RaceFatal.Infrastructure.Saving
     }
 
     [Serializable]
+    public class RivalrySaveData
+    {
+        public string racerId;
+        public float hostility;
+    }
+
+    [Serializable]
     public class RacerSaveData
     {
         public string racerId;
@@ -67,6 +74,7 @@ namespace RaceFatal.Infrastructure.Saving
         public int racesWon;
         public int podiums;
         public int racersDestroyed;
+        public List<RivalrySaveData> rivalries = new List<RivalrySaveData>();
         public CharacterProgressionSaveData progression = new CharacterProgressionSaveData();
     }
 
