@@ -1,3 +1,6 @@
+using System.Linq;
+using RaceFatal.Career;
+using RaceFatal.Presentation.Bootstrap;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,10 +53,32 @@ namespace RaceFatal.Presentation.FrontEnd
         }
 
         [SerializeField] private TMP_Text startingInfo;
+        private GameSessionState preview;
+        private bool busy;
+
+        private void Update()
+        {
+            if (busy || preview?.CareerRun == null) return;
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { frontEnd.CycleStartingBike(-1); return; }
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Period)) { frontEnd.CycleStartingBike(1); return; }
+            int step = UnityEngine.Input.GetKeyDown(KeyCode.RightBracket) ? 1 :
+                UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket) ? -1 : 0;
+            if (step == 0) return;
+            var context = BootstrapController.Context;
+            var perks = context.Database.RacerPerkDefinitions.Values.Where(p => RacerPerkCatalog.IsStarter(p))
+                .OrderBy(p => p.Id, System.StringComparer.Ordinal).ToList();
+            if (perks.Count == 0) return;
+            int current = perks.FindIndex(p => p.Id == preview.CareerRun.StartingPerkId);
+            var next = perks[(current + step + perks.Count) % perks.Count];
+            var result = context.Sessions.ChangeStartingPerk(preview, next.Id);
+            if (!result.IsSuccess) { SetStatus(result.ErrorMessage); return; }
+            PresentStartingInfo(preview, context.Database);
+        }
         public void PresentStartingInfo(RaceFatal.Career.GameSessionState session, RaceFatal.Data.GameDatabase database)
         {
+            preview = session;
             if (startingInfo != null)
-                startingInfo.text = RaceFatal.Presentation.Career.CareerSuccessionView.BuildStartingSummary(session, database);
+                startingInfo.text = "COMMA / PERIOD  SELECT BIKE     [ / ]  SELECT STARTING PERK\n\n" + RaceFatal.Presentation.Career.CareerSuccessionView.BuildStartingSummary(session, database);
         }
 
 #if UNITY_EDITOR
@@ -70,6 +95,7 @@ namespace RaceFatal.Presentation.FrontEnd
 #endif
         public void SetBusy(bool busy)
         {
+            this.busy = busy;
             if (confirmButton != null)
             {
                 confirmButton.interactable = !busy;

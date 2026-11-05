@@ -37,7 +37,8 @@ namespace RaceFatal.Career
             var available = templates.ToList();
             for (int i = 0; i < ContractsPerBox; i++)
             {
-                if (available.Count == 0) available.AddRange(templates);
+                if (available.Count == 0) available.AddRange(templates.Where(t => t.RewardKind != BrandRewardKind.TeamPerk));
+                if (available.Count == 0) break;
                 int index = random.Next(available.Count); var template = available[index]; available.RemoveAt(index);
                 var contract = new BrandContract { instanceId = Guid.NewGuid().ToString("N"), brandId = brand.Id, terms = template.Copy() };
                 acquired.Add(contract); receipt.contractIds.Add(contract.instanceId);
@@ -46,7 +47,7 @@ namespace RaceFatal.Career
             team.Brands.Discover(brand.Id); team.Brands.contracts.AddRange(acquired); team.Brands.pendingReveal = receipt;
             return Result<BrandBoxReceipt>.Success(receipt);
         }
-        private static bool Eligible(TeamState team, string brandId, BrandContractTemplate terms) => (terms.RewardKind != BrandRewardKind.TeamPerk || !team.HasTeamPerk(terms.ItemId)) && team.LifetimeFame >= terms.MinimumLifetimeFame && (team.Brands.Find(brandId)?.standing ?? 0) >= terms.RequiredStanding;
+        private static bool Eligible(TeamState team, string brandId, BrandContractTemplate terms) => (terms.RewardKind != BrandRewardKind.TeamPerk || !team.HasTeamPerk(terms.ItemId) && !team.Brands.contracts.Any(c => !c.claimed && c.terms.RewardKind == BrandRewardKind.TeamPerk && c.terms.ItemId == terms.ItemId)) && team.LifetimeFame >= terms.MinimumLifetimeFame && (team.Brands.Find(brandId)?.standing ?? 0) >= terms.RequiredStanding;
         public Result SetActive(TeamState team, string instanceId, bool active)
         {
             var c = team?.Brands.contracts.FirstOrDefault(x => x.instanceId == instanceId);

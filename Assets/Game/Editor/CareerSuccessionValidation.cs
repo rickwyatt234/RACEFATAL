@@ -68,7 +68,7 @@ public static class CareerSuccessionValidation
         player = sessions.Current.CareerRun.Player;
         var fatal = new RaceResult("race", new[] { new RaceResultEntry(player.RacerId, team.TeamId, 1, 1, RaceParticipantStatus.Destroyed), new RaceResultEntry(partner.RacerId, team.TeamId, 2, 2, RaceParticipantStatus.Finished) }, "fatal-attempt");
         manager.ResolvePostRace(fatal, player);
-        Require(team.Calendar.Week == 8 && team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn, "Fatal results settle before succession and close championship");
+        Require(team.Calendar.Week == 8 && team.Calendar.Active?.roundIndex == 1, "Fatal round settles once and preserves the remaining championship");
         Require(saves.SaveCurrentCampaign().IsSuccess, "Save death");
         Reload(saves);
         var summary = saves.GetSlotSummary(TestSlot).Value;
@@ -85,7 +85,8 @@ public static class CareerSuccessionValidation
         repository.ThrowOnSave = false;
         int credits = sessions.Current.PlayerTeam.Credits;
         int fame = sessions.Current.PlayerTeam.Fame;
-        Require(saves.StartSuccessor("  Successor  ").IsSuccess, "Create successor and recovery bike");
+        var succession = saves.StartSuccessor("  Successor  ", false);
+        Require(succession.IsSuccess, "Create successor and withdraw: " + succession.ErrorMessage);
         var next = sessions.Current.CareerRun.Player;
         string nextId = next.RacerId;
         team = sessions.Current.PlayerTeam;
@@ -95,7 +96,7 @@ public static class CareerSuccessionValidation
         var old = team.Roster.FindRacer("original");
         Require(old.Status == RacerCareerStatus.Dead && old.RacesWon == 1 && old.RacesEntered == 1, "Previous career history remains permanent");
         manager.ResolvePostRace(fatal, old);
-        Require(team.Credits == credits && team.Calendar.Week == 8, "Old result cannot pay again after succession");
+        Require(team.Credits == credits && team.Calendar.LastEvent.withdrawn, "Old result cannot pay again after succession");
         Require(!saves.StartSuccessor("Duplicate").IsSuccess, "No repeated successor or kit");
         Reload(saves);
         Require(sessions.Current.CareerRun.Player.RacerId == nextId && sessions.Current.PlayerTeam.Garage.Bikes.Count == 2, "Successor and original garage survive reload");

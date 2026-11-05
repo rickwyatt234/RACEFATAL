@@ -20,10 +20,12 @@ namespace RaceFatal.Presentation.Combat
         private BoxCollider trigger;
         private Light warningLight;
         private Material visualMaterial;
+        private System.Action<RacerViewController> onHit;
         private bool initialized;
         private bool detonated;
-        public void Initialize(RaceRuntimeController raceRuntime, WeaponPresentationProfile presentation, string attackerId, float mineDamage, float radius, float armingDelay, float lifetime)
+        public void Initialize(RaceRuntimeController raceRuntime, WeaponPresentationProfile presentation, string attackerId, float mineDamage, float radius, float armingDelay, float lifetime, System.Action<RacerViewController> hitEffect = null)
         {
+            onHit = hitEffect;
             runtime = raceRuntime;
             profile = presentation;
             attackerRacerId = attackerId;
@@ -97,6 +99,7 @@ namespace RaceFatal.Presentation.Combat
                     continue;
                 }
 
+                onHit?.Invoke(victim);
                 runtime?.Director?.ApplyDamage(attackerRacerId, victim.RacerId, damage, DamageCause.Weapon);
             }
 

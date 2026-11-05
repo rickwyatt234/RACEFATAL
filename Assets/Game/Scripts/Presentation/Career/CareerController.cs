@@ -186,7 +186,7 @@ namespace RaceFatal.Presentation.Career
                 return;
             }
 
-            string raceId = calendar.NextRaceId(context.Sessions.Current.PlayerTeam, eventId);
+            string raceId = calendar.NextRaceId(context.Sessions.Current.PlayerTeam, eventId, occurrenceDay);
             if (string.IsNullOrEmpty(raceId))
             {
                 ShowError("The event has no playable round.");

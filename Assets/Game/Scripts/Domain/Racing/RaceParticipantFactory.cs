@@ -49,7 +49,14 @@ namespace RaceFatal.Racing
             float EngineBonus(string effect) => engineBrand == null ? 0f : TeamPerkCatalog.Bonus(team,effect,engineBrand.DisplayName);
             float ChassisBonus(string effect) => chassisBrand == null ? 0f : TeamPerkCatalog.Bonus(team,effect,chassisBrand.DisplayName);
             var basePerformance = performanceResult.Value;
-            float capacity = basePerformance.EnergyCapacity * (1f + System.Math.Min(.20f, perks.Bonus(RacerPerkEffect.EnergyCapacityPercent) + EngineBonus("EnergyCapacityPercent"))) + perks.EnergyCapacity;
+            float sponsoredCapacity = 0f;
+            foreach (var node in bike.Loadout.Nodes)
+            {
+                if (!node.IsOccupied || !(database.GetEquipmentDefinition(node.InstalledEquipment.EquipmentDefinitionId) is BoosterDefinition booster)) continue;
+                var supplier = BrandService.OwnerOf(database, ShopItemKind.Equipment, booster.Id);
+                if (supplier != null) sponsoredCapacity += booster.EnergyCapacity * TeamPerkCatalog.Bonus(team, "EnergyCapacityPercent", supplier.DisplayName);
+            }
+            float capacity = sponsoredCapacity + basePerformance.EnergyCapacity * (1f + System.Math.Min(.20f, perks.Bonus(RacerPerkEffect.EnergyCapacityPercent))) + perks.EnergyCapacity;
             var energy = new EnergyPool(System.Math.Max(0f, capacity));
             Result<RaceEquipmentSystem> equipmentResult = RaceEquipmentSystem.Create(racer.RacerId, bike.Loadout, database, energy, perks, team);
             if (!equipmentResult.IsSuccess)

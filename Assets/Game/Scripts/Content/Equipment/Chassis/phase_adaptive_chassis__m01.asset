@@ -21,4 +21,4 @@ MonoBehaviour:
   leanResponseMultiplier: 1
   stabilityMultiplier: 1.25
   impactResistance: 0.08
-  creditCost: 1
+  creditCost: 1584

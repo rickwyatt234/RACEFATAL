@@ -43,7 +43,7 @@ namespace RaceFatal.Racing
                 return Result<bool>.Failure("Bike does not have an engine.");
             }
 
-            if (bike.EngineClass.Value != raceDefinition.EngineClass)
+            if (!GarageState.IsClassEligible(bike.EngineClass, raceDefinition.EngineClass))
             {
                 return Result<bool>.Failure($"Bike engine class {bike.EngineClass.Value} does not match required engine class {raceDefinition.EngineClass}.");
             }

@@ -101,6 +101,9 @@ namespace RaceFatal.Presentation.Vehicles
         [Header("Diagnostics")] [SerializeField] private bool logMissingSurface = true;
 #endregion
 #region Runtime
+        private RaceFatal.Presentation.Racing.RacerViewController racer;
+        private float Perk(RaceFatal.Career.RacerPerkEffect effect) => racer?.Participant?.Perks.Bonus(effect) ?? 0f;
+        private int racerMask;
         private Rigidbody body;
         private TrackSurfaceProbe surfaceProbe;
         private BikePerformance performance;
@@ -149,6 +152,8 @@ namespace RaceFatal.Presentation.Vehicles
 #region Unity
         private void Awake()
         {
+            racer = GetComponent<RaceFatal.Presentation.Racing.RacerViewController>();
+            racerMask = LayerMask.GetMask("Racer");
             body = GetComponent<Rigidbody>();
             surfaceProbe = GetComponent<TrackSurfaceProbe>();
             body.useGravity = false;
@@ -441,6 +446,12 @@ namespace RaceFatal.Presentation.Vehicles
             if (throttleInput > 0f && forwardSpeed < maximumSpeed)
             {
                 float acceleration = performance.Acceleration * accelerationMultiplier;
+                float draft = Perk(RaceFatal.Career.RacerPerkEffect.SlipstreamAcceleration);
+                if (draft > 0f && Physics.Raycast(transform.position + forward * 2.5f, forward, out var hit, 20f, racerMask, QueryTriggerInteraction.Ignore) &&
+                    hit.collider.attachedRigidbody != body && Vector3.Dot(hit.collider.transform.forward, forward) > .8f)
+                    acceleration *= 1f + draft;
+                if (racer?.Participant?.Perks.Has(RaceFatal.Career.RacerPerkEffect.IronWill) == true &&
+                    racer.Participant.Vehicle.Damage.CurrentIntegrity < performance.MaxIntegrity * .25f) acceleration *= .95f;
                 body.AddForce(forward * acceleration * throttleInput, ForceMode.Acceleration);
             }
 
@@ -460,7 +471,7 @@ namespace RaceFatal.Presentation.Vehicles
             Vector3 planarVelocity = Vector3.ProjectOnPlane(body.linearVelocity, surfaceNormal);
             if (planarVelocity.sqrMagnitude < 0.001f)
                 return;
-            body.AddForce(-planarVelocity.normalized * brakeDeceleration * brakeInput, ForceMode.Acceleration);
+            body.AddForce(-planarVelocity.normalized * brakeDeceleration * (1f + Perk(RaceFatal.Career.RacerPerkEffect.LateBraking)) * brakeInput, ForceMode.Acceleration);
         }
 
 #endregion
@@ -477,6 +488,9 @@ namespace RaceFatal.Presentation.Vehicles
             right.Normalize();
             float lateralSpeed = Vector3.Dot(body.linearVelocity, right);
             float effectiveGrip = lateralGrip * performance.StabilityMultiplier * Mathf.Clamp(performance.ConfiguredHandling * handlingMultiplier, 0.1f, 3f);
+            effectiveGrip *= 1f + Mathf.Abs(steeringInput) * Perk(RaceFatal.Career.RacerPerkEffect.CorneringStability);
+            if (Mathf.Abs(forward.y) > .35f) effectiveGrip *= 1f + Perk(RaceFatal.Career.RacerPerkEffect.DescentStability);
+            if (brakeInput > .7f && Perk(RaceFatal.Career.RacerPerkEffect.LateBraking) > 0f) effectiveGrip *= .97f;
             float lateralAcceleration = -lateralSpeed * effectiveGrip;
             lateralAcceleration = Mathf.Clamp(lateralAcceleration, -maximumLateralGripAcceleration, maximumLateralGripAcceleration);
             body.AddForce(right * lateralAcceleration, ForceMode.Acceleration);

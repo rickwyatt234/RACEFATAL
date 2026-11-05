@@ -21,8 +21,11 @@ namespace RaceFatal.Infrastructure.Saving
         }
 
         public Result PurchaseShopItem(ShopItemKind kind, string id) => SaveCareerTransition(() => sessions.PurchaseShopItem(kind, id));
+        public Result ResolveCareerIncident(int choice) => SaveCareerTransition(() =>
+            CareerIncidentService.Resolve(sessions.Current.PlayerTeam, choice) != null ?
+                Result.Success() : Result.Failure("The incident is no longer pending."));
         public Result RecoverTeam(string signature) => SaveCareerTransition(() => sessions.RecoverTeam(signature));
-        public Result StartSuccessor(string name) => SaveCareerTransition(() => sessions.StartSuccessor(name));
+        public Result StartSuccessor(string name, bool continueChampionship = true) => SaveCareerTransition(() => sessions.StartSuccessor(name, continueChampionship));
         public Result AcknowledgeNewRacer() => SaveCareerTransition(sessions.AcknowledgeNewRacer);
         public Result RetirePlayer() => SaveCareerTransition(sessions.RetirePlayer);
         private Result SaveCareerTransition(Func<Result> transition)

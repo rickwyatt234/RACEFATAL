@@ -33,8 +33,8 @@ MonoBehaviour:
   armingDelay: 0.45
   lifetime: 300
   exposureDuration: 0
-  effectDuration: 0
-  statusDamagePerSecond: 0
+  effectDuration: 3
+  statusDamagePerSecond: 6
   lateralDistance: 0
   dashDuration: 0
   impactPush: 0

@@ -54,21 +54,37 @@ namespace RaceFatal.Career
             if(team==null || team.PendingIncidentId!=null || CareerIncidentCatalog.Find(incidentId)==null)return false;
             return team.QueueIncident(incidentId);
         }
+        public static void ConsiderAfterRace(TeamState team, string instanceId)
+        {
+            if (team.PendingIncidentId != null || team.Calendar.Active != null) return;
+            uint roll = Roll(instanceId, team.Calendar.Data.seed);
+            if (roll % 7 == 0) Queue(team, CareerIncidentCatalog.All[(int)((roll / 7) % (uint)CareerIncidentCatalog.All.Count)].Id);
+        }
+
+        private static uint Roll(string key, int seed)
+        {
+            uint value = unchecked((uint)seed + 2166136261u);
+            foreach (char c in key) value = unchecked((value ^ c) * 16777619u);
+            return value;
+        }
+
         public static CareerIncidentResult Resolve(TeamState team,int choiceIndex)
         {
             if(team==null || team.PendingIncidentId==null || choiceIndex<0 || choiceIndex>2)return null;
             string id=team.PendingIncidentId;
-            // Debug only. No random reward rerolls and no free bankruptcy rescues.
-            int credits=choiceIndex==0?1000:choiceIndex==1?-Math.Min(team.Credits,500):0;
-            if(credits>0)
-            {
-                if((long)team.Credits+credits>int.MaxValue)return null;
-                team.AddCredits(credits);
-            }
-            else if(credits<0 && !team.TrySpendCredits(-credits))return null;
-            var result=new CareerIncidentResult(id,choiceIndex,
-                choiceIndex==0?CareerIncidentOutcome.CreditGain:choiceIndex==1?CareerIncidentOutcome.CreditLoss:CareerIncidentOutcome.NoEffect,
-                credits,0);
+            uint roll = Roll(id + "/" + choiceIndex, team.Calendar.Data.seed ^ team.SettledRaceResults.Count);
+            int chance = (int)(roll % 100);
+            int credits = choiceIndex == 0 ? (chance < 55 ? 1000 : -500)
+                : choiceIndex == 1 ? (chance < 75 ? 400 : -150) : 0;
+            int fame = choiceIndex == 2 && chance < 60 ? 25 : 0;
+            credits = Math.Max(-team.Credits, Math.Min(int.MaxValue - team.Credits, credits));
+            fame = Math.Min(int.MaxValue - team.LifetimeFame, fame);
+            if (credits > 0) team.AddCredits(credits);
+            else if (credits < 0) team.TrySpendCredits(-credits);
+            if (fame > 0) team.AddFame(fame);
+            var outcome = credits > 0 ? CareerIncidentOutcome.CreditGain : credits < 0 ? CareerIncidentOutcome.CreditLoss :
+                fame > 0 ? CareerIncidentOutcome.FameGain : CareerIncidentOutcome.NoEffect;
+            var result = new CareerIncidentResult(id, choiceIndex, outcome, credits, fame);
             team.ResolveIncident(id);
             return result;
         }

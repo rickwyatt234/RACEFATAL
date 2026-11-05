@@ -31,7 +31,7 @@ static class Program
         Check(CareerIncidentService.Queue(team,"EVENT_001"),"Queue debug incident");
         Check(!CareerIncidentService.Queue(team,"EVENT_002"),"Cannot replace an unresolved incident");
         var outcome=CareerIncidentService.Resolve(team,0);
-        Check(outcome!=null && team.Credits==1000 && team.PendingIncidentId==null,"Resolve once");
+        Check(outcome!=null && team.Credits==outcome.CreditDelta && team.PendingIncidentId==null,"Resolve once");
         Check(CareerIncidentService.Resolve(team,0)==null,"Incident cannot resolve twice");
         Console.WriteLine("PASS: approved content catalogs and perk/incident state");
     }

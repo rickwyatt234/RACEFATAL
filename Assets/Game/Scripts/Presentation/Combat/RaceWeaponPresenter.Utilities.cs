@@ -67,7 +67,7 @@ namespace RaceFatal.Presentation.Combat
                     (!player || UnityEngine.Input.GetKeyDown(siphonKey)))
                 {
                     state.SiphonTarget = nearest;
-                    state.SiphonEnds = Time.time + 4f;
+                    state.SiphonEnds = Time.time + 4f * (1f + equipment.UtilityBrandBonus(UtilityEffect.Siphon, "DisruptionDuration"));
                     state.SiphonReady = Time.time + 12f * cooldownScale;
                 }
                 if (state.SiphonTarget != null)
@@ -79,7 +79,7 @@ namespace RaceFatal.Presentation.Combat
                     else
                     {
                         var pool = racer.Vehicle.EnergyPool;
-                        float rate = equipment.Utility(UtilityEffect.Siphon) * (1f + racer.Perks.Bonus(RacerPerkEffect.SiphonStrength));
+                        float rate = equipment.Utility(UtilityEffect.Siphon) * (1f + racer.Perks.Bonus(RacerPerkEffect.SiphonStrength) + equipment.UtilityBrandBonus(UtilityEffect.Siphon, "SiphonStrength"));
                         float amount = Mathf.Min(rate * Time.deltaTime, pool.MaxEnergy - pool.CurrentEnergy);
                         pool.Recharge(victim.Vehicle.EnergyPool.SpendUpTo(amount));
                     }

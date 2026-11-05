@@ -45,13 +45,15 @@ namespace RaceFatal.Presentation.Racing
                 return;
             }
 
+            var missing = new List<BikeNode>();
+            var used = new HashSet<BikeEquipmentMountBinding>();
             foreach (BikeNode node in participant.Bike.Loadout.Nodes)
             {
                 if (!node.IsOccupied)
                     continue;
                 if (!equipmentLayout.TryGetMount(node.NodeSize, node.Index, out BikeEquipmentMountBinding mount))
                 {
-                    Debug.LogWarning($"Bike '{participant.Bike.BikeDefinitionId}' " + $"has equipment installed in " + $"{node.NodeSize} {node.Index}, but its prefab " + $"does not define that physical mount.", this);
+                    missing.Add(node);
                     continue;
                 }
 
@@ -62,6 +64,18 @@ namespace RaceFatal.Presentation.Racing
                 }
 
                 equipmentMounts[node.InstalledEquipment.EquipmentId] = mount;
+                used.Add(mount);
+            }
+            // The shared prototype mesh has six hardpoints. Preserve authored
+            // matches first, then use spare transforms for the model-specific layouts.
+            foreach (var node in missing)
+            {
+                foreach (var mount in equipmentLayout.Mounts)
+                {
+                    if (mount == null || mount.EquipmentOrigin == null || !used.Add(mount)) continue;
+                    equipmentMounts[node.InstalledEquipment.EquipmentId] = mount;
+                    break;
+                }
             }
         }
 

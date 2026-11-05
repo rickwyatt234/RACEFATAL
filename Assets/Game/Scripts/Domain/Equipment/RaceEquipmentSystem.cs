@@ -15,6 +15,15 @@ namespace RaceFatal.Equipment
         private TeamState ownerTeam;
         private GameDatabase perkDatabase;
         private float PlayerBonus(RacerPerkEffect effect) => racerPerks?.Bonus(effect) ?? 0f;
+        public float UtilityBrandBonus(UtilityEffect effect, string perk)
+        {
+            return utilityBrands.TryGetValue(effect, out var definition) ? BrandBonus(definition, perk) : 0f;
+        }
+        private readonly Dictionary<UtilityEffect, RaceUtilityDefinition> utilityBrands = new Dictionary<UtilityEffect, RaceUtilityDefinition>();
+        public float BoosterRecoveryBonus
+        {
+            get { float bonus = 0f; foreach (var b in boosters) bonus = Math.Max(bonus, BrandBonus(b.Definition,"EnergyRegeneration")); return bonus; }
+        }
         private float BrandBonus(EquipmentDefinition item, string effect)
         {
             if (ownerTeam == null || item == null || perkDatabase == null) return 0f;
@@ -34,7 +43,9 @@ namespace RaceFatal.Equipment
         private bool weaponsAllowed = true;
         public RaceShieldState Shield { get; private set; }
         public bool BoostAllowed => boostAllowed;
-        public bool WeaponsAllowed => weaponsAllowed;
+        private float disruptedSeconds;
+        public bool WeaponsAllowed => weaponsAllowed && disruptedSeconds <= 0f;
+        public void DisruptWeapons(float seconds) => disruptedSeconds = Math.Max(disruptedSeconds, seconds);
         public bool AutomaticWeaponsAllowed { get; set; } = true;
         public float WeaponReserveRatio { get; set; }
         public float BoostEnergyPerSecond
@@ -50,9 +61,14 @@ namespace RaceFatal.Equipment
         {
             get { float total = 0f; foreach (var b in boosters) total += b.Definition.CapacityStrainPerSecond; return total; }
         }
-        private int AvailableActivations(WeaponState w) => (int)Math.Min(int.MaxValue, Math.Floor(energy.CurrentEnergy / w.Definition.EnergyPerActivation));
-        private int MaximumActivations(WeaponState w) => (int)Math.Min(int.MaxValue, Math.Floor(energy.MaxEnergy / w.Definition.EnergyPerActivation));
-        private bool CanPower(WeaponState w) => w != null && energy.CanSpend(w.Definition.EnergyPerActivation) && energy.CurrentEnergy - w.Definition.EnergyPerActivation >= energy.MaxEnergy * WeaponReserveRatio;
+        private float ActivationCost(WeaponState w)
+        {
+            bool ordnance = w.Definition.DeliveryMode == WeaponDeliveryMode.GuidedProjectile || w.Definition.DeliveryMode == WeaponDeliveryMode.Dropped;
+            return w.Definition.EnergyPerActivation * (ordnance && PlayerBonus(RacerPerkEffect.OrdnanceDamage) > 0f ? 1.05f : 1f);
+        }
+        private int AvailableActivations(WeaponState w) => (int)Math.Min(int.MaxValue, Math.Floor(energy.CurrentEnergy / ActivationCost(w)));
+        private int MaximumActivations(WeaponState w) => (int)Math.Min(int.MaxValue, Math.Floor(energy.MaxEnergy / ActivationCost(w)));
+        private bool CanPower(WeaponState w) => w != null && energy.CanSpend(ActivationCost(w)) && energy.CurrentEnergy - ActivationCost(w) >= energy.MaxEnergy * WeaponReserveRatio;
         public bool HasWeapon => weapons.Count > 0;
         public int WeaponCount => weapons.Count;
 
@@ -228,8 +244,11 @@ namespace RaceFatal.Equipment
                     return Result<RaceEquipmentSystem>.Failure($"Equipment definition '{equipment.EquipmentDefinitionId}' was not found.");
                 }
 
-                if (definition is RaceUtilityDefinition utility)
-                    system.utilities[utility.Effect] = Math.Max(system.Utility(utility.Effect), utility.Strength);
+                if (definition is RaceUtilityDefinition utility && utility.Strength >= system.Utility(utility.Effect))
+                {
+                    system.utilities[utility.Effect] = utility.Strength;
+                    system.utilityBrands[utility.Effect] = utility;
+                }
             }
             foreach (BikeNode node in loadout.Nodes)
             {
@@ -285,7 +304,7 @@ namespace RaceFatal.Equipment
             weaponsAllowed = allowWeapons;
             if (!boostAllowed)
                 SetAllBoostersActive(false);
-            if (!weaponsAllowed)
+            if (!WeaponsAllowed)
                 StopAllWeaponActivations();
         }
 
@@ -427,7 +446,7 @@ namespace RaceFatal.Equipment
 
         public bool BeginSelectedActivation()
         {
-            if (!weaponsAllowed)
+            if (!WeaponsAllowed)
                 return false;
             WeaponState weapon = GetSelectedWeapon();
             if (weapon == null || !CanPower(weapon))
@@ -448,7 +467,7 @@ namespace RaceFatal.Equipment
 
         public bool TryFirePassiveWeapon(string equipmentId)
         {
-            if (!weaponsAllowed)
+            if (!WeaponsAllowed)
                 return false;
             if (!AutomaticWeaponsAllowed) return false;
             WeaponState weapon = FindWeapon(equipmentId);
@@ -462,7 +481,7 @@ namespace RaceFatal.Equipment
 
         private bool BeginWeapon(WeaponState weapon)
         {
-            if (!weaponsAllowed || !CanPower(weapon))
+            if (!WeaponsAllowed || !CanPower(weapon))
             {
                 return false;
             }
@@ -504,7 +523,7 @@ namespace RaceFatal.Equipment
                     weapon.IsCharging = false;
                     float chargeRatio = weapon.Definition.ChargeDuration <= 0f ? 1f : Math.Min(1f, weapon.ChargeTime / weapon.Definition.ChargeDuration);
                     weapon.ChargeTime = 0f;
-                    if (!fullyCharged || !weaponsAllowed)
+                    if (!fullyCharged || !WeaponsAllowed)
                     {
                         return false;
                     }
@@ -549,6 +568,7 @@ namespace RaceFatal.Equipment
 #region Update
         public void Tick(float deltaTime)
         {
+            disruptedSeconds = Math.Max(0f, disruptedSeconds - Math.Max(0f, deltaTime));
             if (deltaTime <= 0f)
                 return;
             foreach (CountermeasureState countermeasure in countermeasures)
@@ -568,10 +588,10 @@ namespace RaceFatal.Equipment
         {
             // Idle, unselected and released weapons still recover. Only held
             // fire retains overshoot so its automatic cadence is frame-rate independent.
-            weapon.FireTimer = weapon.IsHeld && weaponsAllowed && CanPower(weapon)
+            weapon.FireTimer = weapon.IsHeld && WeaponsAllowed && CanPower(weapon)
                 ? weapon.FireTimer - deltaTime
                 : Math.Max(0f, weapon.FireTimer - deltaTime);
-            if (!weaponsAllowed)
+            if (!WeaponsAllowed)
             {
                 StopWeaponActivation(weapon);
                 return;
@@ -644,7 +664,7 @@ namespace RaceFatal.Equipment
 
         private bool TryFire(WeaponState weapon, float chargeRatio)
         {
-            if (!weaponsAllowed || !CanPower(weapon) || weapon.FireTimer > 0f)
+            if (!WeaponsAllowed || !CanPower(weapon) || weapon.FireTimer > 0f)
             {
                 return false;
             }
@@ -652,7 +672,7 @@ namespace RaceFatal.Equipment
             // Reserve before energy notifications as well as WeaponFired callbacks.
             float previousTimer = weapon.FireTimer;
             weapon.FireTimer += Math.Max(0.01f, weapon.Definition.FireInterval);
-            if (!energy.TrySpend(weapon.Definition.EnergyPerActivation))
+            if (!energy.TrySpend(ActivationCost(weapon)))
             {
                 weapon.FireTimer = previousTimer;
                 return false;
@@ -667,10 +687,10 @@ namespace RaceFatal.Equipment
             if(definition.DeliveryMode==WeaponDeliveryMode.Dropped)
                 damageBonus+=PlayerBonus(RacerPerkEffect.OrdnanceDamage)+BrandBonus(definition,"MineDamage");
             if(name.Contains("railgun"))damageBonus+=BrandBonus(definition,"RailgunDamage")+BrandBonus(definition,"PrecisionDamage");
-            damageBonus+=BrandBonus(definition,"ExperimentalDamage");
+            if (definition.Id.Contains("__exclusive")) damageBonus+=BrandBonus(definition,"ExperimentalDamage");
             float damage=definition.Damage*(1f+Math.Min(.15f,damageBonus));
             float dot=definition.StatusDamagePerSecond*(1f+Math.Min(.15f,PlayerBonus(RacerPerkEffect.BurnDamage)+BrandBonus(definition,"BurnDamage")));
-            WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration, dot, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
+            WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration * (1f + BrandBonus(definition,"DotDuration")), dot, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
             return true;
         }
 

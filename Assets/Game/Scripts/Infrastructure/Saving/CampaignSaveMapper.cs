@@ -274,7 +274,9 @@ namespace RaceFatal.Infrastructure.Saving
             try
             {
                 team.RestoreFame(data.fame, data.hasLifetimeFame ? data.lifetimeFame : data.fame);
-                team.RestoreBrands(CloneBrands(data.brands ?? new BrandProgress()));
+                var sponsors = CloneBrands(data.brands ?? new BrandProgress());
+                BrandDefaults.MigrateRetiredSuppliers(database, sponsors);
+                team.RestoreBrands(sponsors);
                 team.RestoreTeamPerks(data.ownedTeamPerkIds);
                 team.RestorePendingIncident(data.pendingCareerIncidentId);
                 if (data.settledRaceResults != null)

@@ -198,7 +198,7 @@ namespace RaceFatal.Racing
             return participant != null && participant.Vehicle.EquipmentSystem.EndSelectedActivation();
         }
 
-        public Result<DamageEvent> ApplyDamage(string attackerRacerId, string victimRacerId, float amount, DamageCause cause, DamageImpactSide impactSide = DamageImpactSide.Unknown, bool isRamAttack = false)
+        public Result<DamageEvent> ApplyDamage(string attackerRacerId, string victimRacerId, float amount, DamageCause cause, DamageImpactSide impactSide = DamageImpactSide.Unknown, bool isRamAttack = false, float shieldPierce = 0f)
         {
             if (!CanProcessRaceEvent())
                 return Result<DamageEvent>.Failure("Race is not active.");
@@ -218,8 +218,16 @@ namespace RaceFatal.Racing
             }
 
             RaceShieldState shield = victim.Vehicle.EquipmentSystem.Shield;
+            if (cause == DamageCause.Weapon && attacker != null && !isRamAttack)
+            {
+                if (shield == null || shield.IsDepleted)
+                    resolvedDamage *= 1f + attacker.Perks.Bonus(RacerPerkEffect.UnshieldedDamage);
+                if (attacker.Perks.Has(RacerPerkEffect.Executioner))
+                    resolvedDamage *= victim.Vehicle.Damage.CurrentIntegrity < victim.Vehicle.Performance.MaxIntegrity * .25f
+                        ? 1f + attacker.Perks.Bonus(RacerPerkEffect.Executioner) : .97f;
+            }
             bool shieldWasActive = shield != null && !shield.IsDepleted && shield.Current > 0f;
-            DamageResolution resolution = victim.Vehicle.ApplyDamage(resolvedDamage, cause);
+            DamageResolution resolution = victim.Vehicle.ApplyDamage(resolvedDamage, cause, shieldPierce);
             bool shieldDepleted = shieldWasActive && resolution.ShieldAbsorbed > 0f && shield != null && shield.IsDepleted;
             DamageEvent damageEvent = new DamageEvent(attackerRacerId, victimRacerId, resolution.IncomingDamage, resolution.ShieldAbsorbed, resolution.BikeDamage, cause, impactSide, shieldDepleted, resolution.CausedDestruction);
             if (attacker != null && attacker == audiencePlayer && attacker != victim && (state.Deathmatch?.Mode == DeathmatchVictoryMode.Individual || attacker.TeamId != victim.TeamId) && (cause == DamageCause.Weapon || cause == DamageCause.Collision))

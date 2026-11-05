@@ -150,14 +150,14 @@ namespace RaceFatal.Presentation.Career
                 {
                     int week = Team.Calendar.Week + (mode == 1 ? 1 : 0);
                     Set(weekText, $"{(mode == 1 ? "NEXT WEEK" : "THIS WEEK")} {week}  //  TODAY: {Team.Calendar.DateLabel}  //  {Team.Credits:N0} CREDITS");
-                    foreach (var occurrence in calendar.GetAvailableEventsForWeek(Team, week))
+                    foreach (var occurrence in calendar.GetAvailableEventsForWeek(Team, week, includeLocked: true))
                     {
                         var definition = context.Database.GetCareerEventDefinition(occurrence.EventId);
                         if (!calendar.Validate(definition).IsSuccess) continue;
                         AddCard(definition.Id, definition.DisplayName,
                             definition.Kind.ToString().ToUpperInvariant() + " // " + CareerCalendarState.FormatDay(occurrence.Day),
                             $"FEE {definition.EntryFee:N0} CR + {definition.FameEntryFee:N0} FAME  //  {definition.RaceIds.Count} ROUND(S)",
-                            active != null ? "CURRENT EVENT MUST FINISH FIRST" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
+                            active != null ? "CURRENT EVENT MUST FINISH FIRST" : !Team.Calendar.UnlockedIds.Contains(definition.Id) ? $"REQUIRES {definition.RequiredFame:N0} LIFETIME FAME" : mode == 1 ? "NEXT WEEK" : "AVAILABLE THIS WEEK", occurrence.Day);
                     }
                     if (eventIds.Count == 0)
                         SetFeedback(mode == 1 ? "NO AVAILABLE EVENTS NEXT WEEK." : "NO REMAINING EVENTS THIS WEEK. VIEW UPCOMING EVENTS OR THE HOME CALENDAR.");
@@ -204,7 +204,7 @@ namespace RaceFatal.Presentation.Career
             var definition = context.Database.GetCareerEventDefinition(id);
             if (entry == null && definition == null)
                 return;
-            var rounds = entry?.raceIds ?? definition.RaceIds.ToList();
+            var rounds = entry?.raceIds ?? calendar.RoundIds(Team, definition, occurrence?.OccurrenceDay ?? selectedOccurrenceDay);
             var payouts = entry?.payouts ?? definition.RacePayouts.ToList();
             var prizes = entry?.prizes ?? definition.ChampionshipPrizes.ToList();
             var points = entry?.points ?? definition.PositionPoints.ToList();
@@ -218,7 +218,7 @@ namespace RaceFatal.Presentation.Career
             var text = new StringBuilder();
             text.AppendLine(selectedOccurrenceDay > 0 ? CareerCalendarState.FormatDay(selectedOccurrenceDay) : "NOT SCHEDULED");
             var schedule = Team.Calendar.Schedules.FirstOrDefault(e => e.eventId == id);
-            if (schedule != null) text.AppendLine(Team.Calendar.Export().scheduleVersion == 2 ? "WEEKLY EVENT POOL • 3 EVENTS PER WEEK" : $"REPEATS EVERY {schedule.repeatEveryWeeks} WEEKS");
+            if (schedule != null) text.AppendLine(Team.Calendar.Export().scheduleVersion == 2 ? "WEEKLY COMPETITION CALENDAR" : $"REPEATS EVERY {schedule.repeatEveryWeeks} WEEKS");
             text.AppendLine(entry?.description ?? definition.Description);
             text.AppendLine($"\nFORMAT  {kind.ToString().ToUpperInvariant()}\nENTRY FEE  {entry?.entryFee ?? definition.EntryFee:N0} CREDITS{(entry != null ? " (PAID)" : "")}");
             if (race != null)
@@ -264,7 +264,7 @@ namespace RaceFatal.Presentation.Career
             var allowed = calendar.CanEnter(Team, id, id == selectedEventId ? selectedOccurrenceDay : 0);
             if (!allowed.IsSuccess)
                 return Result<RaceDirector>.Failure(allowed.ErrorMessage);
-            var raceId = calendar.NextRaceId(Team, id);
+            var raceId = calendar.NextRaceId(Team, id, id == selectedEventId ? selectedOccurrenceDay : 0);
             var race = string.IsNullOrEmpty(raceId) ? null : context.Database.GetRaceDefinition(raceId);
             var track = race == null ? null : BootstrapController.ContentCatalog?.FindTrackContent(race.TrackId);
             if (track?.TrackPrefab == null)

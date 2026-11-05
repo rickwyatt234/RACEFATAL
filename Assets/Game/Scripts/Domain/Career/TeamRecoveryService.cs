@@ -34,6 +34,27 @@ namespace RaceFatal.Career
             this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
+        public bool IsBankrupt(GameSessionState session)
+        {
+            var team = session.PlayerTeam;
+            if (team.Garage.Bikes.Any(b => b.IsRaceReady) || team.PendingIncidentId != null ||
+                team.Brands.contracts.Any(c => c.completed && !c.claimed)) return false;
+            var shop = new ShopService(database);
+            var available = shop.GetOffers().Where(o => shop.MissingBrandAccess(team, o.Kind, o.DefinitionId) == null).ToList();
+            long Lowest(ShopItemKind kind) => available.Where(o => o.Kind == kind)
+                .Select(o => (long)shop.EffectiveCreditCost(team, o)).DefaultIfEmpty(int.MaxValue).Min();
+            long replacement = Lowest(ShopItemKind.Bike);
+            var starter = database.GetBikeBuildDefinition(session.SuccessorStarterBuildId);
+            if (starter != null) replacement = Math.Min(replacement, starter.CreditCost);
+            if (team.Garage.Bikes.Any(b => !b.IsDestroyed))
+            {
+                long engine = team.Garage.Engines.Any(e => !e.IsDestroyed) ? 0 : Lowest(ShopItemKind.Engine);
+                long chassis = team.Garage.Chassis.Any(c => !c.IsDestroyed) ? 0 : Lowest(ShopItemKind.Chassis);
+                replacement = Math.Min(replacement, engine + chassis);
+            }
+            return team.SettledRaceResults.Count > 0 && team.Credits < replacement;
+        }
+
         private static string Checkpoint(TeamState team) => team.SettledRaceResults.Count.ToString(CultureInfo.InvariantCulture);
         public Result<TeamRecoveryQuote> Quote(GameSessionState session)
         {

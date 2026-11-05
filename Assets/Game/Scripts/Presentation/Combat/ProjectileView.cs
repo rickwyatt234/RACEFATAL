@@ -28,6 +28,7 @@ namespace RaceFatal.Presentation.Combat
         private RaycastHit[] hitBuffer;
         private RaceRuntimeController runtime;
         private string attackerRacerId;
+        private string weaponId;
         private float damage;
         private float speed;
         private float currentMovementSpeed;
@@ -64,10 +65,11 @@ namespace RaceFatal.Presentation.Combat
             MoveProjectile(Time.deltaTime);
         }
 
-        public void Initialize(RaceRuntimeController raceRuntime, string attackerId, float projectileDamage, float projectileSpeed, float range, Vector3 launchDirection)
+        public void Initialize(RaceRuntimeController raceRuntime, string attackerId, float projectileDamage, float projectileSpeed, float range, Vector3 launchDirection, string definitionId = null)
         {
             runtime = raceRuntime;
             attackerRacerId = attackerId;
+            weaponId = definitionId ?? "";
             damage = Mathf.Max(0f, projectileDamage);
             speed = Mathf.Max(0f, projectileSpeed);
             currentMovementSpeed = speed;
@@ -223,10 +225,21 @@ namespace RaceFatal.Presentation.Combat
                 debugImpactSide = impactSide.ToString();
                 if (runtime != null && runtime.Director != null)
                 {
-                    runtime.Director.ApplyDamage(attackerRacerId, victim.RacerId, damage, DamageCause.Weapon, impactSide);
+                    runtime.Director.ApplyDamage(attackerRacerId, victim.RacerId, damage, DamageCause.Weapon, impactSide,
+                        shieldPierce: weaponId.Contains("penetrator_rocket") ? .30f : 0f);
                 }
             }
 
+            if (weaponId.Contains("cluster_rocket") && runtime?.Director != null)
+            {
+                foreach (var other in runtime.Director.State.Participants)
+                {
+                    if (other.RacerId == attackerRacerId || other.RacerId == victim?.RacerId ||
+                        !runtime.TryGetRacerView(other.RacerId, out var target)) continue;
+                    if ((target.transform.position - hitPoint).sqrMagnitude <= 36f)
+                        runtime.Director.ApplyDamage(attackerRacerId, other.RacerId, damage * .4f, DamageCause.Weapon);
+                }
+            }
             SpawnImpact(hitPoint, hitNormal);
             FinishProjectile();
         }

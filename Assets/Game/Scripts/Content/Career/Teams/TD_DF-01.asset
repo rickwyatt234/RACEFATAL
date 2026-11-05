@@ -18,7 +18,7 @@ MonoBehaviour:
   secondaryColor: '#242222'
   philosophy: 5
   racers:
-  - {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
+  - {fileID: 11400000, guid: b7430de99b43022241980a45bb751f65, type: 2}
   - {fileID: 11400000, guid: d384802d81839d24580a966f7aebc217, type: 2}
   bikeBuilds:
   - {fileID: 11400000, guid: eff6fb9428f7dab36bc95b2b98e2a5a0, type: 2}

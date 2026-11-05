@@ -43,7 +43,7 @@ namespace RaceFatal.Racing
             Damage = new DamageMeter(performance.MaxIntegrity);
         }
 
-        internal DamageResolution ApplyDamage(float incomingDamage, DamageCause cause = DamageCause.Other)
+        internal DamageResolution ApplyDamage(float incomingDamage, DamageCause cause = DamageCause.Other, float shieldPierce = 0f)
         {
             if (incomingDamage <= 0f)
             {
@@ -52,7 +52,8 @@ namespace RaceFatal.Racing
 
             float temporaryAbsorbed = Math.Min(hardlight, incomingDamage);
             hardlight -= temporaryAbsorbed;
-            float remainingDamage = EquipmentSystem.AbsorbDamage(incomingDamage - temporaryAbsorbed);
+            float bypass = (incomingDamage - temporaryAbsorbed) * Math.Min(1f, Math.Max(0f, shieldPierce));
+            float remainingDamage = bypass + EquipmentSystem.AbsorbDamage(incomingDamage - temporaryAbsorbed - bypass);
             float shieldAbsorbed = incomingDamage - remainingDamage;
             EnergyPool.Recharge((shieldAbsorbed - temporaryAbsorbed) * EquipmentSystem.Utility(UtilityEffect.DamageConverter));
             if (cause == DamageCause.Collision)
@@ -87,7 +88,7 @@ namespace RaceFatal.Racing
 
         internal float RechargeEnergy(float amount)
         {
-            return EnergyPool.Recharge(amount * (1f + Math.Min(.2f, (Perks?.Bonus(RacerPerkEffect.EnergyRegeneration) ?? 0f) + EquipmentSystem.Utility(UtilityEffect.Recovery))));
+            return EnergyPool.Recharge(amount * (1f + Math.Min(.2f, (Perks?.Bonus(RacerPerkEffect.EnergyRegeneration) ?? 0f) + EquipmentSystem.Utility(UtilityEffect.Recovery) + EquipmentSystem.BoosterRecoveryBonus)));
         }
     }
 }

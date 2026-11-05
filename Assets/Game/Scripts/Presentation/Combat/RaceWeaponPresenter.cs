@@ -378,7 +378,7 @@ namespace RaceFatal.Presentation.Combat
             }
 
             ProjectileView projectile = SpawnProjectileInstance(prefab, origin, direction);
-            projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction);
+            projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction, fireEvent.DefinitionId);
         }
 
         private void SpawnGuidedProjectile(WeaponFireEvent fireEvent, WeaponPresentationProfile profile, RacerViewController shooter, Transform origin, Vector3 direction)
@@ -394,7 +394,7 @@ namespace RaceFatal.Presentation.Combat
             {
                 Debug.LogWarning($"Weapon '{fireEvent.DefinitionId}' uses GuidedProjectile delivery, " + $"but its projectile prefab does not use {nameof(GuidedProjectileView)}. " + "It will fly straight.", prefab);
                 ProjectileView fallback = SpawnProjectileInstance(prefab, origin, direction);
-                fallback.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction);
+                fallback.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction, fireEvent.DefinitionId);
                 return;
             }
 
@@ -411,8 +411,8 @@ namespace RaceFatal.Presentation.Combat
             }
 
             GuidedProjectileView projectile = Instantiate(guidedPrefab, origin.position, CalculateProjectileRotation(origin, direction));
-            projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction);
-            projectile.InitializeGuidance(target);
+            projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, direction, fireEvent.DefinitionId);
+            projectile.InitializeGuidance(target, shooter.Participant.Role == RaceParticipantRole.Player ? 0f : shooter.Participant.Perks.Bonus(RaceFatal.Career.RacerPerkEffect.AiLeadAccuracy));
         }
 
         private bool TryGetProjectilePrefab(WeaponFireEvent fireEvent, WeaponPresentationProfile profile, Transform origin, out ProjectileView prefab)
@@ -658,7 +658,7 @@ namespace RaceFatal.Presentation.Combat
             {
                 Vector3 pelletDirection = RandomDirectionInCone(direction, origin.up, halfAngle);
                 ProjectileView projectile = SpawnProjectileInstance(prefab, origin, pelletDirection);
-                projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, pelletDirection);
+                projectile.Initialize(runtime, fireEvent.RacerId, fireEvent.Damage, fireEvent.ProjectileSpeed, fireEvent.Range, pelletDirection, fireEvent.DefinitionId);
             }
         }
 
@@ -718,7 +718,13 @@ namespace RaceFatal.Presentation.Combat
             mineObject.transform.position = position;
             mineObject.transform.rotation = racer.transform.rotation;
             BallisticMineView mine = mineObject.GetComponent<BallisticMineView>();
-            mine.Initialize(runtime, profile, fireEvent.RacerId, fireEvent.Damage, fireEvent.ExplosionRadius, fireEvent.ArmingDelay, fireEvent.Lifetime);
+            mine.Initialize(runtime, profile, fireEvent.RacerId, fireEvent.Damage, fireEvent.ExplosionRadius, fireEvent.ArmingDelay, fireEvent.Lifetime, victim =>
+            {
+                if (fireEvent.DefinitionId.Contains("emp_mine"))
+                    victim.Participant.Vehicle.EquipmentSystem.DisruptWeapons(2f);
+                if (fireEvent.DefinitionId.Contains("incendiary_mine"))
+                    ApplyBurn(fireEvent, profile, victim);
+            });
         }
 
         private void ActivateRam(WeaponFireEvent fireEvent, WeaponPresentationProfile profile, RacerViewController racer)

@@ -49,7 +49,7 @@ namespace RaceFatal.Career
             bool ready = bike?.IsRaceReady == true;
             checks.Add(new PreparationCheck(ready, ready ? role + " bike is ready." : role + (bike == null ? " has no assigned bike." : bike.IsDestroyed ? " bike is destroyed." : " bike needs an intact engine and chassis.") + " Use Garage, buy a complete bike in Shop, or review Team Recovery."));
             if (ready && race != null)
-                checks.Add(new PreparationCheck(bike.EngineClass == race.EngineClass, $"{role} engine: {bike.EngineClass}; event requires {race.EngineClass}. Change loadout in Garage or buy a matching bike in Shop."));
+                checks.Add(new PreparationCheck(GarageState.IsClassEligible(bike.EngineClass, race.EngineClass), $"{role} engine: {bike.EngineClass}; event requires {race.EngineClass}. Change loadout in Garage or buy a matching bike in Shop."));
         }
     }
 }

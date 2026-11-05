@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: NewCampaignDefaults
   m_EditorClassIdentifier: RaceFatal.Content::RaceFatal.Content.Career.NewCampaignDefaultsSO
   partner: {fileID: 11400000, guid: 6bf4c5147cafae24e9179a305043fbf7, type: 2}
-  playerStarterBuild: {fileID: 11400000, guid: b7e0e396491470246be4dc428bda3aeb, type: 2}
-  partnerStarterBuild: {fileID: 11400000, guid: b7e0e396491470246be4dc428bda3aeb, type: 2}
+  playerStarterBuild: {fileID: 11400000, guid: fc850b9965a5a10cd70a2fddeda9de67, type: 2}
+  partnerStarterBuild: {fileID: 11400000, guid: 6e4cbae680308b1f76dcbf4fe1ac8d42, type: 2}

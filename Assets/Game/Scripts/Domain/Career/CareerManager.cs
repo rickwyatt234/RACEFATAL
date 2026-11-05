@@ -43,7 +43,8 @@ namespace RaceFatal.Career
 
             if (string.IsNullOrWhiteSpace(playerName) || playerName.Trim().Length > 40 || playerName.Any(char.IsControl))
                 throw new ArgumentException("Enter a racer name of 1–40 characters.", nameof(playerName));
-            if (Team.Calendar.Active != null)
+            var entry = Team.Calendar.Active;
+            if (entry != null && (entry.kind != CareerEventKind.Championship || entry.roundIndex == 0 || !string.IsNullOrEmpty(entry.pendingInstanceId)))
                 throw new InvalidOperationException("Resolve or withdraw from the previous event before starting a new racer.");
             foreach (var former in Team.Roster.Racers.Where(r => r.IsPlayerCharacter && r.CanRace))
                 former.Retire();

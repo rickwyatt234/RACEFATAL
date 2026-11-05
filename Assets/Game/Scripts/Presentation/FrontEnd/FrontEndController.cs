@@ -1,4 +1,5 @@
 using RaceFatal.Career;
+using System.Linq;
 using RaceFatal.Content.Career;
 using RaceFatal.Infrastructure;
 using RaceFatal.Infrastructure.Saving;
@@ -296,6 +297,28 @@ namespace RaceFatal.Presentation.FrontEnd
                     if (PrepareCampaignReview()) campaignReviewController?.PresentStartingInfo(pendingCampaign.PreparedSession, BootstrapController.Context.Database);
                     break;
             }
+        }
+
+        public void CycleStartingBike(int direction)
+        {
+            if (CurrentScreen != FrontEndScreen.CampaignReview || pendingCampaign?.PreparedSession == null) return;
+            var context = BootstrapController.Context;
+            var draft = pendingCampaign;
+            var previous = draft.PreparedSession;
+            var builds = context.Database.BikeBuildDefinitions.Values.Where(b => b.Id.StartsWith("rf_build_", System.StringComparison.Ordinal))
+                .GroupBy(b => b.BikeDefinitionId).Select(g => g.OrderBy(b => b.Id, System.StringComparer.Ordinal).First())
+                .OrderBy(b => b.BikeDefinitionId, System.StringComparer.Ordinal).ToList();
+            if (builds.Count == 0 || !newCampaignDefaults.TryGetDefinitionIds(out var partner, out _, out var partnerBuild, out _)) return;
+            var current = previous.PlayerTeam.Garage.FindBike(previous.SelectedPlayerBikeId);
+            int index = builds.FindIndex(b => b.BikeDefinitionId == current?.BikeDefinitionId);
+            var build = builds[(index + direction + builds.Count) % builds.Count];
+            var result = context.Sessions.PrepareNewSession(new NewGameRequest(draft.TeamName, draft.PrimaryColor, draft.SecondaryColor,
+                draft.PlayerName, partner, build.Id, partnerBuild));
+            if (!result.IsSuccess) { ShowCampaignReviewError(result.ErrorMessage); return; }
+            if (previous.CareerRun.StartingPerkId != null)
+                context.Sessions.ChangeStartingPerk(result.Value, previous.CareerRun.StartingPerkId);
+            draft.PreparedSession = result.Value;
+            campaignReviewController.PresentStartingInfo(result.Value, context.Database);
         }
 
         private bool PrepareCampaignReview()

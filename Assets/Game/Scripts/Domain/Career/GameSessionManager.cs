@@ -148,14 +148,15 @@ namespace RaceFatal.Career
         }
 
         public Result RecoverTeam(string signature) => new TeamRecoveryService(database).Recover(Current, signature);
-        public Result StartSuccessor(string name)
+        public Result StartSuccessor(string name, bool continueChampionship = true)
         {
             if (Current == null)
                 return Result.Failure("No campaign is loaded.");
             if (careerManager.HasActiveRun)
                 return Result.Failure("Your current racer is still active.");
-            if (Current.PlayerTeam.Calendar.Active != null)
-                return Result.Failure("Resolve or withdraw from the previous event before creating a racer.");
+            var championship = Current.PlayerTeam.Calendar.Active;
+            if (championship != null && (championship.kind != CareerEventKind.Championship || championship.roundIndex == 0 || !string.IsNullOrEmpty(championship.pendingInstanceId)))
+                return Result.Failure("Settle the previous event before creating a racer.");
             if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 40 || name.Any(char.IsControl))
                 return Result.Failure("Enter a racer name of 1–40 characters.");
             try
@@ -181,6 +182,21 @@ namespace RaceFatal.Career
                 }
 
                 var run = careerManager.StartNewRun(name);
+                if (championship != null)
+                {
+                    if (continueChampionship) run.EnterChampionship(championship.eventId);
+                    else
+                    {
+                        var calendar = Current.PlayerTeam.Calendar.Data;
+                        long finish = championship.scheduledDay + (long)(championship.raceIds.Count - 1 - championship.roundIndex) * championship.roundSpacingDays;
+                        CareerCalendarState.SetDay(calendar, (int)Math.Min(CareerCalendarState.MaxDay, finish + 1));
+                        championship.withdrawn = championship.completed = true;
+                        calendar.lastEvent = championship;
+                        calendar.active = null;
+                        calendar.drawWeek = 0;
+                        calendar.draw.Clear();
+                    }
+                }
                 run.PrepareIntroduction(bikeSource, GrantStartingPerk(run.Player));
                 return Result.Success();
             }
@@ -208,7 +224,12 @@ namespace RaceFatal.Career
 
         public Result ChangeStartingPerk(string id)
         {
-            var run=Current?.CareerRun;
+            return ChangeStartingPerk(Current, id);
+        }
+
+        public Result ChangeStartingPerk(GameSessionState session, string id)
+        {
+            var run=session?.CareerRun;
             if(run?.IsActive!=true || !run.NeedsIntroduction)return Result.Failure("STARTING PERK SELECTION IS CLOSED.");
             var perk=database.GetRacerPerkDefinition(id);
             if(perk==null || !RacerPerkCatalog.IsStarter(perk))return Result.Failure("SELECT AN ELIGIBLE STARTER PERK.");

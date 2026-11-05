@@ -152,7 +152,7 @@ public static class CareerCalendarValidation
         Require(service.Register(session, "champ", fatalDirector).IsSuccess, "Enter fatal championship");
         session.CareerRun.Kill();
         resolver.Resolve(Result(fatalDirector.InstanceId, RaceParticipantStatus.Destroyed), team, player);
-        Require(team.Calendar.Active == null && team.Calendar.LastEvent.withdrawn && team.Calendar.LastEvent.finalPrize == 0, "Player death closes an unfinished championship without final prize");
+        Require(team.Calendar.Active?.roundIndex == 1 && team.Calendar.Active.finalPrize == 0, "Player death preserves the unfinished championship and accrued standings");
         session = Reload(session, mapper);
         team = session.PlayerTeam;
         var poor = new TeamState("poor", "Poor", "#fff", "#000");

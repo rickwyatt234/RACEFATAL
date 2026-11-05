@@ -146,14 +146,14 @@ namespace RaceFatal.Career
             return items.OrderBy(e => e.Day).ThenBy(e => e.EventId, StringComparer.Ordinal).ToList().AsReadOnly();
         }
 
-        public IReadOnlyList<CareerEventOccurrence> GetAvailableEventsForWeek(TeamState team, int week)
+        public IReadOnlyList<CareerEventOccurrence> GetAvailableEventsForWeek(TeamState team, int week, bool includeLocked = false)
         {
             if (team == null || week < 1 || week > CareerCalendarState.MaxDay / 7)
                 return Array.Empty<CareerEventOccurrence>();
             int start = (week - 1) * 7 + 1;
             return GetOccurrences(team, start, start + 6)
                 .Where(e => e.RoundIndex == 0 && e.Day >= team.Calendar.AbsoluteDay &&
-                    !team.Calendar.IsConsumed(e.EventId, e.OccurrenceDay) && team.Calendar.UnlockedIds.Contains(e.EventId))
+                    !team.Calendar.IsConsumed(e.EventId, e.OccurrenceDay) && (includeLocked || team.Calendar.UnlockedIds.Contains(e.EventId)))
                 .ToList().AsReadOnly();
         }
 
@@ -189,12 +189,33 @@ namespace RaceFatal.Career
             return Result.Success();
         }
 
-        public string NextRaceId(TeamState team, string eventId)
+        public List<string> RoundIds(TeamState team, CareerEventDefinition definition, int day)
+        {
+            var rounds = definition.RaceIds.ToList();
+            if (!definition.Id.StartsWith("rf_event_", StringComparison.Ordinal)) return rounds;
+            var layouts = database.TrackDefinitions.Keys.Where(id => id.StartsWith("rf_track_", StringComparison.Ordinal))
+                .OrderBy(id => id, StringComparer.Ordinal).ToList();
+            if (layouts.Count < rounds.Count) return rounds;
+            int seed = definition.Id.Aggregate(team.Calendar.Data.seed ^ day, (h,c) => unchecked(h * 31 + c));
+            var random = new Random(seed);
+            for (int i = 0; i < rounds.Count; i++)
+            {
+                int index = random.Next(layouts.Count);
+                rounds[i] += "@" + layouts[index];
+                layouts.RemoveAt(index);
+            }
+            return rounds;
+        }
+
+        public string NextRaceId(TeamState team, string eventId, int occurrenceDay = 0)
         {
             var active = team?.Calendar.Data.active;
             if (active != null)
                 return active.eventId == eventId ? active.raceIds[active.roundIndex] : null;
-            return database.GetCareerEventDefinition(eventId)?.RaceIds.FirstOrDefault();
+            var definition = database.GetCareerEventDefinition(eventId);
+            if (definition == null || team == null) return null;
+            int day = occurrenceDay > 0 ? occurrenceDay : NextOccurrenceDay(team, eventId) ?? team.Calendar.AbsoluteDay;
+            return RoundIds(team, definition, day).FirstOrDefault();
         }
 
         public Result<CareerEntryTransaction> Register(GameSessionState session, string eventId, RaceDirector race, int occurrenceDay = 0)
@@ -205,7 +226,7 @@ namespace RaceFatal.Career
             var allowed = CanEnter(team, eventId, occurrenceDay);
             if (!allowed.IsSuccess)
                 return Result<CareerEntryTransaction>.Failure(allowed.ErrorMessage);
-            if (race.State.RaceDefinition.Id != NextRaceId(team, eventId))
+            if (race.State.RaceDefinition.Id != NextRaceId(team, eventId, occurrenceDay))
                 return Result<CareerEntryTransaction>.Failure("PREPARED RACE DOES NOT MATCH THE EVENT ROUND.");
             if (!race.State.Participants.Any(p => p.RacerId == session.CareerRun.Player.RacerId && p.TeamId == team.TeamId && p.Role == RaceParticipantRole.Player))
                 return Result<CareerEntryTransaction>.Failure("PREPARED RACE DOES NOT CONTAIN THIS CAREER'S PLAYER.");
@@ -235,7 +256,7 @@ namespace RaceFatal.Career
                     description = definition.Description,
                     kind = definition.Kind,
                     entryFee = fee,
-                    raceIds = definition.RaceIds.ToList(),
+                    raceIds = RoundIds(team, definition, day),
                     payouts = definition.RacePayouts.ToList(),
                     prizes = definition.ChampionshipPrizes.ToList(),
                     points = definition.PositionPoints.ToList(),
@@ -325,7 +346,7 @@ namespace RaceFatal.Career
             var player = race.Standings.FirstOrDefault(s => s.TeamId == team.TeamId && team.Roster.FindRacer(s.RacerId)?.IsPlayerCharacter == true);
             if (player == null)
                 throw new InvalidOperationException("Calendar result has no player.");
-            if (entry.roundIndex == entry.raceIds.Count || player.Status == RaceParticipantStatus.Destroyed)
+            if (entry.roundIndex == entry.raceIds.Count)
             {
                 entry.completed = true;
                 entry.withdrawn = entry.roundIndex < entry.raceIds.Count;

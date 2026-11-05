@@ -22,10 +22,11 @@ namespace RaceFatal.Presentation.Career
         private void BindControls()
         {
             UiBindings.Bind(homeAction, () => Show(Session?.CareerRun?.IsActive == true ? 2 : 0));
-            UiBindings.Bind(roster, CycleStartingPerk);
+            UiBindings.Bind(roster, () => { if (page == 4) ResolveIncident(1); else if (page == 1) { continueChampionship = !continueChampionship; UpdateChampionshipChoice(); } else CycleStartingPerk(); });
             UiBindings.Bind(primary, Confirm); UiBindings.Bind(secondary, Back);
             modal.SetActive(false);
         }
+        private bool continueChampionship = true;
         private int page;
         private bool busy;
         private GameSessionState Session => context?.Sessions?.Current;
@@ -38,6 +39,7 @@ namespace RaceFatal.Presentation.Career
             view.context = context;
             view.BindControls();
             view.RefreshHome();
+            if (view.ShowCareerOutcome()) return;
             if (context.Sessions.Current?.CareerRun?.IsActive != true)
                 view.Show(0);
             else if (context.Sessions.Current.CareerRun.NeedsIntroduction)
@@ -97,6 +99,23 @@ namespace RaceFatal.Presentation.Career
                 RefreshHome();
         }
 
+        private bool ShowCareerOutcome()
+        {
+            if (Session.PlayerTeam.PendingIncidentId != null) { Show(4); return true; }
+            if (new TeamRecoveryService(context.Database).IsBankrupt(Session)) { Show(5); return true; }
+            return false;
+        }
+
+        private void ResolveIncident(int choice)
+        {
+            var result = context.Saves.ResolveCareerIncident(choice);
+            if (!result.IsSuccess) { feedback.text = result.ErrorMessage; return; }
+            modal.SetActive(false);
+            owner.RefreshHome();
+            if (ShowCareerOutcome()) return;
+            if (Session.CareerRun?.IsActive != true) Show(0);
+        }
+
         private void CycleStartingPerk()
         {
             if (page != 3 || !CanChange()) return;
@@ -126,6 +145,16 @@ namespace RaceFatal.Presentation.Career
                 homeLabel.text += "\nPREPARATION REQUIRED: assign two ready bikes in Garage and an active partner in Roster.";
         }
 
+        private void UpdateChampionshipChoice()
+        {
+            var entry = Session.PlayerTeam.Calendar.Active;
+            if (page != 1 || entry?.kind != CareerEventKind.Championship) return;
+            roster.gameObject.SetActive(true);
+            roster.GetComponentInChildren<TMP_Text>().text = continueChampionship ? "CONTINUE CHAMPIONSHIP" : "WITHDRAW FROM SERIES";
+            feedback.text = continueChampionship ? $"Next round {entry.roundIndex + 1} of {entry.raceIds.Count}. Team points carry forward."
+                : "Withdraw and advance to the day after the final round. The team forfeits the final prize.";
+        }
+
         private void Show(int nextPage)
         {
             page = nextPage;
@@ -136,6 +165,28 @@ namespace RaceFatal.Presentation.Career
             summary.gameObject.SetActive(page != 3);
             introductionScroll.gameObject.SetActive(page == 3);
             roster.gameObject.SetActive(page == 3);
+            primary.gameObject.SetActive(page != 5);
+            if (page == 4)
+            {
+                var incident = CareerIncidentCatalog.Find(Session.PlayerTeam.PendingIncidentId);
+                title.text = incident.Title + " // " + incident.Category;
+                summary.text = incident.Description;
+                primaryLabel.text = incident.Choices[0];
+                roster.gameObject.SetActive(true);
+                roster.GetComponentInChildren<TMP_Text>().text = incident.Choices[1];
+                secondaryLabel.text = incident.Choices[2];
+                primary.Select();
+                return;
+            }
+            if (page == 5)
+            {
+                var team = Session.PlayerTeam;
+                title.text = "TEAM BANKRUPTCY";
+                summary.text = $"{team.TeamName} can no longer field a bike.\n\nCREDITS  {team.Credits:N0}     LIFETIME FAME  {team.LifetimeFame:N0}\nWINS  {team.Roster.Racers.Sum(r => r.RacesWon)}     ELIMINATIONS  {team.Roster.Racers.Sum(r => r.RacersDestroyed)}\nDECEASED RACERS  {team.Roster.Racers.Count(r => !r.IsAlive)}";
+                secondaryLabel.text = "RETURN TO MAIN MENU";
+                secondary.Select();
+                return;
+            }
             if(page==3 && roster!=null){var label=roster.GetComponentInChildren<TMP_Text>();if(label!=null)label.text="NEXT STARTER PERK";}
             if (page == 3)
             {
@@ -160,6 +211,8 @@ namespace RaceFatal.Presentation.Career
             ConfigureNavigation();
             if (page == 1)
             {
+                continueChampionship = true;
+                UpdateChampionshipChoice();
                 nameInput.SetTextWithoutNotify("");
                 nameInput.ActivateInputField();
             }
@@ -184,6 +237,7 @@ namespace RaceFatal.Presentation.Career
         {
             if (!CanChange())
                 return;
+            if (page == 4) { ResolveIncident(0); return; }
             if (page == 0)
             {
                 Show(1);
@@ -197,7 +251,7 @@ namespace RaceFatal.Presentation.Career
             }
 
             busy = true;
-            var result = page == 2 ? context.Saves.RetirePlayer() : context.Saves.StartSuccessor(nameInput.text);
+            var result = page == 2 ? context.Saves.RetirePlayer() : context.Saves.StartSuccessor(nameInput.text, continueChampionship);
             busy = false;
             RefreshHome();
             owner.RefreshHome();
@@ -220,6 +274,7 @@ namespace RaceFatal.Presentation.Career
         {
             if (busy)
                 return;
+            if (page == 4) { ResolveIncident(2); return; }
             if (page == 3)
             {
                 FinishIntroduction(2);

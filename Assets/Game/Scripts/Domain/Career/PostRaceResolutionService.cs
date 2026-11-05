@@ -58,6 +58,10 @@ namespace RaceFatal.Career
             int personalFame = reward.CharacterFame;
             if (playerEntry.Status == RaceParticipantStatus.Finished && player.Progression.HasPurchasedPerk("FAM-01"))
                 personalFame = checked(personalFame + (int)Math.Round(personalFame * .08f, MidpointRounding.AwayFromZero));
+            if (player.Progression.HasPurchasedPerk("FAM-02") && playerEntry.Eliminations > 0)
+                personalFame += 10 * playerEntry.Eliminations;
+            if (player.Progression.HasPurchasedPerk("FAM-05") && team.Calendar.Active?.kind == CareerEventKind.Championship)
+                personalFame += (int)Math.Round(personalFame * .10f, MidpointRounding.AwayFromZero);
             reward = new RaceReward(reward.Credits, reward.TeamFame, personalFame);
             _ = checked(team.Credits + reward.Credits);
             _ = checked(team.Fame + reward.TeamFame);
@@ -90,6 +94,7 @@ namespace RaceFatal.Career
             team.RestoreSettledRace(raceResult.InstanceId, result);
             if (calendarSettlement != null)
                 team.RestoreCalendar(calendarSettlement.Calendar);
+            CareerIncidentService.ConsiderAfterRace(team, raceResult.InstanceId);
             return result;
         }
 

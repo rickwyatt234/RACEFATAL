@@ -108,9 +108,11 @@ namespace RaceFatal.Presentation.Combat
 
 #endregion
 #region Initialization
-        public void InitializeGuidance(RacerViewController targetRacer)
+        private float leadBonus;
+        public void InitializeGuidance(RacerViewController targetRacer, float accuracyBonus = 0f)
         {
             UnregisterThreat();
+            leadBonus = accuracyBonus;
             target = targetRacer;
             targetBody = target != null ? target.GetComponent<Rigidbody>() : null;
             if (targetBody == null && target != null)
@@ -269,17 +271,17 @@ namespace RaceFatal.Presentation.Combat
             if (TryCalculateInterceptTime(relativePosition, targetVelocity, missileSpeed, out float interceptTime))
             {
                 interceptFound = true;
-                predictionTime = Mathf.Min(interceptTime, maximumPredictionTime);
+                predictionTime = Mathf.Min(interceptTime, maximumPredictionTime * (1f + leadBonus));
             }
             else
             {
                 float approximateTime = relativePosition.magnitude / Mathf.Max(0.01f, missileSpeed);
-                predictionTime = Mathf.Min(approximateTime, maximumPredictionTime);
+                predictionTime = Mathf.Min(approximateTime, maximumPredictionTime * (1f + leadBonus));
             }
 
             predictionTime = Mathf.Max(0f, predictionTime);
             Vector3 fullPrediction = currentTargetPoint + targetVelocity * predictionTime;
-            return Vector3.Lerp(currentTargetPoint, fullPrediction, predictionStrength);
+            return Vector3.Lerp(currentTargetPoint, fullPrediction, Mathf.Min(1f, predictionStrength * (1f + leadBonus)));
         }
 
         private bool TryCalculateInterceptTime(Vector3 relativePosition, Vector3 targetVelocity, float missileSpeed, out float interceptTime)

@@ -50,6 +50,30 @@ namespace RaceFatal.Career
                 database.AddBrandDefinition(new BrandDefinition(Id(i), Names[i], "YOUR PERFORMANCE. OUR PROPERTY.", i % 3 == 0 ? "#65FFE1" : i % 3 == 1 ? "#BC8BFF" : "#FF678D", BrandCategoryForIndex(i), (TeamPhilosophy)(i % 7), products, templates));
             }
         }
+        public static void MigrateRetiredSuppliers(GameDatabase database, BrandProgress progress)
+        {
+            if (!database.BrandDefinitions.ContainsKey(Id(0))) return;
+            int[] successors = { 6, 10, 13, 8, 3, 4, 2, 0, 1, 0 };
+            string Successor(string old)
+            {
+                if (old == null || database.BrandDefinitions.ContainsKey(old) ||
+                    !old.StartsWith("RF_BRAND_", StringComparison.Ordinal) || !int.TryParse(old.Substring("RF_BRAND_".Length), out int index) ||
+                    index < 14 || index > 23) return old;
+                return Id(successors[index - 14]);
+            }
+            foreach (var relation in progress.relationships.ToArray())
+            {
+                string id = Successor(relation.brandId);
+                if (id == relation.brandId) continue;
+                progress.relationships.Remove(relation);
+                var current = progress.Discover(id);
+                current.standing = Math.Max(current.standing, relation.standing);
+            }
+            foreach (var contract in progress.contracts) contract.brandId = Successor(contract.brandId);
+            progress.preferredBrandIds = progress.preferredBrandIds.Select(Successor).Distinct().ToList();
+            if (progress.pendingReveal != null) progress.pendingReveal.brandId = Successor(progress.pendingReveal.brandId);
+        }
+
         private static int[] Owners(BrandCategory category)
         {
             switch(category)

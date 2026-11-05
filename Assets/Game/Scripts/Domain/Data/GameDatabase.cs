@@ -122,7 +122,13 @@ namespace RaceFatal.Data
 
         public RaceDefinition GetRaceDefinition(string id)
         {
-            return raceDefinitions.TryGetValue(id, out RaceDefinition value) ? value : null;
+            if (string.IsNullOrEmpty(id)) return null;
+            if (raceDefinitions.TryGetValue(id, out RaceDefinition value)) return value;
+            int marker = id.IndexOf('@');
+            if (marker <= 0 || !raceDefinitions.TryGetValue(id.Substring(0, marker), out value)) return null;
+            string layout = id.Substring(marker + 1);
+            return trackDefinitions.ContainsKey(layout) ? new RaceDefinition(id, value.DisplayName, layout,
+                value.EngineClass, value.LapCount, value.EntrantCount, value.TeamSize, value.Deathmatch) : null;
         }
 
         public BikeBuildDefinition GetBikeBuildDefinition(string id)
