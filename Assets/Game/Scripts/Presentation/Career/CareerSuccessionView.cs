@@ -22,7 +22,7 @@ namespace RaceFatal.Presentation.Career
         private void BindControls()
         {
             UiBindings.Bind(homeAction, () => Show(Session?.CareerRun?.IsActive == true ? 2 : 0));
-            UiBindings.Bind(roster, () => FinishIntroduction(1));
+            UiBindings.Bind(roster, CycleStartingPerk);
             UiBindings.Bind(primary, Confirm); UiBindings.Bind(secondary, Back);
             modal.SetActive(false);
         }
@@ -68,8 +68,8 @@ namespace RaceFatal.Presentation.Career
             feedback = Text(panel, "Feedback", "", 22, new Vector2(40, -445), new Vector2(1020, 100));
             primary = Button(panel, "Primary", "", new Vector2(40, -575), new Vector2(314, 70), out primaryLabel);
             secondary = Button(panel, "Secondary", "", new Vector2(746, -575), new Vector2(314, 70), out secondaryLabel);
-            roster = Button(panel, "Roster", "ROSTER", new Vector2(393, -575), new Vector2(314, 70), out var rosterLabel);
-            roster.onClick.AddListener(() => FinishIntroduction(1));
+            roster = Button(panel, "Roster", "NEXT STARTER PERK", new Vector2(393, -575), new Vector2(314, 70), out var rosterLabel);
+            roster.onClick.AddListener(CycleStartingPerk);
             var scrollRoot = Rect(panel, "Introduction", new Vector2(40, -105), new Vector2(1020, 325));
             scrollRoot.gameObject.AddComponent<Image>().color = new Color(.035f, .065f, .085f);
             introductionScroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
@@ -97,6 +97,20 @@ namespace RaceFatal.Presentation.Career
                 RefreshHome();
         }
 
+        private void CycleStartingPerk()
+        {
+            if (page != 3 || !CanChange()) return;
+            var eligible=context.Database.RacerPerkDefinitions.Values.Where(p=>RacerPerkCatalog.IsStarter(p.Id))
+                .OrderBy(p=>p.Id,System.StringComparer.Ordinal).ToList();
+            if (eligible.Count == 0) return;
+            int index=eligible.FindIndex(p=>p.Id==Session.CareerRun.StartingPerkId);
+            var result=context.Sessions.ChangeStartingPerk(eligible[(index+1)%eligible.Count].Id);
+            if(!result.IsSuccess){feedback.text=result.ErrorMessage;return;}
+            var saved=context.Saves.SaveCurrentCampaign();
+            introductionText.text=BuildIntroduction();
+            feedback.text=saved.IsSuccess?"STARTING PERK SELECTED AND SAVED.":"STARTING PERK CHANGED; SAVE FAILED: "+saved.ErrorMessage;
+        }
+
         private void RefreshHome()
         {
             var session = Session;
@@ -122,6 +136,7 @@ namespace RaceFatal.Presentation.Career
             summary.gameObject.SetActive(page != 3);
             introductionScroll.gameObject.SetActive(page == 3);
             roster.gameObject.SetActive(page == 3);
+            if(page==3 && roster!=null){var label=roster.GetComponentInChildren<TMP_Text>();if(label!=null)label.text="NEXT STARTER PERK";}
             if (page == 3)
             {
                 title.text = "NEW RACER // STARTING SUMMARY";
@@ -139,7 +154,7 @@ namespace RaceFatal.Presentation.Career
             var racer = Session?.CareerRun?.Player ?? Session?.PlayerTeam.Roster.Racers.LastOrDefault(r => r.IsPlayerCharacter);
             string record = racer == null ? "" : $"{racer.Name} // {racer.Status.ToString().ToUpperInvariant()}\n{racer.RacesEntered} STARTS · {racer.RacesWon} WINS · {racer.Podiums} PODIUMS\n\n";
             title.text = page == 2 ? "CONFIRM RETIREMENT" : page == 1 ? "CREATE NEW RACER" : "CAREER ENDED // TEAM CONTINUES";
-            summary.text = page == 2 ? "Permanently retire your current racer? Their statistics will remain in the Roster.\n\nAn unfinished championship will be withdrawn without a refund or final prize. Your team can continue with a new racer." : record + (page == 1 ? "Enter your new racer's name (1–40 characters). They begin with fresh personal progression. Your team's equipment carries forward. If your player bike is unusable, a ready spare or fresh starter bike will be assigned. Wrecks and lost upgrades stay destroyed." : "Would you like to create a new racer or return to the Main Menu?\n\nYour credits, brand standing, fame, inventory and calendar remain with this team.");
+            summary.text = page == 2 ? "Permanently retire your current racer? Their statistics will remain in the Roster.\n\nAn unfinished championship will be withdrawn without a refund or final prize. Your team can continue with a new racer." : record + (page == 1 ? "Enter your new racer's name (1–40 characters). They begin with fresh personal progression. Your team's equipment carries forward. If your player bike is unusable, a ready spare will be assigned if available. Otherwise purchase a replacement in the Garage or Marketplace. Wrecks and lost upgrades stay destroyed." : "Would you like to create a new racer or return to the Main Menu?\n\nYour credits, brand standing, fame, inventory and calendar remain with this team.");
             primaryLabel.text = page == 2 ? "CONFIRM RETIREMENT" : page == 1 ? "CREATE & SAVE" : "CREATE NEW RACER";
             secondaryLabel.text = page == 2 ? "CANCEL" : page == 1 ? "BACK" : "MAIN MENU";
             ConfigureNavigation();
