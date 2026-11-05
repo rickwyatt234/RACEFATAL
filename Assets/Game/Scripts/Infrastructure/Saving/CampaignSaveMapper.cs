@@ -116,6 +116,7 @@ namespace RaceFatal.Infrastructure.Saving
                 fame = team.Fame,
                 hasLifetimeFame = true, lifetimeFame = team.LifetimeFame,
                 brands = CloneBrands(team.Brands),
+                ownedTeamPerkIds = team.OwnedTeamPerkIds.ToList(),
                 recoverySupportCheckpoint = team.RecoverySupportCheckpoint,
                 garage = CaptureGarage(team.Garage)
             };
@@ -271,6 +272,7 @@ namespace RaceFatal.Infrastructure.Saving
             {
                 team.RestoreFame(data.fame, data.hasLifetimeFame ? data.lifetimeFame : data.fame);
                 team.RestoreBrands(CloneBrands(data.brands ?? new BrandProgress()));
+                team.RestoreTeamPerks(data.ownedTeamPerkIds);
                 if (data.settledRaceResults != null)
                     foreach (var receipt in data.settledRaceResults)
                     {
