@@ -32,6 +32,14 @@ namespace RaceFatal.Career
             return true;
         }
 
+        public bool ReplaceFreeStartingPerk(string currentId,string nextId)
+        {
+            if(string.IsNullOrWhiteSpace(nextId) || puchasedPerkIds.Count!=1 || !puchasedPerkIds.Contains(currentId))return false;
+            puchasedPerkIds.Remove(currentId);
+            puchasedPerkIds.Add(nextId);
+            return true;
+        }
+
         public bool HasPurchasedPerk(string perkId)
         {
             return puchasedPerkIds.Contains(perkId);
