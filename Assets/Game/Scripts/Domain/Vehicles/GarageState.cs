@@ -302,7 +302,7 @@ namespace RaceFatal.Vehicles
         {
             foreach (BikeState bike in bikes)
             {
-                if (!bike.IsDestroyed && bike.EngineClass == engineClass && bike.IsRaceReady)
+                if (!bike.IsDestroyed && bike.IsRaceReady && IsClassEligible(bike.EngineClass, engineClass))
                 {
                     return true;
                 }
@@ -322,7 +322,7 @@ namespace RaceFatal.Vehicles
                     continue;
                 if (!bike.EngineClass.HasValue)
                     continue;
-                if (bike.EngineClass.Value != engineClass)
+                if (!IsClassEligible(bike.EngineClass, engineClass))
                 {
                     continue;
                 }
@@ -334,6 +334,10 @@ namespace RaceFatal.Vehicles
         }
 
 #endregion
+        public static bool IsClassEligible(EngineClass? equipped, EngineClass requested)
+        {
+            return equipped.HasValue && (equipped.Value==requested || (equipped.Value==EngineClass.Class5 && requested==EngineClass.Class4));
+        }
         public Result<BikeState> DestroyBike(string bikeId)
         {
             BikeState bike = FindBike(bikeId);
