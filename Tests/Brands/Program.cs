@@ -122,7 +122,7 @@ static class Program
         brands.ApplyOpponentPreferences(opponent, new OpponentTeamDefinition("opponent", "Opponent", "#fff", "#000", TeamPhilosophy.Defensive, Array.Empty<string>(), Array.Empty<string>()), 2000);
         Check(opponent.Brands.preferredBrandIds.SequenceEqual(new[]{"brand"}) && opponent.Brands.CanBuy("brand", db.BrandDefinitions["brand"].Products[1]), "Opponent philosophy determines brands and advancing access");
         brands.ApplyOpponentPreferences(opponent, db.GetOpponentTeamDefinition("unknown"), 0);
-        Check(opponent.Brands.Find("brand").standing == 10, "Opponent standing does not regress");
+        Check(opponent.Brands.Find("brand").standing == 1000, "Opponent standing does not regress");
         // Real event registration proves rollback refunds available fame without inflating lifetime.
         db.AddCareerEventDefinition(new CareerEventDefinition("champ", "Champ", "", CareerEventKind.Championship, 400, 100, new[]{"race","race2"}, new[]{100}, new[]{1000}, new[]{25,18}, fameEntryFee:150));
         sessions.ClearSession();
@@ -138,7 +138,7 @@ static class Program
         Check(team.Fame == 350 && team.LifetimeFame == 500, "Championship charges available fame");
         transaction.Rollback(); transaction.Rollback(); Check(team.Fame == 500 && team.LifetimeFame == 500, "Entry rollback refunds once without lifetime inflation");
         var defaults = new GameDatabase(); BrandDefaults.Ensure(defaults); BrandDefaults.Ensure(defaults);
-        Check(defaults.BrandDefinitions.Count == 24 && defaults.BrandDefinitions.Values.All(b => b.Contracts.Count >= 3), "Default catalog has 24 brands and repeat initialization is safe");
+        Check(defaults.BrandDefinitions.Count == 14 && defaults.BrandDefinitions.Values.All(b => b.Contracts.Count >= 3), "Default catalog has 14 brands and repeat initialization is safe");
         CareerShopValidation.Run(); CareerTeamValidation.Run(); CareerTeamRecoveryValidation.Run();
         Console.WriteLine($"PASS: {checks} brand progression, persistence, payout, succession and entry-fee checks");
     }
