@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using RaceFatal.Data;
+using RaceFatal.Career;
 using RaceFatal.Energy;
 using RaceFatal.Shared;
 using RaceFatal.Vehicles;
@@ -10,6 +11,16 @@ namespace RaceFatal.Equipment
     public class RaceEquipmentSystem
     {
         private readonly string racerId;
+        private RacerPerkBonuses racerPerks;
+        private TeamState ownerTeam;
+        private GameDatabase perkDatabase;
+        private float PlayerBonus(RacerPerkEffect effect) => racerPerks?.Bonus(effect) ?? 0f;
+        private float BrandBonus(EquipmentDefinition item, string effect)
+        {
+            if (ownerTeam == null || item == null || perkDatabase == null) return 0f;
+            var brand = BrandService.OwnerOf(perkDatabase, ShopItemKind.Equipment, item.Id);
+            return brand==null?0f:TeamPerkCatalog.Bonus(ownerTeam,effect,brand.DisplayName);
+        }
         private readonly EnergyPool energy;
         private readonly List<WeaponState> weapons = new List<WeaponState>();
         private readonly List<BoosterState> boosters = new List<BoosterState>();
@@ -24,7 +35,12 @@ namespace RaceFatal.Equipment
         public float WeaponReserveRatio { get; set; }
         public float BoostEnergyPerSecond
         {
-            get { float total = 0f; foreach (var b in boosters) total += b.Definition.EnergyPerSecond; return total; }
+            get { float total = 0f; foreach (var b in boosters)
+                {
+                    float saving=Math.Min(.20f,PlayerBonus(RacerPerkEffect.BoosterEfficiency)+BrandBonus(b.Definition,"BoosterEfficiency"));
+                    float strain=PlayerBonus(RacerPerkEffect.Overcharged)>0f?.06f:0f;
+                    total+=b.Definition.EnergyPerSecond*(1f-saving+strain);
+                } return total; }
         }
         public float BoostStrainPerSecond
         {
@@ -175,7 +191,8 @@ namespace RaceFatal.Equipment
                 foreach (BoosterState booster in boosters)
                 {
                     if (booster.IsActive)
-                        multiplier *= booster.Definition.AccelerationMultiplier;
+                        multiplier *= booster.Definition.AccelerationMultiplier * (1f + Math.Min(.15f,
+                            PlayerBonus(RacerPerkEffect.Overcharged) + BrandBonus(booster.Definition,"BoostAcceleration")));
                 }
 
                 return multiplier;
@@ -189,13 +206,13 @@ namespace RaceFatal.Equipment
             this.energy = energy ?? throw new ArgumentNullException(nameof(energy));
         }
 
-        public static Result<RaceEquipmentSystem> Create(string racerId, BikeLoadout loadout, GameDatabase database, EnergyPool energy)
+        public static Result<RaceEquipmentSystem> Create(string racerId, BikeLoadout loadout, GameDatabase database, EnergyPool energy, RacerPerkBonuses perks = null, TeamState team = null)
         {
             if (loadout == null)
                 return Result<RaceEquipmentSystem>.Failure("Bike loadout is required.");
             if (database == null)
                 return Result<RaceEquipmentSystem>.Failure("Game database is required.");
-            RaceEquipmentSystem system = new RaceEquipmentSystem(racerId, energy);
+            RaceEquipmentSystem system = new RaceEquipmentSystem(racerId, energy) { racerPerks = perks, ownerTeam = team, perkDatabase = database };
             foreach (BikeNode node in loadout.Nodes)
             {
                 if (!node.IsOccupied)
@@ -233,7 +250,10 @@ namespace RaceFatal.Equipment
                         return Result<RaceEquipmentSystem>.Failure("Only one shield can be installed.");
                     }
 
-                    Shield = new RaceShieldState(shield, energy);
+                    Shield = new RaceShieldState(shield, energy,
+                        BrandBonus(shield,"ShieldCapacity"),
+                        BrandBonus(shield,"ShieldRecharge"),
+                        PlayerBonus(RacerPerkEffect.ShieldDelay));
                     return Result<RaceEquipmentSystem>.Success(this);
                 case HandlingUtilityDefinition _:
                     return Result<RaceEquipmentSystem>.Success(this);
@@ -624,7 +644,20 @@ namespace RaceFatal.Equipment
                 weapon.FireTimer = previousTimer;
                 return false;
             }
-            WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, weapon.Definition.Damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration, weapon.Definition.StatusDamagePerSecond, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
+            float damageBonus=0f;
+            var definition=weapon.Definition;
+            string name=definition.DisplayName.ToLowerInvariant();
+            if(name.Contains("machine gun") || name.Contains("shotgun"))
+                damageBonus+=PlayerBonus(RacerPerkEffect.BallisticDamage)+BrandBonus(definition,"BallisticDamage");
+            if(definition.DeliveryMode==WeaponDeliveryMode.GuidedProjectile)
+                damageBonus+=PlayerBonus(RacerPerkEffect.OrdnanceDamage)+BrandBonus(definition,"RocketDamage");
+            if(definition.DeliveryMode==WeaponDeliveryMode.Dropped)
+                damageBonus+=PlayerBonus(RacerPerkEffect.OrdnanceDamage)+BrandBonus(definition,"MineDamage");
+            if(name.Contains("railgun"))damageBonus+=BrandBonus(definition,"RailgunDamage")+BrandBonus(definition,"PrecisionDamage");
+            damageBonus+=BrandBonus(definition,"ExperimentalDamage");
+            float damage=definition.Damage*(1f+Math.Min(.15f,damageBonus));
+            float dot=definition.StatusDamagePerSecond*(1f+Math.Min(.15f,PlayerBonus(RacerPerkEffect.BurnDamage)+BrandBonus(definition,"BurnDamage")));
+            WeaponFired?.Invoke(new WeaponFireEvent(racerId, weapon.Equipment.EquipmentId, weapon.Definition.Id, weapon.Definition.AimMode, weapon.Definition.DeliveryMode, damage, weapon.Definition.Range, weapon.Definition.ProjectileSpeed, chargeRatio, weapon.Definition.ProjectileCount, weapon.Definition.SpreadAngle, weapon.Definition.ExplosionRadius, weapon.Definition.ArmingDelay, weapon.Definition.Lifetime, weapon.Definition.ExposureDuration, weapon.Definition.EffectDuration, dot, weapon.Definition.LateralDistance, weapon.Definition.DashDuration, weapon.Definition.ImpactPush, weapon.Definition.TargetingHalfAngle, weapon.Definition.FireInterval));
             return true;
         }
 
