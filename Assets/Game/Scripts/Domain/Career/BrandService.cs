@@ -96,8 +96,8 @@ namespace RaceFatal.Career
             foreach (var brand in preferred)
             {
                 var relation = team.Brands.Discover(brand.Id);
-                relation.standing = Math.Max(relation.standing, Math.Min(15, lifetimeFame / 200));
-                if (relation.standing >= 6) foreach (var item in brand.Products) team.Brands.Unlock(item.Kind, item.DefinitionId);
+                relation.standing = Math.Max(relation.standing, Math.Min(1100, lifetimeFame / 2));
+                if (relation.standing >= 650) foreach (var item in brand.Products) team.Brands.Unlock(item.Kind, item.DefinitionId);
             }
         }
     }
