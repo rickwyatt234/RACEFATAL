@@ -23,7 +23,7 @@ namespace RaceFatal.Career
         public bool RecruitPartner => PartnerRacerId == null;
         public string Signature { get; internal set; }
         public string SetupSummary { get; internal set; }
-        public string Description => $"{SetupSummary}\n\nREADY BIKES TO SUPPLY  {NewBikes}\nPARTNER  {(RecruitPartner ? "NEW REPLACEMENT RACER" : "EXISTING TEAM RACER")}\n\nREPLACEMENT COST  {TotalCost:N0} CR\nTEAM PAYS  {Charge:N0} CR\nRECOVERY ASSISTANCE  {Assistance:N0} CR\n\nReady owned bikes and reserve racers are used first. New bikes use your campaign's starter build. Wrecks and deceased racers remain permanent.\n\nAssistance is available once per completed race. Recovery does not award fame or race rewards.";
+        public string Description => $"{SetupSummary}\n\nREADY BIKES TO SUPPLY  {NewBikes}\nPARTNER  {(RecruitPartner ? "NEW REPLACEMENT RACER" : "EXISTING TEAM RACER")}\n\nREPLACEMENT COST  {TotalCost:N0} CR\nTEAM PAYS  {Charge:N0} CR\nRECOVERY ASSISTANCE  0 CR\n\nReady owned bikes and reserve racers are used first. New bikes use your campaign's starter build. Wrecks and deceased racers remain permanent.\n\nNo assistance is available. Recovery does not award fame or race rewards.";
     }
 
     public sealed class TeamRecoveryService
@@ -90,8 +90,7 @@ namespace RaceFatal.Career
             quote.Charge = quote.TotalCost;
             if (team.Credits < quote.Charge)
                 return Fail("INSUFFICIENT CREDITS FOR REPLACEMENT. THERE IS NO RECOVERY ASSISTANCE.");
-            if (false && quote.Assistance > 0 && team.RecoverySupportCheckpoint == Checkpoint(team))
-                return Fail("RECOVERY ASSISTANCE ALREADY USED. COMPLETE A RACE BEFORE CLAIMING AGAIN, OR USE SHOP AND GARAGE.");
+            
             string playerBikeName = chosen.Count > 0 ? database.GetBikeDefinition(chosen[0].BikeDefinitionId)?.DisplayName : build?.DisplayName;
             string partnerBikeName = chosen.Count > 1 ? database.GetBikeDefinition(chosen[1].BikeDefinitionId)?.DisplayName : build?.DisplayName;
             var setupClass = chosen.Count > 0 ? chosen[0].EngineClass : database.GetEngineDefinition(build.EngineDefinitionId)?.EngineClass;
