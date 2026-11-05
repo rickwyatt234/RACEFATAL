@@ -77,6 +77,12 @@ namespace RaceFatal.Racing
                 return Result<RaceDirector>.Failure($"Partner bike '{partnerBikeId}' " + "was not found.");
             }
 
+            var replacements = new OpponentSuccessionService(database);
+            foreach (var opponent in session.World.OpponentTeams)
+            {
+                var definition = database.GetOpponentTeamDefinition(opponent.TeamId);
+                if (definition != null) replacements.Ensure(opponent, definition, race.EngineClass);
+            }
             var brands = new BrandService(database);
             foreach (var opponent in session.World.OpponentTeams)
                 brands.ApplyOpponentPreferences(opponent, database.GetOpponentTeamDefinition(opponent.TeamId), session.PlayerTeam.LifetimeFame);
