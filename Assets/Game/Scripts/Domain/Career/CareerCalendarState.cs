@@ -95,6 +95,7 @@ namespace RaceFatal.Career
     {
         public string eventId;
         public int firstDay, repeatEveryWeeks, roundSpacingDays, roundCount;
+        public CareerEventKind kind;
         public int starterOrder;
         public CareerEventScheduleData Copy() => (CareerEventScheduleData)MemberwiseClone();
     }
@@ -171,7 +172,7 @@ namespace RaceFatal.Career
             }
             if (data.dayOfWeek < 1 || data.dayOfWeek > 7 || data.week < 1 || (long)(data.week - 1) * 7 + data.dayOfWeek > MaxDay || data.scheduleVersion < 0 || data.scheduleVersion > 2)
                 return Result<CareerCalendarState>.Failure("Invalid calendar date or schedule version.");
-            if (data.schedules == null || data.schedules.Any(s => s == null || string.IsNullOrWhiteSpace(s.eventId) || s.firstDay < 1 || s.firstDay > MaxDay || s.repeatEveryWeeks < 4 || s.repeatEveryWeeks > 6 || s.roundSpacingDays < 1 || s.roundCount < 1 || (data.scheduleVersion == 2 && (s.roundCount > 5 || s.roundSpacingDays != 1 || s.starterOrder < 0 || s.starterOrder > 3)) || (long)(s.roundCount - 1) * s.roundSpacingDays >= s.repeatEveryWeeks * 7) || data.schedules.Select(s => s.eventId).Distinct().Count() != data.schedules.Count || !ValidIds(data.consumedOccurrences))
+            if (data.schedules == null || data.schedules.Any(s => s == null || string.IsNullOrWhiteSpace(s.eventId) || s.firstDay < 1 || s.firstDay > MaxDay || s.repeatEveryWeeks < 4 || s.repeatEveryWeeks > 6 || s.roundSpacingDays < 1 || s.roundCount < 1 || (data.scheduleVersion == 2 && (s.roundCount > 7 || s.roundSpacingDays != 1 || s.starterOrder < 0 || s.starterOrder > 3)) || (long)(s.roundCount - 1) * s.roundSpacingDays >= s.repeatEveryWeeks * 7) || data.schedules.Select(s => s.eventId).Distinct().Count() != data.schedules.Count || !ValidIds(data.consumedOccurrences))
                 return Result<CareerCalendarState>.Failure("Invalid recurring event schedule.");
             if (data.active != null && !ValidEntry(data.active, false, data.scheduleVersion == 0))
                 return Result<CareerCalendarState>.Failure("Invalid active calendar event.");
