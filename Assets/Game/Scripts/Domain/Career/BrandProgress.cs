@@ -10,8 +10,8 @@ namespace RaceFatal.Career
     {
         public string brandId;
         public int standing;
-        public int Tier => standing >= 15 ? 3 : standing >= 6 ? 2 : standing >= 2 ? 1 : 0;
-        public string TierName => new[] { "CONTACT", "RECOGNIZED", "PARTNER", "ICON" }[Tier];
+        public int Tier => standing >= 1100 ? 4 : standing >= 650 ? 3 : standing >= 300 ? 2 : standing >= 100 ? 1 : 0;
+        public string TierName => new[] { "UNKNOWN", "RECOGNIZED", "ESTABLISHED", "TRUSTED", "PARTNER" }[Tier];
     }
 
     [Serializable]
