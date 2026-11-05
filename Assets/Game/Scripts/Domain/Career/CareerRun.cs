@@ -18,6 +18,12 @@ namespace RaceFatal.Career
             StartingPerkId = perkId;
         }
 
+        internal void ChangeStartingPerk(string id)
+        {
+            if (!NeedsIntroduction) throw new InvalidOperationException("Starting perk selection is closed.");
+            StartingPerkId = id;
+        }
+
         internal void AcknowledgeIntroduction()
         {
             NeedsIntroduction = false;
