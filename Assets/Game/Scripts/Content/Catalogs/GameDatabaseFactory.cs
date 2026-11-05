@@ -1,5 +1,7 @@
 using System;
 using RaceFatal.Data;
+using System.Linq;
+using RaceFatal.Career;
 using UnityEngine;
 
 namespace RaceFatal.Content
@@ -73,6 +75,7 @@ namespace RaceFatal.Content
             foreach (var perk in catalog.RacerPerkDefinitions)
                 if (perk != null)
                     database.AddRacerPerkDefinition(perk.CreateDefinition());
+            RacerPerkCatalog.Ensure(database);
             foreach (var opponentTeam in catalog.OpponentTeamDefinitions)
             {
                 var definition = opponentTeam.CreateDefinition();
@@ -86,8 +89,12 @@ namespace RaceFatal.Content
                 foreach (var race in database.RaceDefinitions.Values)
                     database.AddCareerEventDefinition(new RaceFatal.Career.CareerEventDefinition("EVENT_" + race.Id, race.DisplayName, "Open race", race.Deathmatch != null ? RaceFatal.Career.CareerEventKind.Deathmatch : RaceFatal.Career.CareerEventKind.Race, 0, 0, new[] { race.Id }, new[] { 10000, 8000, 6500, 5000, 5000, 5000, 3500, 3500, 3500, 2500, 2500, 2500 }, System.Array.Empty<int>(), new[] { 25, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2, 1 }));
             foreach (var brand in catalog.BrandDefinitions)
-                if (brand != null) database.AddBrandDefinition(brand.CreateDefinition());
+                if (brand != null) database.AddBrandDefinition(TeamPerkCatalog.AddContractRewards(brand.CreateDefinition()));
             RaceFatal.Career.BrandDefaults.Ensure(database);
+            // Keep generated/default brands on the same permanent reward contract path.
+            foreach (var item in database.BrandDefinitions.Values.ToArray())
+                if (TeamPerkCatalog.ForBrand(item.DisplayName).Any() && !item.Contracts.Any(c => c.RewardKind == BrandRewardKind.TeamPerk))
+                    database.ReplaceBrandDefinition(TeamPerkCatalog.AddContractRewards(item));
             return database;
         }
     }
