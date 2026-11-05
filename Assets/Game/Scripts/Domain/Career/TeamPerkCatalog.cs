@@ -70,7 +70,7 @@ namespace RaceFatal.Career
                 string id="teamperk_"+perk.Id;
                 if(contracts.Any(c=>c.Id==id))continue;
                 contracts.Add(new BrandContractTemplate { Id=id, Title="Permanent Perk: "+perk.Name, Objective=BrandObjective.WinRaces,
-                    Target=perk.RequiredStanding>=15?5:3, RequiredStanding=perk.RequiredStanding, MinimumLifetimeFame=perk.RequiredStanding>=15?1100:650,
+                    Target=perk.RequiredStanding>=1100?5:3, RequiredStanding=perk.RequiredStanding, MinimumLifetimeFame=perk.RequiredStanding>=1100?1100:650,
                     StandingReward=2, RewardKind=BrandRewardKind.TeamPerk, ItemId=perk.Id, Credits=0 });
             }
             return new BrandDefinition(brand.Id,brand.DisplayName,brand.Tagline,brand.ColorHex,brand.Category,brand.Philosophy,brand.Products,contracts);
