@@ -58,8 +58,7 @@ namespace RaceFatal.Career
             var perk = database.GetRacerPerkDefinition(perkId);
             if (perk == null)
                 return Result.Failure("UNKNOWN PERK.");
-            if (racer.IsPlayerCharacter && perk.Effect != RacerPerkEffect.EnergyCapacity)
-                return Result.Failure("AI SKILL PERKS REQUIRE A TEAMMATE.");
+            // Both player and partner may purchase any gameplay perk. Legacy AI-only behavior is retained at its application site.
             if (perk.FameCost < 0 || perk.Strength <= 0 || float.IsNaN(perk.Strength) || float.IsInfinity(perk.Strength) || !Enum.IsDefined(typeof(RacerPerkEffect), perk.Effect))
                 return Result.Failure("INVALID PERK CONFIGURATION.");
             if (racer.Progression.HasPurchasedPerk(perkId))
