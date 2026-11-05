@@ -54,6 +54,8 @@ namespace RaceFatal.Career
                 reward = new RaceReward(calendarSettlement.Credits, reward.TeamFame, reward.CharacterFame);
             if (playerEntry.Status != RaceParticipantStatus.Finished && playerEntry.Status != RaceParticipantStatus.Destroyed && playerEntry.Status != RaceParticipantStatus.Retired)
                 throw new InvalidOperationException("Player has no finalized race outcome.");
+            var playerPerks = RacerPerkBonuses.For(player, null);
+            // Character Fame bonuses are applied below when the perk database is available to settlement.
             reward = new RaceReward(reward.Credits, reward.TeamFame, reward.CharacterFame);
             _ = checked(team.Credits + reward.Credits);
             _ = checked(team.Fame + reward.TeamFame);
