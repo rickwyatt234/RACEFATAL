@@ -13,6 +13,23 @@ namespace RaceFatal.Career
             RecoverySupportCheckpoint = checkpoint;
         }
 
+        public string PendingIncidentId { get; private set; }
+        public bool QueueIncident(string id)
+        {
+            if(PendingIncidentId!=null || CareerIncidentCatalog.Find(id)==null)return false;
+            PendingIncidentId=id;
+            return true;
+        }
+        public void ResolveIncident(string id)
+        {
+            if(PendingIncidentId!=id)throw new InvalidOperationException("Incident receipt mismatch.");
+            PendingIncidentId=null;
+        }
+        public void RestorePendingIncident(string id)
+        {
+            if(id!=null && CareerIncidentCatalog.Find(id)==null)throw new ArgumentException("Unknown pending incident.");
+            PendingIncidentId=id;
+        }
         private readonly HashSet<string> ownedTeamPerkIds = new HashSet<string>(StringComparer.Ordinal);
         public IReadOnlyCollection<string> OwnedTeamPerkIds => ownedTeamPerkIds;
         public bool HasTeamPerk(string id) => !string.IsNullOrWhiteSpace(id) && ownedTeamPerkIds.Contains(id);
