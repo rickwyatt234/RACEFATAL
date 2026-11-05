@@ -169,25 +169,12 @@ namespace RaceFatal.Career
                     bike = garage.Bikes.FirstOrDefault(b => b.IsRaceReady && b.BikeId != Current.SelectedPartnerBikeId);
                     if (bike == null)
                     {
-                        var build = database.GetBikeBuildDefinition(Current.SuccessorStarterBuildId);
-                        if (build == null)
-                            return Result.Failure("The campaign's successor starter build is missing from the content catalog.");
-                        var kit = new GarageState();
-                        var created = bikeBuildFactory.CreateInGarage(build, kit, Current.PlayerTeam.PrimaryColor, Current.PlayerTeam.SecondaryColor);
-                        if (!created.IsSuccess)
-                            return Result.Failure(created.ErrorMessage);
-                        foreach (var item in kit.Bikes)
-                            garage.AddBike(item);
-                        foreach (var item in kit.Engines)
-                            garage.AddEngine(item);
-                        foreach (var item in kit.Chassis)
-                            garage.AddChassis(item);
-                        foreach (var item in kit.Equipment)
-                            garage.AddEquipment(item);
-                        bike = created.Value;
-                        bikeSource = "FRESH STARTER RECOVERY BIKE — NO CREDIT COST";
+                        // No free replacement on succession: an unready team must purchase or assemble a bike.
+                        bikeSource = "NO READY REPLACEMENT BIKE — PURCHASE OR ASSEMBLE ONE";
                     }
-
+                }
+                if (bike != null)
+                {
                     var assigned = Current.SelectPlayerBike(bike.BikeId);
                     if (!assigned.IsSuccess)
                         return assigned;
