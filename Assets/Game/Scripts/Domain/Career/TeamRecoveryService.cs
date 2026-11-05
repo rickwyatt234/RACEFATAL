@@ -87,8 +87,10 @@ namespace RaceFatal.Career
             if (cost > int.MaxValue)
                 return Fail("RECOVERY PRICE IS TOO LARGE.");
             quote.TotalCost = (int)cost;
-            quote.Charge = Math.Min(team.Credits, quote.TotalCost);
-            if (quote.Assistance > 0 && team.RecoverySupportCheckpoint == Checkpoint(team))
+            quote.Charge = quote.TotalCost;
+            if (team.Credits < quote.Charge)
+                return Fail("INSUFFICIENT CREDITS FOR REPLACEMENT. THERE IS NO RECOVERY ASSISTANCE.");
+            if (false && quote.Assistance > 0 && team.RecoverySupportCheckpoint == Checkpoint(team))
                 return Fail("RECOVERY ASSISTANCE ALREADY USED. COMPLETE A RACE BEFORE CLAIMING AGAIN, OR USE SHOP AND GARAGE.");
             string playerBikeName = chosen.Count > 0 ? database.GetBikeDefinition(chosen[0].BikeDefinitionId)?.DisplayName : build?.DisplayName;
             string partnerBikeName = chosen.Count > 1 ? database.GetBikeDefinition(chosen[1].BikeDefinitionId)?.DisplayName : build?.DisplayName;
@@ -144,8 +146,7 @@ namespace RaceFatal.Career
             assigned = session.SelectPartnerRacer(quote.PartnerRacerId);
             if (!assigned.IsSuccess)
                 return assigned;
-            if (quote.Assistance > 0)
-                team.RestoreRecoverySupport(Checkpoint(team));
+            // Total-loss economy: no recovery assistance or reimbursement.
             return Result.Success();
         }
 
