@@ -30,7 +30,7 @@ namespace RaceFatal.Career
             if (pool.Count == 0) return Result<BrandBoxReceipt>.Failure("NO ELIGIBLE BRANDS IN THIS CATEGORY.");
             if (team.Fame < BoxCost) return Result<BrandBoxReceipt>.Failure("NOT ENOUGH AVAILABLE FAME.");
             var brand = pool[random.Next(pool.Count)];
-            var templates = brand.Contracts.Where(c => Eligible(team, brand.Id, c)).ToList();
+            var templates = brand.Contracts.Where(c => Eligible(team, brand.Id, c) && (c.RewardKind != BrandRewardKind.TeamPerk || !team.HasTeamPerk(c.ItemId))).ToList();
             var receipt = new BrandBoxReceipt { id = Guid.NewGuid().ToString("N"), brandId = brand.Id, newBrand = team.Brands.Find(brand.Id) == null };
             var acquired = new System.Collections.Generic.List<BrandContract>();
             // Prefer distinct templates within an opening. Each acquired copy has its own identity.
@@ -46,7 +46,7 @@ namespace RaceFatal.Career
             team.Brands.Discover(brand.Id); team.Brands.contracts.AddRange(acquired); team.Brands.pendingReveal = receipt;
             return Result<BrandBoxReceipt>.Success(receipt);
         }
-        private static bool Eligible(TeamState team, string brandId, BrandContractTemplate terms) => team.LifetimeFame >= terms.MinimumLifetimeFame && (team.Brands.Find(brandId)?.standing ?? 0) >= terms.RequiredStanding;
+        private static bool Eligible(TeamState team, string brandId, BrandContractTemplate terms) => (terms.RewardKind != BrandRewardKind.TeamPerk || !team.HasTeamPerk(terms.ItemId)) && team.LifetimeFame >= terms.MinimumLifetimeFame && (team.Brands.Find(brandId)?.standing ?? 0) >= terms.RequiredStanding;
         public Result SetActive(TeamState team, string instanceId, bool active)
         {
             var c = team?.Brands.contracts.FirstOrDefault(x => x.instanceId == instanceId);
@@ -64,7 +64,15 @@ namespace RaceFatal.Career
             if (c == null || !c.completed || c.claimed) return Result.Failure("NO UNCLAIMED REWARD.");
             var t = c.terms; var relationship = team.Brands.Find(c.brandId);
             if ((long)relationship.standing + t.StandingReward > int.MaxValue || (t.RewardKind == BrandRewardKind.Credits && (long)team.Credits + t.Credits > int.MaxValue)) return Result.Failure("REWARD EXCEEDS ACCOUNT LIMIT.");
-            if (t.RewardKind != BrandRewardKind.Credits)
+            if (t.RewardKind == BrandRewardKind.TeamPerk)
+            {
+                var perk = TeamPerkCatalog.Find(t.ItemId);
+                if (perk == null || !string.Equals(perk.Manufacturer, database.BrandDefinitions[c.brandId].DisplayName, StringComparison.OrdinalIgnoreCase))
+                    return Result.Failure("TEAM PERK DOES NOT MATCH THE MANUFACTURER.");
+                if (team.HasTeamPerk(perk.Id)) return Result.Failure("TEAM PERK ALREADY CLAIMED.");
+                if (!team.GrantTeamPerk(perk.Id)) return Result.Failure("COULD NOT GRANT TEAM PERK.");
+            }
+            else if (t.RewardKind != BrandRewardKind.Credits)
             {
                 var offer = new ShopService(database).FindOffer(t.ItemKind, t.ItemId);
                 if (offer == null) return Result.Failure("REWARD CONTENT IS MISSING. CONTRACT IS RETAINED.");
@@ -79,7 +87,7 @@ namespace RaceFatal.Career
             relationship.standing += t.StandingReward; c.claimed = true;
             return Result.Success();
         }
-        public static string RewardText(BrandContractTemplate t) => t.RewardKind == BrandRewardKind.Credits ? t.Credits.ToString("N0") + " CR" : t.RewardKind == BrandRewardKind.PurchaseAccess ? "PURCHASE ACCESS: " + t.ItemId : "ONE FREE ITEM + REPLACEMENT ACCESS: " + t.ItemId;
+        public static string RewardText(BrandContractTemplate t) => t.RewardKind == BrandRewardKind.TeamPerk ? "PERMANENT TEAM PERK: " + (TeamPerkCatalog.Find(t.ItemId)?.Name ?? t.ItemId) : t.RewardKind == BrandRewardKind.Credits ? t.Credits.ToString("N0") + " CR" : t.RewardKind == BrandRewardKind.PurchaseAccess ? "PURCHASE ACCESS: " + t.ItemId : "ONE FREE ITEM + REPLACEMENT ACCESS: " + t.ItemId;
         public void ApplyOpponentPreferences(TeamState team, OpponentTeamDefinition definition, int lifetimeFame)
         {
             if (definition == null) return;
