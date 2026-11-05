@@ -51,7 +51,7 @@ namespace RaceFatal.Racing
             var basePerformance = performanceResult.Value;
             float capacity = basePerformance.EnergyCapacity * (1f + System.Math.Min(.20f, perks.Bonus(RacerPerkEffect.EnergyCapacityPercent) + EngineBonus("EnergyCapacityPercent"))) + perks.EnergyCapacity;
             var energy = new EnergyPool(System.Math.Max(0f, capacity));
-            Result<RaceEquipmentSystem> equipmentResult = RaceEquipmentSystem.Create(racer.RacerId, bike.Loadout, database, energy);
+            Result<RaceEquipmentSystem> equipmentResult = RaceEquipmentSystem.Create(racer.RacerId, bike.Loadout, database, energy, perks, team);
             if (!equipmentResult.IsSuccess)
                 return Result<RaceParticipant>.Failure(equipmentResult.ErrorMessage);
             // Personal race-performance modifiers are applied once on entry, never to persistent equipment definitions.
