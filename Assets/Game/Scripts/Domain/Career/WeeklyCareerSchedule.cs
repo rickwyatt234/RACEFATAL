@@ -28,7 +28,7 @@ namespace RaceFatal.Career
             if(state==0)state=0xA341316Cu;
             var starters=pool.Where(s=>s.starterOrder>0 && week==1).OrderBy(s=>s.starterOrder).Take(3).ToList();
             foreach(var starter in starters)
-                Add(results,starter,(week-1)*7+Math.Min(starter.starterOrder,8-starter.roundCount));
+                Add(results,starter,(week-1)*7+Math.Min((starter.firstDay-1)%7+1,8-starter.roundCount));
             var regular=Shuffle(pool.Where(s=>s.kind!=CareerEventKind.Championship && !starters.Contains(s)).ToList(),ref state);
             var championships=Shuffle(pool.Where(s=>s.kind==CareerEventKind.Championship && !starters.Contains(s)).ToList(),ref state);
             // At most 20 regular offerings per week when the authored pool supports it.
