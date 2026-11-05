@@ -1,5 +1,6 @@
 using System;
 using RaceFatal.Combat;
+using RaceFatal.Career;
 using RaceFatal.Energy;
 using RaceFatal.Equipment;
 using RaceFatal.Vehicles;
@@ -9,6 +10,7 @@ namespace RaceFatal.Racing
     public class RaceVehicleState
     {
         public BikeState Bike { get; }
+        public RacerPerkBonuses Perks { get; }
         public BikePerformance Performance { get; }
         public DamageMeter Damage { get; }
         public EnergyPool EnergyPool { get; }
@@ -29,9 +31,10 @@ namespace RaceFatal.Racing
         public float RuntimeHandling => Performance.ConfiguredHandling * TemporaryHandlingMultiplier;
         public bool IsDestroyed => Damage.IsDestroyed || Bike.IsDestroyed;
 
-        public RaceVehicleState(BikeState bike, BikePerformance performance, EnergyPool energyPool, RaceEquipmentSystem equipmentSystem)
+        public RaceVehicleState(BikeState bike, BikePerformance performance, EnergyPool energyPool, RaceEquipmentSystem equipmentSystem, RacerPerkBonuses perks = null)
         {
             Bike = bike ?? throw new ArgumentNullException(nameof(bike));
+            Perks = perks;
             Performance = performance ?? throw new ArgumentNullException(nameof(performance));
             EnergyPool = energyPool ?? throw new ArgumentNullException(nameof(energyPool));
             EquipmentSystem = equipmentSystem ?? throw new ArgumentNullException(nameof(equipmentSystem));
@@ -48,7 +51,9 @@ namespace RaceFatal.Racing
             float remainingDamage = EquipmentSystem.AbsorbDamage(incomingDamage);
             float shieldAbsorbed = incomingDamage - remainingDamage;
             if (cause == DamageCause.Collision)
-                remainingDamage *= 1f - Performance.ImpactResistance;
+                remainingDamage *= (1f - Performance.ImpactResistance) * (1f - Math.Min(.15f, Perks?.Bonus(RacerPerkEffect.ImpactDefense) ?? 0f));
+            if (Damage.CurrentIntegrity <= Performance.MaxIntegrity * .25f)
+                remainingDamage *= 1f - Math.Min(.15f, Perks?.Bonus(RacerPerkEffect.IronWill) ?? 0f);
             bool wasDestroyed = Damage.IsDestroyed;
             float bikeDamage = Damage.ApplyDamage(remainingDamage);
             bool destroyedNow = !wasDestroyed && Damage.IsDestroyed;
