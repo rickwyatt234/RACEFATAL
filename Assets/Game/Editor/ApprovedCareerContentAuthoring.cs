@@ -54,7 +54,7 @@ namespace RaceFatal.Editor
                 float acceleration=new[]{0f,13f,17f,22f,28f}[generation]*(family=="Gaussian"?1.05f:family=="Combustion"?1.02f:1f);
                 int cost=new[]{0,2200,5500,12000,24000}[generation];
                 count+=Author<EngineDefinitionSO>(catalog,"engineDefinitions","Engines",id,family+" Mk "+generation,so=>{
-                    Put(so,"engineClass",(EngineClass)(5-generation)); // Mk I -> Class5, II -> Class3, III -> Class2, IV -> Class1
+                    Put(so,"engineClass",generation==1?EngineClass.Class5:generation==2?EngineClass.Class3:generation==3?EngineClass.Class2:EngineClass.Class1);
                     Put(so,"topSpeed",speed);Put(so,"acceleration",acceleration);Put(so,"creditCost",cost);
                 });
             }
@@ -179,7 +179,12 @@ namespace RaceFatal.Editor
             for(int i=0;i<list.arraySize;i++)
             {
                 var existing=list.GetArrayElementAtIndex(i).objectReferenceValue as ScriptableObject;
-                if(existing!=null && (string)existing.GetType().GetProperty("Id")?.GetValue(existing)==id)return 0;
+                if(existing!=null)
+                {
+                    var stored = new SerializedObject(existing);
+                    var existingName=stored.FindProperty("displayName");
+                    if((string)existing.GetType().GetProperty("Id")?.GetValue(existing)==id || (existingName!=null && existingName.stringValue==title))return 0;
+                }
             }
             string directory=Root+"/"+folder;
             if(!AssetDatabase.IsValidFolder(Root))AssetDatabase.CreateFolder("Assets/Game","GeneratedApprovedContent");
