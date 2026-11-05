@@ -206,6 +206,18 @@ namespace RaceFatal.Career
             return perk.Id;
         }
 
+        public Result ChangeStartingPerk(string id)
+        {
+            var run=Current?.CareerRun;
+            if(run?.IsActive!=true || !run.NeedsIntroduction)return Result.Failure("STARTING PERK SELECTION IS CLOSED.");
+            var perk=database.GetRacerPerkDefinition(id);
+            if(perk==null || !RacerPerkCatalog.IsStarter(id))return Result.Failure("SELECT AN ELIGIBLE STARTER PERK.");
+            if(run.StartingPerkId==id)return Result.Success();
+            if(!run.Player.Progression.ReplaceFreeStartingPerk(run.StartingPerkId,id))return Result.Failure("STARTER PERK COULD NOT BE CHANGED.");
+            run.ChangeStartingPerk(id);
+            return Result.Success();
+        }
+
         public Result AcknowledgeNewRacer()
         {
             if (Current?.CareerRun?.IsActive != true)
