@@ -51,14 +51,14 @@ namespace RaceFatal.Racing
             }
 
             var participants = new List<RaceParticipant>(race.EntrantCount);
-            Result<RaceParticipant> playerResult = participantFactory.Create(player, playerBike, RaceParticipantRole.Player);
+            Result<RaceParticipant> playerResult = participantFactory.Create(player, playerBike, RaceParticipantRole.Player, playerTeam);
             if (!playerResult.IsSuccess)
             {
                 return Result<RaceDirector>.Failure(playerResult.ErrorMessage);
             }
 
             participants.Add(playerResult.Value);
-            Result<RaceParticipant> partnerResult = participantFactory.Create(playerPartner, partnerBike, RaceParticipantRole.PlayerPartner);
+            Result<RaceParticipant> partnerResult = participantFactory.Create(playerPartner, partnerBike, RaceParticipantRole.PlayerPartner, playerTeam);
             if (!partnerResult.IsSuccess)
             {
                 return Result<RaceDirector>.Failure(partnerResult.ErrorMessage);
@@ -161,7 +161,7 @@ namespace RaceFatal.Racing
             {
                 RacerState racer = eligibleRacers[i];
                 BikeState bike = eligibleBikes[i];
-                Result<RaceParticipant> participantResult = participantFactory.Create(racer, bike, RaceParticipantRole.Opponent);
+                Result<RaceParticipant> participantResult = participantFactory.Create(racer, bike, RaceParticipantRole.Opponent, team);
                 if (!participantResult.IsSuccess)
                 {
                     return Result.Failure(participantResult.ErrorMessage);
