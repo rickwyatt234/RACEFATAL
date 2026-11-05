@@ -12,6 +12,7 @@ namespace RaceFatal.Data
         private readonly Dictionary<string, BrandDefinition> brandDefinitions = new Dictionary<string, BrandDefinition>();
         public IReadOnlyDictionary<string, BrandDefinition> BrandDefinitions => brandDefinitions;
         public void AddBrandDefinition(BrandDefinition brand) => brandDefinitions.Add(brand.Id, brand);
+        public void ReplaceBrandDefinition(BrandDefinition brand) => brandDefinitions[brand.Id] = brand;
         private readonly Dictionary<string, CareerEventDefinition> careerEventDefinitions = new Dictionary<string, CareerEventDefinition>();
         public IReadOnlyDictionary<string, CareerEventDefinition> CareerEventDefinitions => careerEventDefinitions;
 
