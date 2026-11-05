@@ -175,7 +175,7 @@ namespace RaceFatal.Racing
 
         private static bool IsCorrectClass(BikeState bike, EngineClass engineClass)
         {
-            return bike != null && bike.IsRaceReady && bike.EngineClass.HasValue && bike.EngineClass.Value == engineClass;
+            return bike != null && bike.IsRaceReady && bike.EngineClass.HasValue && GarageState.IsClassEligible(bike.EngineClass, engineClass);
         }
     }
 }
