@@ -55,8 +55,10 @@ namespace RaceFatal.Career
             if (playerEntry.Status != RaceParticipantStatus.Finished && playerEntry.Status != RaceParticipantStatus.Destroyed && playerEntry.Status != RaceParticipantStatus.Retired)
                 throw new InvalidOperationException("Player has no finalized race outcome.");
             // Personal Fame perks affect Character Fame, not permanent team standing.
-            var playerPerks = RacerPerkBonuses.For(player, rewardPolicyDatabase);
-            reward = new RaceReward(reward.Credits, reward.TeamFame, reward.CharacterFame);
+            int personalFame = reward.CharacterFame;
+            if (playerEntry.Status == RaceParticipantStatus.Finished && player.Progression.HasPurchasedPerk("FAM-01"))
+                personalFame = checked(personalFame + (int)Math.Round(personalFame * .08f, MidpointRounding.AwayFromZero));
+            reward = new RaceReward(reward.Credits, reward.TeamFame, personalFame);
             _ = checked(team.Credits + reward.Credits);
             _ = checked(team.Fame + reward.TeamFame);
             _ = checked(player.Progression.Fame + reward.CharacterFame);
