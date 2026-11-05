@@ -33,6 +33,7 @@ namespace RaceFatal.Infrastructure.Saving
         public bool hasLifetimeFame;
         public int lifetimeFame;
         public RaceFatal.Career.BrandProgress brands;
+        public List<string> teamPerkIds = new List<string>();
         public string recoverySupportCheckpoint;
         public List<SettledRaceSaveData> settledRaceResults = new List<SettledRaceSaveData>();
         public List<string> unlockedChampionshipIds = new List<string>();
