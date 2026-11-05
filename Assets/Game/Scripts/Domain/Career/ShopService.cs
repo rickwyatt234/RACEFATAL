@@ -96,6 +96,14 @@ namespace RaceFatal.Career
             return GetOffers().Find(o => o.Kind == kind && o.DefinitionId == id);
         }
 
+        public int EffectiveCreditCost(TeamState team, ShopOffer offer)
+        {
+            if(offer==null)return 0;
+            var brand = offer.BrandId != null && database.BrandDefinitions.TryGetValue(offer.BrandId,out var found) ? found : null;
+            float discount=brand==null?0f:TeamPerkCatalog.Bonus(team,"PurchaseDiscount",brand.DisplayName);
+            return Math.Max(0,(int)Math.Round(offer.CreditCost*(1f-discount),MidpointRounding.AwayFromZero));
+        }
+
         public Result CanPurchase(TeamState team, ShopItemKind kind, string id)
         {
             if (team == null)
@@ -115,8 +123,9 @@ namespace RaceFatal.Career
                     return built;
             }
 
-            if (team.Credits < offer.CreditCost)
-                return Result.Failure($"INSUFFICIENT CREDITS. NEED {offer.CreditCost - team.Credits:N0} MORE.");
+            int price=EffectiveCreditCost(team,offer);
+            if (team.Credits < price)
+                return Result.Failure($"INSUFFICIENT CREDITS. NEED {price - team.Credits:N0} MORE.");
             return Result.Success();
         }
 
@@ -153,11 +162,12 @@ namespace RaceFatal.Career
                     return Result.Failure("UNKNOWN ITEM TYPE.");
             }
 
-            if (!team.TrySpendCredits(offer.CreditCost))
+            int price=EffectiveCreditCost(team,offer);
+            if (!team.TrySpendCredits(price))
                 return Result.Failure("INSUFFICIENT CREDITS.");
             Result result = add();
             if (!result.IsSuccess)
-                team.AddCredits(offer.CreditCost);
+                team.AddCredits(price);
             return result;
         }
 
