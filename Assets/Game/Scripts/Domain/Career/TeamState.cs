@@ -13,6 +13,21 @@ namespace RaceFatal.Career
             RecoverySupportCheckpoint = checkpoint;
         }
 
+        private readonly HashSet<string> ownedTeamPerkIds = new HashSet<string>(StringComparer.Ordinal);
+        public IReadOnlyCollection<string> OwnedTeamPerkIds => ownedTeamPerkIds;
+        public bool HasTeamPerk(string id) => !string.IsNullOrWhiteSpace(id) && ownedTeamPerkIds.Contains(id);
+        public bool GrantTeamPerk(string id)
+        {
+            if (TeamPerkCatalog.Find(id) == null) return false;
+            return ownedTeamPerkIds.Add(id);
+        }
+        public void RestoreTeamPerks(IEnumerable<string> ids)
+        {
+            ownedTeamPerkIds.Clear();
+            if(ids==null)return;
+            foreach(var id in ids)
+                if(TeamPerkCatalog.Find(id)!=null)ownedTeamPerkIds.Add(id);
+        }
         private readonly HashSet<string> unlockedChampionshipIds = new HashSet<string>();
         private readonly HashSet<string> eliminatedRacerIds = new HashSet<string>();
         private readonly Dictionary<string, PostRaceResult> settledRaceResults = new Dictionary<string, PostRaceResult>();
