@@ -11,5 +11,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 389e41278cf34dcab71ba079b73122e6, type: 3}
   m_Name: UIAuthoring
-  m_EditorClassIdentifier:
-  version: 0
+  m_EditorClassIdentifier: 
+  version: 1
