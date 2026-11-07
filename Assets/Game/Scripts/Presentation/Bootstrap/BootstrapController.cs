@@ -20,6 +20,7 @@ namespace RaceFatal.Presentation.Bootstrap
         [Header("Content")] [SerializeField] private GameContentCatalogSO contentCatalog;
         [Header("Startup")] [SerializeField] private BootstrapStartupMode startupMode = BootstrapStartupMode.FrontEnd;
         [SerializeField] private string frontEndSceneName = "03_MainMenu";
+        public static string CampaignSaveDirectory => Path.Combine(Application.persistentDataPath, "RACEFATAL", "Saves");
         public static GameContext Context { get; private set; }
         public static GameContentCatalogSO ContentCatalog { get; private set; }
 
@@ -124,7 +125,7 @@ namespace RaceFatal.Presentation.Bootstrap
             RaceFactory raceFactory = new RaceFactory(gridValidator);
             RaceEntryBuilder raceEntryBuilder = new RaceEntryBuilder(participantFactory, raceFactory, careerManager);
             GameSessionManager sessionManager = new GameSessionManager(database, careerManager, worldFactory, bikeBuildFactory);
-            string saveRoot = Path.Combine(Application.persistentDataPath, "RACEFATAL", "Saves");
+            string saveRoot = CampaignSaveDirectory;
             ICampaignSaveRepository saveRepository = new JsonCampaignSaveRepository(saveRoot, 3);
             CampaignSaveMapper saveMapper = new CampaignSaveMapper(database);
             CampaignSaveService saveService = new CampaignSaveService(sessionManager, saveMapper, saveRepository);
