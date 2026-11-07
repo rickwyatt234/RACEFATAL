@@ -11,6 +11,9 @@ namespace RaceFatal.Presentation.FrontEnd
     {
         [Min(1)] [SerializeField] private int slotIndex = 1;
         [Header("Interaction")] [SerializeField] private Button selectButton;
+        [SerializeField] private Button deleteButton;
+        [SerializeField] private TMP_Text deleteLabel;
+        private Action<int> onDelete;
         [Header("Text")] [SerializeField] private TMP_Text slotLabel;
         [SerializeField] private TMP_Text teamNameText;
         [SerializeField] private TMP_Text racerNameText;
@@ -20,9 +23,15 @@ namespace RaceFatal.Presentation.FrontEnd
         private Action<int> onSelected;
         public int SlotIndex => slotIndex;
 
-        public void Initialize(Action<int> selectionCallback)
+        public void Initialize(Action<int> selectionCallback, Action<int> deletionCallback)
         {
             onSelected = selectionCallback;
+            onDelete = deletionCallback;
+            if (deleteButton != null)
+            {
+                deleteButton.onClick.RemoveListener(HandleDelete);
+                deleteButton.onClick.AddListener(HandleDelete);
+            }
             if (selectButton == null)
                 return;
             selectButton.onClick.RemoveListener(HandleSelected);
@@ -38,6 +47,8 @@ namespace RaceFatal.Presentation.FrontEnd
             }
 
             slotIndex = summary.SlotIndex;
+            if (deleteButton != null) deleteButton.gameObject.SetActive(summary.Exists);
+            SetDeletePending(false);
             SetText(slotLabel, $"SAVE {slotIndex:00}");
             if (!summary.Exists)
             {
@@ -69,6 +80,8 @@ namespace RaceFatal.Presentation.FrontEnd
         public void BindError(string message)
         {
             SetText(slotLabel, $"SAVE {slotIndex:00}");
+            if (deleteButton != null) deleteButton.gameObject.SetActive(true);
+            SetDeletePending(false);
             SetText(teamNameText, "UNREADABLE SAVE");
             SetText(racerNameText, string.Empty);
             SetText(resourcesText, string.Empty);
@@ -79,6 +92,13 @@ namespace RaceFatal.Presentation.FrontEnd
                 selectButton.interactable = false;
             }
         }
+
+        public void SetDeletePending(bool pending)
+        {
+            SetText(deleteLabel, pending ? $"ERASE SAVE {slotIndex:00}?" : "DELETE SAVE");
+        }
+
+        private void HandleDelete() => onDelete?.Invoke(slotIndex);
 
         private void HandleSelected()
         {

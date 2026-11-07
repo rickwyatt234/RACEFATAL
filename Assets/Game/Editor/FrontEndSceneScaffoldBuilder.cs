@@ -136,10 +136,14 @@ public static class FrontEndSceneScaffoldBuilder
         TMP_Text resources = CreateText(root.transform, "Resources", string.Empty, 21f, TextAlignmentOptions.TopLeft, new Vector2(780f, -24f), new Vector2(650f, 42f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
         TMP_Text lastSaved = CreateText(root.transform, "LastSaved", string.Empty, 18f, TextAlignmentOptions.TopLeft, new Vector2(780f, -72f), new Vector2(650f, 36f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
         TMP_Text status = CreateText(root.transform, "Status", "AVAILABLE", 18f, TextAlignmentOptions.BottomRight, new Vector2(-24f, 18f), new Vector2(460f, 36f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
+        Button delete = CreateButton(root.transform, "DELETE SAVE", new Vector2(190, 12), new Vector2(270, 52),
+            Vector2.zero, Vector2.zero, Vector2.zero);
         SaveSlotView view = root.GetComponent<SaveSlotView>();
         SerializedObject serialized = new SerializedObject(view);
         serialized.FindProperty("slotIndex").intValue = slotIndex;
         SetReference(serialized, "selectButton", root.GetComponent<Button>());
+        SetReference(serialized, "deleteButton", delete);
+        SetReference(serialized, "deleteLabel", delete.GetComponentInChildren<TMP_Text>());
         SetReference(serialized, "slotLabel", slotLabel);
         SetReference(serialized, "teamNameText", teamName);
         SetReference(serialized, "racerNameText", racerName);
