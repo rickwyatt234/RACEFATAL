@@ -36,6 +36,18 @@ public sealed class GameContentCatalogEditor : Editor
         EditorGUILayout.Space();
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
+            var catalog = (GameContentCatalogSO)target;
+            if (catalog.BrandDefinitions.Count == 0)
+            {
+                EditorGUILayout.HelpBox("Brands list is empty: the game uses 24 built-in starter brands. Create their editable assets below.", MessageType.Info);
+                if (GUILayout.Button("Create Starter Brand Assets"))
+                {
+                    BrandContentTools.Materialize(catalog);
+                    serializedObject.Update();
+                }
+            }
+            else
+                EditorGUILayout.LabelField("Brands", catalog.BrandDefinitions.Count + " authored brand assets");
             if (GUILayout.Button("Add All Racer Definitions"))
                 AddAllRacerDefinitions();
         }

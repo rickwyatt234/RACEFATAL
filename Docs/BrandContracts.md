@@ -47,3 +47,12 @@ Each acquired contract has a unique instance ID. Box receipts, activation, progr
 Portable regression suites cover the domain and save mapper with a System.Text.Json adapter (not Unity JsonUtility). `Tests/Brands` covers opening, duplicates, term snapshots, maximum active contracts, player attribution, replay, DNFs, streaks, venue constraints, rewards, inventory, missing rewards, legacy saves, succession, opponent preference and championship fame-fee rollback. `Tests/BrandsUI` runs 20 headless hierarchy/event checks using the production layout authoring and binding code. It checks every page, populated/empty rows, confirmation/reveal reuse, absence of runtime objects/components, preserved font/position edits, repeat-build preservation, and Play Mode/reset guards. This adapter does not render Unity UI or validate native serialization.
 
 Unity Editor compilation and Play Mode remain required: start from Bootstrap, run Build Brands UI outside Play Mode, customize and save a page, open all five tabs, use keyboard/controller navigation and text search, buy/skip/resume a box, complete and claim each objective/reward type, test the championship confirmation and interrupted launch, kill the player and create a successor, save/quit/reload, and check layout at supported resolutions. Validate native JsonUtility persistence and unavailable-disk error handling. No claim of Unity rendering or Play Mode verification is made by portable tests.
+
+
+### Editing starter brands
+
+Select the GameContentCatalog asset referenced by Bootstrap. If its Brands list is empty, the inspector offers **Create Starter Brand Assets** outside Play Mode. It writes the 24 starter `BrandDefinitionSO` assets under `Assets/Game/Brands` and assigns them to this catalog. An empty list uses code-defined defaults from `BrandDefaults`; a populated list is authoritative. Runtime definitions are plain data copied from SOs, while each team's discoveries, contracts and standing are save data.
+
+### Empty reveal receipt recovery
+
+Loading accepts an all-default pending-reveal object as no pending reveal, matching Unity inline serialization of a cleared reference. Existing careers with this empty shell can load without deleting their saves. Fame, acquired contracts, discovery and rewards are retained. Receipts containing any transaction data still undergo normal validation; valid pending reveals continue to resume their original saved outcome.

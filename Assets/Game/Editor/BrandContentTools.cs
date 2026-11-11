@@ -22,7 +22,12 @@ public static class BrandContentTools
 
     public static void Materialize()
     {
-        var catalog = Selection.activeObject as GameContentCatalogSO;
+        Materialize(Selection.activeObject as GameContentCatalogSO);
+    }
+
+    public static void Materialize(GameContentCatalogSO catalog)
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogError("Exit Play Mode before authoring brands."); return; }
         if (catalog == null) { Debug.LogError("Select the GameContentCatalog used by Bootstrap."); return; }
         if (catalog.BrandDefinitions.Count > 0) { Debug.LogError("This catalog already has authored brands. Edit those assets; materialization never overwrites them."); return; }
         var database = GameDatabaseFactory.CreateGameDatabase(catalog);
