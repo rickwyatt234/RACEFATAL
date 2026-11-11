@@ -32,6 +32,8 @@ namespace RaceFatal.Presentation.Racing
         [SerializeField] private Button continueButton;
         [SerializeField] private TextMeshProUGUI continueButtonText;
         [SerializeField] private CanvasGroup outcomeCanvasGroup;
+        internal GameObject OutcomePanel => outcomePanel;
+        internal GameObject PayoutPanel => payoutPanel;
         [Header("Payout")] [SerializeField] private GameObject payoutPanel;
         [SerializeField] private TextMeshProUGUI creditsText;
         [SerializeField] private TextMeshProUGUI teamFameText;

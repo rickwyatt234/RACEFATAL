@@ -12,6 +12,7 @@ namespace RaceFatal.Presentation.FrontEnd
         [SerializeField] private TMP_Text statusText;
         private FrontEndController frontEnd;
         private CampaignSaveService saves;
+        private int? pendingDeletion;
         public void Initialize(FrontEndController owner, CampaignSaveService saveService)
         {
             frontEnd = owner;
@@ -22,7 +23,7 @@ namespace RaceFatal.Presentation.FrontEnd
             {
                 if (slotView == null)
                     continue;
-                slotView.Initialize(HandleSlotSelected);
+                slotView.Initialize(HandleSlotSelected, HandleDelete);
             }
         }
 
@@ -34,6 +35,7 @@ namespace RaceFatal.Presentation.FrontEnd
                 return;
             }
 
+            pendingDeletion = null;
             SetStatus(string.Empty);
             if (slotViews == null)
                 return;
@@ -51,6 +53,22 @@ namespace RaceFatal.Presentation.FrontEnd
 
                 slotView.Bind(result.Value);
             }
+        }
+
+        private void HandleDelete(int slotIndex)
+        {
+            if (pendingDeletion == slotIndex)
+            {
+                var result = saves.DeleteCampaign(slotIndex);
+                Refresh();
+                SetStatus(result.IsSuccess ? $"SAVE {slotIndex:00} DELETED." : result.ErrorMessage);
+                return;
+            }
+
+            pendingDeletion = slotIndex;
+            foreach (var view in slotViews)
+                if (view != null) view.SetDeletePending(view.SlotIndex == slotIndex);
+            SetStatus($"Select ERASE SAVE {slotIndex:00}? again to permanently delete this campaign.");
         }
 
         private void HandleSlotSelected(int slotIndex)

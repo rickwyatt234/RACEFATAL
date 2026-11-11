@@ -67,6 +67,9 @@ public sealed class CareerDeveloperToolsInspector : Editor
             if (GUILayout.Button("Save campaign now / retry save")) Save();
         }
         EditorGUILayout.HelpBox("Reopen the current Career tab to refresh its displayed balances. The live balances above update immediately.", MessageType.None);
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Campaign saves", EditorStyles.boldLabel);
+        if (GUILayout.Button("Delete all three campaign saves…")) CampaignSaveDevelopmentTools.DeleteAllSaveSlots();
         EditorGUILayout.LabelField("Session log", EditorStyles.boldLabel);
         logScroll = EditorGUILayout.BeginScrollView(logScroll, GUILayout.Height(150));
         foreach (var entry in log) EditorGUILayout.LabelField(entry, EditorStyles.wordWrappedLabel);

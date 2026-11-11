@@ -42,6 +42,7 @@ namespace RaceFatal.Presentation.Tactics
             }
 
         }
+        internal GameObject MenuCanvas => canvas != null ? canvas.gameObject : null;
         public bool HasAuthoredLayout => authored && actionSlots != null && markerSlots != null && stripSlots != null;
 #if UNITY_EDITOR
         public void BuildUI()

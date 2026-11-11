@@ -1,54 +1,58 @@
 using System.IO;
+using RaceFatal.Infrastructure.Saving;
+using RaceFatal.Presentation.Bootstrap;
+using RaceFatal.Presentation.FrontEnd;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public static class CampaignSaveDevelopmentTools
 {
-
     public static void OpenSaveFolder()
     {
-        string saveRoot = GetSaveRoot();
-        Directory.CreateDirectory(saveRoot);
-        EditorUtility.RevealInFinder(saveRoot);
+        string root = BootstrapController.CampaignSaveDirectory;
+        Directory.CreateDirectory(root);
+        EditorUtility.RevealInFinder(root);
     }
 
     public static void DeleteAllSaveSlots()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
-        {
-            EditorUtility.DisplayDialog("RACE//FATAL", "Stop Play Mode before deleting campaign save slots.", "OK");
-            return;
-        }
+        if (!EditorUtility.DisplayDialog("Delete all three campaign saves?",
+                "All local campaign slots and their backups will be erased. A loaded campaign will close without saving.",
+                "Delete all three", "Cancel")) return;
 
-        bool confirmed = EditorUtility.DisplayDialog("Delete All Campaign Saves?", "This permanently deletes every campaign save slot, including backup and temporary slot files, from the local RACE//FATAL save directory.", "Delete All Saves", "Cancel");
-        if (!confirmed)
-            return;
-        string saveRoot = GetSaveRoot();
-        if (!Directory.Exists(saveRoot))
+        var context = Application.isPlaying ? BootstrapController.Context : null;
+        var repository = new JsonCampaignSaveRepository(BootstrapController.CampaignSaveDirectory);
+        var saves = context?.Saves;
+        int? active = saves?.ActiveSlotIndex;
+        // Remove the active slot last so an earlier failure leaves the open session usable.
+        for (int i = 1; i <= repository.SlotCount; i++)
         {
-            EditorUtility.DisplayDialog("RACE//FATAL", "No campaign save directory exists yet.", "OK");
-            return;
+            if (i == active) continue;
+            var result = repository.Delete(i);
+            if (!result.IsSuccess) { ReportFailure(result.ErrorMessage); return; }
         }
-
-        string[] files = Directory.GetFiles(saveRoot, "slot_*", SearchOption.TopDirectoryOnly);
-        int deletedCount = 0;
-        foreach (string file in files)
+        if (active.HasValue)
         {
-            File.Delete(file);
-            deletedCount++;
+            var result = repository.Delete(active.Value);
+            if (!result.IsSuccess) { ReportFailure(result.ErrorMessage); return; }
+            saves.CloseCurrentCampaign(false);
+            context.RaceLaunch.Clear();
+            SceneManager.LoadScene("03_MainMenu");
         }
-
-        if (Directory.GetFiles(saveRoot, "*", SearchOption.TopDirectoryOnly).Length == 0 && Directory.GetDirectories(saveRoot, "*", SearchOption.TopDirectoryOnly).Length == 0)
-        {
-            Directory.Delete(saveRoot);
-        }
-
-        Debug.Log($"RACE//FATAL deleted {deletedCount} campaign save file(s).");
-        EditorUtility.DisplayDialog("RACE//FATAL", deletedCount > 0 ? $"Deleted {deletedCount} campaign save file(s)." : "No campaign save slot files were found.", "OK");
+        else RefreshSlots();
+        Debug.Log("[RF Developer Tools] All three campaign slots are empty.");
     }
 
-    private static string GetSaveRoot()
+    private static void ReportFailure(string error)
     {
-        return Path.Combine(Application.persistentDataPath, "RACEFATAL", "Saves");
+        RefreshSlots();
+        EditorUtility.DisplayDialog("Could not clear every slot", error, "OK");
+    }
+
+    private static void RefreshSlots()
+    {
+        if (!Application.isPlaying) return;
+        Object.FindFirstObjectByType<CampaignSelectController>()?.Refresh();
     }
 }
