@@ -2458,7 +2458,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4054,7 +4054,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -10522,7 +10522,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -11739,7 +11739,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -13275,7 +13275,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -22961,7 +22961,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -27621,21 +27621,21 @@ MonoBehaviour:
   preCountdownDelay: 0.5
   countdownStepDuration: 1
   goDisplayDuration: 0.75
-  boostUnlockDelay: 10
-  weaponUnlockDelay: 25
+  boostUnlockDelay: 30
+  weaponUnlockDelay: 60
   countdownGroup: {fileID: 1190773328}
   countdownText: {fileID: 1286385278}
   goText: GO!
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 658803407}
   countdownClip: {fileID: 0}
   goClip: {fileID: 0}
   countdownVolume: 1
   goVolume: 1
-  equipmentCueSource: {fileID: 0}
-  boostUnlockedClip: {fileID: 8300000, guid: 8ca709892425d426a8c7105b5793b833, type: 3}
-  weaponsUnlockedClip: {fileID: 8300000, guid: 934259f758ac3468dbc69a1acab5ea0e, type: 3}
-  boostUnlockedVolume: 0.75
-  weaponsUnlockedVolume: 0.75
+  equipmentCueSource: {fileID: 658803407}
+  boostUnlockedClip: {fileID: 8300000, guid: 2cd320bfdb018ff48a1a6cdd332bddf5, type: 3}
+  weaponsUnlockedClip: {fileID: 8300000, guid: 3108c93319b05344f8bbd0224c28d981, type: 3}
+  boostUnlockedVolume: 1
+  weaponsUnlockedVolume: 1
   debugRunning: 0
   debugRaceStarted: 0
   debugBoostAllowed: 0
@@ -41732,7 +41732,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -43755,7 +43755,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -45109,7 +45109,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -50667,7 +50667,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -63445,7 +63445,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 20
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -64662,7 +64662,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -82809,7 +82809,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -84848,7 +84848,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 8
+  m_fontSize: 19.4
   m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 1
