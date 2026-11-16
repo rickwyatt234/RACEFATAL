@@ -27482,6 +27482,7 @@ GameObject:
   m_Component:
   - component: {fileID: 684423696}
   - component: {fileID: 684423695}
+  - component: {fileID: 684423704}
   - component: {fileID: 684423694}
   - component: {fileID: 684423697}
   - component: {fileID: 684423700}
@@ -27541,6 +27542,38 @@ MonoBehaviour:
   ramKey: 114
   siphonKey: 103
   repulsionKey: 104
+--- !u!114 &684423704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 684423693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a4daf9f271f4e4ca6a16fa52b2ec5e8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: RaceFatal.Presentation::RaceFatal.Presentation.Racing.RaceVoiceoverController
+  energyLow: {fileID: 0}
+  finalLap: {fileID: 0}
+  hostileLock: {fileID: 0}
+  integrityCritical: {fileID: 0}
+  leadAcquired: {fileID: 0}
+  leadLost: {fileID: 0}
+  propulsionActivated: {fileID: 0}
+  raceComplete: {fileID: 0}
+  racerEliminated: {fileID: 0}
+  shieldsCritical: {fileID: 0}
+  shieldsRestored: {fileID: 0}
+  sponsorObjectiveComplete: {fileID: 0}
+  tacticalMode: {fileID: 0}
+  weaponsActivated: {fileID: 0}
+  voiceVolume: 1
+  backgroundVolumeWhileSpeaking: 0.25
+  duckFadeSeconds: 0.12
+  gapBetweenLines: 0.15
+  lowEnergyThreshold: 0.2
+  repeatCooldownSeconds: 6
 --- !u!114 &684423695
 MonoBehaviour:
   m_ObjectHideFlags: 0

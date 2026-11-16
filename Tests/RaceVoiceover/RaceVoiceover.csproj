@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <NoWarn>0649;0414;0067</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="PresentationDoubles.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Domain/**/*.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Shared/**/*.cs" />
+    <Compile Include="../../Assets/Game/Scripts/Presentation/Racing/RaceVoiceoverController.cs" />
+  </ItemGroup>
+</Project>
