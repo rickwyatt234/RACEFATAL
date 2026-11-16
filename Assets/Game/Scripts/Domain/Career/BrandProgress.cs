@@ -61,26 +61,41 @@ namespace RaceFatal.Career
             foreach (var contract in contracts.Where(c => c.active && !c.completed))
             {
                 var t = contract.terms;
-                if ((!string.IsNullOrEmpty(t.RaceId) && t.RaceId != race.RaceId) || (!string.IsNullOrEmpty(t.TrackId) && t.TrackId != race.TrackId)) continue;
-                bool finish = player.Status == RaceParticipantStatus.Finished;
-                int gain = 0;
-                switch (t.Objective)
-                {
-                    case BrandObjective.DestroyRacers: gain = Math.Max(0, player.Eliminations); break;
-                    case BrandObjective.FinishRaces: gain = finish ? 1 : 0; break;
-                    case BrandObjective.WinRaces: gain = finish && player.Position == 1 ? 1 : 0; break;
-                    case BrandObjective.PodiumFinishes: gain = finish && player.Position <= 3 ? 1 : 0; break;
-                    case BrandObjective.ConsecutivePodiums:
-                        if (!finish || player.Position > 3) contract.progress = 0;
-                        else gain = 1;
-                        break;
-                }
-                contract.progress = (int)Math.Min(t.Target, (long)contract.progress + gain);
+                if (!MatchesRace(t, race.RaceId, race.TrackId)) continue;
+                contract.progress = PreviewRaceProgress(contract, race.RaceId, race.TrackId,
+                    player.Eliminations, player.Status, player.Position);
                 if (contract.progress >= t.Target) { contract.completed = true; contract.active = false; }
                 messages.Add(t.Title + "  " + contract.progress + "/" + t.Target + (contract.completed ? " — COMPLETE; CLAIM IN BRANDS" : ""));
             }
             return string.Join("\n", messages);
         }
+        // Read-only projection shared by live announcements and finalized settlement.
+        // Never bank live kills or award rewards before the settlement receipt is written.
+        public static int PreviewRaceProgress(BrandContract contract, string raceId, string trackId,
+            int eliminations, RaceParticipantStatus status, int position)
+        {
+            var t = contract.terms;
+            if (!MatchesRace(t, raceId, trackId)) return contract.progress;
+            bool finish = status == RaceParticipantStatus.Finished;
+            int gain = 0;
+            switch (t.Objective)
+            {
+                case BrandObjective.DestroyRacers: gain = Math.Max(0, eliminations); break;
+                case BrandObjective.FinishRaces: gain = finish ? 1 : 0; break;
+                case BrandObjective.WinRaces: gain = finish && position == 1 ? 1 : 0; break;
+                case BrandObjective.PodiumFinishes: gain = finish && position <= 3 ? 1 : 0; break;
+                case BrandObjective.ConsecutivePodiums:
+                    if (finish && position <= 3) gain = 1;
+                    else if (status != RaceParticipantStatus.Racing && status != RaceParticipantStatus.Ready) return 0;
+                    break;
+            }
+            return (int)Math.Min(t.Target, (long)contract.progress + gain);
+        }
+
+        private static bool MatchesRace(BrandContractTemplate terms, string raceId, string trackId) =>
+            (string.IsNullOrEmpty(terms.RaceId) || terms.RaceId == raceId) &&
+            (string.IsNullOrEmpty(terms.TrackId) || terms.TrackId == trackId);
+
         public void Validate()
         {
             relationships = relationships ?? new List<BrandRelationship>(); contracts = contracts ?? new List<BrandContract>();

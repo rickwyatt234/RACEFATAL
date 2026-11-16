@@ -13,6 +13,7 @@ using RaceFatal.Shared;
 
 namespace RaceFatal.Presentation.Racing
 {
+    [RequireComponent(typeof(RaceVoiceoverController))]
     public class RaceRuntimeController : MonoBehaviour
     {
         [Header("Combat Balance")] [Tooltip("Damage dealt when one non-player racer damages another. " + "Player damage dealt and received is unaffected.")] [Range(0f,
@@ -39,6 +40,9 @@ namespace RaceFatal.Presentation.Racing
             playerRacerId = playerId;
             GameContext context = BootstrapController.Context;
             input = context?.Input;
+            var voiceover = GetComponent<RaceVoiceoverController>();
+            if (voiceover == null) voiceover = gameObject.AddComponent<RaceVoiceoverController>();
+            voiceover.Initialize(this);
             raceDirector.RacerDestroyed += OnRacerDestroyed;
             raceDirector.RacerRetired += OnRacerRetired;
             raceDirector.RaceCompleted += OnRaceCompleted;

@@ -184,7 +184,7 @@ namespace RaceFatal.Presentation.Racing
             if (debugBoostAllowed) return;
             SetBoostPermission(true);
             debugBoostAllowed = true;
-            PlayEquipmentCue(boostUnlockedClip, boostUnlockedVolume);
+            PlayEquipmentCue(true, boostUnlockedClip, boostUnlockedVolume);
             OnBoostUnlocked?.Invoke();
         }
 
@@ -193,7 +193,7 @@ namespace RaceFatal.Presentation.Racing
             if (debugWeaponsAllowed) return;
             SetWeaponPermission(true);
             debugWeaponsAllowed = true;
-            PlayEquipmentCue(weaponsUnlockedClip, weaponsUnlockedVolume);
+            PlayEquipmentCue(false, weaponsUnlockedClip, weaponsUnlockedVolume);
             OnWeaponsUnlocked?.Invoke();
         }
 
@@ -310,8 +310,14 @@ namespace RaceFatal.Presentation.Racing
 
 #endregion
 #region Audio
-        private void PlayEquipmentCue(AudioClip clip, float volume)
+        private void PlayEquipmentCue(bool propulsion, AudioClip clip, float volume)
         {
+            var voiceover = raceRuntime != null ? raceRuntime.GetComponent<RaceVoiceoverController>() : null;
+            if (voiceover != null && voiceover.isActiveAndEnabled)
+            {
+                voiceover.PlayEquipmentUnlock(propulsion, clip, volume);
+                return;
+            }
             if (clip == null || volume <= 0f) return;
             if (equipmentCueSource == null)
             {
