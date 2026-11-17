@@ -19,6 +19,7 @@ namespace RaceFatal.Presentation.Tracks
         public int SegmentCount => segmentLengths?.Length ?? 0;
         public int SampleCount => samples?.Length ?? 0;
         public int ControlPointCount => controlPoints.Count;
+        public bool HasAuthoredOrientations => controlRotations.Count > 0;
 
         public void SetControlPoints(IReadOnlyList<Vector3> points, IReadOnlyList<Quaternion> rotations = null)
         {
