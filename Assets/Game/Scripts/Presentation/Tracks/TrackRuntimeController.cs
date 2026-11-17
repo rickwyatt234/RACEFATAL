@@ -54,6 +54,7 @@ namespace RaceFatal.Presentation.Tracks
         {
             if (racer == null)
                 return;
+            racer.GetComponent<TrackSurfaceProbe>()?.Initialize(progressPath);
             TrackProgressReporter reporter = racer.GetComponent<TrackProgressReporter>();
             if (reporter == null)
             {
@@ -94,6 +95,9 @@ namespace RaceFatal.Presentation.Tracks
             {
                 reporter.ResetTracking();
             }
+
+            racer.GetComponent<TrackSurfaceProbe>()?.ResetTracking();
+            racer.GetComponent<RaceFatal.Presentation.Vehicles.BikeMotor>()?.ResetSurfaceTracking();
 
             return true;
         }

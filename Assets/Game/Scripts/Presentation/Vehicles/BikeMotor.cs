@@ -43,6 +43,8 @@ namespace RaceFatal.Presentation.Vehicles
         [Min(0f)]
         [SerializeField]
         private float alignmentSpeed = 14f;
+        [Tooltip("Largest road-normal change transported in one physics step. Larger discontinuities are treated as a landing.")]
+        [Range(1f, 89f)] [SerializeField] private float maximumTransportAngle = 45f;
         [Header("Rotation Stability")] [Tooltip("Prevents physics, collisions, and impacts from rotating the bike. Intentional steering still works through BikeMotor.")] [SerializeField] private bool lockPhysicsRotation =
             true;
 #endregion
@@ -117,6 +119,12 @@ namespace RaceFatal.Presentation.Vehicles
         private float timeWithoutSurface;
         private float wallRecoveryTimer;
         private bool missingSurfaceWarningIssued;
+        private bool hasAcquiredSurface;
+        private bool surfaceAttached;
+        private Vector3 previousSurfaceNormal;
+        private float curvatureNormalSpeed;
+        private Quaternion surfaceRotation;
+        private Vector3 surfaceForward;
         public float ThrottleInput => throttleInput;
         public float BrakeInput => brakeInput;
         public float SteeringInput => steeringInput;
@@ -157,6 +165,7 @@ namespace RaceFatal.Presentation.Vehicles
             body = GetComponent<Rigidbody>();
             surfaceProbe = GetComponent<TrackSurfaceProbe>();
             body.useGravity = false;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
             body.maxDepenetrationVelocity = maximumDepenetrationVelocity;
             if (centerOfMass != null)
             {
@@ -166,7 +175,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void OnEnable()
         {
-            timeWithoutSurface = 0f;
+            ResetSurfaceTracking();
             wallRecoveryTimer = 0f;
             missingSurfaceWarningIssued = false;
             debugWallRecoveryActive = false;
@@ -178,6 +187,8 @@ namespace RaceFatal.Presentation.Vehicles
         {
             if (performance == null)
                 return;
+            surfaceRotation = body.rotation;
+            surfaceForward = surfaceRotation * Vector3.forward;
             steeringInput = Mathf.Lerp(steeringInput, targetSteeringInput, 1f - Mathf.Exp(-steeringResponse * performance.SteeringResponseMultiplier * Time.fixedDeltaTime));
             UpdateWallRecoveryTimer();
             SuppressPhysicsRotation();
@@ -186,11 +197,13 @@ namespace RaceFatal.Presentation.Vehicles
             debugHasSurface = hasSurface;
             if (hasSurface)
             {
+                bool continuousAttachment = surfaceAttached && timeWithoutSurface <= surfaceLossGraceTime;
                 timeWithoutSurface = 0f;
                 debugTimeWithoutSurface = 0f;
                 missingSurfaceWarningIssued = false;
-                RunSurfacePhysics();
-                ApplyWallRecovery(surfaceProbe.SurfaceNormal);
+                RunSurfacePhysics(continuousAttachment);
+                hasAcquiredSurface = true;
+                ApplyWallRecovery(surfaceProbe.ContactNormal);
                 SuppressPhysicsRotation();
                 return;
             }
@@ -216,6 +229,24 @@ namespace RaceFatal.Presentation.Vehicles
 
 #endregion
 #region Initialization
+        // Called on reuse/grid placement so an old road frame cannot rotate a new
+        // spawn's velocity or make it inherit another section's airborne gravity.
+        public void ResetSurfaceTracking()
+        {
+            timeWithoutSurface = 0f;
+            wallRecoveryTimer = 0f;
+            missingSurfaceWarningIssued = false;
+            debugHasSurface = false;
+            debugTimeWithoutSurface = 0f;
+            hasAcquiredSurface = false;
+            surfaceAttached = false;
+            curvatureNormalSpeed = 0f;
+            previousSurfaceNormal = body != null ? body.rotation * Vector3.up : transform.up;
+            surfaceRotation = body != null ? body.rotation : transform.rotation;
+            surfaceForward = surfaceRotation * Vector3.forward;
+            surfaceProbe?.ResetTracking();
+        }
+
         public void SetPerformance(BikePerformance bikePerformance)
         {
             performance = bikePerformance;
@@ -254,7 +285,7 @@ namespace RaceFatal.Presentation.Vehicles
             Vector3 reboundDirection = collisionNormal.normalized;
             if (surfaceProbe != null && surfaceProbe.HasSurface)
             {
-                Vector3 planarDirection = Vector3.ProjectOnPlane(reboundDirection, surfaceProbe.SurfaceNormal);
+                Vector3 planarDirection = Vector3.ProjectOnPlane(reboundDirection, surfaceProbe.ContactNormal);
                 if (planarDirection.sqrMagnitude > 0.001f)
                 {
                     reboundDirection = planarDirection.normalized;
@@ -266,7 +297,7 @@ namespace RaceFatal.Presentation.Vehicles
             BeginWallRecovery();
             if (surfaceProbe != null)
             {
-                Vector3 surfaceNormal = surfaceProbe.HasSurface ? surfaceProbe.SurfaceNormal : surfaceProbe.LastSurfaceNormal;
+                Vector3 surfaceNormal = surfaceProbe.HasSurface ? surfaceProbe.ContactNormal : surfaceProbe.LastSurfaceNormal;
                 ApplyWallRecovery(surfaceNormal);
             }
 
@@ -283,7 +314,7 @@ namespace RaceFatal.Presentation.Vehicles
             Vector3 direction = worldDirection.normalized;
             if (surfaceProbe != null)
             {
-                Vector3 surfaceNormal = surfaceProbe.HasSurface ? surfaceProbe.SurfaceNormal : surfaceProbe.LastSurfaceNormal;
+                Vector3 surfaceNormal = surfaceProbe.HasSurface ? surfaceProbe.ContactNormal : surfaceProbe.LastSurfaceNormal;
                 if (surfaceNormal.sqrMagnitude > 0.001f)
                 {
                     Vector3 planar = Vector3.ProjectOnPlane(direction, surfaceNormal);
@@ -305,7 +336,7 @@ namespace RaceFatal.Presentation.Vehicles
 
             float safeDuration = Mathf.Max(0.04f, duration);
             float requestedVelocityChange = Mathf.Abs(signedDistance) / safeDuration;
-            Vector3 lateralDirection = transform.right * Mathf.Sign(signedDistance);
+            Vector3 lateralDirection = body.rotation * Vector3.right * Mathf.Sign(signedDistance);
             ApplyExternalVelocityChange(lateralDirection, requestedVelocityChange);
         }
 
@@ -340,7 +371,7 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             surfaceNormal.Normalize();
-            float outwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal);
+            float outwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal) - curvatureNormalSpeed;
             debugWallOutwardSpeed = outwardSpeed;
             if (outwardSpeed <= wallMaximumSurfaceSeparationSpeed)
             {
@@ -349,18 +380,40 @@ namespace RaceFatal.Presentation.Vehicles
 
             float excess = outwardSpeed - wallMaximumSurfaceSeparationSpeed;
             body.linearVelocity -= surfaceNormal * excess;
-            debugWallOutwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal);
+            debugWallOutwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal) - curvatureNormalSpeed;
         }
 
 #endregion
 #region Surface Physics
-        private void RunSurfacePhysics()
+        private void RunSurfacePhysics(bool continuousAttachment)
         {
-            Vector3 normal = surfaceProbe.SurfaceNormal;
+            Vector3 normal = surfaceProbe.ContactNormal;
+            bool closeToRoad = surfaceProbe.SurfaceDistance <= surfaceLockDistance;
+            if (continuousAttachment && closeToRoad && Vector3.Angle(previousSurfaceNormal, normal) <= maximumTransportAngle)
+            {
+                // Parallel transport only the road's tilt/bank, never its centreline
+                // heading. This preserves speed AND lateral ram/slide velocity.
+                Quaternion transport = Quaternion.FromToRotation(previousSurfaceNormal, normal);
+                Vector3 velocity = body.linearVelocity - previousSurfaceNormal * curvatureNormalSpeed;
+                Vector3 tangent = Vector3.ProjectOnPlane(velocity, previousSurfaceNormal);
+                // Physics advances position using the next velocity. A half-step
+                // curvature offset follows the arc instead of its tangent chord.
+                // Replace last tick's offset so it never accumulates extra force.
+                curvatureNormalSpeed = 0.5f * Vector3.Dot(transport * tangent - tangent, normal);
+                body.linearVelocity = transport * velocity + normal * curvatureNormalSpeed;
+                surfaceRotation = transport * body.rotation;
+                surfaceForward = surfaceRotation * Vector3.forward;
+            }
+            else
+            {
+                curvatureNormalSpeed = 0f;
+            }
+            previousSurfaceNormal = normal;
+            surfaceAttached = closeToRoad;
             debugSurfaceDistance = surfaceProbe.SurfaceDistance;
             ApplySurfaceLock(normal);
             ClampSurfaceSeparation(normal);
-            AlignToSurface(normal);
+            AlignToSurface(surfaceProbe.SurfaceNormal);
             ApplyDrive(normal);
             ApplyBraking(normal);
             ApplyLateralGrip(normal);
@@ -372,7 +425,7 @@ namespace RaceFatal.Presentation.Vehicles
         {
             float surfaceDistance = surfaceProbe.SurfaceDistance;
             float distanceError = surfaceDistance - desiredSurfaceDistance;
-            float normalVelocity = Vector3.Dot(body.linearVelocity, surfaceNormal);
+            float normalVelocity = Vector3.Dot(body.linearVelocity, surfaceNormal) - curvatureNormalSpeed;
             debugSurfaceNormalSpeed = normalVelocity;
             float correctionAcceleration = distanceError * surfaceSpringStrength;
             correctionAcceleration += normalVelocity * surfaceSpringDamping;
@@ -388,7 +441,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            float outwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal);
+            float outwardSpeed = Vector3.Dot(body.linearVelocity, surfaceNormal) - curvatureNormalSpeed;
             if (outwardSpeed <= maximumSurfaceSeparationSpeed)
             {
                 return;
@@ -412,7 +465,7 @@ namespace RaceFatal.Presentation.Vehicles
 
         private void AlignToSurface(Vector3 normal)
         {
-            Vector3 forward = Vector3.ProjectOnPlane(transform.forward, normal);
+            Vector3 forward = Vector3.ProjectOnPlane(surfaceForward, normal);
             if (forward.sqrMagnitude < 0.001f)
                 return;
             forward.Normalize();
@@ -424,15 +477,16 @@ namespace RaceFatal.Presentation.Vehicles
             forward = Quaternion.AngleAxis(turnAngle, normal) * forward;
             Quaternion targetRotation = Quaternion.LookRotation(forward, normal);
             float alignmentT = 1f - Mathf.Exp(-alignmentSpeed * Time.fixedDeltaTime);
-            Quaternion aligned = Quaternion.Slerp(body.rotation, targetRotation, alignmentT);
+            Quaternion aligned = Quaternion.Slerp(surfaceRotation, targetRotation, alignmentT);
             body.MoveRotation(aligned);
+            surfaceForward = aligned * Vector3.forward;
         }
 
 #endregion
 #region Drive
         private void ApplyDrive(Vector3 surfaceNormal)
         {
-            Vector3 forward = Vector3.ProjectOnPlane(transform.forward, surfaceNormal);
+            Vector3 forward = Vector3.ProjectOnPlane(surfaceForward, surfaceNormal);
             if (forward.sqrMagnitude < 0.001f)
             {
                 debugForwardSpeed = 0f;
@@ -478,7 +532,7 @@ namespace RaceFatal.Presentation.Vehicles
 #region Lateral Grip
         private void ApplyLateralGrip(Vector3 surfaceNormal)
         {
-            Vector3 forward = Vector3.ProjectOnPlane(transform.forward, surfaceNormal);
+            Vector3 forward = Vector3.ProjectOnPlane(surfaceForward, surfaceNormal);
             if (forward.sqrMagnitude < 0.001f)
                 return;
             forward.Normalize();
@@ -503,7 +557,7 @@ namespace RaceFatal.Presentation.Vehicles
             timeWithoutSurface += Time.fixedDeltaTime;
             debugTimeWithoutSurface = timeWithoutSurface;
             debugSurfaceCorrection = 0f;
-            if (!surfaceProbe.HasSurface)
+            if (!hasAcquiredSurface)
             {
                 if (timeWithoutSurface <= initialSurfaceGraceTime)
                 {
@@ -515,7 +569,7 @@ namespace RaceFatal.Presentation.Vehicles
                 return;
             }
 
-            if (timeWithoutSurface <= surfaceLossGraceTime)
+            if (surfaceAttached && timeWithoutSurface <= surfaceLossGraceTime)
             {
                 Vector3 estimatedNormal = surfaceProbe.LastSurfaceNormal;
                 AlignToSurface(estimatedNormal);
@@ -527,6 +581,8 @@ namespace RaceFatal.Presentation.Vehicles
             }
 
             ApplyAirGravity();
+            surfaceAttached = false;
+            curvatureNormalSpeed = 0f;
         }
 
         private void ApplyAirGravity()
